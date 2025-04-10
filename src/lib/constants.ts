@@ -1,3 +1,4 @@
+
 // Global constants
 export const SELLER_ID = "0102030405";
 export const RAFFLE_ID = "fd6bd3bc-d81f-48a9-be58-8880293a0472";
@@ -106,8 +107,7 @@ export const mockPrizes: Prize[] = [
     detail: "Automóvil sedan 4 puertas, transmisión automática, color rojo, modelo 2025, incluye seguro por un año",
     value: 1000,
     url_image: "https://via.placeholder.com/800x600.png?text=Auto+0KM",
-    raffle_id: RAFFLE_ID,
-    order: 1
+    raffle_id: RAFFLE_ID
   },
   {
     id: "prize-2",
@@ -116,8 +116,7 @@ export const mockPrizes: Prize[] = [
     detail: "Viaje todo incluido para dos personas a Cancún por 7 días y 6 noches, incluye vuelos, hotel 5 estrellas, alimentación y tours",
     value: 500,
     url_image: "https://via.placeholder.com/800x600.png?text=Viaje",
-    raffle_id: RAFFLE_ID,
-    order: 2
+    raffle_id: RAFFLE_ID
   },
   {
     id: "prize-3",
@@ -126,8 +125,7 @@ export const mockPrizes: Prize[] = [
     detail: "iPhone 16 Pro con 512GB de almacenamiento, color titanio, incluye garantía extendida por 2 años y accesorios premium",
     value: 1500,
     url_image: "https://via.placeholder.com/800x600.png?text=iPhone",
-    raffle_id: RAFFLE_ID,
-    order: 3
+    raffle_id: RAFFLE_ID
   }
 ];
 
@@ -136,50 +134,43 @@ export const mockPrizeImages: PrizeImage[] = [
     id: "img-1",
     prize_id: "prize-1",
     url_image: "https://via.placeholder.com/800x600.png?text=Auto+1",
-    image_url: "https://via.placeholder.com/800x600.png?text=Auto+1",
-    order: 1
+    image_url: "https://via.placeholder.com/800x600.png?text=Auto+1"
   },
   {
     id: "img-2",
     prize_id: "prize-1",
     url_image: "https://via.placeholder.com/800x600.png?text=Auto+2",
-    image_url: "https://via.placeholder.com/800x600.png?text=Auto+2",
-    order: 2
+    image_url: "https://via.placeholder.com/800x600.png?text=Auto+2"
   },
   {
     id: "img-3",
     prize_id: "prize-1",
     url_image: "https://via.placeholder.com/800x600.png?text=Auto+3",
-    image_url: "https://via.placeholder.com/800x600.png?text=Auto+3",
-    order: 3
+    image_url: "https://via.placeholder.com/800x600.png?text=Auto+3"
   },
   {
     id: "img-4",
     prize_id: "prize-2",
     url_image: "https://via.placeholder.com/800x600.png?text=Viaje+1",
-    image_url: "https://via.placeholder.com/800x600.png?text=Viaje+1",
-    order: 1
+    image_url: "https://via.placeholder.com/800x600.png?text=Viaje+1"
   },
   {
     id: "img-5",
     prize_id: "prize-2",
     url_image: "https://via.placeholder.com/800x600.png?text=Viaje+2",
-    image_url: "https://via.placeholder.com/800x600.png?text=Viaje+2",
-    order: 2
+    image_url: "https://via.placeholder.com/800x600.png?text=Viaje+2"
   },
   {
     id: "img-6",
     prize_id: "prize-3",
     url_image: "https://via.placeholder.com/800x600.png?text=iPhone+1",
-    image_url: "https://via.placeholder.com/800x600.png?text=iPhone+1",
-    order: 1
+    image_url: "https://via.placeholder.com/800x600.png?text=iPhone+1"
   },
   {
     id: "img-7",
     prize_id: "prize-3",
     url_image: "https://via.placeholder.com/800x600.png?text=iPhone+2",
-    image_url: "https://via.placeholder.com/800x600.png?text=iPhone+2",
-    order: 2
+    image_url: "https://via.placeholder.com/800x600.png?text=iPhone+2"
   }
 ];
 

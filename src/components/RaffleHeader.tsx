@@ -13,9 +13,13 @@ const RaffleHeader: React.FC<RaffleHeaderProps> = ({ organization }) => {
         <img 
           src={organization.organization_logo_url} 
           alt={organization.organization_name} 
-          className="w-12 h-12 object-cover rounded-full mr-3"
+          className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-full mr-3"
+          onError={(e) => {
+            // Fallback to placeholder if image fails to load
+            e.currentTarget.src = "https://via.placeholder.com/100x100.png?text=Logo";
+          }}
         />
-        <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+        <h1 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-100">
           {organization.organization_name}
         </h1>
       </div>

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Trash2, CheckCircle2, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
+import { Card } from '@/components/ui/card';
 
 interface RaffleNumber {
   id: string;
@@ -97,11 +98,17 @@ const NumberGrid: React.FC<NumberGridProps> = ({
               number-grid-item
               flex items-center justify-center
               border rounded-md
-              h-12 w-12 sm:h-10 sm:w-10 md:h-12 md:w-12
+              h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10
               cursor-pointer
-              text-center
-              ${status !== 'available' ? 'bg-gray-100 cursor-not-allowed' : ''}
-              ${isSelected ? 'bg-rifa-purple text-white' : status === 'available' ? 'bg-white hover:bg-gray-100' : ''}
+              text-sm font-medium
+              ${status !== 'available' ? 'bg-gray-100 dark:bg-gray-700 cursor-not-allowed text-gray-500 dark:text-gray-400' : ''}
+              ${isSelected 
+                ? 'bg-rifa-purple text-white dark:bg-purple-700 dark:text-white border-rifa-purple dark:border-purple-600' 
+                : status === 'available' 
+                  ? 'bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200' 
+                  : ''
+              }
+              transition-colors duration-150
             `}
             onClick={() => toggleNumber(paddedNum, status)}
           >
@@ -111,7 +118,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       }
       
       grid.push(
-        <div key={`row-${row}`} className="flex gap-2 justify-center">
+        <div key={`row-${row}`} className="flex gap-1 sm:gap-2 justify-center">
           {rowItems}
         </div>
       );
@@ -122,62 +129,67 @@ const NumberGrid: React.FC<NumberGridProps> = ({
 
   return (
     <div className="mb-8">
-      <h2 className="text-lg font-semibold mb-4 text-center text-gray-800">Seleccione sus números</h2>
+      <h2 className="text-lg font-semibold mb-4 text-center text-gray-800 dark:text-gray-200">Seleccione sus números</h2>
       
-      <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
-        <div className="flex flex-col gap-4">
+      <Card className="p-2 sm:p-4 mb-4 bg-white dark:bg-gray-800 overflow-x-auto">
+        <div className="flex flex-col gap-1 sm:gap-2 min-w-fit">
           {renderGrid()}
         </div>
-      </div>
+      </Card>
       
-      <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm">
-        <div className="text-sm">
-          <span className="font-medium">Seleccionados:</span> {selectedNumbers.length} de {raffleSeller.cant_max}
-        </div>
-        
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            className="border-gray-300 text-gray-700"
-            onClick={clearSelection}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Limpiar
-          </Button>
+      <Card className="p-3 sm:p-4 mb-4 bg-white dark:bg-gray-800">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+          <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <span>Seleccionados:</span> {selectedNumbers.length} de {raffleSeller.cant_max}
+          </div>
           
-          <Button
-            variant="outline"
-            className="border-amber-500 text-amber-600 hover:bg-amber-500 hover:text-white"
-            onClick={handleReserve}
-          >
-            <CheckCircle2 className="h-4 w-4 mr-2" />
-            Apartar
-          </Button>
-          
-          <Button
-            className="bg-rifa-purple hover:bg-rifa-darkPurple"
-            onClick={handleProceedToPayment}
-          >
-            <CreditCard className="h-4 w-4 mr-2" />
-            Pagar
-          </Button>
+          <div className="flex flex-wrap gap-2 justify-center sm:justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-gray-300 text-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+              onClick={clearSelection}
+            >
+              <Trash2 className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="text-xs sm:text-sm">Limpiar</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-amber-500 text-amber-600 hover:bg-amber-500 hover:text-white dark:border-amber-600 dark:text-amber-400 dark:hover:bg-amber-600"
+              onClick={handleReserve}
+            >
+              <CheckCircle2 className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="text-xs sm:text-sm">Apartar</span>
+            </Button>
+            
+            <Button
+              size="sm"
+              className="bg-rifa-purple hover:bg-rifa-darkPurple text-white dark:bg-purple-700 dark:hover:bg-purple-800"
+              onClick={handleProceedToPayment}
+            >
+              <CreditCard className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="text-xs sm:text-sm">Pagar</span>
+            </Button>
+          </div>
         </div>
-      </div>
+      </Card>
       
-      <div className="mt-4 flex gap-4 justify-center">
+      <div className="mt-4 flex flex-wrap gap-4 justify-center">
         <div className="flex items-center">
-          <div className="h-4 w-4 bg-white border rounded-sm mr-2"></div>
-          <span className="text-xs text-gray-600">Disponible</span>
+          <div className="h-4 w-4 bg-white dark:bg-gray-800 border dark:border-gray-600 rounded-sm mr-2"></div>
+          <span className="text-xs text-gray-600 dark:text-gray-400">Disponible</span>
         </div>
         
         <div className="flex items-center">
-          <div className="h-4 w-4 bg-rifa-purple rounded-sm mr-2"></div>
-          <span className="text-xs text-gray-600">Seleccionado</span>
+          <div className="h-4 w-4 bg-rifa-purple dark:bg-purple-700 rounded-sm mr-2"></div>
+          <span className="text-xs text-gray-600 dark:text-gray-400">Seleccionado</span>
         </div>
         
         <div className="flex items-center">
-          <div className="h-4 w-4 bg-gray-100 rounded-sm mr-2"></div>
-          <span className="text-xs text-gray-600">No disponible</span>
+          <div className="h-4 w-4 bg-gray-100 dark:bg-gray-700 rounded-sm mr-2"></div>
+          <span className="text-xs text-gray-600 dark:text-gray-400">No disponible</span>
         </div>
       </div>
     </div>
