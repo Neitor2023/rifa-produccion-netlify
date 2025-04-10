@@ -2,8 +2,28 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Trash2, CheckCircle2, CreditCard } from 'lucide-react';
-import { RaffleNumber, RaffleSeller } from '@/lib/constants';
 import { toast } from 'sonner';
+
+interface RaffleNumber {
+  id: string;
+  raffle_id: string;
+  number: string;
+  status: string;
+  seller_id: string | null;
+  buyer_name: string | null;
+  buyer_phone: string | null;
+  payment_method: string | null;
+  payment_proof: string | null;
+  payment_date: string | null;
+}
+
+interface RaffleSeller {
+  id: string;
+  raffle_id: string;
+  seller_id: string;
+  active: boolean;
+  cant_max: number;
+}
 
 interface NumberGridProps {
   numbers: RaffleNumber[];
@@ -47,6 +67,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       return;
     }
     onReserve(selectedNumbers);
+    setSelectedNumbers([]);
   };
   
   const handleProceedToPayment = () => {
@@ -79,8 +100,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
               h-12 w-12 sm:h-10 sm:w-10 md:h-12 md:w-12
               cursor-pointer
               text-center
-              ${status !== 'available' ? 'disabled' : ''}
-              ${isSelected ? 'selected' : status === 'available' ? 'bg-white hover:bg-gray-100' : ''}
+              ${status !== 'available' ? 'bg-gray-100 cursor-not-allowed' : ''}
+              ${isSelected ? 'bg-rifa-purple text-white' : status === 'available' ? 'bg-white hover:bg-gray-100' : ''}
             `}
             onClick={() => toggleNumber(paddedNum, status)}
           >

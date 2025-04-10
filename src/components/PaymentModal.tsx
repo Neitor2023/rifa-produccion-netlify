@@ -45,7 +45,7 @@ const paymentFormSchema = z.object({
   paymentMethod: z.enum(["cash", "transfer"], { 
     required_error: "Seleccione un método de pago" 
   }),
-  paymentProof: z.string().optional(),
+  paymentProof: z.any().optional(),
 });
 
 export type PaymentFormData = z.infer<typeof paymentFormSchema>;
@@ -58,7 +58,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   onComplete
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentFormSchema),
@@ -66,14 +67,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       buyerName: "",
       buyerPhone: "",
       paymentMethod: undefined,
-      paymentProof: "",
+      paymentProof: undefined,
     },
   });
   
   const onSubmit = (data: PaymentFormData) => {
     setIsSubmitting(true);
     
-    // Simulate image upload
+    // Validate payment proof for transfer method
     if (data.paymentMethod === "transfer" && !uploadedImage) {
       toast.error("Por favor suba un comprobante de pago");
       setIsSubmitting(false);
@@ -85,22 +86,24 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       data.paymentProof = uploadedImage;
     }
     
-    // Simulate API call
-    setTimeout(() => {
-      onComplete(data);
-      setIsSubmitting(false);
-      form.reset();
-      setUploadedImage(null);
-    }, 1500);
+    // Submit the form
+    onComplete(data);
+    setIsSubmitting(false);
+    form.reset();
+    setUploadedImage(null);
+    setPreviewUrl(null);
   };
   
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // For demo purposes, just create a dummy URL
-    // In a real app, this would upload to Supabase storage
-    setUploadedImage(URL.createObjectURL(file));
+    // Set the uploaded file
+    setUploadedImage(file);
+    
+    // Create a preview URL
+    const preview = URL.createObjectURL(file);
+    setPreviewUrl(preview);
   };
   
   const totalAmount = selectedNumbers.length * price;
@@ -190,10 +193,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               <div className="space-y-2">
                 <FormLabel>Comprobante de pago</FormLabel>
                 
-                {uploadedImage ? (
+                {previewUrl ? (
                   <div className="relative">
                     <img 
-                      src={uploadedImage} 
+                      src={previewUrl} 
                       alt="Comprobante" 
                       className="w-full h-48 object-cover rounded-md border"
                     />
@@ -202,13 +205,16 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                       variant="destructive"
                       size="sm"
                       className="absolute top-2 right-2"
-                      onClick={() => setUploadedImage(null)}
+                      onClick={() => {
+                        setUploadedImage(null);
+                        setPreviewUrl(null);
+                      }}
                     >
                       Eliminar
                     </Button>
                   </div>
                 ) : (
-                  <div className="border border-dashed border-gray-300 rounded-md p-6 text-center">
+                  <div className="border border-dashed border-gray-300 rounded-md p-6 text-center relative">
                     <Upload className="h-8 w-8 mx-auto text-gray-400" />
                     <p className="mt-2 text-sm text-gray-500">
                       Haga clic para subir o arrastre su comprobante aquí

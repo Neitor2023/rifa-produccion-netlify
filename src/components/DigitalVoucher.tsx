@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -11,7 +11,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { QrCode, Share } from 'lucide-react';
 import { PaymentFormData } from './PaymentModal';
-import { mockRaffle, mockOrganization } from '@/lib/constants';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DigitalVoucherProps {
   isOpen: boolean;
@@ -20,32 +21,69 @@ interface DigitalVoucherProps {
   selectedNumbers: string[];
 }
 
+const RAFFLE_ID = "fd6bd3bc-d81f-48a9-be58-8880293a0472";
+
 const DigitalVoucher: React.FC<DigitalVoucherProps> = ({ 
   isOpen, 
   onClose, 
   paymentData,
   selectedNumbers
 }) => {
+  // Fetch raffle data for the title
+  const { data: raffle } = useQuery({
+    queryKey: ['raffle', RAFFLE_ID],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('raffles')
+        .select('*')
+        .eq('id', RAFFLE_ID)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  // Fetch organization data for sharing
+  const { data: organization } = useQuery({
+    queryKey: ['organization'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('organization')
+        .select('*')
+        .limit(1)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
   if (!paymentData) return null;
   
   const handleShareWhatsApp = () => {
     const numbersText = selectedNumbers.join(', ');
-    const message = `¡Acabo de comprar mis números para la rifa "${mockRaffle.title}"! Mis números son: ${numbersText}. ¡Organizado por ${mockOrganization.organization_name}!`;
+    const message = `¡Acabo de comprar mis números para la rifa "${raffle?.title || 'Rifa'}"! Mis números son: ${numbersText}. ¡Organizado por ${organization?.organization_name || 'Romy Rifa'}!`;
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
   };
   
   // Generate a random ID for the purchase
-  const purchaseId = Math.random().toString(36).substring(2, 10).toUpperCase();
+  const purchaseId = useMemo(() => Math.random().toString(36).substring(2, 10).toUpperCase(), []);
   
+  // Create QR data
   const qrData = JSON.stringify({
     purchaseId,
+    raffleId: RAFFLE_ID,
     numbers: selectedNumbers,
     buyerName: paymentData.buyerName,
     buyerPhone: paymentData.buyerPhone,
     paymentMethod: paymentData.paymentMethod,
     date: new Date().toISOString()
   });
+  
+  // Generate QR code using an API
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrData)}`;
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -61,14 +99,13 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         
         <div className="bg-white border rounded-lg p-6">
           <div className="text-center mb-4">
-            <h3 className="font-semibold text-lg text-gray-800">{mockRaffle.title}</h3>
+            <h3 className="font-semibold text-lg text-gray-800">{raffle?.title || 'Rifa'}</h3>
             <p className="text-gray-500 text-sm">Comprobante #{purchaseId}</p>
           </div>
           
           <div className="flex justify-center mb-6">
             <div className="p-2 border border-gray-200 rounded-md">
-              {/* In a real app, this would generate an actual QR code */}
-              <QrCode size={150} className="text-gray-800" />
+              <img src={qrCodeUrl} alt="QR Code" width="150" height="150" />
             </div>
           </div>
           
