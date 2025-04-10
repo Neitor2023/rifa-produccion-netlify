@@ -10,11 +10,12 @@ import DigitalVoucher from '@/components/DigitalVoucher';
 import DarkModeToggle from '@/components/DarkModeToggle';
 
 import { Card, CardContent } from '@/components/ui/card';
-import { User, Phone, Loader2 } from 'lucide-react';
+import { User, Phone, Loader2, CalendarDays, Info, DollarSign, Ticket } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentFormData } from '@/components/PaymentModal';
+import { format } from 'date-fns';
 
 // Define the seller and raffle IDs as constants
 const SELLER_ID = "0102030405";
@@ -352,37 +353,124 @@ const VentaBoletos: React.FC = () => {
   // Show loading state if data is still loading
   if (isLoadingSeller || isLoadingRaffle || isLoadingPrizes || isLoadingOrganization || isLoadingRaffleNumbers) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <Loader2 className="animate-spin h-12 w-12 text-rifa-purple" />
-        <span className="ml-2 text-xl font-medium">Cargando...</span>
+        <span className="ml-2 text-xl font-medium dark:text-white">Cargando...</span>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="flex justify-between items-center px-4">
-        {organization && <RaffleHeader organization={organization} />}
-        <DarkModeToggle />
-      </div>
-      
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       <div className="container px-4 py-6 max-w-3xl mx-auto">
-        <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">
+        {/* 1. Logo and organization name */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex-1">
+            {organization && <RaffleHeader organization={organization} />}
+          </div>
+          <DarkModeToggle />
+        </div>
+        
+        {/* 2. Raffle title */}
+        <h1 className="text-2xl font-bold text-center mb-6 text-gray-800 dark:text-gray-100">
           {raffle?.title || 'Cargando...'}
         </h1>
         
-        {prizes && prizeImages && (
+        {/* 3. Prize carousel (only image) */}
+        {prizes && (
           <PrizeCarousel 
             prizes={prizes} 
             onViewDetails={handleViewPrizeDetails}
           />
         )}
         
+        {/* 4. Number grid */}
+        {raffleNumbers && (
+          <div className="mb-8">
+            <NumberGrid 
+              numbers={formatNumbersForGrid()}
+              raffleSeller={{
+                id: raffleSeller?.id || 'default',
+                raffle_id: RAFFLE_ID,
+                seller_id: seller?.id || SELLER_ID,
+                active: true,
+                cant_max: maxNumbersAllowed
+              }}
+              onReserve={handleReserveNumbers}
+              onProceedToPayment={handleProceedToPayment}
+            />
+          </div>
+        )}
+        
+        {/* 6-10. Raffle information */}
+        {raffle && (
+          <Card className="mb-8 bg-white dark:bg-gray-800">
+            <CardContent className="p-5 space-y-4">
+              {/* 6. Raffle description */}
+              <div>
+                <h3 className="flex items-center font-medium mb-2 text-gray-800 dark:text-gray-100">
+                  <Info className="h-5 w-5 mr-2 text-rifa-purple" />
+                  Descripción
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300">{raffle.description}</p>
+              </div>
+              
+              {/* 7. Lottery info */}
+              {raffle.lottery && (
+                <div>
+                  <h3 className="flex items-center font-medium mb-2 text-gray-800 dark:text-gray-100">
+                    <Ticket className="h-5 w-5 mr-2 text-rifa-purple" />
+                    Lotería
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300">{raffle.lottery}</p>
+                </div>
+              )}
+              
+              {/* 8. Raffle date */}
+              {raffle.date_lottery && (
+                <div>
+                  <h3 className="flex items-center font-medium mb-2 text-gray-800 dark:text-gray-100">
+                    <CalendarDays className="h-5 w-5 mr-2 text-rifa-purple" />
+                    Fecha del Sorteo
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {new Date(raffle.date_lottery).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
+              
+              {/* 9. Payment instructions */}
+              {raffle.payment_instructions && (
+                <div>
+                  <h3 className="flex items-center font-medium mb-2 text-gray-800 dark:text-gray-100">
+                    <DollarSign className="h-5 w-5 mr-2 text-rifa-purple" />
+                    Instrucciones de Pago
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300">{raffle.payment_instructions}</p>
+                </div>
+              )}
+              
+              {/* 10. Price */}
+              <div>
+                <h3 className="flex items-center font-medium mb-2 text-gray-800 dark:text-gray-100">
+                  <DollarSign className="h-5 w-5 mr-2 text-rifa-purple" />
+                  Precio
+                </h3>
+                <p className="text-lg font-semibold text-rifa-purple dark:text-rifa-lightPurple">
+                  {raffle.price} {raffle.currency}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
+        {/* 11. Seller information */}
         {seller && (
-          <Card className="mb-8">
+          <Card className="mb-8 bg-white dark:bg-gray-800">
             <CardContent className="p-4">
+              <h3 className="font-medium mb-3 text-gray-800 dark:text-gray-100">Información del Vendedor</h3>
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
                   {seller.avatar ? (
                     <img 
                       src={seller.avatar} 
@@ -390,40 +478,32 @@ const VentaBoletos: React.FC = () => {
                       className="h-full w-full object-cover rounded-full"
                     />
                   ) : (
-                    <User className="h-8 w-8 text-gray-500" />
+                    <User className="h-8 w-8 text-gray-500 dark:text-gray-400" />
                   )}
                 </div>
                 <div>
-                  <h3 className="font-medium text-gray-800">{seller.name}</h3>
-                  <div className="flex items-center text-gray-600 text-sm mt-1">
+                  <h3 className="font-medium text-gray-800 dark:text-gray-100">{seller.name}</h3>
+                  <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm mt-1">
                     <Phone className="h-4 w-4 mr-1" />
                     <span>{seller.phone}</span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">Vendedor ID: {seller.id}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Vendedor ID: {seller.id}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         )}
         
+        {/* 12. Organizer info */}
         {organization && <OrganizerInfo organization={organization} />}
         
-        {raffleNumbers && (
-          <NumberGrid 
-            numbers={formatNumbersForGrid()}
-            raffleSeller={{
-              id: raffleSeller?.id || 'default',
-              raffle_id: RAFFLE_ID,
-              seller_id: seller?.id || SELLER_ID,
-              active: true,
-              cant_max: maxNumbersAllowed
-            }}
-            onReserve={handleReserveNumbers}
-            onProceedToPayment={handleProceedToPayment}
-          />
-        )}
+        {/* 13. Legal note */}
+        <div className="text-center text-xs text-gray-500 dark:text-gray-400 italic mb-8">
+          Las plataformas de redes sociales no están asociadas a esta rifa.
+        </div>
       </div>
       
+      {/* Modals */}
       <PrizeDetailModal 
         isOpen={isPrizeModalOpen}
         onClose={() => setIsPrizeModalOpen(false)}

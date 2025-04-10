@@ -28,7 +28,7 @@ const PrizeCarousel: React.FC<PrizeCarouselProps> = ({ prizes, onViewDetails }) 
           <Button 
             variant="outline" 
             size="icon" 
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md hover:bg-gray-100"
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
             onClick={() => scroll('left')}
           >
             <ChevronLeft className="h-4 w-4" />
@@ -37,7 +37,7 @@ const PrizeCarousel: React.FC<PrizeCarouselProps> = ({ prizes, onViewDetails }) 
           <Button 
             variant="outline" 
             size="icon" 
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md hover:bg-gray-100"
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
             onClick={() => scroll('right')}
           >
             <ChevronRight className="h-4 w-4" />
@@ -51,7 +51,7 @@ const PrizeCarousel: React.FC<PrizeCarouselProps> = ({ prizes, onViewDetails }) 
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {prizes.map((prize) => (
-          <Card key={prize.id} className="min-w-[280px] max-w-[320px] snap-center prize-card">
+          <Card key={prize.id} className="min-w-[280px] max-w-[320px] snap-center prize-card bg-white dark:bg-gray-800">
             <CardContent className="p-0">
               <div className="relative">
                 <img 
@@ -62,13 +62,12 @@ const PrizeCarousel: React.FC<PrizeCarouselProps> = ({ prizes, onViewDetails }) 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-t-lg" />
                 <div className="absolute bottom-0 left-0 p-4 text-white">
                   <h3 className="font-bold text-lg">{prize.name}</h3>
-                  <p className="text-sm text-white/90">{prize.description}</p>
                 </div>
               </div>
               <div className="p-4 flex justify-center">
                 <Button 
                   variant="outline" 
-                  className="border-rifa-purple text-rifa-purple hover:bg-rifa-purple hover:text-white transition-colors"
+                  className="border-rifa-purple text-rifa-purple hover:bg-rifa-purple hover:text-white transition-colors dark:text-rifa-lightPurple dark:border-rifa-lightPurple dark:hover:bg-rifa-darkPurple"
                   onClick={() => onViewDetails(prize)}
                 >
                   <Eye className="h-4 w-4 mr-2" />

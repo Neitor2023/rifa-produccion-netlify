@@ -1,4 +1,3 @@
-
 // Global constants
 export const SELLER_ID = "0102030405";
 export const RAFFLE_ID = "fd6bd3bc-d81f-48a9-be58-8880293a0472";
@@ -27,19 +26,26 @@ export interface Raffle {
 
 export interface Prize {
   id: string;
-  raffle_id: string;
   name: string;
   description: string;
-  detail: string;
+  detail?: string;
+  value: number;
   url_image: string;
-  order: number;
+  raffle_id: string;
+  private_note?: string;
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string;
 }
 
 export interface PrizeImage {
   id: string;
   prize_id: string;
   url_image: string;
-  order: number;
+  image_url: string;
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string;
 }
 
 export interface Seller {
@@ -95,29 +101,32 @@ export const mockRaffle: Raffle = {
 export const mockPrizes: Prize[] = [
   {
     id: "prize-1",
-    raffle_id: RAFFLE_ID,
     name: "Automóvil 0KM",
     description: "Flamante automóvil último modelo",
     detail: "Automóvil sedan 4 puertas, transmisión automática, color rojo, modelo 2025, incluye seguro por un año",
+    value: 1000,
     url_image: "https://via.placeholder.com/800x600.png?text=Auto+0KM",
+    raffle_id: RAFFLE_ID,
     order: 1
   },
   {
     id: "prize-2",
-    raffle_id: RAFFLE_ID,
     name: "Viaje Todo Pagado",
     description: "Viaje para dos personas",
     detail: "Viaje todo incluido para dos personas a Cancún por 7 días y 6 noches, incluye vuelos, hotel 5 estrellas, alimentación y tours",
+    value: 500,
     url_image: "https://via.placeholder.com/800x600.png?text=Viaje",
+    raffle_id: RAFFLE_ID,
     order: 2
   },
   {
     id: "prize-3",
-    raffle_id: RAFFLE_ID,
     name: "iPhone 16 Pro",
     description: "Último modelo de smartphone",
     detail: "iPhone 16 Pro con 512GB de almacenamiento, color titanio, incluye garantía extendida por 2 años y accesorios premium",
+    value: 1500,
     url_image: "https://via.placeholder.com/800x600.png?text=iPhone",
+    raffle_id: RAFFLE_ID,
     order: 3
   }
 ];
@@ -127,42 +136,49 @@ export const mockPrizeImages: PrizeImage[] = [
     id: "img-1",
     prize_id: "prize-1",
     url_image: "https://via.placeholder.com/800x600.png?text=Auto+1",
+    image_url: "https://via.placeholder.com/800x600.png?text=Auto+1",
     order: 1
   },
   {
     id: "img-2",
     prize_id: "prize-1",
     url_image: "https://via.placeholder.com/800x600.png?text=Auto+2",
+    image_url: "https://via.placeholder.com/800x600.png?text=Auto+2",
     order: 2
   },
   {
     id: "img-3",
     prize_id: "prize-1",
     url_image: "https://via.placeholder.com/800x600.png?text=Auto+3",
+    image_url: "https://via.placeholder.com/800x600.png?text=Auto+3",
     order: 3
   },
   {
     id: "img-4",
     prize_id: "prize-2",
     url_image: "https://via.placeholder.com/800x600.png?text=Viaje+1",
+    image_url: "https://via.placeholder.com/800x600.png?text=Viaje+1",
     order: 1
   },
   {
     id: "img-5",
     prize_id: "prize-2",
     url_image: "https://via.placeholder.com/800x600.png?text=Viaje+2",
+    image_url: "https://via.placeholder.com/800x600.png?text=Viaje+2",
     order: 2
   },
   {
     id: "img-6",
     prize_id: "prize-3",
     url_image: "https://via.placeholder.com/800x600.png?text=iPhone+1",
+    image_url: "https://via.placeholder.com/800x600.png?text=iPhone+1",
     order: 1
   },
   {
     id: "img-7",
     prize_id: "prize-3",
     url_image: "https://via.placeholder.com/800x600.png?text=iPhone+2",
+    image_url: "https://via.placeholder.com/800x600.png?text=iPhone+2",
     order: 2
   }
 ];
