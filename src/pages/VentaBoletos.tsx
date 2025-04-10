@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import RaffleHeader from '@/components/RaffleHeader';
 import PrizeCarousel from '@/components/PrizeCarousel';
@@ -42,7 +41,7 @@ const VentaBoletos: React.FC = () => {
     // In a real app, this would call an API to update the numbers' status
     const updatedNumbers = raffleNumbers.map(num => {
       if (numbers.includes(num.number) && num.status === 'available') {
-        return { ...num, status: 'reserved', seller_id: mockSeller.id };
+        return { ...num, status: 'reserved' as const, seller_id: mockSeller.id };
       }
       return num;
     });
@@ -63,7 +62,7 @@ const VentaBoletos: React.FC = () => {
       if (selectedNumbers.includes(num.number) && (num.status === 'available' || num.status === 'reserved')) {
         return {
           ...num,
-          status: 'sold',
+          status: 'sold' as const,
           seller_id: mockSeller.id,
           buyer_name: data.buyerName,
           buyer_phone: data.buyerPhone,

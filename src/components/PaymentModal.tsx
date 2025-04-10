@@ -28,7 +28,7 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loading, Upload, Check } from 'lucide-react';
+import { LoaderCircle, Upload, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface PaymentModalProps {
@@ -242,7 +242,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               >
                 {isSubmitting ? (
                   <>
-                    <Loading className="h-4 w-4 mr-2 animate-spin" />
+                    <LoaderCircle className="h-4 w-4 mr-2 animate-spin" />
                     Procesando...
                   </>
                 ) : (
