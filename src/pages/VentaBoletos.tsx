@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import RaffleHeader from '@/components/RaffleHeader';
 import PrizeCarousel from '@/components/PrizeCarousel';
@@ -15,11 +14,16 @@ import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentFormData } from '@/components/PaymentModal';
-import { format } from 'date-fns';
+import { Prize, PrizeImage } from '@/lib/constants';
 
 // Define the seller and raffle IDs as constants
 const SELLER_ID = "0102030405";
 const RAFFLE_ID = "fd6bd3bc-d81f-48a9-be58-8880293a0472";
+
+// Type to handle both url_image and image_url fields
+type ExtendedPrizeImage = PrizeImage & {
+  image_url?: string;
+};
 
 const VentaBoletos: React.FC = () => {
   const [selectedPrize, setSelectedPrize] = useState<any | null>(null);
@@ -87,7 +91,12 @@ const VentaBoletos: React.FC = () => {
         .in('prize_id', prizes.map(p => p.id));
       
       if (error) throw error;
-      return data;
+      
+      // Transform the data to include url_image field for compatibility
+      return (data || []).map(img => ({
+        ...img,
+        url_image: img.image_url // Map image_url to url_image
+      })) as PrizeImage[];
     },
     enabled: !!prizes?.length
   });
@@ -508,7 +517,7 @@ const VentaBoletos: React.FC = () => {
         isOpen={isPrizeModalOpen}
         onClose={() => setIsPrizeModalOpen(false)}
         prize={selectedPrize}
-        prizeImages={(prizeImages || []).filter(img => img.prize_id === selectedPrize?.id)}
+        prizeImages={(prizeImages || []) as PrizeImage[]}
       />
       
       <PaymentModal 

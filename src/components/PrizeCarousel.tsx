@@ -3,7 +3,8 @@ import React from 'react';
 import { Prize } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Eye } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { Card } from '@/components/ui/card';
 
 interface PrizeCarouselProps {
   prizes: Prize[];
@@ -51,18 +52,20 @@ const PrizeCarousel: React.FC<PrizeCarouselProps> = ({ prizes, onViewDetails }) 
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {prizes.map((prize) => (
-          <Card key={prize.id} className="min-w-[280px] max-w-[320px] snap-center prize-card bg-white dark:bg-gray-800 overflow-hidden">
-            <CardContent className="p-0">
-              <div className="h-48 relative cursor-pointer" onClick={() => onViewDetails(prize)}>
-                <img 
-                  src={prize.url_image} 
-                  alt={prize.name} 
-                  className="w-full h-48 object-cover"
-                  onError={(e) => {
-                    // Fallback to placeholder if image fails to load
-                    e.currentTarget.src = "https://via.placeholder.com/800x600.png?text=Premio";
-                  }}
-                />
+          <div key={prize.id} className="min-w-[280px] max-w-[320px] snap-center bg-transparent">
+            <Card className="overflow-hidden cursor-pointer" onClick={() => onViewDetails(prize)}>
+              <div className="relative">
+                <AspectRatio ratio={4/3}>
+                  <img 
+                    src={prize.url_image} 
+                    alt={prize.name} 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Fallback to placeholder if image fails to load
+                      e.currentTarget.src = "https://via.placeholder.com/800x600.png?text=Premio";
+                    }}
+                  />
+                </AspectRatio>
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                   <Button 
                     variant="secondary"
@@ -73,8 +76,8 @@ const PrizeCarousel: React.FC<PrizeCarouselProps> = ({ prizes, onViewDetails }) 
                   </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </Card>
+          </div>
         ))}
       </div>
     </div>
