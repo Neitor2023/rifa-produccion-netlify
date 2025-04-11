@@ -61,7 +61,10 @@ const PrizeCarousel: React.FC<PrizeCarouselProps> = ({ prizes, onViewDetails }) 
       >
         {prizes.map((prize) => (
           <div key={prize.id} className="min-w-[280px] max-w-[320px] snap-center bg-transparent">
-            <Card className="overflow-hidden cursor-pointer relative" onClick={() => onViewDetails(prize)}>
+            <Card 
+              className="overflow-hidden cursor-pointer relative" 
+              onClick={() => onViewDetails(prize)}
+            >
               <div className="relative">
                 <AspectRatio ratio={4/3}>
                   <SafeImage 
@@ -72,7 +75,7 @@ const PrizeCarousel: React.FC<PrizeCarouselProps> = ({ prizes, onViewDetails }) 
                 </AspectRatio>
                 
                 {/* Button always visible */}
-                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors">
                   <Button 
                     variant="secondary"
                     className="bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-700"

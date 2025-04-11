@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import RaffleHeader from '@/components/RaffleHeader';
 import PrizeCarousel from '@/components/PrizeCarousel';
@@ -116,6 +117,68 @@ const VentaBoletos: React.FC = () => {
       return data;
     }
   });
+  
+  // Fetch admin and organizer data from users table
+  const { data: adminUser, isLoading: isLoadingAdmin } = useQuery({
+    queryKey: ['admin', raffle?.id_admin],
+    queryFn: async () => {
+      if (!raffle?.id_admin) return null;
+      
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', raffle.id_admin)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching admin:', error);
+        return null;
+      }
+      
+      return data;
+    },
+    enabled: !!raffle?.id_admin
+  });
+  
+  const { data: organizerUser, isLoading: isLoadingOrganizer } = useQuery({
+    queryKey: ['organizer', raffle?.id_organizer],
+    queryFn: async () => {
+      if (!raffle?.id_organizer) return null;
+      
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', raffle.id_organizer)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching organizer:', error);
+        return null;
+      }
+      
+      return data;
+    },
+    enabled: !!raffle?.id_organizer
+  });
+  
+  // Update organization data with admin and organizer information
+  useEffect(() => {
+    if (organization && (adminUser || organizerUser)) {
+      const updatedOrganization = { ...organization };
+      
+      if (adminUser) {
+        updatedOrganization.admin_name = adminUser.name;
+        updatedOrganization.admin_phone_number = adminUser.phone_number || '';
+        updatedOrganization.admin_photo = adminUser.avatar;
+      }
+      
+      if (organizerUser) {
+        updatedOrganization.org_name = organizerUser.name;
+        updatedOrganization.org_phone_number = organizerUser.phone_number || '';
+        updatedOrganization.org_photo = organizerUser.avatar;
+      }
+    }
+  }, [organization, adminUser, organizerUser]);
   
   // Fetch raffle numbers
   const { data: raffleNumbers, isLoading: isLoadingRaffleNumbers, refetch: refetchRaffleNumbers } = useQuery({
@@ -359,6 +422,16 @@ const VentaBoletos: React.FC = () => {
       toast.error('Error al completar el pago');
     }
   };
+
+  // Log prize data and images for debugging
+  useEffect(() => {
+    if (prizes) {
+      console.log("Prize data:", prizes);
+    }
+    if (prizeImages) {
+      console.log("Prize images:", prizeImages);
+    }
+  }, [prizes, prizeImages]);
 
   // Show loading state if data is still loading
   if (isLoadingSeller || isLoadingRaffle || isLoadingPrizes || isLoadingOrganization || isLoadingRaffleNumbers) {

@@ -42,7 +42,7 @@ const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, pr
         displayUrl: img.url_image || img.image_url
       }));
       
-    console.log(`Found ${filteredImages.length} images for prize ${prize.name}:`, 
+    console.log(`Found ${filteredImages.length} images for prize ${prize?.name}:`, 
       filteredImages.map(img => img.displayUrl));
     
     return filteredImages;

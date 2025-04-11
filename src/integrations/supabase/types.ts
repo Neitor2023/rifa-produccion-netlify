@@ -421,6 +421,8 @@ export type Database = {
           description: string
           draw_date: string
           id: string
+          id_admin: string | null
+          id_organizer: string | null
           lottery: string | null
           payment_instructions: string | null
           price: number
@@ -439,6 +441,8 @@ export type Database = {
           description: string
           draw_date: string
           id?: string
+          id_admin?: string | null
+          id_organizer?: string | null
           lottery?: string | null
           payment_instructions?: string | null
           price: number
@@ -457,6 +461,8 @@ export type Database = {
           description?: string
           draw_date?: string
           id?: string
+          id_admin?: string | null
+          id_organizer?: string | null
           lottery?: string | null
           payment_instructions?: string | null
           price?: number
@@ -467,7 +473,22 @@ export type Database = {
           url_image?: string
           url_sellers?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_raffles_admin"
+            columns: ["id_admin"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_raffles_organizer"
+            columns: ["id_organizer"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sellers: {
         Row: {
@@ -547,6 +568,7 @@ export type Database = {
           id: string
           name: string
           password_hash: string
+          phone_number: string | null
           role: string
           updated_at: string | null
         }
@@ -558,6 +580,7 @@ export type Database = {
           id?: string
           name: string
           password_hash: string
+          phone_number?: string | null
           role: string
           updated_at?: string | null
         }
@@ -569,6 +592,7 @@ export type Database = {
           id?: string
           name?: string
           password_hash?: string
+          phone_number?: string | null
           role?: string
           updated_at?: string | null
         }
