@@ -23,6 +23,13 @@ const PrizeCarousel: React.FC<PrizeCarouselProps> = ({ prizes, onViewDetails }) 
     }
   };
 
+  // Debug logging for prize images
+  React.useEffect(() => {
+    if (prizes && prizes.length > 0) {
+      console.log("Prize images in carousel:", prizes.map(p => ({ id: p.id, name: p.name, url: p.url_image })));
+    }
+  }, [prizes]);
+
   return (
     <div className="relative mb-8">
       {prizes.length > 1 && (
@@ -64,7 +71,7 @@ const PrizeCarousel: React.FC<PrizeCarouselProps> = ({ prizes, onViewDetails }) 
                   />
                 </AspectRatio>
                 
-                {/* Button now always visible */}
+                {/* Button always visible */}
                 <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                   <Button 
                     variant="secondary"

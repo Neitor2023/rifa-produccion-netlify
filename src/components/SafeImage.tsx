@@ -23,10 +23,17 @@ const SafeImage: React.FC<SafeImageProps> = ({
   height,
 }) => {
   const [hasError, setHasError] = useState(false);
-  const validSrc = typeof src === 'string' && src.trim() !== '';
+  
+  // Improved source validation
+  const validSrc = typeof src === 'string' && src.trim() !== '' && 
+    (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('/'));
 
+  // Log for debugging purposes
+  console.log(`SafeImage for ${alt}: src=${src}, validSrc=${validSrc}`);
+  
   // Handler for image load errors
   const handleError = () => {
+    console.log(`Image load error for ${alt}: ${src}`);
     setHasError(true);
   };
 
