@@ -3,6 +3,7 @@ import React from 'react';
 import { Organization } from '@/lib/constants';
 import { Card, CardContent } from '@/components/ui/card';
 import { Phone } from 'lucide-react';
+import SafeImage from '@/components/SafeImage';
 
 interface OrganizerInfoProps {
   organization: Organization;
@@ -17,11 +18,13 @@ const OrganizerInfo: React.FC<OrganizerInfoProps> = ({ organization }) => {
         <Card className="bg-white dark:bg-gray-800">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
-              <img 
-                src={organization.org_photo} 
-                alt={organization.org_name} 
-                className="w-16 h-16 rounded-full object-cover"
-              />
+              <div className="w-16 h-16 rounded-full overflow-hidden">
+                <SafeImage 
+                  src={organization.org_photo} 
+                  alt={organization.org_name || 'Organizador'} 
+                  className="w-full h-full object-cover"
+                />
+              </div>
               <div>
                 <h3 className="font-medium text-gray-800 dark:text-gray-100">{organization.org_name}</h3>
                 <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm mt-1">
@@ -38,11 +41,13 @@ const OrganizerInfo: React.FC<OrganizerInfoProps> = ({ organization }) => {
         <Card className="bg-white dark:bg-gray-800">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
-              <img 
-                src={organization.admin_photo} 
-                alt={organization.admin_name} 
-                className="w-16 h-16 rounded-full object-cover"
-              />
+              <div className="w-16 h-16 rounded-full overflow-hidden">
+                <SafeImage 
+                  src={organization.admin_photo} 
+                  alt={organization.admin_name || 'Administrador'} 
+                  className="w-full h-full object-cover"
+                />
+              </div>
               <div>
                 <h3 className="font-medium text-gray-800 dark:text-gray-100">{organization.admin_name}</h3>
                 <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm mt-1">
