@@ -7,9 +7,10 @@ import NumberGrid from '@/components/NumberGrid';
 import PaymentModal from '@/components/PaymentModal';
 import DigitalVoucher from '@/components/DigitalVoucher';
 import DarkModeToggle from '@/components/DarkModeToggle';
+import RaffleInfo from '@/components/RaffleInfo';
+import SellerInfo from '@/components/SellerInfo';
 
-import { Card, CardContent } from '@/components/ui/card';
-import { User, Phone, Loader2, CalendarDays, Info, DollarSign, Ticket } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -413,94 +414,24 @@ const VentaBoletos: React.FC = () => {
         
         {/* 6-10. Raffle information */}
         {raffle && (
-          <Card className="mb-8 bg-white dark:bg-gray-800">
-            <CardContent className="p-5 space-y-4">
-              {/* 6. Raffle description */}
-              <div>
-                <h3 className="flex items-center font-medium mb-2 text-gray-800 dark:text-gray-100">
-                  <Info className="h-5 w-5 mr-2 text-rifa-purple" />
-                  Descripción
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300">{raffle.description}</p>
-              </div>
-              
-              {/* 7. Lottery info */}
-              {raffle.lottery && (
-                <div>
-                  <h3 className="flex items-center font-medium mb-2 text-gray-800 dark:text-gray-100">
-                    <Ticket className="h-5 w-5 mr-2 text-rifa-purple" />
-                    Lotería
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300">{raffle.lottery}</p>
-                </div>
-              )}
-              
-              {/* 8. Raffle date */}
-              {raffle.date_lottery && (
-                <div>
-                  <h3 className="flex items-center font-medium mb-2 text-gray-800 dark:text-gray-100">
-                    <CalendarDays className="h-5 w-5 mr-2 text-rifa-purple" />
-                    Fecha del Sorteo
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    {new Date(raffle.date_lottery).toLocaleDateString()}
-                  </p>
-                </div>
-              )}
-              
-              {/* 9. Payment instructions */}
-              {raffle.payment_instructions && (
-                <div>
-                  <h3 className="flex items-center font-medium mb-2 text-gray-800 dark:text-gray-100">
-                    <DollarSign className="h-5 w-5 mr-2 text-rifa-purple" />
-                    Instrucciones de Pago
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300">{raffle.payment_instructions}</p>
-                </div>
-              )}
-              
-              {/* 10. Price */}
-              <div>
-                <h3 className="flex items-center font-medium mb-2 text-gray-800 dark:text-gray-100">
-                  <DollarSign className="h-5 w-5 mr-2 text-rifa-purple" />
-                  Precio
-                </h3>
-                <p className="text-lg font-semibold text-rifa-purple dark:text-rifa-lightPurple">
-                  {raffle.price} {raffle.currency}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <RaffleInfo
+            description={raffle.description}
+            lottery={raffle.lottery}
+            dateLottery={raffle.date_lottery}
+            paymentInstructions={raffle.payment_instructions}
+            price={raffle.price}
+            currency={raffle.currency}
+          />
         )}
         
         {/* 11. Seller information */}
         {seller && (
-          <Card className="mb-8 bg-white dark:bg-gray-800">
-            <CardContent className="p-4">
-              <h3 className="font-medium mb-3 text-gray-800 dark:text-gray-100">Información del Vendedor</h3>
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                  {seller.avatar ? (
-                    <img 
-                      src={seller.avatar} 
-                      alt={seller.name} 
-                      className="h-full w-full object-cover rounded-full"
-                    />
-                  ) : (
-                    <User className="h-8 w-8 text-gray-500 dark:text-gray-400" />
-                  )}
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-800 dark:text-gray-100">{seller.name}</h3>
-                  <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm mt-1">
-                    <Phone className="h-4 w-4 mr-1" />
-                    <span>{seller.phone}</span>
-                  </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Vendedor ID: {seller.id}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <SellerInfo
+            name={seller.name}
+            phone={seller.phone}
+            avatar={seller.avatar}
+            id={seller.id}
+          />
         )}
         
         {/* 12. Organizer info */}

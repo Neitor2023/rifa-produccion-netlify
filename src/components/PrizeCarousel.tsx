@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Card } from '@/components/ui/card';
+import SafeImage from '@/components/SafeImage';
 
 interface PrizeCarouselProps {
   prizes: Prize[];
@@ -53,23 +54,21 @@ const PrizeCarousel: React.FC<PrizeCarouselProps> = ({ prizes, onViewDetails }) 
       >
         {prizes.map((prize) => (
           <div key={prize.id} className="min-w-[280px] max-w-[320px] snap-center bg-transparent">
-            <Card className="overflow-hidden cursor-pointer" onClick={() => onViewDetails(prize)}>
+            <Card className="overflow-hidden cursor-pointer relative" onClick={() => onViewDetails(prize)}>
               <div className="relative">
                 <AspectRatio ratio={4/3}>
-                  <img 
+                  <SafeImage 
                     src={prize.url_image} 
-                    alt={prize.name} 
+                    alt={prize.name}
                     className="w-full h-full object-cover"
-                    onError={(e) => {
-                      // Fallback to placeholder if image fails to load
-                      e.currentTarget.src = "https://via.placeholder.com/800x600.png?text=Premio";
-                    }}
                   />
                 </AspectRatio>
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                
+                {/* Button now always visible */}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                   <Button 
                     variant="secondary"
-                    className="bg-white/80 dark:bg-gray-800/80"
+                    className="bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-700"
                   >
                     <Eye className="h-4 w-4 mr-2" />
                     Ver Detalles

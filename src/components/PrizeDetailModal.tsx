@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Prize, PrizeImage } from '@/lib/constants';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import SafeImage from '@/components/SafeImage';
 
 interface PrizeDetailModalProps {
   isOpen: boolean;
@@ -30,7 +31,7 @@ const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, pr
       .filter(img => prize && img.prize_id === prize.id)
       .map(img => ({
         ...img,
-        displayUrl: img.url_image || (img as any).image_url
+        displayUrl: img.url_image || img.image_url
       }));
   }, [prize, prizeImages]);
 
@@ -47,6 +48,7 @@ const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, pr
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col">
+        {/* Close button in the top right */}
         <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
@@ -58,22 +60,19 @@ const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, pr
           </DialogTitle>
         </DialogHeader>
         
+        {/* ScrollArea to enable scrolling for long content */}
         <ScrollArea className="flex-1 overflow-y-auto px-1">
           <div className="py-4">
             {/* Image carousel */}
             <div className="relative mb-6">
               <div className="w-full h-64 md:h-80 overflow-hidden rounded-lg">
-                <img 
+                <SafeImage 
                   src={relevantImages.length > 0 
                     ? (relevantImages[currentImageIndex].displayUrl) 
                     : prize.url_image
                   } 
-                  alt={prize.name} 
+                  alt={prize.name}
                   className="w-full h-full object-cover"
-                  onError={(e) => {
-                    // Fallback to placeholder if image fails to load
-                    e.currentTarget.src = "https://via.placeholder.com/800x600.png?text=Premio";
-                  }}
                 />
               </div>
               

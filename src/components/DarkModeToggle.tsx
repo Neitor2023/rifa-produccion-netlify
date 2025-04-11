@@ -17,7 +17,7 @@ const DarkModeToggle: React.FC = () => {
       pressed={theme === 'dark'}
       onPressedChange={toggleDarkMode}
       aria-label="Toggle dark mode"
-      className="rounded-full w-10 h-10 p-0 bg-white/90 text-gray-700 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-700 shadow-sm"
+      className="rounded-full w-10 h-10 p-0 bg-white/90 text-gray-700 hover:bg-gray-100 dark:bg-gray-700/90 dark:text-gray-200 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-700 shadow-sm"
     >
       {theme === 'dark' ? (
         <Sun className="h-5 w-5" />
