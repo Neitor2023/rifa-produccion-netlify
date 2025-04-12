@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -28,8 +28,10 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { LoaderCircle, Upload, Check } from 'lucide-react';
+import { LoaderCircle, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import PaymentSummary from './payment/PaymentSummary';
+import PaymentUploadZone from './payment/PaymentUploadZone';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -89,9 +91,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     // Submit the form
     onComplete(data);
     setIsSubmitting(false);
-    form.reset();
-    setUploadedImage(null);
-    setPreviewUrl(null);
+    resetForm();
   };
   
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -105,17 +105,24 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     const preview = URL.createObjectURL(file);
     setPreviewUrl(preview);
   };
+
+  const handleRemoveImage = () => {
+    setUploadedImage(null);
+    setPreviewUrl(null);
+  };
   
-  const totalAmount = selectedNumbers.length * price;
+  const resetForm = () => {
+    form.reset();
+    setUploadedImage(null);
+    setPreviewUrl(null);
+  };
 
   // Reset the form when the modal is closed
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isOpen) {
-      form.reset();
-      setUploadedImage(null);
-      setPreviewUrl(null);
+      resetForm();
     }
-  }, [isOpen, form]);
+  }, [isOpen]);
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -131,19 +138,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="bg-gray-50 p-3 rounded-md mb-4">
-              <div className="text-sm text-gray-500 mb-1">Números seleccionados:</div>
-              <div className="flex flex-wrap gap-1">
-                {selectedNumbers.map((number) => (
-                  <span key={number} className="bg-rifa-purple text-white px-2 py-1 text-xs rounded-md">
-                    {number}
-                  </span>
-                ))}
-              </div>
-              <div className="mt-2 text-right font-medium">
-                Total: ${totalAmount.toFixed(2)}
-              </div>
-            </div>
+            <PaymentSummary 
+              selectedNumbers={selectedNumbers}
+              price={price}
+            />
             
             <FormField
               control={form.control}
@@ -199,44 +197,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             />
             
             {form.watch("paymentMethod") === "transfer" && (
-              <div className="space-y-2">
-                <FormLabel>Comprobante de pago</FormLabel>
-                
-                {previewUrl ? (
-                  <div className="relative">
-                    <img 
-                      src={previewUrl} 
-                      alt="Comprobante" 
-                      className="w-full h-48 object-cover rounded-md border"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      className="absolute top-2 right-2"
-                      onClick={() => {
-                        setUploadedImage(null);
-                        setPreviewUrl(null);
-                      }}
-                    >
-                      Eliminar
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="border border-dashed border-gray-300 rounded-md p-6 text-center relative">
-                    <Upload className="h-8 w-8 mx-auto text-gray-400" />
-                    <p className="mt-2 text-sm text-gray-500">
-                      Haga clic para subir o arrastre su comprobante aquí
-                    </p>
-                    <input
-                      type="file"
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                    />
-                  </div>
-                )}
-              </div>
+              <PaymentUploadZone
+                previewUrl={previewUrl}
+                onFileUpload={handleImageUpload}
+                onFileRemove={handleRemoveImage}
+              />
             )}
             
             <DialogFooter>
