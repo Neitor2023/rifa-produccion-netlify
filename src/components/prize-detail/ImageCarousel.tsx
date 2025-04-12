@@ -3,7 +3,6 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import PrizeImage from './PrizeImage';
-import { PrizeImage as PrizeImageType } from '@/lib/constants';
 
 interface ImageCarouselProps {
   images: { displayUrl: string }[];
@@ -38,6 +37,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
             size="icon" 
             className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white rounded-full dark:bg-gray-800/80 dark:hover:bg-gray-700"
             onClick={onPrev}
+            aria-label="Previous image"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -47,6 +47,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
             size="icon" 
             className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white rounded-full dark:bg-gray-800/80 dark:hover:bg-gray-700"
             onClick={onNext}
+            aria-label="Next image"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -56,6 +57,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
               <div 
                 key={index}
                 className={`h-2 w-2 rounded-full cursor-pointer ${index === currentIndex ? 'bg-white' : 'bg-white/50'}`}
+                onClick={() => onNext()}
               />
             ))}
           </div>

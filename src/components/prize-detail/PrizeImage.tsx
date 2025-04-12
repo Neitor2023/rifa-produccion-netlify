@@ -17,7 +17,7 @@ const PrizeImage: React.FC<PrizeImageProps> = ({
 }) => {
   return (
     <div 
-      className={`w-full h-full overflow-hidden rounded-lg ${onClick ? 'cursor-pointer' : ''}`}
+      className={`w-full h-full overflow-hidden rounded-lg ${onClick ? 'cursor-pointer' : ''} touch-manipulation`}
       onClick={onClick}
     >
       <SafeImage 

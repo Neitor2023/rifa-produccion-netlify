@@ -22,7 +22,7 @@ const MobileCarousel: React.FC<MobileCarouselProps> = ({
 }) => {
   return (
     <div className="md:hidden mb-6">
-      <Carousel className="w-full">
+      <Carousel className="w-full" opts={{ loop: true }}>
         <CarouselContent>
           {images.length > 0 ? 
             images.map((image, index) => (
@@ -53,8 +53,8 @@ const MobileCarousel: React.FC<MobileCarouselProps> = ({
         </CarouselContent>
         {images.length > 1 && (
           <>
-            <CarouselPrevious className="left-2" />
-            <CarouselNext className="right-2" />
+            <CarouselPrevious className="left-2 absolute opacity-70 hover:opacity-100" />
+            <CarouselNext className="right-2 absolute opacity-70 hover:opacity-100" />
           </>
         )}
       </Carousel>
