@@ -10,16 +10,12 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Prize, PrizeImage } from '@/lib/constants';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import SafeImage from '@/components/SafeImage';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
+import ImageCarousel from './prize-detail/ImageCarousel';
+import MobileCarousel from './prize-detail/MobileCarousel';
+import ThumbnailGallery from './prize-detail/ThumbnailGallery';
+import PrizeDescription from './prize-detail/PrizeDescription';
 
 interface PrizeDetailModalProps {
   isOpen: boolean;
@@ -90,123 +86,33 @@ const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, pr
         <ScrollArea className="flex-1 overflow-y-auto px-1">
           <div className="py-4">
             {/* Image carousel - Standard layout for larger displays */}
-            <div className="relative mb-6 hidden md:block">
-              <div className="w-full h-64 md:h-80 overflow-hidden rounded-lg">
-                <SafeImage 
-                  src={mainImageUrl} 
-                  alt={prize.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              
-              {relevantImages.length > 1 && (
-                <>
-                  <Button 
-                    variant="outline" 
-                    size="icon" 
-                    className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white rounded-full dark:bg-gray-800/80 dark:hover:bg-gray-700"
-                    onClick={handlePrevImage}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    size="icon" 
-                    className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white rounded-full dark:bg-gray-800/80 dark:hover:bg-gray-700"
-                    onClick={handleNextImage}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                  
-                  <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
-                    {relevantImages.map((_, index) => (
-                      <div 
-                        key={index}
-                        className={`h-2 w-2 rounded-full cursor-pointer ${index === currentImageIndex ? 'bg-white' : 'bg-white/50'}`}
-                        onClick={() => setCurrentImageIndex(index)}
-                      />
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
+            <ImageCarousel 
+              images={relevantImages}
+              currentIndex={currentImageIndex}
+              onPrev={handlePrevImage}
+              onNext={handleNextImage}
+              imageTitle={prize.name}
+            />
             
             {/* Embla Carousel for mobile devices */}
-            <div className="md:hidden mb-6">
-              <Carousel className="w-full">
-                <CarouselContent>
-                  {relevantImages.length > 0 ? 
-                    relevantImages.map((image, index) => (
-                      <CarouselItem key={index} className="pl-0">
-                        <div className="p-1">
-                          <div className="h-60 overflow-hidden rounded-lg">
-                            <SafeImage
-                              src={image.displayUrl}
-                              alt={`${prize.name} - Image ${index + 1}`}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        </div>
-                      </CarouselItem>
-                    )) : 
-                    <CarouselItem>
-                      <div className="p-1">
-                        <div className="h-60 overflow-hidden rounded-lg">
-                          <SafeImage 
-                            src={prize.url_image} 
-                            alt={prize.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      </div>
-                    </CarouselItem>
-                  }
-                </CarouselContent>
-                {relevantImages.length > 1 && (
-                  <>
-                    <CarouselPrevious className="left-2" />
-                    <CarouselNext className="right-2" />
-                  </>
-                )}
-              </Carousel>
-            </div>
+            <MobileCarousel 
+              images={relevantImages}
+              fallbackImage={prize.url_image}
+              imageTitle={prize.name}
+            />
             
             {/* Thumbnail gallery for multiple images - visible on both mobile and desktop */}
-            {relevantImages.length > 1 && (
-              <div className="flex overflow-x-auto gap-2 mb-6 pb-2">
-                {relevantImages.map((image, index) => (
-                  <div 
-                    key={index}
-                    className={`w-16 h-16 flex-shrink-0 rounded-md overflow-hidden cursor-pointer border-2 ${
-                      index === currentImageIndex ? 'border-blue-500 dark:border-blue-400' : 'border-transparent'
-                    }`}
-                    onClick={() => setCurrentImageIndex(index)}
-                  >
-                    <SafeImage 
-                      src={image.displayUrl} 
-                      alt={`Thumbnail ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
+            <ThumbnailGallery 
+              images={relevantImages}
+              currentIndex={currentImageIndex}
+              onThumbnailClick={setCurrentImageIndex}
+            />
             
             {/* Description */}
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Descripción</h3>
-                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">{prize.description}</p>
-              </div>
-              
-              {prize.detail && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Detalles</h3>
-                  <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">{prize.detail}</p>
-                </div>
-              )}
-            </div>
+            <PrizeDescription 
+              description={prize.description || ''}
+              detail={prize.detail}
+            />
           </div>
         </ScrollArea>
         

@@ -107,6 +107,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   };
   
   const totalAmount = selectedNumbers.length * price;
+
+  // Reset the form when the modal is closed
+  React.useEffect(() => {
+    if (!isOpen) {
+      form.reset();
+      setUploadedImage(null);
+      setPreviewUrl(null);
+    }
+  }, [isOpen, form]);
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>

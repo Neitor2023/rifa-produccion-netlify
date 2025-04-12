@@ -68,7 +68,7 @@ const SafeImage: React.FC<SafeImageProps> = ({
           alt={alt}
           width={width}
           height={height}
-          className={cn('w-full h-full object-cover', className)}
+          className={cn('w-full h-full object-contain', className)}
           onError={handleError}
           loading="lazy"
         />

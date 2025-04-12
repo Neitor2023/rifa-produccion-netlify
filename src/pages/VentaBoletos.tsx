@@ -299,6 +299,24 @@ const VentaBoletos: React.FC = () => {
   };
   
   const handleProceedToPayment = (numbers: string[]) => {
+    if (numbers.length === 0) {
+      toast.error('Seleccione al menos un número para comprar');
+      return;
+    }
+    
+    const unavailableNumbers = numbers.filter(numStr => {
+      const num = parseInt(numStr);
+      const existingNumber = raffleNumbers?.find(n => n.number === num);
+      return existingNumber && 
+             existingNumber.status !== 'available' && 
+             (existingNumber.status !== 'reserved' || existingNumber.seller_id !== seller?.id);
+    });
+    
+    if (unavailableNumbers.length > 0) {
+      toast.error(`Números ${unavailableNumbers.join(', ')} no están disponibles`);
+      return;
+    }
+    
     setSelectedNumbers(numbers);
     setIsPaymentModalOpen(true);
   };
@@ -338,6 +356,11 @@ const VentaBoletos: React.FC = () => {
       
       if (existingParticipant) {
         participantId = existingParticipant.id;
+        
+        await supabase
+          .from('participants')
+          .update({ name: data.buyerName })
+          .eq('id', participantId);
       } else {
         const { data: newParticipant, error: participantError } = await supabase
           .from('participants')
@@ -367,7 +390,7 @@ const VentaBoletos: React.FC = () => {
               status: 'sold', 
               seller_id: seller.id,
               participant_id: participantId,
-              payment_proof: paymentProofUrl,
+              payment_proof: paymentProofUrl || existingNumber.payment_proof,
               payment_approved: true,
               reservation_expires_at: null
             })
@@ -402,6 +425,8 @@ const VentaBoletos: React.FC = () => {
       
       setIsPaymentModalOpen(false);
       setIsVoucherOpen(true);
+      
+      toast.success('Pago completado exitosamente');
     } catch (error) {
       console.error('Error completing payment:', error);
       toast.error('Error al completar el pago');
