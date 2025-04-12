@@ -27,6 +27,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
         <PrizeImage 
           src={images[currentIndex]?.displayUrl} 
           alt={`${imageTitle} - ${currentIndex + 1}`}
+          className="h-[500px] object-contain"
         />
       </div>
       
@@ -35,7 +36,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
           <Button 
             variant="outline" 
             size="icon" 
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white rounded-full dark:bg-gray-800/80 dark:hover:bg-gray-700"
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white rounded-full dark:bg-gray-800/80 dark:hover:bg-gray-700 shadow-md"
             onClick={onPrev}
             aria-label="Previous image"
           >
@@ -45,7 +46,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
           <Button 
             variant="outline" 
             size="icon" 
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white rounded-full dark:bg-gray-800/80 dark:hover:bg-gray-700"
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white rounded-full dark:bg-gray-800/80 dark:hover:bg-gray-700 shadow-md"
             onClick={onNext}
             aria-label="Next image"
           >
