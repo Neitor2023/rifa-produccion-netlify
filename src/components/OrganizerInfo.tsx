@@ -10,6 +10,16 @@ interface OrganizerInfoProps {
 }
 
 const OrganizerInfo: React.FC<OrganizerInfoProps> = ({ organization }) => {
+  // Debug logging for organization data
+  React.useEffect(() => {
+    console.log("OrganizerInfo - Organization data:", {
+      org_name: organization.org_name,
+      org_photo: organization.org_photo,
+      admin_name: organization.admin_name,
+      admin_photo: organization.admin_photo
+    });
+  }, [organization]);
+
   return (
     <div className="mb-8">
       <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">Organizadores:</h2>
@@ -23,6 +33,7 @@ const OrganizerInfo: React.FC<OrganizerInfoProps> = ({ organization }) => {
                   src={organization.org_photo} 
                   alt={organization.org_name || 'Organizador'} 
                   className="w-full h-full object-cover"
+                  fallbackClassName="bg-gray-200 dark:bg-gray-700"
                 />
               </div>
               <div>
@@ -46,6 +57,7 @@ const OrganizerInfo: React.FC<OrganizerInfoProps> = ({ organization }) => {
                   src={organization.admin_photo} 
                   alt={organization.admin_name || 'Administrador'} 
                   className="w-full h-full object-cover"
+                  fallbackClassName="bg-gray-200 dark:bg-gray-700"
                 />
               </div>
               <div>

@@ -2,10 +2,8 @@
 import React from 'react';
 import { Prize } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Eye } from 'lucide-react';
-import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { Card } from '@/components/ui/card';
-import SafeImage from '@/components/SafeImage';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import PrizeCard from '@/components/PrizeCard';
 
 interface PrizeCarouselProps {
   prizes: Prize[];
@@ -61,31 +59,10 @@ const PrizeCarousel: React.FC<PrizeCarouselProps> = ({ prizes, onViewDetails }) 
       >
         {prizes.map((prize) => (
           <div key={prize.id} className="min-w-[280px] max-w-[320px] snap-center bg-transparent">
-            <Card 
-              className="overflow-hidden cursor-pointer relative" 
-              onClick={() => onViewDetails(prize)}
-            >
-              <div className="relative">
-                <AspectRatio ratio={4/3}>
-                  <SafeImage 
-                    src={prize.url_image} 
-                    alt={prize.name}
-                    className="w-full h-full object-cover"
-                  />
-                </AspectRatio>
-                
-                {/* Button always visible */}
-                <div className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors">
-                  <Button 
-                    variant="secondary"
-                    className="bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-700"
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    Ver Detalles
-                  </Button>
-                </div>
-              </div>
-            </Card>
+            <PrizeCard 
+              prize={prize} 
+              onViewDetails={onViewDetails} 
+            />
           </div>
         ))}
       </div>

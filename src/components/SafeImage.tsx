@@ -26,7 +26,7 @@ const SafeImage: React.FC<SafeImageProps> = ({
   
   // Process Google Drive links to get direct image URLs
   const processGoogleDriveUrl = (url: string): string => {
-    if (url.includes('drive.google.com/file/d/')) {
+    if (url && url.includes('drive.google.com/file/d/')) {
       // Extract the file ID from the Google Drive URL
       const fileIdMatch = url.match(/\/d\/([^\/]+)/);
       if (fileIdMatch && fileIdMatch[1]) {
@@ -40,6 +40,7 @@ const SafeImage: React.FC<SafeImageProps> = ({
   
   // Improved source validation
   const isValidUrl = (url: string): boolean => {
+    if (!url) return false;
     return url.trim() !== '' && 
       (url.startsWith('http://') || 
        url.startsWith('https://') || 

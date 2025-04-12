@@ -8,6 +8,11 @@ interface RaffleHeaderProps {
 }
 
 const RaffleHeader: React.FC<RaffleHeaderProps> = ({ organization }) => {
+  // Debug logging for organization logo
+  React.useEffect(() => {
+    console.log("RaffleHeader - Logo URL:", organization.organization_logo_url);
+  }, [organization]);
+
   return (
     <div className="flex items-center py-3 px-4 bg-white dark:bg-gray-800 shadow-sm rounded-lg mb-4">
       <div className="flex items-center">
@@ -16,6 +21,7 @@ const RaffleHeader: React.FC<RaffleHeaderProps> = ({ organization }) => {
             src={organization.organization_logo_url} 
             alt={organization.organization_name}
             className="w-full h-full object-cover"
+            fallbackClassName="bg-gray-200 dark:bg-gray-700"
           />
         </div>
         <h1 className="ml-3 text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-100">

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import RaffleHeader from '@/components/RaffleHeader';
 import PrizeCarousel from '@/components/PrizeCarousel';
@@ -16,16 +15,10 @@ import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentFormData } from '@/components/PaymentModal';
-import { Prize, PrizeImage } from '@/lib/constants';
+import { Prize, PrizeImage, Organization } from '@/lib/constants';
 
-// Define the seller and raffle IDs as constants
 const SELLER_ID = "0102030405";
 const RAFFLE_ID = "fd6bd3bc-d81f-48a9-be58-8880293a0472";
-
-// Type to handle both url_image and image_url fields
-type ExtendedPrizeImage = PrizeImage & {
-  image_url?: string;
-};
 
 const VentaBoletos: React.FC = () => {
   const [selectedPrize, setSelectedPrize] = useState<any | null>(null);
@@ -35,8 +28,8 @@ const VentaBoletos: React.FC = () => {
   const [isVoucherOpen, setIsVoucherOpen] = useState(false);
   const [paymentData, setPaymentData] = useState<PaymentFormData | null>(null);
   const [maxNumbersAllowed, setMaxNumbersAllowed] = useState<number>(33);
+  const [organizationData, setOrganizationData] = useState<Organization | null>(null);
   
-  // Fetch seller data
   const { data: seller, isLoading: isLoadingSeller } = useQuery({
     queryKey: ['seller', SELLER_ID],
     queryFn: async () => {
@@ -51,7 +44,6 @@ const VentaBoletos: React.FC = () => {
     }
   });
   
-  // Fetch raffle data
   const { data: raffle, isLoading: isLoadingRaffle } = useQuery({
     queryKey: ['raffle', RAFFLE_ID],
     queryFn: async () => {
@@ -66,7 +58,6 @@ const VentaBoletos: React.FC = () => {
     }
   });
   
-  // Fetch prizes data
   const { data: prizes, isLoading: isLoadingPrizes } = useQuery({
     queryKey: ['prizes', RAFFLE_ID],
     queryFn: async () => {
@@ -77,11 +68,11 @@ const VentaBoletos: React.FC = () => {
         .order('created_at');
       
       if (error) throw error;
-      return data;
+      console.log("Prizes fetch error:", error);
+      return data || [];
     }
   });
   
-  // Fetch prize images
   const { data: prizeImages, isLoading: isLoadingPrizeImages } = useQuery({
     queryKey: ['prizeImages', prizes?.map(p => p.id)],
     queryFn: async () => {
@@ -94,16 +85,14 @@ const VentaBoletos: React.FC = () => {
       
       if (error) throw error;
       
-      // Transform the data to include url_image field for compatibility
       return (data || []).map(img => ({
         ...img,
-        url_image: img.image_url // Map image_url to url_image
+        url_image: img.image_url
       })) as PrizeImage[];
     },
     enabled: !!prizes?.length
   });
   
-  // Fetch organization data
   const { data: organization, isLoading: isLoadingOrganization } = useQuery({
     queryKey: ['organization'],
     queryFn: async () => {
@@ -118,7 +107,6 @@ const VentaBoletos: React.FC = () => {
     }
   });
   
-  // Fetch admin and organizer data from users table
   const { data: adminUser, isLoading: isLoadingAdmin } = useQuery({
     queryKey: ['admin', raffle?.id_admin],
     queryFn: async () => {
@@ -161,7 +149,6 @@ const VentaBoletos: React.FC = () => {
     enabled: !!raffle?.id_organizer
   });
   
-  // Update organization data with admin and organizer information
   useEffect(() => {
     if (organization && (adminUser || organizerUser)) {
       const updatedOrganization = { ...organization };
@@ -177,10 +164,11 @@ const VentaBoletos: React.FC = () => {
         updatedOrganization.org_phone_number = organizerUser.phone_number || '';
         updatedOrganization.org_photo = organizerUser.avatar;
       }
+      
+      setOrganizationData(updatedOrganization);
     }
   }, [organization, adminUser, organizerUser]);
   
-  // Fetch raffle numbers
   const { data: raffleNumbers, isLoading: isLoadingRaffleNumbers, refetch: refetchRaffleNumbers } = useQuery({
     queryKey: ['raffleNumbers', RAFFLE_ID],
     queryFn: async () => {
@@ -195,7 +183,6 @@ const VentaBoletos: React.FC = () => {
     }
   });
   
-  // Fetch raffle seller data to get max numbers allowed
   const { data: raffleSeller } = useQuery({
     queryKey: ['raffleSeller', RAFFLE_ID, seller?.id],
     queryFn: async () => {
@@ -218,14 +205,21 @@ const VentaBoletos: React.FC = () => {
     enabled: !!seller?.id
   });
   
-  // Update max numbers allowed when raffle seller data is available
   useEffect(() => {
     if (raffleSeller?.cant_max) {
       setMaxNumbersAllowed(raffleSeller.cant_max);
     }
   }, [raffleSeller]);
   
-  // Function to format raffle numbers for the grid component
+  useEffect(() => {
+    if (prizes && prizes.length > 0) {
+      console.log("Prizes data:", prizes);
+      prizes.forEach(prize => {
+        console.log(`Prize: ${prize.name}, Image URL: ${prize.url_image}`);
+      });
+    }
+  }, [prizes]);
+  
   const formatNumbersForGrid = () => {
     const formattedNumbers = [];
     
@@ -262,7 +256,6 @@ const VentaBoletos: React.FC = () => {
     }
     
     try {
-      // Update the status to 'reserved' in the raffle_numbers table
       const updatePromises = numbers.map(async (numStr) => {
         const num = parseInt(numStr);
         const existingNumber = raffleNumbers?.find(n => n.number === num);
@@ -273,7 +266,7 @@ const VentaBoletos: React.FC = () => {
             .update({ 
               status: 'reserved', 
               seller_id: seller.id,
-              reservation_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours from now
+              reservation_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
             })
             .eq('id', existingNumber.id);
           
@@ -286,7 +279,7 @@ const VentaBoletos: React.FC = () => {
               number: num, 
               status: 'reserved', 
               seller_id: seller.id,
-              reservation_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours from now
+              reservation_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
             });
           
           if (error) throw error;
@@ -295,7 +288,6 @@ const VentaBoletos: React.FC = () => {
       
       await Promise.all(updatePromises);
       
-      // Refetch raffle numbers to update the UI
       await refetchRaffleNumbers();
       
       setSelectedNumbers([]);
@@ -318,7 +310,6 @@ const VentaBoletos: React.FC = () => {
     }
     
     try {
-      // If payment proof is provided, upload it to Supabase Storage
       let paymentProofUrl = null;
       
       if (data.paymentProof && data.paymentProof instanceof File) {
@@ -330,7 +321,6 @@ const VentaBoletos: React.FC = () => {
         
         if (uploadError) throw uploadError;
         
-        // Get the public URL
         const { data: urlData } = supabase.storage
           .from('payment_proofs')
           .getPublicUrl(fileName);
@@ -338,7 +328,6 @@ const VentaBoletos: React.FC = () => {
         paymentProofUrl = urlData.publicUrl;
       }
       
-      // Check if there's a participant with this phone number
       let participantId = null;
       const { data: existingParticipant } = await supabase
         .from('participants')
@@ -350,13 +339,12 @@ const VentaBoletos: React.FC = () => {
       if (existingParticipant) {
         participantId = existingParticipant.id;
       } else {
-        // Create a new participant
         const { data: newParticipant, error: participantError } = await supabase
           .from('participants')
           .insert({
             name: data.buyerName,
             phone: data.buyerPhone,
-            email: '', // Required field but not collected in form
+            email: '',
             raffle_id: RAFFLE_ID,
             seller_id: seller.id
           })
@@ -368,7 +356,6 @@ const VentaBoletos: React.FC = () => {
         participantId = newParticipant.id;
       }
       
-      // Update the raffle numbers
       const updatePromises = selectedNumbers.map(async (numStr) => {
         const num = parseInt(numStr);
         const existingNumber = raffleNumbers?.find(n => n.number === num);
@@ -406,10 +393,8 @@ const VentaBoletos: React.FC = () => {
       
       await Promise.all(updatePromises);
       
-      // Refetch raffle numbers to update the UI
       await refetchRaffleNumbers();
       
-      // Set the payment data for the voucher
       setPaymentData({
         ...data,
         paymentProof: paymentProofUrl
@@ -423,17 +408,6 @@ const VentaBoletos: React.FC = () => {
     }
   };
 
-  // Log prize data and images for debugging
-  useEffect(() => {
-    if (prizes) {
-      console.log("Prize data:", prizes);
-    }
-    if (prizeImages) {
-      console.log("Prize images:", prizeImages);
-    }
-  }, [prizes, prizeImages]);
-
-  // Show loading state if data is still loading
   if (isLoadingSeller || isLoadingRaffle || isLoadingPrizes || isLoadingOrganization || isLoadingRaffleNumbers) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -446,7 +420,6 @@ const VentaBoletos: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       <div className="container px-4 py-6 max-w-3xl mx-auto">
-        {/* 1. Logo and organization name */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex-1">
             {organization && <RaffleHeader organization={organization} />}
@@ -454,12 +427,10 @@ const VentaBoletos: React.FC = () => {
           <DarkModeToggle />
         </div>
         
-        {/* 2. Raffle title */}
         <h1 className="text-2xl font-bold text-center mb-6 text-gray-800 dark:text-gray-100">
           {raffle?.title || 'Cargando...'}
         </h1>
         
-        {/* 3. Prize carousel (only image) */}
         {prizes && (
           <PrizeCarousel 
             prizes={prizes} 
@@ -467,7 +438,6 @@ const VentaBoletos: React.FC = () => {
           />
         )}
         
-        {/* 4. Number grid */}
         {raffleNumbers && (
           <div className="mb-8">
             <NumberGrid 
@@ -485,7 +455,6 @@ const VentaBoletos: React.FC = () => {
           </div>
         )}
         
-        {/* 6-10. Raffle information */}
         {raffle && (
           <RaffleInfo
             description={raffle.description}
@@ -497,7 +466,6 @@ const VentaBoletos: React.FC = () => {
           />
         )}
         
-        {/* 11. Seller information */}
         {seller && (
           <SellerInfo
             name={seller.name}
@@ -507,16 +475,13 @@ const VentaBoletos: React.FC = () => {
           />
         )}
         
-        {/* 12. Organizer info */}
-        {organization && <OrganizerInfo organization={organization} />}
+        {organizationData && <OrganizerInfo organization={organizationData} />}
         
-        {/* 13. Legal note */}
         <div className="text-center text-xs text-gray-500 dark:text-gray-400 italic mb-8">
           Las plataformas de redes sociales no están asociadas a esta rifa.
         </div>
       </div>
       
-      {/* Modals */}
       <PrizeDetailModal 
         isOpen={isPrizeModalOpen}
         onClose={() => setIsPrizeModalOpen(false)}
