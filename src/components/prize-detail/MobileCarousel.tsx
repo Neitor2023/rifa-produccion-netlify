@@ -24,12 +24,12 @@ const MobileCarousel: React.FC<MobileCarouselProps> = ({
   const isMobile = useIsMobile();
   
   return (
-    <div className="md:hidden mb-6 relative">
-      <Carousel className="w-full mx-auto" opts={{ loop: true, dragFree: true }}>
-        <CarouselContent className="-ml-0 md:-ml-4">
+    <div className="md:hidden mb-4 relative">
+      <Carousel className="w-full mx-auto" opts={{ loop: true, dragFree: true, align: "start" }}>
+        <CarouselContent className="-ml-0 md:-ml-0">
           {images.length > 0 ? 
             images.map((image, index) => (
-              <CarouselItem key={index} className="pl-0">
+              <CarouselItem key={index} className="pl-0 basis-[85%] ml-0">
                 <div className="p-1">
                   <div className="h-[400px] overflow-hidden rounded-lg">
                     <PrizeImage
@@ -42,7 +42,7 @@ const MobileCarousel: React.FC<MobileCarouselProps> = ({
               </CarouselItem>
             )) : 
             fallbackImage && (
-              <CarouselItem className="pl-0">
+              <CarouselItem className="pl-0 basis-full ml-0">
                 <div className="p-1">
                   <div className="h-[400px] overflow-hidden rounded-lg">
                     <PrizeImage 

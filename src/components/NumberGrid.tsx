@@ -19,6 +19,7 @@ interface RaffleNumber {
   payment_method: string | null;
   payment_proof: string | null;
   payment_date: string | null;
+  participant_id?: string | null;
 }
 
 interface RaffleSeller {
@@ -74,6 +75,11 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   
   const clearSelection = () => {
     setSelectedNumbers([]);
+    // Turn off the highlight reserved mode if it's active
+    if (highlightReserved) {
+      setHighlightReserved(false);
+      setShowReservedMessage(false);
+    }
   };
   
   const handleReserve = () => {

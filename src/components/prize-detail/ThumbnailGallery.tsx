@@ -59,7 +59,7 @@ const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
           {firstRow.map((image, index) => (
             <div 
               key={index}
-              className={`w-20 h-20 flex-shrink-0 rounded-md overflow-hidden cursor-pointer snap-center border-2 ${
+              className={`w-16 h-16 flex-shrink-0 rounded-md overflow-hidden cursor-pointer snap-center border-2 ${
                 index === currentIndex ? 'border-blue-500 dark:border-blue-400' : 'border-transparent'
               }`}
               onClick={() => onThumbnailClick(index)}
@@ -87,7 +87,7 @@ const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
               return (
                 <div 
                   key={actualIndex}
-                  className={`w-20 h-20 flex-shrink-0 rounded-md overflow-hidden cursor-pointer snap-center border-2 ${
+                  className={`w-16 h-16 flex-shrink-0 rounded-md overflow-hidden cursor-pointer snap-center border-2 ${
                     actualIndex === currentIndex ? 'border-blue-500 dark:border-blue-400' : 'border-transparent'
                   }`}
                   onClick={() => onThumbnailClick(actualIndex)}
