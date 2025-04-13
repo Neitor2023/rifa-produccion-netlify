@@ -43,7 +43,7 @@ const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
   return (
     <div 
       ref={scrollContainerRef}
-      className="flex flex-nowrap overflow-x-auto gap-2 mb-6 pb-2 px-1 snap-x snap-mandatory scroll-smooth hide-scrollbar"
+      className="flex flex-nowrap overflow-x-auto gap-2 mb-6 pb-2 px-2 snap-x snap-mandatory scroll-smooth hide-scrollbar mx-auto"
       style={{ 
         WebkitOverflowScrolling: 'touch', 
         scrollbarWidth: 'none',
