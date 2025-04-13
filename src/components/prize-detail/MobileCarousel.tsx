@@ -56,7 +56,7 @@ const MobileCarousel: React.FC<MobileCarouselProps> = ({
             )
           }
         </CarouselContent>
-        {images.length > 1 && !isMobile && (
+        {images.length > 1 && (
           <>
             <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 dark:bg-gray-800/80 opacity-70 hover:opacity-100 shadow-md" />
             <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 dark:bg-gray-800/80 opacity-70 hover:opacity-100 shadow-md" />

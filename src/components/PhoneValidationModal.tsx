@@ -52,8 +52,14 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       // Get the raffle number data
       const raffleNumber = raffleNumbers.find(n => n.number === selectedNumber && n.status === 'reserved');
       
-      if (!raffleNumber || !raffleNumber.participant_id) {
-        toast.error('Error: Número no encontrado o sin participante asociado');
+      if (!raffleNumber) {
+        toast.error('Error: El número seleccionado no está reservado');
+        setIsValidating(false);
+        return;
+      }
+      
+      if (!raffleNumber.participant_id) {
+        toast.error('Error: Este número reservado no tiene un participante asociado');
         setIsValidating(false);
         return;
       }
@@ -67,13 +73,13 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       
       if (error) {
         console.error('Error fetching participant:', error);
-        toast.error('Error al verificar el teléfono');
+        toast.error('Error interno al verificar el teléfono. Contacte al administrador.');
         setIsValidating(false);
         return;
       }
       
       if (!participant) {
-        toast.error('Participante no encontrado');
+        toast.error('❗ Participante no encontrado con el ID asociado al número.');
         setIsValidating(false);
         return;
       }
@@ -83,11 +89,11 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         toast.success('Teléfono verificado correctamente');
         onValidate(selectedNumber);
       } else {
-        toast.error('⚠️ Número no reconocido. Por favor, comuníquese con su vendedor.');
+        toast.error('❗ El número telefónico ingresado no coincide con el registrado para este boleto.');
       }
     } catch (error) {
       console.error('Error validating phone:', error);
-      toast.error('Error al validar el teléfono');
+      toast.error('❗ Error interno del sistema. Contacte al administrador.');
     } finally {
       setIsValidating(false);
     }
