@@ -8,7 +8,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import PrizeImage from './PrizeImage';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface MobileCarouselProps {
   images: { displayUrl: string }[];
@@ -21,6 +21,8 @@ const MobileCarousel: React.FC<MobileCarouselProps> = ({
   fallbackImage,
   imageTitle
 }) => {
+  const isMobile = useIsMobile();
+  
   return (
     <div className="md:hidden mb-6 relative">
       <Carousel className="w-full mx-auto" opts={{ loop: true, dragFree: true }}>
@@ -54,13 +56,20 @@ const MobileCarousel: React.FC<MobileCarouselProps> = ({
             )
           }
         </CarouselContent>
-        {images.length > 1 && (
+        {images.length > 1 && !isMobile && (
           <>
             <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 dark:bg-gray-800/80 opacity-70 hover:opacity-100 shadow-md" />
             <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 dark:bg-gray-800/80 opacity-70 hover:opacity-100 shadow-md" />
           </>
         )}
       </Carousel>
+      
+      {/* Instructional text for mobile users */}
+      {isMobile && images.length > 1 && (
+        <p className="text-sm text-center text-muted-foreground mt-2 mb-4">
+          🧭 Deslice con el dedo hacia los lados para ver más imágenes
+        </p>
+      )}
     </div>
   );
 };
