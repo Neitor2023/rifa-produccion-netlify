@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import RaffleHeader from '@/components/RaffleHeader';
 import PrizeCarousel from '@/components/PrizeCarousel';
@@ -26,7 +25,6 @@ const VentaBoletos: React.FC = () => {
   const [maxNumbersAllowed, setMaxNumbersAllowed] = useState<number>(33);
   const [organizationData, setOrganizationData] = useState<Organization | null>(null);
   
-  // Seller data
   const { data: seller, isLoading: isLoadingSeller } = useQuery({
     queryKey: ['seller', SELLER_ID],
     queryFn: async () => {
@@ -41,7 +39,6 @@ const VentaBoletos: React.FC = () => {
     }
   });
   
-  // Raffle data
   const { data: raffle, isLoading: isLoadingRaffle } = useQuery({
     queryKey: ['raffle', RAFFLE_ID],
     queryFn: async () => {
@@ -56,7 +53,6 @@ const VentaBoletos: React.FC = () => {
     }
   });
   
-  // Prize data
   const { data: prizes, isLoading: isLoadingPrizes } = useQuery({
     queryKey: ['prizes', RAFFLE_ID],
     queryFn: async () => {
@@ -71,7 +67,6 @@ const VentaBoletos: React.FC = () => {
     }
   });
   
-  // Prize images
   const { data: prizeImages, isLoading: isLoadingPrizeImages } = useQuery({
     queryKey: ['prizeImages', prizes?.map(p => p.id)],
     queryFn: async () => {
@@ -92,7 +87,6 @@ const VentaBoletos: React.FC = () => {
     enabled: !!prizes?.length
   });
   
-  // Organization data
   const { data: organization, isLoading: isLoadingOrganization } = useQuery({
     queryKey: ['organization'],
     queryFn: async () => {
@@ -107,7 +101,6 @@ const VentaBoletos: React.FC = () => {
     }
   });
   
-  // Admin user data
   const { data: adminUser, isLoading: isLoadingAdmin } = useQuery({
     queryKey: ['admin', raffle?.id_admin],
     queryFn: async () => {
@@ -129,7 +122,6 @@ const VentaBoletos: React.FC = () => {
     enabled: !!raffle?.id_admin
   });
   
-  // Organizer user data
   const { data: organizerUser, isLoading: isLoadingOrganizer } = useQuery({
     queryKey: ['organizer', raffle?.id_organizer],
     queryFn: async () => {
@@ -151,7 +143,6 @@ const VentaBoletos: React.FC = () => {
     enabled: !!raffle?.id_organizer
   });
   
-  // Update organization data with admin and organizer info
   useEffect(() => {
     if (organization && (adminUser || organizerUser)) {
       const updatedOrganization = { ...organization };
@@ -172,7 +163,6 @@ const VentaBoletos: React.FC = () => {
     }
   }, [organization, adminUser, organizerUser]);
   
-  // Raffle numbers data
   const { data: raffleNumbers, isLoading: isLoadingRaffleNumbers, refetch: refetchRaffleNumbers } = useQuery({
     queryKey: ['raffleNumbers', RAFFLE_ID],
     queryFn: async () => {
@@ -187,7 +177,6 @@ const VentaBoletos: React.FC = () => {
     }
   });
   
-  // Raffle seller data
   const { data: raffleSeller } = useQuery({
     queryKey: ['raffleSeller', RAFFLE_ID, seller?.id],
     queryFn: async () => {
@@ -210,14 +199,12 @@ const VentaBoletos: React.FC = () => {
     enabled: !!seller?.id
   });
   
-  // Update max numbers allowed
   useEffect(() => {
     if (raffleSeller?.cant_max) {
       setMaxNumbersAllowed(raffleSeller.cant_max);
     }
   }, [raffleSeller]);
   
-  // Payment processor hook
   const {
     selectedNumbers,
     isPaymentModalOpen,
@@ -225,6 +212,7 @@ const VentaBoletos: React.FC = () => {
     isVoucherOpen,
     setIsVoucherOpen,
     paymentData,
+    validatedBuyerData,
     handleReserveNumbers,
     handleProceedToPayment,
     handleCompletePayment
@@ -351,6 +339,7 @@ const VentaBoletos: React.FC = () => {
         selectedNumbers={selectedNumbers}
         price={raffle?.price || 0}
         onComplete={handleCompletePayment}
+        buyerData={validatedBuyerData}
       />
       
       <DigitalVoucher 

@@ -66,7 +66,7 @@ const MobileCarousel: React.FC<MobileCarouselProps> = ({
       
       {/* Instructional text for mobile users */}
       {isMobile && images.length > 1 && (
-        <p className="text-sm text-center text-muted-foreground mt-2 mb-4">
+        <p className="text-sm text-right text-muted-foreground mt-2 mb-4 px-2">
           🧭 Deslice con el dedo hacia los lados para ver más imágenes
         </p>
       )}

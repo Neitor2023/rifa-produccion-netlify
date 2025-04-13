@@ -39,6 +39,10 @@ interface PaymentModalProps {
   selectedNumbers: string[];
   price: number;
   onComplete: (paymentData: PaymentFormData) => void;
+  buyerData?: {
+    name: string;
+    phone: string;
+  }
 }
 
 const paymentFormSchema = z.object({
@@ -57,7 +61,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   onClose, 
   selectedNumbers,
   price,
-  onComplete
+  onComplete,
+  buyerData
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
@@ -66,12 +71,20 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentFormSchema),
     defaultValues: {
-      buyerName: "",
-      buyerPhone: "",
+      buyerName: buyerData?.name || "",
+      buyerPhone: buyerData?.phone || "",
       paymentMethod: undefined,
       paymentProof: undefined,
     },
   });
+  
+  // Update form values when buyerData changes
+  useEffect(() => {
+    if (buyerData) {
+      form.setValue('buyerName', buyerData.name);
+      form.setValue('buyerPhone', buyerData.phone);
+    }
+  }, [buyerData, form]);
   
   const onSubmit = (data: PaymentFormData) => {
     setIsSubmitting(true);
@@ -150,7 +163,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 <FormItem>
                   <FormLabel>Nombre</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nombre completo" {...field} />
+                    <Input 
+                      placeholder="Nombre completo" 
+                      {...field} 
+                      disabled={!!buyerData}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -164,7 +181,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 <FormItem>
                   <FormLabel>Teléfono</FormLabel>
                   <FormControl>
-                    <Input placeholder="Número de teléfono" {...field} />
+                    <Input 
+                      placeholder="Número de teléfono" 
+                      {...field} 
+                      disabled={!!buyerData}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

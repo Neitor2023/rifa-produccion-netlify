@@ -24,6 +24,7 @@ export function usePaymentProcessor({
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isVoucherOpen, setIsVoucherOpen] = useState(false);
   const [paymentData, setPaymentData] = useState<PaymentFormData | null>(null);
+  const [validatedBuyerData, setValidatedBuyerData] = useState<{ name: string, phone: string } | null>(null);
 
   const handleReserveNumbers = async (numbers: string[]) => {
     if (!raffleSeller?.seller_id) {
@@ -74,7 +75,7 @@ export function usePaymentProcessor({
     }
   };
   
-  const handleProceedToPayment = (numbers: string[]) => {
+  const handleProceedToPayment = async (numbers: string[]) => {
     if (numbers.length === 0) {
       toast.error('Seleccione al menos un número para comprar');
       return;
@@ -91,6 +92,44 @@ export function usePaymentProcessor({
     if (unavailableNumbers.length > 0) {
       toast.error(`Números ${unavailableNumbers.join(', ')} no están disponibles`);
       return;
+    }
+    
+    // Check if we're processing a reserved number with an existing participant_id
+    const reservedNumbers = numbers.map(numStr => parseInt(numStr)).filter(num => {
+      const existingNumber = raffleNumbers?.find(n => n.number === num);
+      return existingNumber && existingNumber.status === 'reserved' && existingNumber.participant_id;
+    });
+    
+    if (reservedNumbers.length > 0) {
+      try {
+        // Get the first reserved number to check the participant info
+        const firstNum = reservedNumbers[0];
+        const existingNumber = raffleNumbers?.find(n => n.number === firstNum);
+        
+        if (existingNumber && existingNumber.participant_id) {
+          // Get participant info
+          const { data: participant, error } = await supabase
+            .from('participants')
+            .select('name, phone')
+            .eq('id', existingNumber.participant_id)
+            .single();
+          
+          if (error) throw error;
+          
+          if (participant) {
+            // Set validated buyer data
+            setValidatedBuyerData({
+              name: participant.name,
+              phone: participant.phone
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching participant info:', error);
+      }
+    } else {
+      // Reset validated buyer data if there are no reserved numbers
+      setValidatedBuyerData(null);
     }
     
     setSelectedNumbers(numbers);
@@ -221,6 +260,7 @@ export function usePaymentProcessor({
     setIsVoucherOpen,
     paymentData,
     setPaymentData,
+    validatedBuyerData,
     handleReserveNumbers,
     handleProceedToPayment,
     handleCompletePayment
