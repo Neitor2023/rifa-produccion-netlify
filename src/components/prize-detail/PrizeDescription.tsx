@@ -3,21 +3,37 @@ import React from 'react';
 
 interface PrizeDescriptionProps {
   description: string;
-  detail?: string;
+  detail?: string | null;
 }
 
 const PrizeDescription: React.FC<PrizeDescriptionProps> = ({ description, detail }) => {
+  // Function to preserve line breaks in text
+  const formatText = (text: string) => {
+    return text.split('\n').map((line, index) => (
+      <React.Fragment key={index}>
+        {line}
+        {index < text.split('\n').length - 1 && <br />}
+      </React.Fragment>
+    ));
+  };
+  
   return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Descripción</h3>
-        <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">{description}</p>
-      </div>
+    <div className="px-2 pb-4">
+      {description && (
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">Descripción</h3>
+          <div className="text-gray-600 dark:text-gray-400 text-sm whitespace-pre-line">
+            {formatText(description)}
+          </div>
+        </div>
+      )}
       
       {detail && (
         <div>
-          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Detalles</h3>
-          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">{detail}</p>
+          <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">Detalles</h3>
+          <div className="text-gray-600 dark:text-gray-400 text-sm whitespace-pre-line">
+            {formatText(detail)}
+          </div>
         </div>
       )}
     </div>

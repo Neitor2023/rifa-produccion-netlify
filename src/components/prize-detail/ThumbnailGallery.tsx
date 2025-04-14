@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import SafeImage from '@/components/SafeImage';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -20,11 +20,11 @@ const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
   if (images.length <= 1) return null;
   
   // Scroll the active thumbnail into view when it changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (!scrollContainerRef.current) return;
     
     const container = scrollContainerRef.current;
-    const activeThumb = container.children[currentIndex] as HTMLElement;
+    const activeThumb = container.querySelector(`[data-index="${currentIndex}"]`) as HTMLElement;
     
     if (activeThumb) {
       const containerWidth = container.offsetWidth;
@@ -49,6 +49,7 @@ const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
     return (
       <div className="flex flex-col gap-2">
         <div 
+          ref={scrollContainerRef}
           className="flex flex-nowrap overflow-x-auto gap-2 snap-x snap-mandatory scroll-smooth hide-scrollbar px-2"
           style={{ 
             WebkitOverflowScrolling: 'touch', 
@@ -59,6 +60,7 @@ const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
           {firstRow.map((image, index) => (
             <div 
               key={index}
+              data-index={index}
               className={`w-16 h-16 flex-shrink-0 rounded-md overflow-hidden cursor-pointer snap-center border-2 ${
                 index === currentIndex ? 'border-blue-500 dark:border-blue-400' : 'border-transparent'
               }`}
@@ -87,6 +89,7 @@ const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
               return (
                 <div 
                   key={actualIndex}
+                  data-index={actualIndex}
                   className={`w-16 h-16 flex-shrink-0 rounded-md overflow-hidden cursor-pointer snap-center border-2 ${
                     actualIndex === currentIndex ? 'border-blue-500 dark:border-blue-400' : 'border-transparent'
                   }`}
@@ -121,6 +124,7 @@ const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
       {images.map((image, index) => (
         <div 
           key={index}
+          data-index={index}
           className={`w-16 h-16 flex-shrink-0 rounded-md overflow-hidden cursor-pointer snap-center border-2 ${
             index === currentIndex ? 'border-blue-500 dark:border-blue-400' : 'border-transparent'
           }`}

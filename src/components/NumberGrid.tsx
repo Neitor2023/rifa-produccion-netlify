@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Trash2, CheckCircle2, CreditCard, Wallet } from 'lucide-react';
@@ -278,6 +277,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         onValidate={handleValidationSuccess}
         selectedNumber={selectedReservedNumber}
         raffleNumbers={numbers}
+        raffleSellerId={raffleSeller.seller_id}
+        raffleId={raffleSeller.raffle_id}
       />
     </div>
   );

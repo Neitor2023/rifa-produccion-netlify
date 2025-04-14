@@ -1,16 +1,31 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Info, Ticket, CalendarDays, DollarSign } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { CalendarClock, CreditCard, Info } from 'lucide-react';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 interface RaffleInfoProps {
   description: string;
-  lottery?: string;
-  dateLottery?: string;
-  paymentInstructions?: string;
+  lottery: string;
+  dateLottery: string;
+  paymentInstructions: string;
   price: number;
   currency: string;
 }
+
+// Function to preserve line breaks in text
+const formatText = (text: string) => {
+  if (!text) return null;
+  
+  return text.split('\n').map((line, index) => (
+    <React.Fragment key={index}>
+      {line}
+      {index < text.split('\n').length - 1 && <br />}
+    </React.Fragment>
+  ));
+};
 
 const RaffleInfo: React.FC<RaffleInfoProps> = ({
   description,
@@ -18,65 +33,66 @@ const RaffleInfo: React.FC<RaffleInfoProps> = ({
   dateLottery,
   paymentInstructions,
   price,
-  currency,
+  currency
 }) => {
+  const formattedDate = dateLottery
+    ? format(new Date(dateLottery), "d 'de' MMMM, yyyy", { locale: es })
+    : 'Fecha por definir';
+  
   return (
     <Card className="mb-8 bg-white dark:bg-gray-800">
-      <CardContent className="p-5 space-y-4">
-        {/* Raffle description */}
+      <CardHeader className="pb-2">
+        <CardTitle className="text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
+          <Info className="h-5 w-5 mr-2 text-rifa-purple" />
+          Información
+        </CardTitle>
+      </CardHeader>
+      
+      <CardContent className="space-y-4">
         <div>
-          <h3 className="flex items-center font-medium mb-2 text-gray-800 dark:text-gray-100">
-            <Info className="h-5 w-5 mr-2 text-rifa-purple" />
-            Descripción
-          </h3>
-          <p className="text-gray-600 dark:text-gray-300 whitespace-pre-line">{description}</p>
+          <h3 className="text-base font-medium mb-1 text-gray-700 dark:text-gray-300">Descripción</h3>
+          <CardDescription className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">
+            {formatText(description)}
+          </CardDescription>
         </div>
         
-        {/* Lottery info */}
-        {lottery && (
-          <div>
-            <h3 className="flex items-center font-medium mb-2 text-gray-800 dark:text-gray-100">
-              <Ticket className="h-5 w-5 mr-2 text-rifa-purple" />
-              Lotería
-            </h3>
-            <p className="text-gray-600 dark:text-gray-300">{lottery}</p>
-          </div>
-        )}
+        <Separator />
         
-        {/* Raffle date */}
-        {dateLottery && (
-          <div>
-            <h3 className="flex items-center font-medium mb-2 text-gray-800 dark:text-gray-100">
-              <CalendarDays className="h-5 w-5 mr-2 text-rifa-purple" />
-              Fecha del Sorteo
-            </h3>
-            <p className="text-gray-600 dark:text-gray-300">
-              {new Date(dateLottery).toLocaleDateString()}
-            </p>
-          </div>
-        )}
-        
-        {/* Payment instructions */}
-        {paymentInstructions && (
-          <div>
-            <h3 className="flex items-center font-medium mb-2 text-gray-800 dark:text-gray-100">
-              <DollarSign className="h-5 w-5 mr-2 text-rifa-purple" />
-              Instrucciones de Pago
-            </h3>
-            <p className="text-gray-600 dark:text-gray-300 whitespace-pre-line">{paymentInstructions}</p>
-          </div>
-        )}
-        
-        {/* Price */}
         <div>
-          <h3 className="flex items-center font-medium mb-2 text-gray-800 dark:text-gray-100">
-            <DollarSign className="h-5 w-5 mr-2 text-rifa-purple" />
-            Precio
+          <h3 className="text-base font-medium mb-1 text-gray-700 dark:text-gray-300 flex items-center">
+            <CalendarClock className="h-4 w-4 mr-1 text-blue-500" />
+            Sorteo
           </h3>
-          <p className="text-lg font-semibold text-rifa-purple dark:text-rifa-lightPurple">
-            {price} {currency}
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {lottery} - {formattedDate}
           </p>
         </div>
+        
+        <Separator />
+        
+        <div>
+          <h3 className="text-base font-medium mb-1 text-gray-700 dark:text-gray-300 flex items-center">
+            <CreditCard className="h-4 w-4 mr-1 text-green-500" />
+            Precio
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {currency} {price.toFixed(2)}
+          </p>
+        </div>
+        
+        {paymentInstructions && (
+          <>
+            <Separator />
+            <div>
+              <h3 className="text-base font-medium mb-1 text-gray-700 dark:text-gray-300">
+                Instrucciones de pago
+              </h3>
+              <div className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">
+                {formatText(paymentInstructions)}
+              </div>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );

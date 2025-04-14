@@ -65,6 +65,7 @@ export type Database = {
           background_color: string | null
           created_at: string | null
           id: string
+          modal: string | null
           org_name: string | null
           org_phone_number: string | null
           org_photo: string | null
@@ -80,6 +81,7 @@ export type Database = {
           background_color?: string | null
           created_at?: string | null
           id?: string
+          modal?: string | null
           org_name?: string | null
           org_phone_number?: string | null
           org_photo?: string | null
@@ -95,6 +97,7 @@ export type Database = {
           background_color?: string | null
           created_at?: string | null
           id?: string
+          modal?: string | null
           org_name?: string | null
           org_phone_number?: string | null
           org_photo?: string | null
