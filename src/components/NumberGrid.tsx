@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { X } from 'lucide-react';
 import PhoneValidationModal from './PhoneValidationModal';
+import { supabase } from '@/integrations/supabase/client';
 
 interface RaffleNumber {
   id: string;
@@ -104,16 +105,52 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     setShowReservedMessage(true);
   };
   
-  const handleValidationSuccess = (validatedNumber: string) => {
+  const handleValidationSuccess = async (validatedNumber: string) => {
     setIsPhoneModalOpen(false);
     
-    // Find all reserved numbers for the validated user
-    const userReservedNumbers = numbers
-      .filter(n => n.status === 'reserved' && n.number === validatedNumber)
-      .map(n => n.number);
-    
-    if (userReservedNumbers.length > 0) {
-      onProceedToPayment(userReservedNumbers);
+    try {
+      // Find the validated number
+      const number = numbers.find(n => n.number === validatedNumber && n.status === 'reserved');
+      
+      if (!number) {
+        toast.error('Número no encontrado');
+        return;
+      }
+      
+      // Find the participant ID associated with the phone number
+      const { data: participant } = await supabase
+        .from('participants')
+        .select('id')
+        .eq('phone', number.buyer_phone || '')
+        .maybeSingle();
+      
+      const participantId = participant?.id;
+      
+      if (!participantId) {
+        toast.error('Participante no encontrado');
+        return;
+      }
+      
+      // Find all reserved numbers for this participant
+      const allReservedNumbers = numbers
+        .filter(n => 
+          n.status === 'reserved' && 
+          (n.participant_id === participantId || n.number === validatedNumber)
+        )
+        .map(n => n.number);
+      
+      if (allReservedNumbers.length > 0) {
+        toast.success(`${allReservedNumbers.length} número(s) encontrados`);
+        onProceedToPayment(allReservedNumbers);
+      } else {
+        // Just use the validated number if no other numbers found
+        onProceedToPayment([validatedNumber]);
+      }
+    } catch (error) {
+      console.error('Error finding reserved numbers:', error);
+      toast.error('Error al buscar números reservados');
+      // Fallback to just using the validated number
+      onProceedToPayment([validatedNumber]);
     }
   };
 
