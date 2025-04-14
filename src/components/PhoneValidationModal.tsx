@@ -109,38 +109,22 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       
       debugData.raffleNumberStatus = raffleNumber.status;
       
-      if (!raffleNumber.participant_id) {
-        const errorMsg = 'Error: Este número reservado no tiene un participante asociado';
-        if (debugMode) {
-          setDebugInfo({
-            ...debugData,
-            error: errorMsg,
-            raffleNumberData: raffleNumber
-          });
-        } else {
-          toast.error(errorMsg);
-        }
-        setIsValidating(false);
-        return;
-      }
-      
-      debugData.vParticipantId = raffleNumber.participant_id;
-      
-      // Verify if the phone matches the participant's phone
-      const { data: participant, error } = await supabase
+      // Buscar participante por teléfono directamente
+      const { data: matchedParticipant, error: phoneError } = await supabase
         .from('participants')
-        .select('phone, id, name')
-        .eq('id', raffleNumber.participant_id)
+        .select('id, phone, name')
+        .eq('phone', phone)
         .maybeSingle();
+
+      debugData.matchedParticipant = matchedParticipant;
       
-      if (error) {
-        console.error('Error fetching participant:', error);
-        const errorMsg = 'Error interno al verificar el teléfono. Contacte al administrador.';
+      if (phoneError || !matchedParticipant) {
+        const errorMsg = '❗ Participante no encontrado con ese número de celular.';
         if (debugMode) {
           setDebugInfo({
             ...debugData,
             error: errorMsg,
-            supabaseError: error
+            phoneError: phoneError
           });
         } else {
           toast.error(errorMsg);
@@ -149,12 +133,16 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         return;
       }
       
-      if (!participant) {
-        const errorMsg = '❗ Participante no encontrado con el ID asociado al número.';
+      debugData.vParticipantId = matchedParticipant.id;
+      
+      // Verifica si el participante coincide con el asociado (si existe)
+      if (raffleNumber.participant_id && raffleNumber.participant_id !== matchedParticipant.id) {
+        const errorMsg = '⚠️ Este número reservado ya está vinculado a otro participante.';
         if (debugMode) {
           setDebugInfo({
             ...debugData,
-            error: errorMsg
+            error: errorMsg,
+            existingParticipantId: raffleNumber.participant_id
           });
         } else {
           toast.error(errorMsg);
@@ -163,25 +151,10 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         return;
       }
       
-      debugData.participantData = participant;
+      // ✅ Si todo está correcto
+      toast.success('Teléfono verificado correctamente');
+      onValidate(selectedNumber);
       
-      // Check if the phone matches
-      if (participant.phone === phone) {
-        toast.success('Teléfono verificado correctamente');
-        onValidate(selectedNumber);
-      } else {
-        const errorMsg = '❗ El número telefónico ingresado no coincide con el registrado para este boleto.';
-        if (debugMode) {
-          setDebugInfo({
-            ...debugData,
-            error: errorMsg,
-            participantPhone: participant.phone,
-            phoneMatch: false
-          });
-        } else {
-          toast.error(errorMsg);
-        }
-      }
     } catch (error) {
       console.error('Error validating phone:', error);
       const errorMsg = '❗ Error interno del sistema. Contacte al administrador.';
