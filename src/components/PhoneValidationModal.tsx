@@ -120,15 +120,16 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       
       if (phoneError || !matchedParticipant) {
         const errorMsg = '❗ Participante no encontrado con ese número de celular.';
+        
+        debugData.error = errorMsg;
+        debugData.phoneError = phoneError;
+        
         if (debugMode) {
-          setDebugInfo({
-            ...debugData,
-            error: errorMsg,
-            phoneError: phoneError
-          });
+          setDebugInfo(debugData);
         } else {
           toast.error(errorMsg);
         }
+        
         setIsValidating(false);
         return;
       }
@@ -178,7 +179,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           <DialogTitle className="text-xl font-bold text-center text-gray-800 dark:text-gray-100">
             Validar número apartado
           </DialogTitle>
-          {debugMode && debugInfo && (
+          {debugMode && (
             <DialogDescription className="text-amber-600 font-semibold">
               Modo desarrollador: Depuración activa
             </DialogDescription>
@@ -205,11 +206,15 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
             </div>
           </div>
           
-          {debugMode && debugInfo && (
+          {debugMode && (
             <Alert className="mt-4 bg-amber-50 border-amber-300 text-amber-800">
               <AlertDescription className="text-xs overflow-auto max-h-32">
                 <div className="font-bold mb-1">Información de depuración:</div>
-                <pre className="whitespace-pre-wrap">{JSON.stringify(debugInfo, null, 2)}</pre>
+                {debugInfo ? (
+                  <pre className="whitespace-pre-wrap">{JSON.stringify(debugInfo, null, 2)}</pre>
+                ) : (
+                  <p className="text-sm">Depuración activa, esperando datos...</p>
+                )}
               </AlertDescription>
             </Alert>
           )}
