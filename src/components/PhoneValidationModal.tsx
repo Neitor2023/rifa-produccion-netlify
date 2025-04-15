@@ -18,7 +18,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 interface PhoneValidationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onValidate: (number: string) => void;
+  onValidate: (number: string, participantId?: string) => void;
   selectedNumber: string | null;
   raffleNumbers: any[];
   raffleSellerId?: string;
@@ -158,7 +158,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       
       // Only automatically proceed if not in debug mode
       if (!debugMode) {
-        onValidate(selectedNumber);
+        onValidate(selectedNumber, matchedParticipant.id);
       }
       
     } catch (error) {
@@ -179,7 +179,10 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   
   // Handler for debug continue button
   const handleContinueFromDebug = () => {
-    if (selectedNumber) {
+    if (selectedNumber && debugInfo?.matchedParticipant?.id) {
+      onValidate(selectedNumber, debugInfo.matchedParticipant.id);
+    } else if (selectedNumber) {
+      // Fallback if participant ID is not available
       onValidate(selectedNumber);
     }
   };

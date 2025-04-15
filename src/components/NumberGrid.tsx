@@ -105,7 +105,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     setShowReservedMessage(true);
   };
   
-  const handleValidationSuccess = async (validatedNumber: string) => {
+  const handleValidationSuccess = async (validatedNumber: string, participantId?: string) => {
     setIsPhoneModalOpen(false);
     
     try {
@@ -117,34 +117,58 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         return;
       }
       
-      // Find the participant ID associated with the phone number
-      const { data: participant } = await supabase
-        .from('participants')
-        .select('id')
-        .eq('phone', number.buyer_phone || '')
-        .maybeSingle();
+      // If we have a participantId from the validation, use it directly
+      const finalParticipantId = participantId || number.participant_id;
       
-      const participantId = participant?.id;
-      
-      if (!participantId) {
-        toast.error('Participante no encontrado');
-        return;
-      }
-      
-      // Find all reserved numbers for this participant
-      const allReservedNumbers = numbers
-        .filter(n => 
-          n.status === 'reserved' && 
-          (n.participant_id === participantId || n.number === validatedNumber)
-        )
-        .map(n => n.number);
-      
-      if (allReservedNumbers.length > 0) {
-        toast.success(`${allReservedNumbers.length} número(s) encontrados`);
-        onProceedToPayment(allReservedNumbers);
+      if (!finalParticipantId) {
+        // If no participant ID provided and none in the number, try to get it from the phone
+        if (number.buyer_phone) {
+          const { data: participant } = await supabase
+            .from('participants')
+            .select('id')
+            .eq('phone', number.buyer_phone)
+            .maybeSingle();
+          
+          if (!participant?.id) {
+            toast.error('Participante no encontrado');
+            return;
+          }
+          
+          // Find all reserved numbers for this participant
+          const allReservedNumbers = numbers
+            .filter(n => 
+              n.status === 'reserved' && 
+              (n.participant_id === participant.id || n.number === validatedNumber)
+            )
+            .map(n => n.number);
+          
+          if (allReservedNumbers.length > 0) {
+            toast.success(`${allReservedNumbers.length} número(s) encontrados`);
+            onProceedToPayment(allReservedNumbers);
+          } else {
+            // Just use the validated number if no other numbers found
+            onProceedToPayment([validatedNumber]);
+          }
+        } else {
+          // No phone number, just proceed with the validated number
+          onProceedToPayment([validatedNumber]);
+        }
       } else {
-        // Just use the validated number if no other numbers found
-        onProceedToPayment([validatedNumber]);
+        // Find all reserved numbers for this participant
+        const allReservedNumbers = numbers
+          .filter(n => 
+            n.status === 'reserved' && 
+            (n.participant_id === finalParticipantId || n.number === validatedNumber)
+          )
+          .map(n => n.number);
+        
+        if (allReservedNumbers.length > 0) {
+          toast.success(`${allReservedNumbers.length} número(s) encontrados`);
+          onProceedToPayment(allReservedNumbers);
+        } else {
+          // Just use the validated number if no other numbers found
+          onProceedToPayment([validatedNumber]);
+        }
       }
     } catch (error) {
       console.error('Error finding reserved numbers:', error);
