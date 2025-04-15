@@ -26,13 +26,69 @@ export function usePaymentProcessor({
   const [paymentData, setPaymentData] = useState<PaymentFormData | null>(null);
   const [validatedBuyerData, setValidatedBuyerData] = useState<{ name: string, phone: string } | null>(null);
 
-  const handleReserveNumbers = async (numbers: string[]) => {
+  // Helper function to find or create a participant
+  const findOrCreateParticipant = async (phone: string, name?: string): Promise<string | null> => {
+    try {
+      // First try to find an existing participant with this phone number in this raffle
+      const { data: existingParticipant, error: searchError } = await supabase
+        .from('participants')
+        .select('id, name')
+        .eq('phone', phone)
+        .eq('raffle_id', raffleId)
+        .maybeSingle();
+      
+      if (searchError) {
+        console.error('Error searching for participant:', searchError);
+        return null;
+      }
+      
+      // If participant exists, return their ID
+      if (existingParticipant) {
+        return existingParticipant.id;
+      }
+      
+      // If no participant exists and we have a name, create a new one
+      if (name) {
+        const { data: newParticipant, error: createError } = await supabase
+          .from('participants')
+          .insert({
+            name: name,
+            phone: phone,
+            email: '', // Required field, but not available at reservation time
+            raffle_id: raffleId,
+            seller_id: raffleSeller?.seller_id
+          })
+          .select('id')
+          .single();
+        
+        if (createError) {
+          console.error('Error creating participant:', createError);
+          return null;
+        }
+        
+        return newParticipant?.id || null;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error in findOrCreateParticipant:', error);
+      return null;
+    }
+  };
+
+  const handleReserveNumbers = async (numbers: string[], buyerPhone?: string, buyerName?: string) => {
     if (!raffleSeller?.seller_id) {
       toast.error('Información del vendedor no disponible');
       return;
     }
     
     try {
+      // If we have buyer phone, try to find or create participant
+      let participantId: string | null = null;
+      if (buyerPhone) {
+        participantId = await findOrCreateParticipant(buyerPhone, buyerName);
+      }
+      
       const updatePromises = numbers.map(async (numStr) => {
         const num = parseInt(numStr);
         const existingNumber = raffleNumbers?.find(n => n.number === num);
@@ -43,6 +99,7 @@ export function usePaymentProcessor({
             .update({ 
               status: 'reserved', 
               seller_id: raffleSeller.seller_id,
+              participant_id: participantId, // Add participant_id if available
               reservation_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
             })
             .eq('id', existingNumber.id);
@@ -56,6 +113,7 @@ export function usePaymentProcessor({
               number: num, 
               status: 'reserved', 
               seller_id: raffleSeller.seller_id,
+              participant_id: participantId, // Add participant_id if available
               reservation_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
             });
           
@@ -64,7 +122,6 @@ export function usePaymentProcessor({
       });
       
       await Promise.all(updatePromises);
-      
       await refetchRaffleNumbers();
       
       setSelectedNumbers([]);
@@ -263,6 +320,7 @@ export function usePaymentProcessor({
     validatedBuyerData,
     handleReserveNumbers,
     handleProceedToPayment,
-    handleCompletePayment
+    handleCompletePayment,
+    findOrCreateParticipant // Expose this function for other components
   };
 }

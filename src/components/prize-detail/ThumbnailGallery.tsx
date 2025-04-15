@@ -46,6 +46,12 @@ const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
     });
   }, [currentIndex]);
   
+  // Handler for thumbnail clicks with proper index management
+  const handleThumbnailClick = (index: number) => {
+    // Ensure we're passing the correct index and handling the event
+    onThumbnailClick(index);
+  };
+  
   // Split images into rows for mobile view
   const renderMobileThumbnails = () => {
     const firstRowCount = Math.ceil(images.length / 2);
@@ -70,7 +76,7 @@ const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
               className={`w-16 h-16 flex-shrink-0 rounded-md overflow-hidden cursor-pointer snap-center border-2 ${
                 index === currentIndex ? 'border-blue-500 dark:border-blue-400' : 'border-transparent'
               }`}
-              onClick={() => onThumbnailClick(index)}
+              onClick={() => handleThumbnailClick(index)}
             >
               <SafeImage 
                 src={image.displayUrl} 
@@ -99,7 +105,7 @@ const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
                   className={`w-16 h-16 flex-shrink-0 rounded-md overflow-hidden cursor-pointer snap-center border-2 ${
                     actualIndex === currentIndex ? 'border-blue-500 dark:border-blue-400' : 'border-transparent'
                   }`}
-                  onClick={() => onThumbnailClick(actualIndex)}
+                  onClick={() => handleThumbnailClick(actualIndex)}
                 >
                   <SafeImage 
                     src={image.displayUrl} 
@@ -134,7 +140,7 @@ const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
           className={`w-16 h-16 flex-shrink-0 rounded-md overflow-hidden cursor-pointer snap-center border-2 ${
             index === currentIndex ? 'border-blue-500 dark:border-blue-400' : 'border-transparent'
           }`}
-          onClick={() => onThumbnailClick(index)}
+          onClick={() => handleThumbnailClick(index)}
         >
           <SafeImage 
             src={image.displayUrl} 

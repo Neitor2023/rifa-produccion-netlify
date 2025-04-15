@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Trash2, CheckCircle2, CreditCard, Wallet } from 'lucide-react';
@@ -34,7 +33,7 @@ interface RaffleSeller {
 interface NumberGridProps {
   numbers: RaffleNumber[];
   raffleSeller: RaffleSeller;
-  onReserve: (selectedNumbers: string[]) => void;
+  onReserve: (selectedNumbers: string[], buyerPhone?: string, buyerName?: string) => void;
   onProceedToPayment: (selectedNumbers: string[]) => void;
 }
 
@@ -51,7 +50,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const [selectedReservedNumber, setSelectedReservedNumber] = useState<string | null>(null);
   const [debugMode, setDebugMode] = useState(false);
   
-  // Check if we're in developer mode
   useEffect(() => {
     const checkDeveloperMode = async () => {
       try {
@@ -133,7 +131,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         console.log('Seller ID:', raffleSeller.seller_id);
       }
       
-      // If we have a participant ID, query Supabase directly for all reserved numbers
       if (participantId) {
         if (debugMode) {
           console.log('Querying Supabase for reserved numbers with participant ID:', participantId);
@@ -150,14 +147,13 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         if (error) {
           console.error('Error fetching reserved numbers:', error);
           toast.error('Error al buscar números reservados');
-          // Fallback to the validated number
-          onProceedToPayment([validatedNumber]);
           return;
         }
         
         if (reservedNumbers && reservedNumbers.length > 0) {
-          // Extract the numbers and convert to strings
-          const allReservedNumbers = reservedNumbers.map(n => n.number.toString().padStart(2, '0'));
+          const allReservedNumbers = reservedNumbers.map(n => 
+            n.number.toString().padStart(2, '0')
+          );
           
           if (debugMode) {
             console.log('Found reserved numbers:', allReservedNumbers);
@@ -168,21 +164,12 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           return;
         } else {
           if (debugMode) {
-            console.log('No reserved numbers found with direct query, checking if validated number is valid');
+            console.log('No reserved numbers found with direct query');
           }
           
-          // No reserved numbers found, check if the validated number is valid
-          const validatedNumberObj = numbers.find(n => n.number === validatedNumber && n.status === 'reserved');
-          
-          if (validatedNumberObj) {
-            toast.success('Validación exitosa. Procediendo con el número seleccionado.');
-            onProceedToPayment([validatedNumber]);
-          } else {
-            toast.error('❗ No se encontraron números reservados para este participante.');
-          }
+          toast.error('❗ No se encontraron números reservados para este participante.');
         }
       } else {
-        // No participant ID provided, fallback to just the validated number
         const number = numbers.find(n => n.number === validatedNumber && n.status === 'reserved');
         
         if (!number) {
@@ -196,8 +183,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     } catch (error) {
       console.error('Error processing validation:', error);
       toast.error('Error al procesar la validación');
-      // Fallback to the validated number in case of errors
-      onProceedToPayment([validatedNumber]);
     }
   };
 

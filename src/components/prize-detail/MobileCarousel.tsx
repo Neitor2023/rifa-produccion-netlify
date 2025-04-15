@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   Carousel,
   CarouselContent,
@@ -14,18 +14,51 @@ interface MobileCarouselProps {
   images: { displayUrl: string }[];
   fallbackImage?: string;
   imageTitle: string;
+  currentIndex?: number; // Added to control the carousel from parent
+  onSlideChange?: (index: number) => void; // Added to report back current slide
 }
 
 const MobileCarousel: React.FC<MobileCarouselProps> = ({ 
   images, 
   fallbackImage,
-  imageTitle
+  imageTitle,
+  currentIndex = 0,
+  onSlideChange
 }) => {
   const isMobile = useIsMobile();
+  const carouselApiRef = useRef<any>(null);
+  
+  // Function to handle API setup
+  const handleApiChange = (api: any) => {
+    carouselApiRef.current = api;
+    
+    // When the API is available, scroll to the initial index
+    if (api && currentIndex > 0) {
+      api.scrollTo(currentIndex);
+    }
+    
+    // Add event listener for slide changes
+    if (api && onSlideChange) {
+      api.on('select', () => {
+        onSlideChange(api.selectedScrollSnap());
+      });
+    }
+  };
+  
+  // Function to programmatically scroll to a specific index
+  React.useEffect(() => {
+    if (carouselApiRef.current && typeof currentIndex === 'number') {
+      carouselApiRef.current.scrollTo(currentIndex);
+    }
+  }, [currentIndex]);
   
   return (
     <div className="md:hidden mb-4 relative">
-      <Carousel className="w-full mx-auto" opts={{ loop: true, dragFree: true, align: "start" }}>
+      <Carousel 
+        className="w-full mx-auto" 
+        opts={{ loop: true, dragFree: true, align: "start" }}
+        setApi={handleApiChange}
+      >
         <CarouselContent className="-ml-0 md:-ml-0">
           {images.length > 0 ? 
             images.map((image, index) => (
