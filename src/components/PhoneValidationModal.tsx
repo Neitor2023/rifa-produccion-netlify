@@ -94,12 +94,11 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       
       if (!raffleNumber) {
         const errorMsg = 'Error: El número seleccionado no está reservado';
+        debugData.error = errorMsg;
+        debugData.raffleNumberStatus = 'not found or not reserved';
+        
         if (debugMode) {
-          setDebugInfo({
-            ...debugData,
-            error: errorMsg,
-            raffleNumberStatus: 'not found or not reserved'
-          });
+          setDebugInfo(debugData);
         } else {
           toast.error(errorMsg);
         }
@@ -140,11 +139,9 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       if (raffleNumber.participant_id && raffleNumber.participant_id !== matchedParticipant.id) {
         const errorMsg = '⚠️ Este número reservado ya está vinculado a otro participante.';
         if (debugMode) {
-          setDebugInfo({
-            ...debugData,
-            error: errorMsg,
-            existingParticipantId: raffleNumber.participant_id
-          });
+          debugData.error = errorMsg;
+          debugData.existingParticipantId = raffleNumber.participant_id;
+          setDebugInfo(debugData);
         } else {
           toast.error(errorMsg);
         }
@@ -153,8 +150,16 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       }
       
       // ✅ Si todo está correcto
+      debugData.success = true;
+      debugData.message = 'Teléfono verificado correctamente';
+      setDebugInfo(debugData);
+      
       toast.success('Teléfono verificado correctamente');
-      onValidate(selectedNumber);
+      
+      // Only automatically proceed if not in debug mode
+      if (!debugMode) {
+        onValidate(selectedNumber);
+      }
       
     } catch (error) {
       console.error('Error validating phone:', error);
@@ -169,6 +174,13 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       }
     } finally {
       setIsValidating(false);
+    }
+  };
+  
+  // Handler for debug continue button
+  const handleContinueFromDebug = () => {
+    if (selectedNumber) {
+      onValidate(selectedNumber);
     }
   };
   
@@ -206,15 +218,11 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
             </div>
           </div>
           
-          {debugMode && (
+          {debugMode && debugInfo && (
             <Alert className="mt-4 bg-amber-50 border-amber-300 text-amber-800">
               <AlertDescription className="text-xs overflow-auto max-h-32">
                 <div className="font-bold mb-1">Información de depuración:</div>
-                {debugInfo ? (
-                  <pre className="whitespace-pre-wrap">{JSON.stringify(debugInfo, null, 2)}</pre>
-                ) : (
-                  <p className="text-sm">Depuración activa, esperando datos...</p>
-                )}
+                <pre className="whitespace-pre-wrap">{JSON.stringify(debugInfo, null, 2)}</pre>
               </AlertDescription>
             </Alert>
           )}
@@ -228,6 +236,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           >
             Cancelar
           </Button>
+          
           <Button
             onClick={handleValidate}
             className="w-full sm:w-auto bg-rifa-purple hover:bg-rifa-darkPurple"
@@ -235,6 +244,15 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           >
             {isValidating ? 'Validando...' : 'Validar'}
           </Button>
+          
+          {debugMode && debugInfo && debugInfo.success && (
+            <Button
+              onClick={handleContinueFromDebug}
+              className="w-full mt-2 sm:w-auto sm:mt-0 bg-amber-500 hover:bg-amber-600 text-white"
+            >
+              Continuar desde depuración
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
