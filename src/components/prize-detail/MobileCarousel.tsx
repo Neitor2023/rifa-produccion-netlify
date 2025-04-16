@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   Carousel,
   CarouselContent,
@@ -32,11 +32,6 @@ const MobileCarousel: React.FC<MobileCarouselProps> = ({
   const handleApiChange = (api: any) => {
     carouselApiRef.current = api;
     
-    // When the API is available, scroll to the initial index
-    if (api && currentIndex > 0) {
-      api.scrollTo(currentIndex);
-    }
-    
     // Add event listener for slide changes
     if (api && onSlideChange) {
       api.on('select', () => {
@@ -46,14 +41,13 @@ const MobileCarousel: React.FC<MobileCarouselProps> = ({
   };
   
   // Function to programmatically scroll to a specific index
-  React.useEffect(() => {
+  useEffect(() => {
     if (carouselApiRef.current && typeof currentIndex === 'number') {
-      // Add a small delay to ensure the carousel is fully initialized
-      setTimeout(() => {
-        if (carouselApiRef.current) {
-          carouselApiRef.current.scrollTo(currentIndex);
-        }
-      }, 50);
+      // Ensure scrollTo gets called when the currentIndex changes
+      carouselApiRef.current.scrollTo(currentIndex);
+      
+      // Force a rerender to ensure the carousel updates visually
+      console.log(`Mobile carousel scrolling to index: ${currentIndex}`);
     }
   }, [currentIndex]);
   

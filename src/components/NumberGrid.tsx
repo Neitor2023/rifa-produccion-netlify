@@ -9,7 +9,10 @@ import { X } from 'lucide-react';
 import PhoneValidationModal from './PhoneValidationModal';
 import ReservationModal from './ReservationModal';
 import { supabase } from '@/integrations/supabase/client';
+import { NumberGridControls } from './NumberGridControls';
+import { NumberGridLegend } from './NumberGridLegend';
 
+// Type definitions
 interface RaffleNumber {
   id: string;
   raffle_id: string;
@@ -45,6 +48,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   onReserve,
   onProceedToPayment
 }) => {
+  // State management
   const [selectedNumbers, setSelectedNumbers] = useState<string[]>([]);
   const [highlightReserved, setHighlightReserved] = useState(false);
   const [showReservedMessage, setShowReservedMessage] = useState(false);
@@ -53,6 +57,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const [selectedReservedNumber, setSelectedReservedNumber] = useState<string | null>(null);
   const [debugMode, setDebugMode] = useState(false);
   
+  // Check developer mode on component mount
   useEffect(() => {
     const checkDeveloperMode = async () => {
       try {
@@ -71,6 +76,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     checkDeveloperMode();
   }, []);
   
+  // Event handlers
   const toggleNumber = (number: string, status: string) => {
     if (highlightReserved && status === 'reserved') {
       setSelectedReservedNumber(number);
@@ -115,6 +121,12 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       console.log('Selected numbers:', selectedNumbers);
     }
     
+    // Make sure both name and phone are valid
+    if (!data.buyerName || !data.buyerPhone) {
+      toast.error('Nombre y teléfono son obligatorios');
+      return;
+    }
+    
     onReserve(selectedNumbers, data.buyerPhone, data.buyerName);
     setIsReservationModalOpen(false);
     setSelectedNumbers([]);
@@ -131,6 +143,11 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const handlePayReserved = () => {
     setHighlightReserved(true);
     setShowReservedMessage(true);
+  };
+  
+  const handleCloseReservedMessage = () => {
+    setShowReservedMessage(false);
+    setHighlightReserved(false);
   };
   
   const handleValidationSuccess = async (validatedNumber: string, participantId?: string) => {
@@ -199,6 +216,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     }
   };
 
+  // Grid generation
   const renderGrid = () => {
     const grid = [];
     for (let row = 0; row < 10; row++) {
@@ -262,10 +280,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
             <Button 
               variant="ghost" 
               size="icon" 
-              onClick={() => {
-                setShowReservedMessage(false);
-                setHighlightReserved(false);
-              }}
+              onClick={handleCloseReservedMessage}
               className="h-6 w-6 p-0 rounded-full"
             >
               <X className="h-4 w-4" />
@@ -280,78 +295,16 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         </div>
       </Card>
       
-      <Card className="p-3 sm:p-4 mb-4 bg-white dark:bg-gray-800">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-          <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            <span>Seleccionados:</span> {selectedNumbers.length} de {raffleSeller.cant_max}
-          </div>
-          
-          <div className="flex flex-wrap gap-2 justify-center sm:justify-end">
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-gray-300 text-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-              onClick={clearSelection}
-            >
-              <Trash2 className="h-4 w-4 mr-1 sm:mr-2" />
-              <span className="text-xs sm:text-sm">Limpiar</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-amber-500 text-amber-600 hover:bg-amber-500 hover:text-white dark:border-amber-600 dark:text-amber-400 dark:hover:bg-amber-600"
-              onClick={handleReserve}
-            >
-              <CheckCircle2 className="h-4 w-4 mr-1 sm:mr-2" />
-              <span className="text-xs sm:text-sm">Apartar</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-amber-500 bg-amber-500 text-white hover:bg-amber-600 dark:border-amber-600 dark:bg-amber-600 dark:hover:bg-amber-700"
-              onClick={handlePayReserved}
-            >
-              <Wallet className="h-4 w-4 mr-1 sm:mr-2" />
-              <span className="text-xs sm:text-sm">💰 Pagar Apartados</span>
-            </Button>
-            
-            <Button
-              size="sm"
-              className="bg-rifa-purple hover:bg-rifa-darkPurple text-white dark:bg-purple-700 dark:hover:bg-purple-800"
-              onClick={handleProceedToPayment}
-            >
-              <CreditCard className="h-4 w-4 mr-1 sm:mr-2" />
-              <span className="text-xs sm:text-sm">Pagar</span>
-            </Button>
-          </div>
-        </div>
-      </Card>
+      <NumberGridControls 
+        selectedNumbers={selectedNumbers}
+        raffleSeller={raffleSeller}
+        onClearSelection={clearSelection}
+        onReserve={handleReserve}
+        onPayReserved={handlePayReserved}
+        onProceedToPayment={handleProceedToPayment}
+      />
       
-      <div className="mt-4 flex flex-wrap gap-4 justify-center">
-        <div className="flex items-center">
-          <div className="h-4 w-4 bg-white dark:bg-gray-800 border dark:border-gray-600 rounded-sm mr-2"></div>
-          <span className="text-xs text-gray-600 dark:text-gray-400">Disponible</span>
-        </div>
-        
-        <div className="flex items-center">
-          <div className="h-4 w-4 bg-rifa-purple dark:bg-purple-700 rounded-sm mr-2"></div>
-          <span className="text-xs text-gray-600 dark:text-gray-400">Seleccionado</span>
-        </div>
-        
-        <div className="flex items-center">
-          <div className="h-4 w-4 bg-gray-100 dark:bg-gray-700 rounded-sm mr-2"></div>
-          <span className="text-xs text-gray-600 dark:text-gray-400">No disponible</span>
-        </div>
-        
-        {highlightReserved && (
-          <div className="flex items-center">
-            <div className="h-4 w-4 bg-amber-300 border-amber-500 rounded-sm mr-2"></div>
-            <span className="text-xs text-gray-600 dark:text-gray-400">Apartado</span>
-          </div>
-        )}
-      </div>
+      <NumberGridLegend highlightReserved={highlightReserved} />
       
       <PhoneValidationModal 
         isOpen={isPhoneModalOpen}

@@ -57,7 +57,16 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
       return;
     }
     
-    onConfirm(data);
+    // Validate data has values before calling onConfirm
+    if (!data.buyerName || !data.buyerPhone) {
+      toast.error('Nombre y teléfono son obligatorios');
+      return;
+    }
+    
+    onConfirm({
+      buyerName: data.buyerName,
+      buyerPhone: data.buyerPhone
+    });
     form.reset();
   };
 
