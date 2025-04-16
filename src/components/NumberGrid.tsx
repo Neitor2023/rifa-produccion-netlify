@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Trash2, CheckCircle2, CreditCard, Wallet } from 'lucide-react';
@@ -6,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { X } from 'lucide-react';
 import PhoneValidationModal from './PhoneValidationModal';
+import ReservationModal from './ReservationModal';
 import { supabase } from '@/integrations/supabase/client';
 
 interface RaffleNumber {
@@ -47,6 +49,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const [highlightReserved, setHighlightReserved] = useState(false);
   const [showReservedMessage, setShowReservedMessage] = useState(false);
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
+  const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
   const [selectedReservedNumber, setSelectedReservedNumber] = useState<string | null>(null);
   const [debugMode, setDebugMode] = useState(false);
   
@@ -103,7 +106,17 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       toast.error('Seleccione al menos un número para apartar');
       return;
     }
-    onReserve(selectedNumbers);
+    setIsReservationModalOpen(true);
+  };
+  
+  const handleConfirmReservation = (data: { buyerName: string; buyerPhone: string }) => {
+    if (debugMode) {
+      console.log('Reservation data:', data);
+      console.log('Selected numbers:', selectedNumbers);
+    }
+    
+    onReserve(selectedNumbers, data.buyerPhone, data.buyerName);
+    setIsReservationModalOpen(false);
     setSelectedNumbers([]);
   };
   
@@ -348,6 +361,13 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         raffleNumbers={numbers}
         raffleSellerId={raffleSeller.seller_id}
         raffleId={raffleSeller.raffle_id}
+      />
+      
+      <ReservationModal
+        isOpen={isReservationModalOpen}
+        onClose={() => setIsReservationModalOpen(false)}
+        onConfirm={handleConfirmReservation}
+        selectedNumbers={selectedNumbers}
       />
     </div>
   );

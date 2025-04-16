@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentFormData } from '@/components/PaymentModal';
@@ -44,11 +43,25 @@ export function usePaymentProcessor({
       
       // If participant exists, return their ID
       if (existingParticipant) {
+        // If we have a name and it's different from the existing one, update it
+        if (name && name !== existingParticipant.name) {
+          const { error: updateError } = await supabase
+            .from('participants')
+            .update({ name: name })
+            .eq('id', existingParticipant.id);
+          
+          if (updateError) {
+            console.error('Error updating participant name:', updateError);
+          }
+        }
+        
         return existingParticipant.id;
       }
       
       // If no participant exists and we have a name, create a new one
       if (name) {
+        console.log('Creating new participant:', { name, phone, raffle_id: raffleId, seller_id: raffleSeller?.seller_id });
+        
         const { data: newParticipant, error: createError } = await supabase
           .from('participants')
           .insert({
@@ -66,6 +79,7 @@ export function usePaymentProcessor({
           return null;
         }
         
+        console.log('Created new participant with ID:', newParticipant?.id);
         return newParticipant?.id || null;
       }
       
@@ -83,10 +97,13 @@ export function usePaymentProcessor({
     }
     
     try {
+      console.log('Reserve numbers called with:', { numbers, buyerPhone, buyerName });
+      
       // If we have buyer phone, try to find or create participant
       let participantId: string | null = null;
       if (buyerPhone) {
         participantId = await findOrCreateParticipant(buyerPhone, buyerName);
+        console.log('Participant ID for reservation:', participantId);
       }
       
       const updatePromises = numbers.map(async (numStr) => {

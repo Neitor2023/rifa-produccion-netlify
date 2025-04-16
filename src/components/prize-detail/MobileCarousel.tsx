@@ -48,7 +48,12 @@ const MobileCarousel: React.FC<MobileCarouselProps> = ({
   // Function to programmatically scroll to a specific index
   React.useEffect(() => {
     if (carouselApiRef.current && typeof currentIndex === 'number') {
-      carouselApiRef.current.scrollTo(currentIndex);
+      // Add a small delay to ensure the carousel is fully initialized
+      setTimeout(() => {
+        if (carouselApiRef.current) {
+          carouselApiRef.current.scrollTo(currentIndex);
+        }
+      }, 50);
     }
   }, [currentIndex]);
   
