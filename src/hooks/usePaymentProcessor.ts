@@ -26,11 +26,42 @@ export function usePaymentProcessor({
   const [isVoucherOpen, setIsVoucherOpen] = useState(false);
   const [paymentData, setPaymentData] = useState<PaymentFormData | null>(null);
   const [validatedBuyerData, setValidatedBuyerData] = useState<{ name: string, phone: string } | null>(null);
+  const [debugMode, setDebugMode] = useState(false);
 
-  // Participant management functions
+  // Check for debug mode on initialization
+  useState(() => {
+    checkForDebugMode();
+  });
+
+  // Debug mode detection
+  const checkForDebugMode = async () => {
+    try {
+      const { data } = await supabase
+        .from('organization')
+        .select('modal')
+        .limit(1)
+        .single();
+      
+      setDebugMode(data?.modal === 'programador');
+    } catch (error) {
+      console.error('Error checking debug mode:', error);
+    }
+  };
+
+  // Debug logging utility
+  const debugLog = (context: string, data: any) => {
+    if (debugMode) {
+      console.log(`[DEBUG - ${context}]:`, data);
+    }
+  };
+
+  // -----------------
+  // PARTICIPANT MANAGEMENT
+  // -----------------
+
   const findOrCreateParticipant = async (phone: string, name?: string): Promise<string | null> => {
     try {
-      console.log('Finding or creating participant:', { phone, name, raffle_id: raffleId });
+      debugLog('findOrCreateParticipant input', { phone, name, raffle_id: raffleId });
       
       const existingParticipant = await findExistingParticipant(phone);
       if (existingParticipant) {
@@ -44,7 +75,6 @@ export function usePaymentProcessor({
     }
   };
   
-  // Find existing participant by phone
   const findExistingParticipant = async (phone: string) => {
     const { data, error } = await supabase
       .from('participants')
@@ -59,14 +89,13 @@ export function usePaymentProcessor({
     }
     
     if (data) {
-      console.log('Found existing participant:', data);
+      debugLog('Found existing participant', data);
       return data;
     }
     
     return null;
   };
   
-  // Handle existing participant update if needed
   const handleExistingParticipant = async (participant: { id: string, name: string }, newName?: string): Promise<string> => {
     // If we have a name and it's different from the existing one, update it
     if (newName && newName !== participant.name) {
@@ -83,13 +112,12 @@ export function usePaymentProcessor({
     return participant.id;
   };
   
-  // Create a new participant
   const createNewParticipant = async (phone: string, name?: string): Promise<string | null> => {
     if (!name) {
       return null;
     }
     
-    console.log('Creating new participant:', { name, phone, raffle_id: raffleId, seller_id: raffleSeller?.seller_id });
+    debugLog('Creating new participant', { name, phone, raffle_id: raffleId, seller_id: raffleSeller?.seller_id });
     
     const { data, error } = await supabase
       .from('participants')
@@ -109,35 +137,36 @@ export function usePaymentProcessor({
       return null;
     }
     
-    console.log('Created new participant with ID:', data?.id);
+    debugLog('Created new participant with ID', data?.id);
     return data?.id || null;
   };
   
-  // Handle participant-related errors
   const handleParticipantError = (error: any, context: string) => {
     console.error(`Error in ${context}:`, error);
     toast.error(`Error al buscar o crear participante: ${error.message || 'Error desconocido'}`);
   };
 
-  // Reserve numbers
+  // -----------------
+  // RAFFLE NUMBER OPERATIONS
+  // -----------------
+
   const handleReserveNumbers = async (numbers: string[], buyerPhone?: string, buyerName?: string) => {
     if (!raffleSeller?.seller_id) {
       toast.error('Información del vendedor no disponible');
       return;
     }
     
+    if (!buyerPhone || !buyerName) {
+      toast.error('Nombre y teléfono son obligatorios para apartar números');
+      return;
+    }
+    
     try {
-      console.log('Reserve numbers called with:', { numbers, buyerPhone, buyerName });
-      
-      // Validate required fields
-      if (!buyerPhone || !buyerName) {
-        toast.error('Nombre y teléfono son obligatorios para apartar números');
-        return;
-      }
+      debugLog('Reserve numbers called with', { numbers, buyerPhone, buyerName });
       
       // Find or create participant
       const participantId = await findOrCreateParticipant(buyerPhone, buyerName);
-      console.log('Participant ID for reservation:', participantId);
+      debugLog('Participant ID for reservation', participantId);
       
       if (!participantId) {
         toast.error('No se pudo crear o encontrar al participante');
@@ -158,7 +187,6 @@ export function usePaymentProcessor({
     }
   };
   
-  // Update raffle numbers status
   const updateRaffleNumbersStatus = async (numbers: string[], status: string, participantId: string | null = null) => {
     if (!raffleSeller?.seller_id) {
       throw new Error('Seller ID not available');
@@ -185,8 +213,9 @@ export function usePaymentProcessor({
         updateData.reservation_expires_at = null;
       }
       
+      // Execute the appropriate database operation based on number existence
       if (existingNumber) {
-        console.log(`Updating number ${numStr} with data:`, updateData);
+        debugLog(`Updating number ${numStr}`, updateData);
         const { error } = await supabase
           .from('raffle_numbers')
           .update(updateData)
@@ -200,7 +229,7 @@ export function usePaymentProcessor({
           number: num
         };
         
-        console.log(`Inserting new number ${numStr} with data:`, insertData);
+        debugLog(`Inserting new number ${numStr}`, insertData);
         const { error } = await supabase
           .from('raffle_numbers')
           .insert(insertData);
@@ -212,7 +241,10 @@ export function usePaymentProcessor({
     await Promise.all(updatePromises);
   };
   
-  // Payment process
+  // -----------------
+  // PAYMENT PROCESSING
+  // -----------------
+  
   const handleProceedToPayment = async (numbers: string[]) => {
     if (numbers.length === 0) {
       toast.error('Seleccione al menos un número para comprar');
@@ -240,7 +272,6 @@ export function usePaymentProcessor({
     }
   };
   
-  // Check number availability
   const checkNumbersAvailability = async (numbers: string[]): Promise<string[]> => {
     return numbers.filter(numStr => {
       const existingNumber = raffleNumbers?.find(n => n.number === numStr);
@@ -250,7 +281,6 @@ export function usePaymentProcessor({
     });
   };
   
-  // Check reserved numbers for participant
   const checkReservedNumbersParticipant = async (numbers: string[]) => {
     try {
       // Check if we're processing a reserved number with an existing participant_id
@@ -271,7 +301,6 @@ export function usePaymentProcessor({
     }
   };
   
-  // Fetch participant info for a reserved number
   const fetchParticipantForReservedNumber = async (numStr: string) => {
     const existingNumber = raffleNumbers?.find(n => n.number === numStr);
     
@@ -291,11 +320,16 @@ export function usePaymentProcessor({
           name: participant.name,
           phone: participant.phone
         });
+        
+        debugLog('Set validated buyer data', participant);
       }
     }
   };
   
-  // Complete payment
+  // -----------------
+  // PAYMENT COMPLETION
+  // -----------------
+  
   const handleCompletePayment = async (data: PaymentFormData) => {
     if (!raffleSeller?.seller_id) {
       toast.error('Información del vendedor no disponible');
@@ -336,7 +370,6 @@ export function usePaymentProcessor({
     }
   };
   
-  // Upload payment proof
   const uploadPaymentProof = async (paymentProof: File | string | null): Promise<string | null> => {
     if (!paymentProof || !(paymentProof instanceof File)) {
       return typeof paymentProof === 'string' ? paymentProof : null;
@@ -362,7 +395,6 @@ export function usePaymentProcessor({
     }
   };
   
-  // Process participant data
   const processParticipant = async (data: PaymentFormData): Promise<string | null> => {
     try {
       // Check for existing participant
@@ -407,7 +439,6 @@ export function usePaymentProcessor({
     }
   };
   
-  // Update numbers to sold status
   const updateNumbersToSold = async (numbers: string[], participantId: string, paymentProofUrl: string | null) => {
     const updatePromises = numbers.map(async (numStr) => {
       const num = parseInt(numStr);
@@ -460,6 +491,7 @@ export function usePaymentProcessor({
     paymentData,
     setPaymentData,
     validatedBuyerData,
+    debugMode,
     handleReserveNumbers,
     handleProceedToPayment,
     handleCompletePayment,

@@ -1,7 +1,9 @@
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import SafeImage from '@/components/SafeImage';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { supabase } from '@/integrations/supabase/client';
+import DebugModal from '../DebugModal';
 
 interface ThumbnailGalleryProps {
   images: { displayUrl: string }[];
@@ -17,6 +19,28 @@ const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const thumbnailsRef = useRef<(HTMLDivElement | null)[]>([]);
   const isMobile = useIsMobile();
+  const [debugMode, setDebugMode] = useState(false);
+  const [isDebugModalOpen, setIsDebugModalOpen] = useState(false);
+  const [debugData, setDebugData] = useState<any>(null);
+  
+  // Check for debug mode
+  useEffect(() => {
+    const checkDebugMode = async () => {
+      try {
+        const { data } = await supabase
+          .from('organization')
+          .select('modal')
+          .limit(1)
+          .single();
+        
+        setDebugMode(data?.modal === 'programador');
+      } catch (error) {
+        console.error('Error checking debug mode:', error);
+      }
+    };
+    
+    checkDebugMode();
+  }, []);
   
   if (images.length <= 1) return null;
 
@@ -40,6 +64,15 @@ const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
     // Calculate the scroll position to center the thumbnail
     const scrollPos = thumbLeft - (containerWidth / 2) + (thumbWidth / 2);
     
+    if (debugMode) {
+      console.log(`Scrolling thumbnail at index ${currentIndex} into view`, {
+        containerWidth,
+        thumbLeft,
+        thumbWidth,
+        calculatedScrollPos: scrollPos
+      });
+    }
+    
     // Use requestAnimationFrame for smoother scrolling
     requestAnimationFrame(() => {
       container.scrollTo({
@@ -47,10 +80,33 @@ const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
         behavior: 'smooth'
       });
     });
-  }, [currentIndex]);
+  }, [currentIndex, debugMode]);
   
-  // Handler for thumbnail clicks with immediate index propagation
+  // Handler for thumbnail clicks with immediate index propagation and debug info
   const handleThumbnailClick = (index: number) => {
+    // Collect debug info before updating state
+    if (debugMode) {
+      const debugInfo = {
+        event: 'thumbnail-click',
+        clickedIndex: index,
+        currentIndex: currentIndex,
+        thumbElement: thumbnailsRef.current[index] ? {
+          offsetLeft: thumbnailsRef.current[index]?.offsetLeft,
+          offsetWidth: thumbnailsRef.current[index]?.offsetWidth
+        } : null,
+        scrollContainer: scrollContainerRef.current ? {
+          offsetWidth: scrollContainerRef.current.offsetWidth,
+          scrollLeft: scrollContainerRef.current.scrollLeft
+        } : null,
+        imageUrl: images[index]?.displayUrl || 'no-url',
+        totalImages: images.length
+      };
+      
+      setDebugData(debugInfo);
+      setIsDebugModalOpen(true);
+      console.log('Thumbnail clicked with debug info:', debugInfo);
+    }
+    
     // Immediate index update
     if (index !== currentIndex) {
       // Call the handler with the new index
@@ -130,35 +186,49 @@ const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
     );
   };
   
-  return isMobile ? (
-    renderMobileThumbnails()
-  ) : (
-    <div 
-      ref={scrollContainerRef}
-      className="flex flex-nowrap overflow-x-auto gap-2 mb-6 pb-2 px-2 snap-x snap-mandatory scroll-smooth hide-scrollbar mx-auto"
-      style={{ 
-        WebkitOverflowScrolling: 'touch', 
-        scrollbarWidth: 'none',
-        msOverflowStyle: 'none'
-      }}
-    >
-      {images.map((image, index) => (
+  return (
+    <>
+      {isMobile ? (
+        renderMobileThumbnails()
+      ) : (
         <div 
-          key={index}
-          ref={el => thumbnailsRef.current[index] = el}
-          className={`w-16 h-16 flex-shrink-0 rounded-md overflow-hidden cursor-pointer snap-center border-2 ${
-            index === currentIndex ? 'border-blue-500 dark:border-blue-400' : 'border-transparent'
-          }`}
-          onClick={() => handleThumbnailClick(index)}
+          ref={scrollContainerRef}
+          className="flex flex-nowrap overflow-x-auto gap-2 mb-6 pb-2 px-2 snap-x snap-mandatory scroll-smooth hide-scrollbar mx-auto"
+          style={{ 
+            WebkitOverflowScrolling: 'touch', 
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none'
+          }}
         >
-          <SafeImage 
-            src={image.displayUrl} 
-            alt={`Thumbnail ${index + 1}`}
-            className="w-full h-full object-cover"
-          />
+          {images.map((image, index) => (
+            <div 
+              key={index}
+              ref={el => thumbnailsRef.current[index] = el}
+              className={`w-16 h-16 flex-shrink-0 rounded-md overflow-hidden cursor-pointer snap-center border-2 ${
+                index === currentIndex ? 'border-blue-500 dark:border-blue-400' : 'border-transparent'
+              }`}
+              onClick={() => handleThumbnailClick(index)}
+            >
+              <SafeImage 
+                src={image.displayUrl} 
+                alt={`Thumbnail ${index + 1}`}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ))}
         </div>
-      ))}
-    </div>
+      )}
+      
+      {/* Debug modal */}
+      {debugMode && (
+        <DebugModal
+          isOpen={isDebugModalOpen}
+          onClose={() => setIsDebugModalOpen(false)}
+          data={debugData}
+          title="🛠️ Thumbnail Gallery Debug"
+        />
+      )}
+    </>
   );
 };
 
