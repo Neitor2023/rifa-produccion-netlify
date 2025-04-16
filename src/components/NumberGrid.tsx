@@ -1,11 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Trash2, CheckCircle2, CreditCard, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import PhoneValidationModal from './PhoneValidationModal';
 import ReservationModal from './ReservationModal';
 import { supabase } from '@/integrations/supabase/client';
@@ -59,24 +58,25 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   
   // Check developer mode on component mount
   useEffect(() => {
-    const checkDeveloperMode = async () => {
-      try {
-        const { data } = await supabase
-          .from('organization')
-          .select('modal')
-          .limit(1)
-          .single();
-        
-        setDebugMode(data?.modal === 'programador');
-      } catch (error) {
-        console.error('Error checking developer mode:', error);
-      }
-    };
-    
     checkDeveloperMode();
   }, []);
   
-  // Event handlers
+  // Check if developer mode is enabled
+  const checkDeveloperMode = async () => {
+    try {
+      const { data } = await supabase
+        .from('organization')
+        .select('modal')
+        .limit(1)
+        .single();
+      
+      setDebugMode(data?.modal === 'programador');
+    } catch (error) {
+      console.error('Error checking developer mode:', error);
+    }
+  };
+  
+  // Handle number selection/deselection
   const toggleNumber = (number: string, status: string) => {
     if (highlightReserved && status === 'reserved') {
       setSelectedReservedNumber(number);
@@ -99,6 +99,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     });
   };
   
+  // Clear current selection
   const clearSelection = () => {
     setSelectedNumbers([]);
     if (highlightReserved) {
@@ -107,6 +108,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     }
   };
   
+  // Handle reservation request
   const handleReserve = () => {
     if (selectedNumbers.length === 0) {
       toast.error('Seleccione al menos un número para apartar');
@@ -115,6 +117,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     setIsReservationModalOpen(true);
   };
   
+  // Handle reservation confirmation with validated data
   const handleConfirmReservation = (data: { buyerName: string; buyerPhone: string }) => {
     if (debugMode) {
       console.log('Reservation data:', data);
@@ -132,6 +135,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     setSelectedNumbers([]);
   };
   
+  // Process payment for selected numbers
   const handleProceedToPayment = () => {
     if (selectedNumbers.length === 0) {
       toast.error('Seleccione al menos un número para pagar');
@@ -140,16 +144,19 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     onProceedToPayment(selectedNumbers);
   };
   
+  // Toggle reserved numbers highlighting
   const handlePayReserved = () => {
     setHighlightReserved(true);
     setShowReservedMessage(true);
   };
   
+  // Close reserved message alert
   const handleCloseReservedMessage = () => {
     setShowReservedMessage(false);
     setHighlightReserved(false);
   };
   
+  // Handle successful phone validation
   const handleValidationSuccess = async (validatedNumber: string, participantId?: string) => {
     setIsPhoneModalOpen(false);
     
@@ -162,61 +169,70 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       }
       
       if (participantId) {
-        if (debugMode) {
-          console.log('Querying Supabase for reserved numbers with participant ID:', participantId);
-        }
-        
-        const { data: reservedNumbers, error } = await supabase
-          .from('raffle_numbers')
-          .select('number')
-          .eq('participant_id', participantId)
-          .eq('status', 'reserved')
-          .eq('raffle_id', raffleSeller.raffle_id)
-          .eq('seller_id', raffleSeller.seller_id);
-        
-        if (error) {
-          console.error('Error fetching reserved numbers:', error);
-          toast.error('Error al buscar números reservados');
-          return;
-        }
-        
-        if (reservedNumbers && reservedNumbers.length > 0) {
-          const allReservedNumbers = reservedNumbers.map(n => 
-            n.number.toString().padStart(2, '0')
-          );
-          
-          if (debugMode) {
-            console.log('Found reserved numbers:', allReservedNumbers);
-          }
-          
-          toast.success(`${allReservedNumbers.length} número(s) encontrados`);
-          onProceedToPayment(allReservedNumbers);
-          return;
-        } else {
-          if (debugMode) {
-            console.log('No reserved numbers found with direct query');
-          }
-          
-          toast.error('❗ No se encontraron números reservados para este participante.');
-        }
+        handleParticipantValidation(participantId);
       } else {
-        const number = numbers.find(n => n.number === validatedNumber && n.status === 'reserved');
-        
-        if (!number) {
-          toast.error('Número no encontrado');
-          return;
-        }
-        
-        toast.success('Validación exitosa');
-        onProceedToPayment([validatedNumber]);
+        handleNumberValidation(validatedNumber);
       }
     } catch (error) {
       console.error('Error processing validation:', error);
       toast.error('Error al procesar la validación');
     }
   };
+  
+  // Handle validation by participant ID
+  const handleParticipantValidation = async (participantId: string) => {
+    if (debugMode) {
+      console.log('Querying Supabase for reserved numbers with participant ID:', participantId);
+    }
+    
+    const { data: reservedNumbers, error } = await supabase
+      .from('raffle_numbers')
+      .select('number')
+      .eq('participant_id', participantId)
+      .eq('status', 'reserved')
+      .eq('raffle_id', raffleSeller.raffle_id)
+      .eq('seller_id', raffleSeller.seller_id);
+    
+    if (error) {
+      console.error('Error fetching reserved numbers:', error);
+      toast.error('Error al buscar números reservados');
+      return;
+    }
+    
+    if (reservedNumbers && reservedNumbers.length > 0) {
+      const allReservedNumbers = reservedNumbers.map(n => 
+        n.number.toString().padStart(2, '0')
+      );
+      
+      if (debugMode) {
+        console.log('Found reserved numbers:', allReservedNumbers);
+      }
+      
+      toast.success(`${allReservedNumbers.length} número(s) encontrados`);
+      onProceedToPayment(allReservedNumbers);
+    } else {
+      if (debugMode) {
+        console.log('No reserved numbers found with direct query');
+      }
+      
+      toast.error('❗ No se encontraron números reservados para este participante.');
+    }
+  };
+  
+  // Handle validation by number
+  const handleNumberValidation = (validatedNumber: string) => {
+    const number = numbers.find(n => n.number === validatedNumber && n.status === 'reserved');
+    
+    if (!number) {
+      toast.error('Número no encontrado');
+      return;
+    }
+    
+    toast.success('Validación exitosa');
+    onProceedToPayment([validatedNumber]);
+  };
 
-  // Grid generation
+  // Render the numbers grid
   const renderGrid = () => {
     const grid = [];
     for (let row = 0; row < 10; row++) {

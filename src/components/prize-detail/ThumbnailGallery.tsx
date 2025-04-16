@@ -40,16 +40,25 @@ const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
     // Calculate the scroll position to center the thumbnail
     const scrollPos = thumbLeft - (containerWidth / 2) + (thumbWidth / 2);
     
-    container.scrollTo({
-      left: scrollPos,
-      behavior: 'smooth'
+    // Use requestAnimationFrame for smoother scrolling
+    requestAnimationFrame(() => {
+      container.scrollTo({
+        left: scrollPos,
+        behavior: 'smooth'
+      });
     });
   }, [currentIndex]);
   
-  // Handler for thumbnail clicks with proper index management
+  // Handler for thumbnail clicks with immediate index propagation
   const handleThumbnailClick = (index: number) => {
-    // Ensure we're passing the correct index and handling the event
-    onThumbnailClick(index);
+    // Immediate index update
+    if (index !== currentIndex) {
+      // Call the handler with the new index
+      onThumbnailClick(index);
+    } else {
+      // Force a re-render even if clicking the same thumbnail
+      onThumbnailClick(index);
+    }
   };
   
   // Split images into rows for mobile view

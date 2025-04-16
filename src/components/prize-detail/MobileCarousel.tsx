@@ -14,8 +14,8 @@ interface MobileCarouselProps {
   images: { displayUrl: string }[];
   fallbackImage?: string;
   imageTitle: string;
-  currentIndex?: number; // Added to control the carousel from parent
-  onSlideChange?: (index: number) => void; // Added to report back current slide
+  currentIndex?: number;
+  onSlideChange?: (index: number) => void;
 }
 
 const MobileCarousel: React.FC<MobileCarouselProps> = ({ 
@@ -27,6 +27,7 @@ const MobileCarousel: React.FC<MobileCarouselProps> = ({
 }) => {
   const isMobile = useIsMobile();
   const carouselApiRef = useRef<any>(null);
+  const lastIndexRef = useRef<number>(currentIndex);
   
   // Function to handle API setup
   const handleApiChange = (api: any) => {
@@ -35,7 +36,8 @@ const MobileCarousel: React.FC<MobileCarouselProps> = ({
     // Add event listener for slide changes
     if (api && onSlideChange) {
       api.on('select', () => {
-        onSlideChange(api.selectedScrollSnap());
+        const index = api.selectedScrollSnap();
+        onSlideChange(index);
       });
     }
   };
@@ -43,11 +45,16 @@ const MobileCarousel: React.FC<MobileCarouselProps> = ({
   // Function to programmatically scroll to a specific index
   useEffect(() => {
     if (carouselApiRef.current && typeof currentIndex === 'number') {
-      // Ensure scrollTo gets called when the currentIndex changes
-      carouselApiRef.current.scrollTo(currentIndex);
+      // Force scroll even if the index is the same as before
+      const api = carouselApiRef.current;
       
-      // Force a rerender to ensure the carousel updates visually
-      console.log(`Mobile carousel scrolling to index: ${currentIndex}`);
+      // Use setTimeout to ensure the carousel API is fully initialized
+      setTimeout(() => {
+        if (api && api.scrollTo) {
+          api.scrollTo(currentIndex);
+          lastIndexRef.current = currentIndex;
+        }
+      }, 0);
     }
   }, [currentIndex]);
   
@@ -96,7 +103,7 @@ const MobileCarousel: React.FC<MobileCarouselProps> = ({
         )}
       </Carousel>
       
-      {/* Instructional text for mobile users - updated alignment and text */}
+      {/* Instructional text for mobile users */}
       {images.length > 1 && (
         <p className="text-sm text-left text-muted-foreground mt-2 mb-4 px-0">
           🧭 Deslice hacia los lados para ver más
