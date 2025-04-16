@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { toast } from 'sonner';
@@ -28,11 +27,6 @@ export function usePaymentProcessor({
   const [validatedBuyerData, setValidatedBuyerData] = useState<{ name: string, phone: string } | null>(null);
   const [debugMode, setDebugMode] = useState(false);
 
-  // Check for debug mode on initialization
-  useState(() => {
-    checkForDebugMode();
-  });
-
   // Debug mode detection
   const checkForDebugMode = async () => {
     try {
@@ -47,6 +41,11 @@ export function usePaymentProcessor({
       console.error('Error checking debug mode:', error);
     }
   };
+
+  // Check for debug mode on component mount
+  useEffect(() => {
+    checkForDebugMode();
+  }, []);
 
   // Debug logging utility
   const debugLog = (context: string, data: any) => {
