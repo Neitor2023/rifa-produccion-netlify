@@ -42,6 +42,12 @@ export function usePaymentProcessor({
   // PARTICIPANT MANAGEMENT
   // -----------------
 
+  /**
+   * Finds an existing participant or creates a new one if not found
+   * @param phone Participant's phone number
+   * @param name Optional participant name (required for new participants)
+   * @returns Participant ID or null if operation failed
+   */
   const findOrCreateParticipant = async (phone: string, name?: string): Promise<string | null> => {
     try {
       debugLog('findOrCreateParticipant input', { phone, name, raffle_id: raffleId });
@@ -58,6 +64,9 @@ export function usePaymentProcessor({
     }
   };
   
+  /**
+   * Searches for an existing participant with the given phone number
+   */
   const findExistingParticipant = async (phone: string) => {
     const { data, error } = await supabase
       .from('participants')
@@ -79,6 +88,9 @@ export function usePaymentProcessor({
     return null;
   };
   
+  /**
+   * Updates an existing participant if needed and returns their ID
+   */
   const handleExistingParticipant = async (participant: { id: string, name: string }, newName?: string): Promise<string> => {
     // If we have a name and it's different from the existing one, update it
     if (newName && newName !== participant.name) {
@@ -95,6 +107,9 @@ export function usePaymentProcessor({
     return participant.id;
   };
   
+  /**
+   * Creates a new participant in the database
+   */
   const createNewParticipant = async (phone: string, name?: string): Promise<string | null> => {
     if (!name) {
       return null;
@@ -124,6 +139,9 @@ export function usePaymentProcessor({
     return data?.id || null;
   };
   
+  /**
+   * Handles and logs participant-related errors
+   */
   const handleParticipantError = (error: any, context: string) => {
     console.error(`Error in ${context}:`, error);
     toast.error(`Error al buscar o crear participante: ${error.message || 'Error desconocido'}`);
@@ -133,6 +151,11 @@ export function usePaymentProcessor({
   // SELLER VALIDATION
   // -----------------
 
+  /**
+   * Validates that the seller has not exceeded their maximum number of sales
+   * @param newNumbersCount Number of new numbers to be sold or reserved
+   * @returns Boolean indicating if the operation can proceed
+   */
   const validateSellerMaxNumbers = async (newNumbersCount: number): Promise<boolean> => {
     if (!raffleSeller) {
       toast.error('Información del vendedor no disponible');
@@ -157,6 +180,11 @@ export function usePaymentProcessor({
     return true;
   };
 
+  /**
+   * Gets the count of numbers sold by a specific seller
+   * @param sellerId The seller's ID
+   * @returns Number of sold tickets
+   */
   const getSoldNumbersCount = (sellerId: string): number => {
     if (!raffleNumbers || !sellerId) return 0;
     
@@ -170,6 +198,12 @@ export function usePaymentProcessor({
   // RAFFLE NUMBER OPERATIONS
   // -----------------
 
+  /**
+   * Handles the reservation of multiple raffle numbers
+   * @param numbers Array of number strings to reserve
+   * @param buyerPhone Buyer's phone number
+   * @param buyerName Buyer's name
+   */
   const handleReserveNumbers = async (numbers: string[], buyerPhone?: string, buyerName?: string) => {
     if (!raffleSeller?.seller_id) {
       toast.error('Información del vendedor no disponible');
@@ -212,6 +246,12 @@ export function usePaymentProcessor({
     }
   };
   
+  /**
+   * Updates status and related fields for multiple raffle numbers
+   * @param numbers Array of number strings to update
+   * @param status New status ('reserved', 'sold', 'available')
+   * @param participantId Optional participant ID to associate with the numbers
+   */
   const updateRaffleNumbersStatus = async (numbers: string[], status: string, participantId: string | null = null) => {
     if (!raffleSeller?.seller_id) {
       throw new Error('Seller ID not available');
@@ -270,6 +310,10 @@ export function usePaymentProcessor({
   // PAYMENT PROCESSING
   // -----------------
   
+  /**
+   * Initiates the payment process for selected numbers
+   * @param numbers Array of number strings to purchase
+   */
   const handleProceedToPayment = async (numbers: string[]) => {
     if (numbers.length === 0) {
       toast.error('Seleccione al menos un número para comprar');
@@ -302,6 +346,11 @@ export function usePaymentProcessor({
     }
   };
   
+  /**
+   * Checks if numbers are available for purchase
+   * @param numbers Array of number strings to check
+   * @returns Array of unavailable numbers
+   */
   const checkNumbersAvailability = async (numbers: string[]): Promise<string[]> => {
     return numbers.filter(numStr => {
       const existingNumber = raffleNumbers?.find(n => n.number === numStr);
@@ -311,6 +360,10 @@ export function usePaymentProcessor({
     });
   };
   
+  /**
+   * Checks if reserved numbers have existing participant data
+   * and sets the validated buyer data if available
+   */
   const checkReservedNumbersParticipant = async (numbers: string[]) => {
     try {
       // Check if we're processing a reserved number with an existing participant_id
@@ -331,6 +384,10 @@ export function usePaymentProcessor({
     }
   };
   
+  /**
+   * Fetches participant data for a reserved number
+   * @param numStr The reserved number string
+   */
   const fetchParticipantForReservedNumber = async (numStr: string) => {
     const existingNumber = raffleNumbers?.find(n => n.number === numStr);
     
@@ -360,6 +417,10 @@ export function usePaymentProcessor({
   // PAYMENT COMPLETION
   // -----------------
   
+  /**
+   * Completes the payment process for selected numbers
+   * @param data Payment form data from PaymentModal
+   */
   const handleCompletePayment = async (data: PaymentFormData) => {
     if (!raffleSeller?.seller_id) {
       toast.error('Información del vendedor no disponible');
@@ -405,6 +466,11 @@ export function usePaymentProcessor({
     }
   };
   
+  /**
+   * Uploads payment proof to Supabase storage
+   * @param paymentProof File object or URL string
+   * @returns Public URL of the uploaded file or null
+   */
   const uploadPaymentProof = async (paymentProof: File | string | null): Promise<string | null> => {
     if (!paymentProof || !(paymentProof instanceof File)) {
       return typeof paymentProof === 'string' ? paymentProof : null;
@@ -430,6 +496,11 @@ export function usePaymentProcessor({
     }
   };
   
+  /**
+   * Processes participant data during payment completion
+   * @param data Payment form data
+   * @returns Participant ID or null if operation failed
+   */
   const processParticipant = async (data: PaymentFormData): Promise<string | null> => {
     try {
       // Check for existing participant
@@ -474,6 +545,12 @@ export function usePaymentProcessor({
     }
   };
   
+  /**
+   * Updates raffle numbers to sold status
+   * @param numbers Array of number strings to mark as sold
+   * @param participantId Participant ID to associate with numbers
+   * @param paymentProofUrl Optional URL to payment proof
+   */
   const updateNumbersToSold = async (numbers: string[], participantId: string, paymentProofUrl: string | null) => {
     const updatePromises = numbers.map(async (numStr) => {
       const num = parseInt(numStr);

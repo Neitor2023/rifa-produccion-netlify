@@ -66,7 +66,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       
       if (validatedParticipantId) {
         debugLog('Validation successful, found participant', validatedParticipantId);
-        // Pass the participant ID to allow the component to fetch all reserved numbers
+        // Fixed TypeScript error: Passing both arguments to onValidate
         onValidate(selectedNumber || '', validatedParticipantId);
       } else if (selectedNumber) {
         debugLog('No participant found, checking selected number ownership');
@@ -141,7 +141,8 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
     // If we reach here, validation was successful
     debugLog('Number validation successful');
     toast.success('Validación exitosa');
-    onValidate(number, undefined); // Fixed: Added the second argument (undefined)
+    // Fixed TypeScript error: Passing both arguments to onValidate, with undefined as second argument
+    onValidate(number, undefined);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
