@@ -24,6 +24,8 @@ const VentaBoletos: React.FC = () => {
   const [isPrizeModalOpen, setIsPrizeModalOpen] = useState(false);
   const [maxNumbersAllowed, setMaxNumbersAllowed] = useState<number>(33);
   const [organizationData, setOrganizationData] = useState<Organization | null>(null);
+  const [debugMode, setDebugMode] = useState(false);
+  const [allowVoucherPrint, setAllowVoucherPrint] = useState(true);
   
   const { data: seller, isLoading: isLoadingSeller } = useQuery({
     queryKey: ['seller', SELLER_ID],
@@ -49,6 +51,11 @@ const VentaBoletos: React.FC = () => {
         .single();
       
       if (error) throw error;
+      
+      if (data?.modal === 'programador') {
+        setDebugMode(true);
+      }
+      
       return data;
     }
   });
@@ -194,6 +201,10 @@ const VentaBoletos: React.FC = () => {
         return null;
       }
       
+      if (data) {
+        setAllowVoucherPrint(data.allow_voucher_print || false);
+      }
+      
       return data;
     },
     enabled: !!seller?.id
@@ -213,14 +224,22 @@ const VentaBoletos: React.FC = () => {
     setIsVoucherOpen,
     paymentData,
     validatedBuyerData,
+    debugMode: paymentDebugMode,
     handleReserveNumbers,
     handleProceedToPayment,
-    handleCompletePayment
+    handleCompletePayment,
+    getSoldNumbersCount
   } = usePaymentProcessor({
-    raffleSeller: seller ? { id: raffleSeller?.id || 'default', seller_id: seller.id } : null,
+    raffleSeller: seller ? { 
+      id: raffleSeller?.id || 'default', 
+      seller_id: seller.id,
+      active: raffleSeller?.active || true,
+      cant_max: raffleSeller?.cant_max || 33
+    } : null,
     raffleId: RAFFLE_ID,
     raffleNumbers,
-    refetchRaffleNumbers
+    refetchRaffleNumbers,
+    debugMode: debugMode
   });
   
   const formatNumbersForGrid = () => {
@@ -290,11 +309,13 @@ const VentaBoletos: React.FC = () => {
                 id: raffleSeller?.id || 'default',
                 raffle_id: RAFFLE_ID,
                 seller_id: seller?.id || SELLER_ID,
-                active: true,
+                active: raffleSeller?.active || true,
                 cant_max: maxNumbersAllowed
               }}
               onReserve={handleReserveNumbers}
               onProceedToPayment={handleProceedToPayment}
+              debugMode={debugMode}
+              soldNumbersCount={getSoldNumbersCount(seller?.id || '')}
             />
           </div>
         )}
@@ -347,6 +368,7 @@ const VentaBoletos: React.FC = () => {
         onClose={() => setIsVoucherOpen(false)}
         paymentData={paymentData}
         selectedNumbers={selectedNumbers}
+        allowVoucherPrint={allowVoucherPrint}
       />
     </div>
   );

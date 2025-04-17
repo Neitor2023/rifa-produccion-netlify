@@ -367,6 +367,7 @@ export type Database = {
       raffle_sellers: {
         Row: {
           active: boolean | null
+          allow_voucher_print: boolean | null
           assigned_at: string | null
           cant_max: number | null
           created_at: string | null
@@ -378,6 +379,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean | null
+          allow_voucher_print?: boolean | null
           assigned_at?: string | null
           cant_max?: number | null
           created_at?: string | null
@@ -389,6 +391,7 @@ export type Database = {
         }
         Update: {
           active?: boolean | null
+          allow_voucher_print?: boolean | null
           assigned_at?: string | null
           cant_max?: number | null
           created_at?: string | null
@@ -427,6 +430,7 @@ export type Database = {
           id_admin: string | null
           id_organizer: string | null
           lottery: string | null
+          modal: string | null
           payment_instructions: string | null
           price: number
           status: string
@@ -447,6 +451,7 @@ export type Database = {
           id_admin?: string | null
           id_organizer?: string | null
           lottery?: string | null
+          modal?: string | null
           payment_instructions?: string | null
           price: number
           status: string
@@ -467,6 +472,7 @@ export type Database = {
           id_admin?: string | null
           id_organizer?: string | null
           lottery?: string | null
+          modal?: string | null
           payment_instructions?: string | null
           price?: number
           status?: string

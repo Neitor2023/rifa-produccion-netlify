@@ -1,29 +1,28 @@
 
-import React, { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
+import React, { useState } from 'react';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
   DialogTitle,
   DialogFooter,
-  DialogDescription,
+  DialogDescription
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { LoaderCircle, PhoneCall, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import DebugModal from './DebugModal';
 
 interface PhoneValidationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onValidate: (number: string, participantId?: string) => void;
+  onValidate: (validatedNumber: string, participantId?: string) => void;
   selectedNumber: string | null;
   raffleNumbers: any[];
-  raffleSellerId?: string;
-  raffleId?: string;
+  raffleSellerId: string;
+  raffleId: string;
+  debugMode?: boolean;
 }
 
 const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
@@ -33,291 +32,187 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   selectedNumber,
   raffleNumbers,
   raffleSellerId,
-  raffleId
+  raffleId,
+  debugMode = false
 }) => {
-  // State management
-  const [phone, setPhone] = useState('');
-  const [isValidating, setIsValidating] = useState(false);
-  const [debugMode, setDebugMode] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<any>(null);
-  const [isDebugModalOpen, setIsDebugModalOpen] = useState(false);
-  
-  // Check if we're in developer mode
-  useEffect(() => {
-    const checkDeveloperMode = async () => {
-      try {
-        const { data } = await supabase
-          .from('organization')
-          .select('modal')
-          .limit(1)
-          .single();
-        
-        setDebugMode(data?.modal === 'programador');
-      } catch (error) {
-        console.error('Error checking developer mode:', error);
-      }
-    };
-    
-    if (isOpen) {
-      checkDeveloperMode();
+  const [phoneNumber, setPhoneNumber] = useState<string>('');
+  const [isValidating, setIsValidating] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const debugLog = (context: string, data: any) => {
+    if (debugMode) {
+      console.log(`[PhoneValidation - ${context}]:`, data);
     }
-  }, [isOpen]);
-  
-  // Reset state when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      setPhone('');
-      setDebugInfo(null);
-    }
-  }, [isOpen]);
-  
-  // Input handlers
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPhone(e.target.value);
   };
-  
-  // Validation flow
-  const handleValidate = async () => {
-    // Input validation
-    if (!validateInputs()) return;
-    
+
+  const handleValidation = async () => {
+    if (!phoneNumber.trim()) {
+      setErrorMessage('Ingrese su número de teléfono');
+      return;
+    }
+
     setIsValidating(true);
-    setDebugInfo(null);
-    
+    setErrorMessage(null);
+
     try {
-      // Validate phone and find participant
-      const result = await validatePhoneAndFindParticipant();
+      debugLog('Validation starting with parameters', {
+        phoneNumber,
+        selectedNumber,
+        raffleId,
+        raffleSellerId
+      });
+
+      const validatedParticipantId = await validateByPhoneNumber(phoneNumber);
       
-      // Process result
-      if (result.success) {
-        handleSuccessfulValidation(result);
+      if (validatedParticipantId) {
+        debugLog('Validation successful, found participant', validatedParticipantId);
+        // Pass the participant ID to allow the component to fetch all reserved numbers
+        onValidate(selectedNumber || '', validatedParticipantId);
+      } else if (selectedNumber) {
+        debugLog('No participant found, checking selected number ownership');
+        // Fallback to checking the specific selected number
+        await validateSelectedNumber(selectedNumber, phoneNumber);
       } else {
-        handleFailedValidation(result);
+        setErrorMessage('No se pudo validar el número');
       }
-    } catch (error) {
-      handleValidationError(error);
+    } catch (error: any) {
+      debugLog('Validation error', error);
+      setErrorMessage(error.message || 'Error al validar el número');
     } finally {
       setIsValidating(false);
     }
   };
-  
-  // Input validation
-  const validateInputs = (): boolean => {
-    if (!phone) {
-      toast.error('Por favor, introduzca su número de celular');
-      return false;
-    }
-    
-    if (!selectedNumber) {
-      toast.error('No hay número seleccionado para validar');
-      return false;
-    }
-    
-    return true;
-  };
-  
-  // Main validation logic
-  const validatePhoneAndFindParticipant = async () => {
-    // Prepare debug info
-    const debugData: any = {
-      vSellerId: raffleSellerId,
-      vRaffleId: raffleId,
-      inputPhone: phone,
-      selectedNumber,
-      vParticipantId: null,
-      raffleNumberStatus: null
-    };
-    
-    // Get the raffle number data
-    const raffleNumber = raffleNumbers.find(n => n.number === selectedNumber && n.status === 'reserved');
-    
-    if (!raffleNumber) {
-      debugData.error = 'Error: El número seleccionado no está reservado';
-      debugData.raffleNumberStatus = 'not found or not reserved';
-      return { success: false, debugData };
-    }
-    
-    debugData.raffleNumberStatus = raffleNumber.status;
-    
-    // Buscar participante por teléfono directamente
-    const { data: matchedParticipant, error: phoneError } = await supabase
+
+  const validateByPhoneNumber = async (phone: string): Promise<string | null> => {
+    // Try to find a participant with this phone number in this raffle
+    const { data: participant, error } = await supabase
       .from('participants')
-      .select('id, phone, name')
+      .select('id')
       .eq('phone', phone)
+      .eq('raffle_id', raffleId)
       .maybeSingle();
 
-    debugData.matchedParticipant = matchedParticipant;
-    
-    if (phoneError || !matchedParticipant) {
-      debugData.error = '❗ Participante no encontrado con ese número de celular.';
-      debugData.phoneError = phoneError;
-      return { success: false, debugData };
+    if (error) {
+      debugLog('Participant lookup error', error);
+      throw new Error('Error al buscar participante');
     }
-    
-    debugData.vParticipantId = matchedParticipant.id;
-    
-    // Verifica si el participante coincide con el asociado (si existe)
-    if (raffleNumber.participant_id && raffleNumber.participant_id !== matchedParticipant.id) {
-      debugData.error = '⚠️ Este número reservado ya está vinculado a otro participante.';
-      debugData.existingParticipantId = raffleNumber.participant_id;
-      return { success: false, debugData };
-    }
-    
-    // ✅ Si todo está correcto
-    debugData.success = true;
-    debugData.message = 'Teléfono verificado correctamente';
-    
-    return { 
-      success: true, 
-      debugData, 
-      matchedParticipant 
-    };
+
+    return participant?.id || null;
   };
-  
-  // Handle successful validation
-  const handleSuccessfulValidation = (result: any) => {
-    setDebugInfo(result.debugData);
-    toast.success('Teléfono verificado correctamente');
-    
-    // Only automatically proceed if not in debug mode
-    if (!debugMode) {
-      onValidate(selectedNumber!, result.matchedParticipant.id);
+
+  const validateSelectedNumber = async (number: string, phone: string) => {
+    // Get the raffle number to check its participant
+    const raffleNumber = raffleNumbers.find(n => 
+      n.number === number && 
+      n.status === 'reserved' && 
+      n.seller_id === raffleSellerId
+    );
+
+    if (!raffleNumber) {
+      debugLog('Number not found or not reserved by this seller', number);
+      throw new Error('Número no encontrado o no reservado por este vendedor');
     }
-  };
-  
-  // Handle failed validation
-  const handleFailedValidation = (result: any) => {
-    if (debugMode) {
-      setDebugInfo(result.debugData);
-    } else {
-      toast.error(result.debugData.error);
+
+    if (!raffleNumber.participant_id) {
+      debugLog('Number has no participant_id', raffleNumber);
+      throw new Error('Este número no tiene un participante asociado');
     }
-  };
-  
-  // Error handling
-  const handleValidationError = (error: any) => {
-    console.error('Error validating phone:', error);
-    const errorMsg = '❗ Error interno del sistema. Contacte al administrador.';
-    
-    if (debugMode) {
-      setDebugInfo({
-        error: errorMsg,
-        systemError: error
+
+    // Check if the phone matches the participant
+    const { data: participant, error } = await supabase
+      .from('participants')
+      .select('phone')
+      .eq('id', raffleNumber.participant_id)
+      .single();
+
+    if (error) {
+      debugLog('Participant lookup error', error);
+      throw new Error('Error al buscar participante');
+    }
+
+    if (participant.phone !== phone) {
+      debugLog('Phone mismatch', { 
+        providedPhone: phone, 
+        participantPhone: participant.phone 
       });
-    } else {
-      toast.error(errorMsg);
+      throw new Error('El número de teléfono no coincide con el registrado');
     }
+
+    // If we reach here, validation was successful
+    debugLog('Number validation successful');
+    toast.success('Validación exitosa');
+    onValidate(number);
   };
-  
-  // Handler for debug continue button
-  const handleContinueFromDebug = () => {
-    if (selectedNumber && debugInfo?.matchedParticipant?.id) {
-      onValidate(selectedNumber, debugInfo.matchedParticipant.id);
-    } else if (selectedNumber) {
-      // Fallback if participant ID is not available
-      onValidate(selectedNumber);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleValidation();
     }
   };
 
-  // Debug modal handler
-  const handleOpenDebugModal = () => {
-    if (debugMode && debugInfo) {
-      setIsDebugModalOpen(true);
-    }
-  };
-  
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-center text-gray-800 dark:text-gray-100">
-              Validar número apartado
-            </DialogTitle>
-            {debugMode && (
-              <DialogDescription className="text-amber-600 font-semibold">
-                Modo desarrollador: Depuración activa
-              </DialogDescription>
-            )}
-          </DialogHeader>
-          
-          <div className="py-4">
-            <div className="mb-4 text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Para proceder al pago del número <strong>{selectedNumber}</strong>, por favor verifique su identidad.
-              </p>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">Introduce tu número de celular</Label>
-                <Input
-                  id="phone"
-                  placeholder="Ej: 6123456789"
-                  value={phone}
-                  onChange={handlePhoneChange}
-                  type="tel"
-                />
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold text-center">
+            Validación de Número
+          </DialogTitle>
+          <DialogDescription className="text-center">
+            Ingrese el número de teléfono usado para reservar
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Input
+              placeholder="Número de teléfono"
+              value={phoneNumber}
+              onChange={e => setPhoneNumber(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={isValidating}
+              className="text-center"
+            />
+
+            {errorMessage && (
+              <div className="flex items-center text-red-500 text-sm mt-2">
+                <AlertTriangle className="h-4 w-4 mr-1" />
+                {errorMessage}
               </div>
-            </div>
-            
-            {debugMode && debugInfo && (
-              <Alert 
-                className="mt-4 bg-amber-50 border-amber-300 text-amber-800 cursor-pointer"
-                onClick={handleOpenDebugModal}
-              >
-                <AlertDescription className="text-xs overflow-auto max-h-32">
-                  <div className="font-bold mb-1">
-                    Información de depuración: {debugInfo.success ? '✅ Éxito' : '❌ Error'}
-                    {' '}<span className="text-xs italic">(click para expandir)</span>
-                  </div>
-                  <pre className="whitespace-pre-wrap line-clamp-3">
-                    {JSON.stringify(debugInfo, null, 2)}
-                  </pre>
-                </AlertDescription>
-              </Alert>
             )}
           </div>
+        </div>
+
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={isValidating}
+            className="w-full sm:w-auto"
+          >
+            Cancelar
+          </Button>
           
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className="w-full sm:w-auto"
-            >
-              Cancelar
-            </Button>
-            
-            <Button
-              onClick={handleValidate}
-              className="w-full sm:w-auto bg-rifa-purple hover:bg-rifa-darkPurple"
-              disabled={isValidating}
-            >
-              {isValidating ? 'Validando...' : 'Validar'}
-            </Button>
-            
-            {debugMode && debugInfo && debugInfo.success && (
-              <Button
-                onClick={handleContinueFromDebug}
-                className="w-full mt-2 sm:w-auto sm:mt-0 bg-amber-500 hover:bg-amber-600 text-white"
-              >
-                Continuar desde depuración
-              </Button>
+          <Button 
+            onClick={handleValidation}
+            disabled={isValidating}
+            className="bg-rifa-purple hover:bg-rifa-darkPurple w-full sm:w-auto"
+          >
+            {isValidating ? (
+              <>
+                <LoaderCircle className="h-4 w-4 mr-2 animate-spin" />
+                Validando...
+              </>
+            ) : (
+              <>
+                <PhoneCall className="h-4 w-4 mr-2" />
+                Validar
+              </>
             )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Full debug modal */}
-      {debugMode && (
-        <DebugModal
-          isOpen={isDebugModalOpen}
-          onClose={() => setIsDebugModalOpen(false)}
-          data={debugInfo}
-          title="🔧 Validación de Teléfono - Depuración"
-        />
-      )}
-    </>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

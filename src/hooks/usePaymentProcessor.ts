@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentFormData } from '@/components/PaymentModal';
@@ -7,17 +8,21 @@ interface UsePaymentProcessorProps {
   raffleSeller: {
     id: string;
     seller_id: string;
+    cant_max: number;
+    active: boolean;
   } | null;
   raffleId: string;
   raffleNumbers: any[];
   refetchRaffleNumbers: () => Promise<any>;
+  debugMode?: boolean;
 }
 
 export function usePaymentProcessor({
   raffleSeller,
   raffleId,
   raffleNumbers,
-  refetchRaffleNumbers
+  refetchRaffleNumbers,
+  debugMode = false
 }: UsePaymentProcessorProps) {
   // State management
   const [selectedNumbers, setSelectedNumbers] = useState<string[]>([]);
@@ -25,27 +30,6 @@ export function usePaymentProcessor({
   const [isVoucherOpen, setIsVoucherOpen] = useState(false);
   const [paymentData, setPaymentData] = useState<PaymentFormData | null>(null);
   const [validatedBuyerData, setValidatedBuyerData] = useState<{ name: string, phone: string } | null>(null);
-  const [debugMode, setDebugMode] = useState(false);
-
-  // Debug mode detection
-  const checkForDebugMode = async () => {
-    try {
-      const { data } = await supabase
-        .from('organization')
-        .select('modal')
-        .limit(1)
-        .single();
-      
-      setDebugMode(data?.modal === 'programador');
-    } catch (error) {
-      console.error('Error checking debug mode:', error);
-    }
-  };
-
-  // Check for debug mode on component mount
-  useEffect(() => {
-    checkForDebugMode();
-  }, []);
 
   // Debug logging utility
   const debugLog = (context: string, data: any) => {
@@ -146,6 +130,43 @@ export function usePaymentProcessor({
   };
 
   // -----------------
+  // SELLER VALIDATION
+  // -----------------
+
+  const validateSellerMaxNumbers = async (newNumbersCount: number): Promise<boolean> => {
+    if (!raffleSeller) {
+      toast.error('Información del vendedor no disponible');
+      return false;
+    }
+
+    const soldCount = getSoldNumbersCount(raffleSeller.seller_id);
+    const maxAllowed = raffleSeller.cant_max;
+    
+    debugLog('Validating seller max numbers', { 
+      soldCount, 
+      newNumbersCount, 
+      maxAllowed, 
+      total: soldCount + newNumbersCount
+    });
+    
+    if (soldCount + newNumbersCount > maxAllowed) {
+      toast.error(`No puede vender más de ${maxAllowed} números en total. Ya ha vendido ${soldCount}.`);
+      return false;
+    }
+    
+    return true;
+  };
+
+  const getSoldNumbersCount = (sellerId: string): number => {
+    if (!raffleNumbers || !sellerId) return 0;
+    
+    return raffleNumbers.filter(number => 
+      number.seller_id === sellerId && 
+      number.status === 'sold'
+    ).length;
+  };
+
+  // -----------------
   // RAFFLE NUMBER OPERATIONS
   // -----------------
 
@@ -157,6 +178,11 @@ export function usePaymentProcessor({
     
     if (!buyerPhone || !buyerName) {
       toast.error('Nombre y teléfono son obligatorios para apartar números');
+      return;
+    }
+    
+    // Validate against seller's maximum allowed numbers
+    if (!(await validateSellerMaxNumbers(numbers.length))) {
       return;
     }
     
@@ -251,6 +277,11 @@ export function usePaymentProcessor({
     }
     
     try {
+      // Validate against seller's maximum allowed numbers
+      if (!(await validateSellerMaxNumbers(numbers.length))) {
+        return;
+      }
+      
       // Check number availability
       const unavailableNumbers = await checkNumbersAvailability(numbers);
       
@@ -336,6 +367,11 @@ export function usePaymentProcessor({
     }
     
     try {
+      // Validate against seller's maximum allowed numbers
+      if (!(await validateSellerMaxNumbers(selectedNumbers.length))) {
+        return;
+      }
+      
       // Upload payment proof if available
       const paymentProofUrl = await uploadPaymentProof(data.paymentProof);
       
@@ -494,6 +530,7 @@ export function usePaymentProcessor({
     handleReserveNumbers,
     handleProceedToPayment,
     handleCompletePayment,
-    findOrCreateParticipant
+    findOrCreateParticipant,
+    getSoldNumbersCount
   };
 }

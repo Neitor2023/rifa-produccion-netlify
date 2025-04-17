@@ -39,13 +39,17 @@ interface NumberGridProps {
   raffleSeller: RaffleSeller;
   onReserve: (selectedNumbers: string[], buyerPhone?: string, buyerName?: string) => void;
   onProceedToPayment: (selectedNumbers: string[]) => void;
+  debugMode?: boolean;
+  soldNumbersCount?: number;
 }
 
 const NumberGrid: React.FC<NumberGridProps> = ({ 
   numbers, 
   raffleSeller,
   onReserve,
-  onProceedToPayment
+  onProceedToPayment,
+  debugMode = false,
+  soldNumbersCount = 0
 }) => {
   // State management
   const [selectedNumbers, setSelectedNumbers] = useState<string[]>([]);
@@ -54,27 +58,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
   const [selectedReservedNumber, setSelectedReservedNumber] = useState<string | null>(null);
-  const [debugMode, setDebugMode] = useState(false);
-  
-  // Check developer mode on component mount
-  useEffect(() => {
-    checkDeveloperMode();
-  }, []);
-  
-  // Check if developer mode is enabled
-  const checkDeveloperMode = async () => {
-    try {
-      const { data } = await supabase
-        .from('organization')
-        .select('modal')
-        .limit(1)
-        .single();
-      
-      setDebugMode(data?.modal === 'programador');
-    } catch (error) {
-      console.error('Error checking developer mode:', error);
-    }
-  };
   
   // Handle number selection/deselection
   const toggleNumber = (number: string, status: string) => {
@@ -287,6 +270,11 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     <div className="mb-8">
       <h2 className="text-lg font-semibold mb-4 text-center text-gray-800 dark:text-gray-200">Seleccione sus números</h2>
       
+      {/* Progreso de ventas */}
+      <div className="mb-4 text-center text-sm font-medium text-gray-700 dark:text-gray-300">
+        🎫 Vendidos: {soldNumbersCount} / {raffleSeller.cant_max}
+      </div>
+      
       {showReservedMessage && (
         <Alert className="mb-4 bg-amber-50 border-amber-300 text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-300">
           <div className="flex justify-between items-center">
@@ -330,6 +318,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         raffleNumbers={numbers}
         raffleSellerId={raffleSeller.seller_id}
         raffleId={raffleSeller.raffle_id}
+        debugMode={debugMode}
       />
       
       <ReservationModal
