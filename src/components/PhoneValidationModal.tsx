@@ -141,7 +141,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
     // If we reach here, validation was successful
     debugLog('Number validation successful');
     toast.success('Validación exitosa');
-    onValidate(number);
+    onValidate(number, undefined); // Fixed: Added the second argument (undefined)
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
