@@ -10,6 +10,8 @@ import ReservationModal from './ReservationModal';
 import { supabase } from '@/integrations/supabase/client';
 import { NumberGridControls } from './NumberGridControls';
 import { NumberGridLegend } from './NumberGridLegend';
+import NumberGridHeader from './NumberGridHeader';
+import NumberGridItem from './NumberGridItem';
 
 // Type definitions
 interface RaffleNumber {
@@ -51,7 +53,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   debugMode = false,
   soldNumbersCount = 0
 }) => {
-  // State management
   const [selectedNumbers, setSelectedNumbers] = useState<string[]>([]);
   const [highlightReserved, setHighlightReserved] = useState(false);
   const [showReservedMessage, setShowReservedMessage] = useState(false);
@@ -59,7 +60,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
   const [selectedReservedNumber, setSelectedReservedNumber] = useState<string | null>(null);
   
-  // Handle number selection/deselection
   const toggleNumber = (number: string, status: string) => {
     if (highlightReserved && status === 'reserved') {
       setSelectedReservedNumber(number);
@@ -82,7 +82,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     });
   };
   
-  // Clear current selection
   const clearSelection = () => {
     setSelectedNumbers([]);
     if (highlightReserved) {
@@ -91,7 +90,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     }
   };
   
-  // Handle reservation request
   const handleReserve = () => {
     if (selectedNumbers.length === 0) {
       toast.error('Seleccione al menos un número para apartar');
@@ -100,14 +98,12 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     setIsReservationModalOpen(true);
   };
   
-  // Handle reservation confirmation with validated data
   const handleConfirmReservation = (data: { buyerName: string; buyerPhone: string }) => {
     if (debugMode) {
       console.log('Reservation data:', data);
       console.log('Selected numbers:', selectedNumbers);
     }
     
-    // Make sure both name and phone are valid
     if (!data.buyerName || !data.buyerPhone) {
       toast.error('Nombre y teléfono son obligatorios');
       return;
@@ -118,7 +114,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     setSelectedNumbers([]);
   };
   
-  // Process payment for selected numbers
   const handleProceedToPayment = () => {
     if (selectedNumbers.length === 0) {
       toast.error('Seleccione al menos un número para pagar');
@@ -127,19 +122,16 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     onProceedToPayment(selectedNumbers);
   };
   
-  // Toggle reserved numbers highlighting
   const handlePayReserved = () => {
     setHighlightReserved(true);
     setShowReservedMessage(true);
   };
   
-  // Close reserved message alert
   const handleCloseReservedMessage = () => {
     setShowReservedMessage(false);
     setHighlightReserved(false);
   };
   
-  // Handle successful phone validation
   const handleValidationSuccess = async (validatedNumber: string, participantId?: string) => {
     setIsPhoneModalOpen(false);
     
@@ -162,7 +154,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     }
   };
   
-  // Handle validation by participant ID
   const handleParticipantValidation = async (participantId: string) => {
     if (debugMode) {
       console.log('Querying Supabase for reserved numbers with participant ID:', participantId);
@@ -202,7 +193,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     }
   };
   
-  // Handle validation by number
   const handleNumberValidation = (validatedNumber: string) => {
     const number = numbers.find(n => n.number === validatedNumber && n.status === 'reserved');
     
@@ -215,7 +205,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     onProceedToPayment([validatedNumber]);
   };
 
-  // Render the numbers grid
   const renderGrid = () => {
     const grid = [];
     for (let row = 0; row < 10; row++) {
@@ -229,30 +218,14 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         const isHighlighted = highlightReserved && status === 'reserved';
         
         rowItems.push(
-          <div
+          <NumberGridItem
             key={paddedNum}
-            className={`
-              number-grid-item
-              flex items-center justify-center
-              border rounded-md
-              h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10
-              cursor-pointer
-              text-sm font-medium
-              ${status !== 'available' && !isHighlighted ? 'bg-gray-100 dark:bg-gray-700 cursor-not-allowed text-gray-500 dark:text-gray-400' : ''}
-              ${isSelected 
-                ? 'bg-rifa-purple text-white dark:bg-purple-700 dark:text-white border-rifa-purple dark:border-purple-600' 
-                : isHighlighted 
-                  ? 'bg-amber-300 text-amber-950 border-amber-500 hover:bg-amber-400'
-                  : status === 'available' 
-                    ? 'bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200' 
-                    : ''
-              }
-              transition-colors duration-150
-            `}
-            onClick={() => toggleNumber(paddedNum, status)}
-          >
-            {paddedNum}
-          </div>
+            number={paddedNum}
+            status={status}
+            isSelected={isSelected}
+            isHighlighted={isHighlighted}
+            onToggle={() => toggleNumber(paddedNum, status)}
+          />
         );
       }
       
@@ -268,12 +241,10 @@ const NumberGrid: React.FC<NumberGridProps> = ({
 
   return (
     <div className="mb-8">
-      <h2 className="text-lg font-semibold mb-4 text-center text-gray-800 dark:text-gray-200">Seleccione sus números</h2>
-      
-      {/* Progreso de ventas */}
-      <div className="mb-4 text-center text-sm font-medium text-gray-700 dark:text-gray-300">
-        🎫 Vendidos: {soldNumbersCount} / {raffleSeller.cant_max}
-      </div>
+      <NumberGridHeader 
+        soldNumbersCount={soldNumbersCount} 
+        maxNumbers={raffleSeller.cant_max} 
+      />
       
       {showReservedMessage && (
         <Alert className="mb-4 bg-amber-50 border-amber-300 text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-300">

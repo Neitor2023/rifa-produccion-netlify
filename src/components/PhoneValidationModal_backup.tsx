@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Dialog, 
@@ -66,9 +65,11 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       
       if (validatedParticipantId) {
         debugLog('Validation successful, found participant', validatedParticipantId);
+        // Fixed TypeScript error: Passing both arguments to onValidate
         onValidate(selectedNumber || '', validatedParticipantId);
       } else if (selectedNumber) {
         debugLog('No participant found, checking selected number ownership');
+        // Fallback to checking the specific selected number
         await validateSelectedNumber(selectedNumber, phoneNumber);
       } else {
         setErrorMessage('No se pudo validar el número');
@@ -82,6 +83,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   };
 
   const validateByPhoneNumber = async (phone: string): Promise<string | null> => {
+    // Try to find a participant with this phone number in this raffle
     const { data: participant, error } = await supabase
       .from('participants')
       .select('id')
@@ -98,6 +100,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   };
 
   const validateSelectedNumber = async (number: string, phone: string) => {
+    // Get the raffle number to check its participant
     const raffleNumber = raffleNumbers.find(n => 
       n.number === number && 
       n.status === 'reserved' && 
@@ -114,6 +117,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       throw new Error('Este número no tiene un participante asociado');
     }
 
+    // Check if the phone matches the participant
     const { data: participant, error } = await supabase
       .from('participants')
       .select('phone')
@@ -126,12 +130,17 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
     }
 
     if (participant.phone !== phone) {
-      debugLog('Phone mismatch', { providedPhone: phone, participantPhone: participant.phone });
+      debugLog('Phone mismatch', { 
+        providedPhone: phone, 
+        participantPhone: participant.phone 
+      });
       throw new Error('El número de teléfono no coincide con el registrado');
     }
 
+    // If we reach here, validation was successful
     debugLog('Number validation successful');
     toast.success('Validación exitosa');
+    // Fixed TypeScript error: Passing both arguments to onValidate, with undefined as second argument
     onValidate(number, undefined);
   };
 
