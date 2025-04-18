@@ -1,3 +1,4 @@
+import { Textarea } from "@/components/ui/textarea";
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
