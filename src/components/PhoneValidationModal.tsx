@@ -1,4 +1,3 @@
-// Modificación para renombrar 'onValidate' a 'onPhoneValidationSuccess'
 
 import React, { useState } from 'react';
 import { 
@@ -194,4 +193,3 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 };
 
 export default PhoneValidationModal;
-
