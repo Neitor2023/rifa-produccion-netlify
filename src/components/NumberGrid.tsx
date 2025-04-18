@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
@@ -13,7 +12,6 @@ import { NumberGridLegend } from './NumberGridLegend';
 import NumberGridHeader from './NumberGridHeader';
 import NumberGridItem from './NumberGridItem';
 
-// Type definitions
 interface RaffleNumber {
   id: string;
   raffle_id: string;

@@ -9,6 +9,51 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      fraud_reports: {
+        Row: {
+          created_at: string | null
+          estado: string
+          id: string
+          mensaje: string
+          participant_id: string | null
+          seller_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          estado?: string
+          id?: string
+          mensaje: string
+          participant_id?: string | null
+          seller_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          estado?: string
+          id?: string
+          mensaje?: string
+          participant_id?: string | null
+          seller_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fraud_reports_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fraud_reports_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "sellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizador_entregas: {
         Row: {
           created_at: string | null
@@ -110,36 +155,48 @@ export type Database = {
       }
       participants: {
         Row: {
+          cedula: string | null
           created_at: string | null
           deleted_at: string | null
+          direccion: string | null
           email: string
           id: string
           name: string
+          nota: string | null
           phone: string
           raffle_id: string | null
           seller_id: string | null
+          sugerencia_producto: string | null
           updated_at: string | null
         }
         Insert: {
+          cedula?: string | null
           created_at?: string | null
           deleted_at?: string | null
+          direccion?: string | null
           email: string
           id?: string
           name: string
+          nota?: string | null
           phone: string
           raffle_id?: string | null
           seller_id?: string | null
+          sugerencia_producto?: string | null
           updated_at?: string | null
         }
         Update: {
+          cedula?: string | null
           created_at?: string | null
           deleted_at?: string | null
+          direccion?: string | null
           email?: string
           id?: string
           name?: string
+          nota?: string | null
           phone?: string
           raffle_id?: string | null
           seller_id?: string | null
+          sugerencia_producto?: string | null
           updated_at?: string | null
         }
         Relationships: [
