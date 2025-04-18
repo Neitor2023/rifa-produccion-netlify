@@ -33,7 +33,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
     if (phone.length > 0) {
       try {
         // Assume Mexican phone number if no country code is provided
-        const phoneWithCountry = phone.startsWith('+') ? phone : `+52${phone}`;
+        const phoneWithCountry = phone.startsWith('+') ? phone : `+593${phone}`;
         const isValid = isValidPhoneNumber(phoneWithCountry);
         
         if (isValid) {
