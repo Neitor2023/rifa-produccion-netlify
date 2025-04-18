@@ -88,7 +88,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   };
 
   // Format the phone for display
-  const formattedPhone = phone.startsWith('+') ? phone : `+593${phone}`;
+  const formattedPhone = phone.startsWith('+') ? phone : `+593${cleanedPhone}`;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
