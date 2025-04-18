@@ -87,7 +87,8 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
     }
   };
 
-  // Format the phone for display
+  // Limpiar número antes de usar
+  const cleanedPhone = phone.startsWith('0') ? phone.slice(1) : phone;
   const formattedPhone = phone.startsWith('+') ? phone : `+593${cleanedPhone}`;
 
   return (
