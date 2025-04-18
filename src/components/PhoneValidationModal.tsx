@@ -117,12 +117,6 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
                 {validation.message}
               </p>
             )}
-
-            {validation.isValid && (
-              <p className="text-sm text-blue-600">
-                📞 Buscando en la base de datos: <strong>{formattedPhone}</strong>
-              </p>
-            )}
             
             {validation.isValid && (
               <p className="text-sm text-gray-500">
