@@ -1,5 +1,4 @@
-// 💡 Forzar recompilación: ajuste menor
-// Modificación mínima para forzar recompilación
+// Modificación para renombrar 'onValidate' a 'onPhoneValidationSuccess'
 
 import React, { useState } from 'react';
 import { 
@@ -19,7 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 interface PhoneValidationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onValidate: (validatedNumber: string, participantId?: string) => void;
+  onPhoneValidationSuccess: (validatedNumber: string, participantId?: string) => void;
   selectedNumber: string | null;
   raffleNumbers: any[];
   raffleSellerId: string;
@@ -30,7 +29,7 @@ interface PhoneValidationModalProps {
 const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   isOpen,
   onClose,
-  onValidate,
+  onPhoneValidationSuccess,
   selectedNumber,
   raffleNumbers,
   raffleSellerId,
@@ -66,12 +65,12 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 
       if (participantId) {
         debugLog('Participante encontrado:', participantId);
-        onValidate(selectedNumber || '', participantId); // ✅ 2 argumentos
+        onPhoneValidationSuccess(selectedNumber || '', participantId);
       } else if (selectedNumber) {
         debugLog('Buscando coincidencia con número reservado...');
         const valid = await validateSelectedNumber(selectedNumber, phoneNumber);
         if (valid) {
-          onValidate(selectedNumber, undefined); // ✅ 2 argumentos
+          onPhoneValidationSuccess(selectedNumber, undefined);
         }
       } else {
         setErrorMessage('No se pudo validar el número');
@@ -195,3 +194,4 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 };
 
 export default PhoneValidationModal;
+
