@@ -284,7 +284,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       <PhoneValidationModal 
         isOpen={isPhoneModalOpen}
         onClose={() => setIsPhoneModalOpen(false)}
-        onValidate={handleValidationSuccess}
+        onPhoneValidationSuccess={handleValidationSuccess}
         selectedNumber={selectedReservedNumber}
         raffleNumbers={numbers}
         raffleSellerId={raffleSeller.seller_id}
