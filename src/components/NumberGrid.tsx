@@ -150,11 +150,16 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         
       }
     
-      if (participantId) {
+      const isValidUUID = (str: string) => {
+        return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+      };
+      
+      if (participantId && isValidUUID(participantId)) {
         handleParticipantValidation(participantId);
       } else {
         handleNumberValidation(validatedNumber);
       }
+
     } catch (error) {
       console.error('Error processing validation:', error);
       toast.error('Error al procesar la validación');
