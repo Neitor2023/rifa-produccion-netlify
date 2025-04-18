@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentFormData } from '@/components/PaymentModal';
@@ -428,6 +427,12 @@ export function usePaymentProcessor({
     }
     
     try {
+      debugLog('Complete Payment - starting', {
+        selectedNumbers,
+        data,
+        sellerId: raffleSeller.seller_id
+      });
+      
       // Validate against seller's maximum allowed numbers
       if (!(await validateSellerMaxNumbers(selectedNumbers.length))) {
         return;
@@ -435,9 +440,11 @@ export function usePaymentProcessor({
       
       // Upload payment proof if available
       const paymentProofUrl = await uploadPaymentProof(data.paymentProof);
+      debugLog('Payment proof upload result', { paymentProofUrl });
       
       // Find or create participant
       const participantId = await processParticipant(data);
+      debugLog('Participant processing result', { participantId });
       
       if (!participantId) {
         toast.error('Error al procesar la información del participante');
@@ -446,6 +453,10 @@ export function usePaymentProcessor({
       
       // Update numbers to sold status
       await updateNumbersToSold(selectedNumbers, participantId, paymentProofUrl);
+      debugLog('Numbers updated to sold', { 
+        count: selectedNumbers.length, 
+        numbers: selectedNumbers 
+      });
       
       // Refresh data
       await refetchRaffleNumbers();
@@ -460,8 +471,10 @@ export function usePaymentProcessor({
       setIsVoucherOpen(true);
       
       toast.success('Pago completado exitosamente');
+      debugLog('Payment completed successfully', null);
     } catch (error) {
       console.error('Error completing payment:', error);
+      debugLog('Payment completion error', error);
       toast.error('Error al completar el pago');
     }
   };

@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -10,181 +9,123 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { LoaderCircle, PhoneCall, AlertTriangle } from 'lucide-react';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
 
 interface PhoneValidationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onPhoneValidationSuccess: (validatedNumber: string, participantId?: string) => void;
-  selectedNumber: string | null;
-  raffleNumbers: any[];
-  raffleSellerId: string;
-  raffleId: string;
-  debugMode?: boolean;
+  onPhoneValidationSuccess: (phone: string, formattedPhone: string) => void;
 }
 
 const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   isOpen,
   onClose,
-  onPhoneValidationSuccess,
-  selectedNumber,
-  raffleNumbers,
-  raffleSellerId,
-  raffleId,
-  debugMode = false
+  onPhoneValidationSuccess
 }) => {
-  const [phoneNumber, setPhoneNumber] = useState<string>('');
-  const [isValidating, setIsValidating] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [phone, setPhone] = useState('');
+  const [validation, setValidation] = useState({
+    isValid: false,
+    message: '',
+    formattedNumber: ''
+  });
 
-  const debugLog = (context: string, data: any) => {
-    if (debugMode) {
-      console.log(`[PhoneValidation - ${context}]:`, data);
-    }
-  };
-
-  const handleValidation = async () => {
-    if (!phoneNumber.trim()) {
-      setErrorMessage('Ingrese su número de teléfono');
-      return;
-    }
-
-    setIsValidating(true);
-    setErrorMessage(null);
-
-    try {
-      debugLog('Validando número con:', {
-        phoneNumber,
-        selectedNumber
-      });
-
-      const participantId = await validateByPhoneNumber(phoneNumber);
-
-      if (participantId) {
-        debugLog('Participante encontrado:', participantId);
-        onPhoneValidationSuccess(selectedNumber || '', participantId);
-      } else if (selectedNumber) {
-        debugLog('Buscando coincidencia con número reservado...');
-        const valid = await validateSelectedNumber(selectedNumber, phoneNumber);
-        if (valid) {
-          onPhoneValidationSuccess(selectedNumber, undefined);
+  useEffect(() => {
+    if (phone.length > 0) {
+      try {
+        // Assume Mexican phone number if no country code is provided
+        const phoneWithCountry = phone.startsWith('+') ? phone : `+52${phone}`;
+        const isValid = isValidPhoneNumber(phoneWithCountry);
+        
+        if (isValid) {
+          const parsedPhone = parsePhoneNumber(phoneWithCountry);
+          setValidation({
+            isValid: true,
+            message: 'Número válido',
+            formattedNumber: parsedPhone.formatInternational()
+          });
+        } else {
+          setValidation({
+            isValid: false,
+            message: 'Número inválido',
+            formattedNumber: ''
+          });
         }
-      } else {
-        setErrorMessage('No se pudo validar el número');
+      } catch (error) {
+        setValidation({
+          isValid: false,
+          message: 'Formato incorrecto',
+          formattedNumber: ''
+        });
       }
-    } catch (error: any) {
-      debugLog('Error durante validación:', error);
-      setErrorMessage(error.message || 'Error al validar el número');
-    } finally {
-      setIsValidating(false);
+    } else {
+      setValidation({
+        isValid: false,
+        message: '',
+        formattedNumber: ''
+      });
+    }
+  }, [phone]);
+
+  const handleNumberSubmit = () => {
+    if (validation.isValid) {
+      onPhoneValidationSuccess(formattedPhone, validation.formattedNumber);
+      onClose();
+    } else {
+      setValidation({
+        isValid: false,
+        message: "Por favor ingrese un número válido",
+        formattedNumber: ""
+      });
     }
   };
 
-  const validateByPhoneNumber = async (phone: string): Promise<string | null> => {
-    const { data, error } = await supabase
-      .from('participants')
-      .select('id')
-      .eq('phone', phone)
-      .eq('raffle_id', raffleId)
-      .maybeSingle();
-
-    if (error) throw new Error('Error al buscar participante');
-
-    return data?.id || null;
-  };
-
-  const validateSelectedNumber = async (number: string, phone: string): Promise<boolean> => {
-    const numberData = raffleNumbers.find(
-      n => n.number === number && n.status === 'reserved' && n.seller_id === raffleSellerId
-    );
-
-    if (!numberData) {
-      throw new Error('Número no encontrado o no reservado');
-    }
-
-    if (!numberData.participant_id) {
-      throw new Error('El número no tiene participante asociado');
-    }
-
-    const { data: participant, error } = await supabase
-      .from('participants')
-      .select('phone')
-      .eq('id', numberData.participant_id)
-      .single();
-
-    if (error) throw new Error('Error al buscar participante');
-
-    if (participant.phone !== phone) {
-      throw new Error('El número de teléfono no coincide con el registrado');
-    }
-
-    toast.success('Validación exitosa');
-    return true;
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleValidation();
-    }
-  };
+  // Format the phone for display
+  const formattedPhone = phone.startsWith('+') ? phone : `+52${phone}`;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-center">
-            Validación de Número
-          </DialogTitle>
-          <DialogDescription className="text-center">
-            Ingrese el número de teléfono usado para reservar
+          <DialogTitle>Validar número de teléfono</DialogTitle>
+          <DialogDescription>
+            Ingrese su número de teléfono para continuar
           </DialogDescription>
         </DialogHeader>
-
+        
         <div className="space-y-4 py-4">
-          <Input
-            placeholder="Número de teléfono"
-            value={phoneNumber}
-            onChange={e => setPhoneNumber(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={isValidating}
-            className="text-center"
-          />
-
-          {errorMessage && (
-            <div className="flex items-center text-red-500 text-sm mt-2">
-              <AlertTriangle className="h-4 w-4 mr-1" />
-              {errorMessage}
-            </div>
-          )}
+          <div className="space-y-2">
+            <label htmlFor="phone" className="text-sm font-medium">
+              Número de teléfono
+            </label>
+            <Input
+              id="phone"
+              placeholder="+52 123 456 7890"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+            {validation.message && (
+              <p className={`text-sm ${validation.isValid ? 'text-green-600' : 'text-red-500'}`}>
+                {validation.message}
+              </p>
+            )}
+            {validation.isValid && (
+              <p className="text-sm text-gray-500">
+                Formato internacional: {validation.formattedNumber}
+              </p>
+            )}
+          </div>
         </div>
-
+        
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={isValidating}
-            className="w-full sm:w-auto"
-          >
+          <Button type="button" variant="outline" onClick={onClose}>
             Cancelar
           </Button>
-          <Button
-            onClick={handleValidation}
-            disabled={isValidating}
-            className="bg-rifa-purple hover:bg-rifa-darkPurple w-full sm:w-auto"
+          <Button 
+            type="button" 
+            onClick={handleNumberSubmit}
+            disabled={!validation.isValid}
           >
-            {isValidating ? (
-              <>
-                <LoaderCircle className="h-4 w-4 mr-2 animate-spin" />
-                Validando...
-              </>
-            ) : (
-              <>
-                <PhoneCall className="h-4 w-4 mr-2" />
-                Validar
-              </>
-            )}
+            Validar
           </Button>
         </DialogFooter>
       </DialogContent>
