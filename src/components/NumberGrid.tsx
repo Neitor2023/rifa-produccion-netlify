@@ -11,7 +11,6 @@ import { NumberGridControls } from './NumberGridControls';
 import { NumberGridLegend } from './NumberGridLegend';
 import NumberGridHeader from './NumberGridHeader';
 import NumberGridItem from './NumberGridItem';
-import { toast } from 'sonner'; // Asegúrate de tener esta importación arriba
 
 interface RaffleNumber {
   id: string;
