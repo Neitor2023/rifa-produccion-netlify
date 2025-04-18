@@ -11,6 +11,7 @@ import { NumberGridControls } from './NumberGridControls';
 import { NumberGridLegend } from './NumberGridLegend';
 import NumberGridHeader from './NumberGridHeader';
 import NumberGridItem from './NumberGridItem';
+import { toast } from 'sonner'; // Asegúrate de tener esta importación arriba
 
 interface RaffleNumber {
   id: string;
@@ -139,6 +140,15 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         console.log('Participant ID:', participantId);
         console.log('Raffle ID:', raffleSeller.raffle_id);
         console.log('Seller ID:', raffleSeller.seller_id);
+        
+        toast.info(
+          `🔍 Validando con:
+        📞 Número: ${validatedNumber}
+        🆔 Participante: ${participantId || 'N/A'}
+        🎟️ Rifa: ${raffleSeller.raffle_id}
+        🧑‍💼 Vendedor: ${raffleSeller.seller_id}`
+        );
+        
       }
       
       if (participantId) {
