@@ -1,3 +1,4 @@
+// 💡 Forzar recompilación: ajuste menor
 // Modificación mínima para forzar recompilación
 
 import React, { useState } from 'react';
