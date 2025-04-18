@@ -149,13 +149,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         );
         
       }
-        toast.info(
-          `🔍 Validando con:
-        📞 Número: ${validatedNumber}
-        🆔 Participante: ${participantId || 'N/A'}
-        🎟️ Rifa: ${raffleSeller.raffle_id}
-        🧑‍💼 Vendedor: ${raffleSeller.seller_id}`
-        );      
+    
       if (participantId) {
         handleParticipantValidation(participantId);
       } else {
@@ -165,6 +159,15 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       console.error('Error processing validation:', error);
       toast.error('Error al procesar la validación');
     }
+
+        toast.info(
+          `🔍 Validando con:
+        📞 Número: ${validatedNumber}
+        🆔 Participante: ${participantId || 'N/A'}
+        🎟️ Rifa: ${raffleSeller.raffle_id}
+        🧑‍💼 Vendedor: ${raffleSeller.seller_id}`
+        );  
+    
   };
   
   const handleParticipantValidation = async (participantId: string) => {
