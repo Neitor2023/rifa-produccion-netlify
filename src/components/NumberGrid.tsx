@@ -149,7 +149,13 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         );
         
       }
-      
+        toast.info(
+          `🔍 Validando con:
+        📞 Número: ${validatedNumber}
+        🆔 Participante: ${participantId || 'N/A'}
+        🎟️ Rifa: ${raffleSeller.raffle_id}
+        🧑‍💼 Vendedor: ${raffleSeller.seller_id}`
+        );      
       if (participantId) {
         handleParticipantValidation(participantId);
       } else {
