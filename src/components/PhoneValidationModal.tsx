@@ -78,7 +78,14 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 
   const handleNumberSubmit = async () => {
     if (validation.isValid) {
-      const phoneWithCountry = phone.startsWith('+') ? phone : `+593${phone}`;
+      // Limpiar y formatear correctamente el número
+      let cleanedPhone = phone.trim();
+      if (cleanedPhone.startsWith('0')) {
+        cleanedPhone = cleanedPhone.substring(1); // Quitar el primer 0
+      }
+      const phoneWithCountry = cleanedPhone.startsWith('+') ? cleanedPhone : `+593${cleanedPhone}`;
+  
+      toast.info(`🔍 Buscando participante con: ${phoneWithCountry}`);
   
       const { data, error } = await supabase
         .from('participants')
@@ -103,7 +110,6 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       });
     }
   };
-
 
   // Limpiar número antes de usar
   const cleanedPhone = phone.startsWith('0') ? phone.slice(1) : phone;
