@@ -22,7 +22,8 @@ interface PhoneValidationModalProps {
 const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   isOpen,
   onClose,
-  onPhoneValidationSuccess
+  onPhoneValidationSuccess,
+  selectedNumber?: string; // ← AÑADE ESTA LÍNEA
 }) => {
   const [phone, setPhone] = useState('');
   const [validation, setValidation] = useState({
@@ -78,14 +79,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 
   const handleNumberSubmit = async () => {
     if (validation.isValid) {
-      // Limpiar y formatear correctamente el número
-      let cleanedPhone = phone.trim();
-      if (cleanedPhone.startsWith('0')) {
-        cleanedPhone = cleanedPhone.substring(1); // Quitar el primer 0
-      }
-      const phoneWithCountry = cleanedPhone.startsWith('+') ? cleanedPhone : `+593${cleanedPhone}`;
-  
-      toast.info(`🔍 Buscando participante con: ${phoneWithCountry}`);
+      const phoneWithCountry = phone.startsWith('+') ? phone : `+593${phone}`;
   
       const { data, error } = await supabase
         .from('participants')
@@ -110,6 +104,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       });
     }
   };
+
 
   // Limpiar número antes de usar
   const cleanedPhone = phone.startsWith('0') ? phone.slice(1) : phone;
