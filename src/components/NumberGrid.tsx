@@ -138,16 +138,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         console.log('Validation success with number:', validatedNumber);
         console.log('Participant ID:', participantId);
         console.log('Raffle ID:', raffleSeller.raffle_id);
-        console.log('Seller ID:', raffleSeller.seller_id);
-        
-        toast.info(
-          `🔍 Validando con:
-        📞 Número: ${validatedNumber}
-        🆔 Participante: ${participantId || 'N/A'}
-        🎟️ Rifa: ${raffleSeller.raffle_id}
-        🧑‍💼 Vendedor: ${raffleSeller.seller_id}`
-        );
-        
+        console.log('Seller ID:', raffleSeller.seller_id);                
       }
     
       if (participantId) {
@@ -170,7 +161,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         🔢 Números seleccionados: {selectedNumbersList?.join(', ') || 'Ninguno'}
       </>
     );
-    
+   
   };
   
   const handleParticipantValidation = async (participantId: string) => {
