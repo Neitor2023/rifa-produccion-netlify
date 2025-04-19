@@ -81,54 +81,26 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 
   const handleNumberSubmit = async () => {
     if (validation.isValid) {
-      let cleanedPhoneInput = phone.startsWith('0') ? phone.slice(1) : phone;
-      const phoneWithCountry = phone.startsWith('+') ? phone : `+593${cleanedPhoneInput}`;
+      let cleanedPhone2 = phone;
+      if (cleanedPhone2.startsWith('0')) {
+        cleanedPhone2 = cleanedPhone2.slice(1);
+      }      
+      const phoneWithCountry = phone.startsWith('+') ? phone : `+593${cleanedPhone2}`;
       const cleanedPhone = phoneWithCountry.trim();
-  
-      let participant = null;
-      let foundBy = '';
-  
-      // 🔍 Buscar por teléfono
-      const { data: byPhone, error: errPhone } = await supabase
+      
+      const { data, error } = await supabase
         .from('participants')
-        .select('id, name, phone, cedula')
+        .select('id')
         .eq('phone', cleanedPhone)
         .single();
   
-      if (byPhone) {
-        participant = byPhone;
-        foundBy = 'phone';
-      } else {
-        // 🔁 Si no encuentra por teléfono, buscar por cédula
-        const { data: byCedula, error: errCedula } = await supabase
-          .from('participants')
-          .select('id, name, phone, cedula')
-          .eq('cedula', cleanedPhone.replace('+593', '')) // sin prefijo si es cédula
-          .single();
-  
-        if (byCedula) {
-          participant = byCedula;
-          foundBy = 'cedula';
-        }
-      }
-  
-      if (!participant) {
-        toast.error(`❌ Participante no encontrado con el dato ingresado: ${cleanedPhone}`);
+      if (error || !data) {
+        toast.error("❌ Participante no encontrado con ese número.");
         return;
       }
   
-      const { id, name, phone: foundPhone, cedula: foundCedula } = participant;
-  
-      onPhoneValidationSuccess(
-        foundPhone || cleanedPhone,
-        id,
-        {
-          name,
-          phone: foundPhone || cleanedPhone,
-          cedula: foundCedula || ''
-        }
-      );
-  
+      const participantId = data.id;
+      onPhoneValidationSuccess(phoneWithCountry, participantId);
       onClose();
     } else {
       setValidation({
@@ -139,27 +111,34 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
     }
   };
 
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Validar número de teléfono</DialogTitle>
+          <DialogTitle>Validar número de ( teléfono o cédula )</DialogTitle>
           <DialogDescription>
-            Ingrese su número de teléfono para continuar
+            Ingrese su número de ( teléfono o cédula ) para continuar
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4 py-4">
-          <PhoneInputField 
-            value={phone}
-            onChange={setPhone}
-          />
-          <ValidationMessage 
-            message={validation.message}
-            isValid={validation.isValid}
-            formattedNumber={validation.formattedNumber}
-          />
+          <DialogHeader>
+            <DialogTitle>Validar número de ( teléfono o cédula )</DialogTitle>
+            <DialogDescription>
+              Ingrese su número de ( teléfono o cédula ) para continuar
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-2">
+            <label htmlFor="phone" className="text-sm font-medium">
+              Número de ( teléfono o cédula )
+            </label>
+            <Input
+              id="phone"
+              placeholder="+593 987 654 321 o 0102030405"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+
         </div>
         
         <ModalFooter 
