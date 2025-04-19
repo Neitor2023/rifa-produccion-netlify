@@ -130,7 +130,12 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     setHighlightReserved(false);
   };
   
-  const handleValidationSuccess = async (validatedNumber: string, participantId?: string) => {
+    const handleValidationSuccess = async (
+      validatedNumber: string,
+      participantId?: string,
+      selectedNumbersList?: string[]
+    ) => {
+
     setIsPhoneModalOpen(false);
     
     try {
