@@ -169,7 +169,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         <PaymentModalHeader />
 
         <ScrollArea className="flex-1 overflow-y-auto px-1">
-          <Form {...form}>
+          <Form {...form}>         
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
+              <PaymentSummary 
+                selectedNumbers={selectedNumbers}
+                price={price}
+              />
 {buyerData && (
   <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded mb-4 border border-blue-300">
     <p><strong>🧾 Datos recibidos:</strong></p>
@@ -177,13 +182,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     <p>📞 Teléfono: {buyerData.phone || 'No disponible'}</p>
     <p>🪪 Cédula: {buyerData.cedula || 'No disponible'}</p>
   </div>
-)}            
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
-              <PaymentSummary 
-                selectedNumbers={selectedNumbers}
-                price={price}
-              />
-              
+)}                 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <PaymentFormFields 
                   form={form}
