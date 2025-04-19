@@ -131,7 +131,17 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
             value={phone}
             onChange={setPhone}
           />
-
+          <ValidationMessage 
+            message={validation.message}
+            isValid={validation.isValid}
+            formattedNumber={validation.formattedNumber}
+          />
+  <Input
+    id="phone"
+    placeholder="+593 987 654 321 o 0102030405"
+    value={phone}
+    onChange={(e) => setPhone(e.target.value)}
+  />          
 
         </div>
         
