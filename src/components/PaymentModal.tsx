@@ -161,15 +161,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col">
-{buyerData && (
-  <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded mb-4 border border-blue-300">
-    <p><strong>🧾 Datos recibidos:</strong></p>
-    <p>📛 Nombre: {buyerData.name || 'No disponible'}</p>
-    <p>📞 Teléfono: {buyerData.phone || 'No disponible'}</p>
-    <p>🪪 Cédula: {buyerData.cedula || 'No disponible'}</p>
-  </div>
-)}
-        
         <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
@@ -179,6 +170,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
         <ScrollArea className="flex-1 overflow-y-auto px-1">
           <Form {...form}>
+{buyerData && (
+  <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded mb-4 border border-blue-300">
+    <p><strong>🧾 Datos recibidos:</strong></p>
+    <p>📛 Nombre: {buyerData.name || 'No disponible'}</p>
+    <p>📞 Teléfono: {buyerData.phone || 'No disponible'}</p>
+    <p>🪪 Cédula: {buyerData.cedula || 'No disponible'}</p>
+  </div>
+)}            
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
               <PaymentSummary 
                 selectedNumbers={selectedNumbers}
