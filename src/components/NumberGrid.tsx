@@ -306,6 +306,9 @@ console.log("🧪 Datos validados:", {
         isOpen={isPhoneModalOpen}
         onClose={() => setIsPhoneModalOpen(false)}
         onPhoneValidationSuccess={(validatedNumber, participantId) =>
+          
+toast.info(`Números que llegaron a la validación: ${selectedNumbers.length > 0 ? selectedNumbers.join(', ') : 'Ninguno'}`);
+          
           handleValidationSuccess(validatedNumber, participantId, selectedNumbers)
         }
         selectedNumber={selectedReservedNumber}
