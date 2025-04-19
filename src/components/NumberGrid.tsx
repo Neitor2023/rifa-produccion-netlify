@@ -152,16 +152,13 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     }
 
       toast.info(
-
-          🔍 Validando con:<br />
-          📞 Número: {validatedNumber}<br />
-          🆔 Participante: {participantId || 'N/A'}<br />
-          🎟️ Rifa: {raffleSeller.raffle_id}<br />
-          🧑‍💼 Vendedor: {raffleSeller.seller_id}<br />
-          Números seleccionados: {selectedNumbersList?.join(', ') || 'Ninguno'}
-
+          `🔍 Validando con:
+          📞 Número validado: ${validatedNumber}
+          🆔 Participante: ${participantId || 'N/A'}
+          🎟️ Rifa: ${raffleSeller.raffle_id}
+          🧑‍💼 Vendedor: ${raffleSeller.seller_id}
+          🔢 Números seleccionados: ${selectedNumbersList?.join(', ') || 'Ninguno'}`
       );
-
     
   };
   
