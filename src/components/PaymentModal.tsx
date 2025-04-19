@@ -174,7 +174,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               <PaymentSummary 
                 selectedNumbers={selectedNumbers}
                 price={price}
-              />
+              />                 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <PaymentFormFields 
+                  form={form}
+                  readOnlyData={buyerData}
+                />
 {buyerData && (
   <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded mb-4 border border-blue-300">
     <p><strong>🧾 Datos recibidos:</strong></p>
@@ -182,13 +187,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     <p>📞 Teléfono: {buyerData.phone || 'No disponible'}</p>
     <p>🪪 Cédula: {buyerData.cedula || 'No disponible'}</p>
   </div>
-)}                 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <PaymentFormFields 
-                  form={form}
-                  readOnlyData={buyerData}
-                />
-                
+)}                
                 <PaymentMethodFields
                   form={form}
                   previewUrl={previewUrl}
