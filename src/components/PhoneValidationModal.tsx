@@ -48,18 +48,13 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       try {
         // Assume Mexican phone number if no country code is provided
         let cleanedPhone = phone;
-        console.log('telefonito antes del if',cleanedPhone);
         // Eliminar el 0 inicial si existe
         if (cleanedPhone.startsWith('0')) {
-          console.log('telefonito antes',cleanedPhone);
           cleanedPhone = cleanedPhone.slice(1);
-          console.log('telefonito despues',cleanedPhone);
         }
         
         const phoneWithCountry = phone.startsWith('+') ? phone : `+593${cleanedPhone}`;
-console.log('telefonito 000',phoneWithCountry);
         const isValid = isValidPhoneNumber(phoneWithCountry);
-console.log('telefonito isValid',isValid);        
         if (isValid) {
           const parsedPhone = parsePhoneNumber(phoneWithCountry);
           setValidation({
@@ -93,12 +88,9 @@ console.log('telefonito isValid',isValid);
   const handleNumberSubmit = async () => {
     if (validation.isValid) {
         let cleanedPhone2 = phone;
-        console.log('telefonito antes del if 2',cleanedPhone2);
         // Eliminar el 0 inicial si existe
         if (cleanedPhone2.startsWith('0')) {
-          console.log('telefonito antes 2',cleanedPhone2);
           cleanedPhone2 = cleanedPhone2.slice(1);
-          console.log('telefonito despues 2',cleanedPhone2);
         }      
       const phoneWithCountry = phone.startsWith('+') ? phone : `+593${cleanedPhone2}`;
       const cleanedPhone = phoneWithCountry.trim();
