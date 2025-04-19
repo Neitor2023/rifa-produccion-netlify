@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -13,16 +14,27 @@ import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+// Update the interface to include the optional selectedNumber
 interface PhoneValidationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onPhoneValidationSuccess: (phone: string, formattedPhone: string) => void;
+  selectedNumber?: string;  // Add the optional parameter here
+  raffleNumbers?: any[];
+  raffleSellerId?: string;
+  raffleId?: string;
+  debugMode?: boolean;
 }
 
 const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   isOpen,
   onClose,
-  onPhoneValidationSuccess
+  onPhoneValidationSuccess,
+  selectedNumber,  // Now correctly declared as an optional parameter
+  raffleNumbers,
+  raffleSellerId,
+  raffleId,
+  debugMode = false
 }) => {
   const [phone, setPhone] = useState('');
   const [validation, setValidation] = useState({
@@ -162,3 +174,4 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 };
 
 export default PhoneValidationModal;
+
