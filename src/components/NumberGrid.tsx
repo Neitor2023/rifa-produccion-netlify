@@ -137,7 +137,13 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     ) => {
 
     setIsPhoneModalOpen(false);
-    
+      
+    setBuyerData({
+      name: buyerInfo?.name || '',
+      phone: buyerInfo?.phone || '',
+      cedula: buyerInfo?.cedula || ''
+    });
+      
     try {
       if (debugMode) {
         console.log('Validation success with number:', validatedNumber);
@@ -145,23 +151,24 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         console.log('Raffle ID:', raffleSeller.raffle_id);
         console.log('Seller ID:', raffleSeller.seller_id);
       }
-console.log("🧪 Datos validados:", {
-  validatedNumber,
-  participantId,
-  raffleId: raffleSeller.raffle_id,
-  sellerId: raffleSeller.seller_id,
-  selectedNumbersList
-});
-
+      
+      console.log("🧪 Datos validados:", {
+        validatedNumber,
+        participantId,
+        raffleId: raffleSeller.raffle_id,
+        sellerId: raffleSeller.seller_id,
+        selectedNumbersList
+      });
     
-  toast.info(
-    `🔍 Validando con:
-📞 Número validado: ${validatedNumber}
-🆔 Participante: ${participantId || 'N/A'}
-🎟️ Rifa: ${raffleSeller.raffle_id}
-🧑‍💼 Vendedor: ${raffleSeller.seller_id}
-🔢 Números seleccionados: ${selectedNumbersList?.join(', ') || 'Ninguno'}`
-  );    
+      toast.info(
+        `🔍 Validando con:
+        📞 Número validado: ${validatedNumber}
+        🆔 Participante: ${participantId || 'N/A'}
+        🎟️ Rifa: ${raffleSeller.raffle_id}
+        🧑‍💼 Vendedor: ${raffleSeller.seller_id}
+        🔢 Números seleccionados: ${selectedNumbersList?.join(', ') || 'Ninguno'}`
+      );
+      
       if (participantId && /^[0-9a-fA-F\-]{36}$/.test(participantId)) {
         // Es un UUID válido
         handleParticipantValidation(participantId);
