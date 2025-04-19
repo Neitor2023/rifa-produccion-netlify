@@ -2,23 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
   DialogContent, 
-  DialogHeader, 
-  DialogTitle,
-  DialogDescription,
-  DialogClose
+  DialogClose,
 } from '@/components/ui/dialog';
 import { Form } from "@/components/ui/form";
-import { Button } from '@/components/ui/button';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { LoaderCircle, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import PaymentSummary from './payment/PaymentSummary';
 import PaymentFormFields from './payment/PaymentFormFields';
 import PaymentMethodFields from './payment/PaymentMethodFields';
 import PaymentNotes from './payment/PaymentNotes';
+import { PaymentModalHeader } from './payment/PaymentModalHeader';
+import { PaymentModalActions } from './payment/PaymentModalActions';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { LoaderCircle, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -164,14 +164,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           <span className="sr-only">Close</span>
         </DialogClose>
 
-        <DialogHeader className="pt-6">
-          <DialogTitle className="text-xl font-bold text-center text-gray-800">
-            Finalizar Compra
-          </DialogTitle>
-          <DialogDescription className="text-center">
-            Completa tu información para reservar tus números
-          </DialogDescription>
-        </DialogHeader>
+        <PaymentModalHeader />
 
         <ScrollArea className="flex-1 overflow-y-auto px-1">
           <Form {...form}>
@@ -200,27 +193,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           </Form>
         </ScrollArea>
         
-        <div className="flex justify-end space-x-2 pt-4 border-t mt-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            className="flex-1 sm:flex-none"
-          >
-            Cancelar
-          </Button>
-          <Button
-            type="submit"
-            onClick={form.handleSubmit(onSubmit)}
-            disabled={isSubmitting}
-            className="flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB]"
-          >
-            {isSubmitting ? (
-              <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-            ) : null}
-            Completar Pago
-          </Button>
-        </div>
+        <PaymentModalActions 
+          isSubmitting={isSubmitting}
+          onClose={onClose}
+          onSubmit={form.handleSubmit(onSubmit)}
+        />
       </DialogContent>
     </Dialog>
   );
