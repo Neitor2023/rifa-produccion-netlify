@@ -157,9 +157,11 @@ console.log("🧪 Datos validados:", {
 🧑‍💼 Vendedor: ${raffleSeller.seller_id}
 🔢 Números seleccionados: ${selectedNumbersList?.join(', ') || 'Ninguno'}`
   );    
-      if (participantId) {
+      if (participantId && /^[0-9a-fA-F\-]{36}$/.test(participantId)) {
+        // Es un UUID válido
         handleParticipantValidation(participantId);
       } else {
+        // No es UUID, probablemente es el número telefónico
         handleNumberValidation(validatedNumber);
       }
     } catch (error) {
