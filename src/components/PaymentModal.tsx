@@ -28,6 +28,7 @@ interface PaymentModalProps {
   buyerData?: {
     name: string;
     phone: string;
+    cedula: string;
   };
   debugMode?: boolean;
 }
@@ -66,6 +67,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     defaultValues: {
       buyerName: buyerData?.name || "",
       buyerPhone: buyerData?.phone || "",
+      buyerCedula: buyerData?.cedula || "",
       buyerEmail: "",
       buyerCedula: "",
       paymentMethod: undefined,
@@ -80,6 +82,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     if (buyerData) {
       form.setValue('buyerName', buyerData.name);
       form.setValue('buyerPhone', buyerData.phone);
+      form.setValue("buyerCedula", buyerData.cedula);
     }
   }, [buyerData, form]);
 
