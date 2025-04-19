@@ -55,7 +55,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         }
         
         const phoneWithCountry = phone.startsWith('+') ? phone : `+593${cleanedPhone}`;
-
+      console.log('telefonito 000',phoneWithCountry);
         const isValid = isValidPhoneNumber(phoneWithCountry);
         
         if (isValid) {
@@ -92,7 +92,6 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
     if (validation.isValid) {
       const phoneWithCountry = phone.startsWith('+') ? phone : `+593${phone}`;
       const cleanedPhone = phoneWithCountry.trim();
-      console.log('telefonito',cleanedPhone);
       const { data, error } = await supabase
         .from('participants')
         .select('id')
