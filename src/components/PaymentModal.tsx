@@ -196,9 +196,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 price={price}
               />
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <h3 className="font-medium">Información personal</h3>
+                  <h3 className="font-medium text-gray-800">Información personal</h3>
                   
                   <FormField
                     control={form.control}
@@ -210,11 +210,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                           <Input 
                             placeholder="Nombre completo" 
                             {...field} 
-                            disabled={true}
-                            className="bg-gray-50 cursor-not-allowed font-medium text-gray-700"
+                            readOnly
+                            className="bg-gray-50 text-gray-700 font-medium cursor-not-allowed"
                             value={buyerData?.name || ""}
                           />
                         </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -229,11 +230,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                           <Input 
                             placeholder="Número de teléfono" 
                             {...field} 
-                            disabled={true}
-                            className="bg-gray-50 cursor-not-allowed font-medium text-gray-700"
+                            readOnly
+                            className="bg-gray-50 text-gray-700 font-medium cursor-not-allowed"
                             value={buyerData?.phone || ""}
                           />
                         </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -255,34 +257,17 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                       </FormItem>
                     )}
                   />
-                  
-                  <FormField
-                    control={form.control}
-                    name="buyerCedula"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Cédula/DNI</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Número de identificación" 
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                 </div>
                 
                 <div className="space-y-4">
-                  <h3 className="font-medium">Método de pago</h3>
+                  <h3 className="font-medium text-gray-800">Método de pago</h3>
                   
                   <FormField
                     control={form.control}
                     name="paymentMethod"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Método de pago</FormLabel>
+                        <FormLabel>Selecciona el método</FormLabel>
                         <Select 
                           onValueChange={field.onChange} 
                           defaultValue={field.value}
@@ -313,52 +298,18 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               </div>
 
               <div className="space-y-4 pt-4 border-t">
-                <h3 className="text-sm font-medium text-muted-foreground">¿Nos ayudas con una opinión rápida?</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="nota"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nota personal</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Alguna nota o comentario adicional..." 
-                            {...field}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="sugerenciaProducto"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>¿Qué producto te gustaría ver en la próxima rifa?</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Tu sugerencia nos ayuda a mejorar..." 
-                            {...field}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                <h3 className="text-sm font-medium text-muted-foreground">Comentarios adicionales (opcional)</h3>
                 
                 <FormField
                   control={form.control}
-                  name="reporteSospechoso"
+                  name="nota"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>¿Observaste algo sospechoso?</FormLabel>
                       <FormControl>
                         <Textarea 
-                          placeholder="Ayúdanos a mantener un sistema seguro. Tu reporte es confidencial." 
+                          placeholder="¿Alguna nota o comentario adicional?" 
                           {...field}
+                          className="resize-none"
                         />
                       </FormControl>
                     </FormItem>
@@ -371,32 +322,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         
         <DialogFooter className="sticky bottom-0 pt-4 bg-white border-t mt-4">
           <Button
-            type="button"
-            variant="outline"
             onClick={onClose}
-            className="w-full sm:w-auto"
-            disabled={isSubmitting}
+            className="w-full bg-[#9b87f5] hover:bg-[#7E69AB] text-white font-medium transition-colors"
           >
-            Cancelar
-          </Button>
-          
-          <Button 
-            type="submit"
-            onClick={form.handleSubmit(onSubmit)}
-            className="bg-rifa-purple hover:bg-rifa-darkPurple w-full sm:w-auto"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <LoaderCircle className="h-4 w-4 mr-2 animate-spin" />
-                Procesando...
-              </>
-            ) : (
-              <>
-                <Check className="h-4 w-4 mr-2" />
-                Completar compra
-              </>
-            )}
+            Volver
           </Button>
         </DialogFooter>
       </DialogContent>
