@@ -33,6 +33,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import PaymentSummary from './payment/PaymentSummary';
 import PaymentUploadZone from './payment/PaymentUploadZone';
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from 'sonner';
 
 interface PaymentModalProps {
   isOpen: boolean;
