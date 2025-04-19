@@ -22,8 +22,7 @@ interface PhoneValidationModalProps {
 const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   isOpen,
   onClose,
-  onPhoneValidationSuccess,
-  selectedNumber?: string; // ← AÑADE ESTA LÍNEA
+  onPhoneValidationSuccess
 }) => {
   const [phone, setPhone] = useState('');
   const [validation, setValidation] = useState({
