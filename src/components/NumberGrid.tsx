@@ -139,15 +139,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         console.log('Participant ID:', participantId);
         console.log('Raffle ID:', raffleSeller.raffle_id);
         console.log('Seller ID:', raffleSeller.seller_id);
-        
-        toast.info(
-          `🔍 Validando con:
-        📞 Número: ${validatedNumber}
-        🆔 Participante: ${participantId || 'N/A'}
-        🎟️ Rifa: ${raffleSeller.raffle_id}
-        🧑‍💼 Vendedor: ${raffleSeller.seller_id}`
-        );
-        
       }
     
       if (participantId) {
