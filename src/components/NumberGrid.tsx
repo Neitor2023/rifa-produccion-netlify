@@ -158,7 +158,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           🆔 Participante: {participantId || 'N/A'}<br />
           🎟️ Rifa: {raffleSeller.raffle_id}<br />
           🧑‍💼 Vendedor: {raffleSeller.seller_id}<br />
-          🎟️ Números seleccionados: {selectedNumbersList?.join(', ') || 'Ninguno'}
+          Números seleccionados: {selectedNumbersList?.join(', ') || 'Ninguno'}
         </>
       );
 
