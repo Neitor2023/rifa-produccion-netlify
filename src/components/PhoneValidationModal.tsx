@@ -123,10 +123,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         
 
           
-        <div className="space-y-2">
-          <label htmlFor="phone" className="text-sm font-medium">
-            Número de ( teléfono o cédula )
-          </label>          
+        <div className="space-y-4 py-4">         
           <PhoneInputField 
             value={phone}
             onChange={setPhone}
