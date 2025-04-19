@@ -131,11 +131,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
             value={phone}
             onChange={setPhone}
           />
-          <ValidationMessage 
-            message={validation.message}
-            isValid={validation.isValid}
-            formattedNumber={validation.formattedNumber}
-          />
+
 
         </div>
         
