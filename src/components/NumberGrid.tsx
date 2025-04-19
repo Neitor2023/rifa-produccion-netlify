@@ -133,7 +133,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     const handleValidationSuccess = async (
       validatedNumber: string,
       participantId?: string,
-      selectedNumbersList?: string[]
+      selectedNumbersList?: string[],
+      buyerInfo?: { name: string; phone: string; cedula: string }
     ) => {
 
     setIsPhoneModalOpen(false);
@@ -305,9 +306,9 @@ console.log("🧪 Datos validados:", {
       <PhoneValidationModal 
         isOpen={isPhoneModalOpen}
         onClose={() => setIsPhoneModalOpen(false)}
-        onPhoneValidationSuccess={(validatedNumber, participantId) => {
+        onPhoneValidationSuccess={(validatedNumber, participantId, buyerInfo) => {
           toast.info(`Números que llegaron a la validación: ${selectedNumbers.length > 0 ? selectedNumbers.join(', ') : 'Ninguno'}`);
-          handleValidationSuccess(validatedNumber, participantId, selectedNumbers);
+          handleValidationSuccess(validatedNumber, participantId, selectedNumbers, buyerInfo);
         }}
         selectedNumber={selectedReservedNumber}
         raffleNumbers={numbers}
