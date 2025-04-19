@@ -5,21 +5,20 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle,
-  DialogFooter,
   DialogDescription
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import ValidationMessage from './phone-validation/ValidationMessage';
+import PhoneInputField from './phone-validation/PhoneInputField';
+import ModalFooter from './phone-validation/ModalFooter';
 
-// Update the interface to include the optional selectedNumber
 interface PhoneValidationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onPhoneValidationSuccess: (phone: string, formattedPhone: string) => void;
-  selectedNumber?: string;  // Add the optional parameter here
+  selectedNumber?: string;
   raffleNumbers?: any[];
   raffleSellerId?: string;
   raffleId?: string;
@@ -30,10 +29,6 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   isOpen,
   onClose,
   onPhoneValidationSuccess,
-  selectedNumber,  // Now correctly declared as an optional parameter
-  raffleNumbers,
-  raffleSellerId,
-  raffleId,
   debugMode = false
 }) => {
   const [phone, setPhone] = useState('');
@@ -46,15 +41,14 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   useEffect(() => {
     if (phone.length > 0) {
       try {
-        // Assume Mexican phone number if no country code is provided
         let cleanedPhone = phone;
-        // Eliminar el 0 inicial si existe
         if (cleanedPhone.startsWith('0')) {
           cleanedPhone = cleanedPhone.slice(1);
         }
         
         const phoneWithCountry = phone.startsWith('+') ? phone : `+593${cleanedPhone}`;
         const isValid = isValidPhoneNumber(phoneWithCountry);
+        
         if (isValid) {
           const parsedPhone = parsePhoneNumber(phoneWithCountry);
           setValidation({
@@ -87,13 +81,13 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 
   const handleNumberSubmit = async () => {
     if (validation.isValid) {
-        let cleanedPhone2 = phone;
-        // Eliminar el 0 inicial si existe
-        if (cleanedPhone2.startsWith('0')) {
-          cleanedPhone2 = cleanedPhone2.slice(1);
-        }      
+      let cleanedPhone2 = phone;
+      if (cleanedPhone2.startsWith('0')) {
+        cleanedPhone2 = cleanedPhone2.slice(1);
+      }      
       const phoneWithCountry = phone.startsWith('+') ? phone : `+593${cleanedPhone2}`;
       const cleanedPhone = phoneWithCountry.trim();
+      
       const { data, error } = await supabase
         .from('participants')
         .select('id')
@@ -106,7 +100,6 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       }
   
       const participantId = data.id;
-  
       onPhoneValidationSuccess(phoneWithCountry, participantId);
       onClose();
     } else {
@@ -117,11 +110,6 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       });
     }
   };
-
-
-  // Limpiar número antes de usar
-  const cleanedPhone = phone.startsWith('0') ? phone.slice(1) : phone;
-  const formattedPhone = phone.startsWith('+') ? phone : `+593${cleanedPhone}`;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -134,46 +122,25 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         </DialogHeader>
         
         <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <label htmlFor="phone" className="text-sm font-medium">
-              Número de teléfono
-            </label>
-            <Input
-              id="phone"
-              placeholder="+52 123 456 7890"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-            {validation.message && (
-              <p className={`text-sm ${validation.isValid ? 'text-green-600' : 'text-red-500'}`}>
-                {validation.message}
-              </p>
-            )}
-            
-            {validation.isValid && (
-              <p className="text-sm text-gray-500">
-                Formato internacional: {validation.formattedNumber}
-              </p>
-            )}
-          </div>
+          <PhoneInputField 
+            value={phone}
+            onChange={setPhone}
+          />
+          <ValidationMessage 
+            message={validation.message}
+            isValid={validation.isValid}
+            formattedNumber={validation.formattedNumber}
+          />
         </div>
         
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancelar
-          </Button>
-          <Button 
-            type="button" 
-            onClick={handleNumberSubmit}
-            disabled={!validation.isValid}
-          >
-            Validar
-          </Button>
-        </DialogFooter>
+        <ModalFooter 
+          onCancel={onClose}
+          onValidate={handleNumberSubmit}
+          isValid={validation.isValid}
+        />
       </DialogContent>
     </Dialog>
   );
 };
 
 export default PhoneValidationModal;
-

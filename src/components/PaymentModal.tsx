@@ -5,7 +5,8 @@ import {
   DialogHeader, 
   DialogTitle,
   DialogFooter,
-  DialogDescription
+  DialogDescription,
+  DialogClose
 } from '@/components/ui/dialog';
 import { 
   Form,
@@ -27,8 +28,8 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { LoaderCircle, Check } from 'lucide-react';
-import { toast } from 'sonner';
+import { LoaderCircle, Check, X } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import PaymentSummary from './payment/PaymentSummary';
 import PaymentUploadZone from './payment/PaymentUploadZone';
 import { Textarea } from "@/components/ui/textarea";
@@ -171,8 +172,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col">
+        <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DialogClose>
+
+        <DialogHeader className="pt-6">
           <DialogTitle className="text-xl font-bold text-center text-gray-800">
             Finalizar Compra
           </DialogTitle>
@@ -180,10 +186,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             Completa tu información para reservar tus números
           </DialogDescription>
         </DialogHeader>
-        
-        <div className="overflow-y-auto pr-1 max-h-[calc(90vh-10rem)]">
+
+        <ScrollArea className="flex-1 overflow-y-auto px-1">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
               <PaymentSummary 
                 selectedNumbers={selectedNumbers}
                 price={price}
@@ -204,7 +210,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                             placeholder="Nombre completo" 
                             {...field} 
                             disabled={true}
-                            className="bg-gray-50 text-gray-700 cursor-not-allowed"
+                            className="bg-gray-50 cursor-not-allowed font-medium text-gray-700"
                             value={buyerData?.name || ""}
                           />
                         </FormControl>
@@ -223,7 +229,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                             placeholder="Número de teléfono" 
                             {...field} 
                             disabled={true}
-                            className="bg-gray-50 text-gray-700 cursor-not-allowed"
+                            className="bg-gray-50 cursor-not-allowed font-medium text-gray-700"
                             value={buyerData?.phone || ""}
                           />
                         </FormControl>
@@ -360,9 +366,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               </div>
             </form>
           </Form>
-        </div>
+        </ScrollArea>
         
-        <DialogFooter className="sticky bottom-0 pt-4 bg-white border-t mt-4 flex flex-col sm:flex-row gap-2">
+        <DialogFooter className="sticky bottom-0 pt-4 bg-white border-t mt-4">
           <Button
             type="button"
             variant="outline"
