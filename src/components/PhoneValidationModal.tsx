@@ -92,6 +92,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
     if (validation.isValid) {
       const phoneWithCountry = phone.startsWith('+') ? phone : `+593${phone}`;
       const cleanedPhone = phoneWithCountry.trim();
+      console.log('telefonito',cleanedPhone);
       const { data, error } = await supabase
         .from('participants')
         .select('id')
