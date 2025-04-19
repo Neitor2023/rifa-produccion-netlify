@@ -15,7 +15,7 @@ const PhoneInputField: React.FC<PhoneInputFieldProps> = ({ value, onChange }) =>
       </label>
       <Input
         id="phone"
-        placeholder="+593 123 456 789"
+        placeholder="+593 987 654 321 o 1702030405"
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
