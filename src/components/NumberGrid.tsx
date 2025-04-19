@@ -140,17 +140,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         console.log('Raffle ID:', raffleSeller.raffle_id);
         console.log('Seller ID:', raffleSeller.seller_id);
       }
-    
-      if (participantId) {
-        handleParticipantValidation(participantId);
-      } else {
-        handleNumberValidation(validatedNumber);
-      }
-    } catch (error) {
-      console.error('Error processing validation:', error);
-      toast.error('Error al procesar la validación');
-    }
-
 console.log("🧪 Datos validados:", {
   validatedNumber,
   participantId,
@@ -167,9 +156,16 @@ console.log("🧪 Datos validados:", {
 🎟️ Rifa: ${raffleSeller.raffle_id}
 🧑‍💼 Vendedor: ${raffleSeller.seller_id}
 🔢 Números seleccionados: ${selectedNumbersList?.join(', ') || 'Ninguno'}`
-  );
-
-    
+  );    
+      if (participantId) {
+        handleParticipantValidation(participantId);
+      } else {
+        handleNumberValidation(validatedNumber);
+      }
+    } catch (error) {
+      console.error('Error processing validation:', error);
+      toast.error('Error al procesar la validación');
+    }    
   };
   
   const handleParticipantValidation = async (participantId: string) => {
