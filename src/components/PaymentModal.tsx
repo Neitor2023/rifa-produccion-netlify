@@ -69,7 +69,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       buyerPhone: buyerData?.phone || "",
       buyerCedula: buyerData?.cedula || "",
       buyerEmail: "",
-      buyerCedula: "",
       paymentMethod: undefined,
       paymentProof: undefined,
       nota: "",
