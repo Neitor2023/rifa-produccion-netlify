@@ -79,37 +79,66 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
     }
   }, [phone]);
 
-  const handleNumberSubmit = async () => {
-    if (validation.isValid) {
-      let cleanedPhone2 = phone;
-      if (cleanedPhone2.startsWith('0')) {
-        cleanedPhone2 = cleanedPhone2.slice(1);
-      }      
-      const phoneWithCountry = phone.startsWith('+') ? phone : `+593${cleanedPhone2}`;
-      const cleanedPhone = phoneWithCountry.trim();
-      
-      const { data, error } = await supabase
-        .from('participants')
-        .select('id')
-        .eq('phone', cleanedPhone)
-        .single();
-  
-      if (error || !data) {
-        toast.error("❌ Participante no encontrado con ese número.");
-        return;
-      }
-  
-      const participantId = data.id;
-      onPhoneValidationSuccess(phoneWithCountry, participantId);
-      onClose();
+const handleNumberSubmit = async () => {
+  if (validation.isValid) {
+    let cleanedPhoneInput = phone.startsWith('0') ? phone.slice(1) : phone;
+    const phoneWithCountry = phone.startsWith('+') ? phone : `+593${cleanedPhoneInput}`;
+    const cleanedPhone = phoneWithCountry.trim();
+
+    let participant = null;
+    let foundBy = '';
+
+    // 🔍 Buscar por teléfono
+    const { data: byPhone, error: errPhone } = await supabase
+      .from('participants')
+      .select('id, name, phone, cedula')
+      .eq('phone', cleanedPhone)
+      .single();
+
+    if (byPhone) {
+      participant = byPhone;
+      foundBy = 'phone';
     } else {
-      setValidation({
-        isValid: false,
-        message: "Por favor ingrese un número válido",
-        formattedNumber: ""
-      });
+      // 🔁 Si no encuentra por teléfono, buscar por cédula
+      const { data: byCedula, error: errCedula } = await supabase
+        .from('participants')
+        .select('id, name, phone, cedula')
+        .eq('cedula', cleanedPhone.replace('+593', '')) // sin prefijo si es cédula
+        .single();
+
+      if (byCedula) {
+        participant = byCedula;
+        foundBy = 'cedula';
+      }
     }
-  };
+
+    if (!participant) {
+      toast.error(`❌ Participante no encontrado con el dato ingresado: ${cleanedPhone}`);
+      return;
+    }
+
+    const { id, name, phone: foundPhone, cedula: foundCedula } = participant;
+
+    onPhoneValidationSuccess(
+      foundPhone || cleanedPhone,
+      id,
+      {
+        name,
+        phone: foundPhone || cleanedPhone,
+        cedula: foundCedula || ''
+      }
+    );
+
+    onClose();
+  } else {
+    setValidation({
+      isValid: false,
+      message: "Por favor ingrese un número válido",
+      formattedNumber: ""
+    });
+  }
+};
+
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
