@@ -10,6 +10,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface PhoneValidationModalProps {
   isOpen: boolean;
@@ -74,9 +76,24 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
     }
   }, [phone]);
 
-  const handleNumberSubmit = () => {
+  const handleNumberSubmit = async () => {
     if (validation.isValid) {
-      onPhoneValidationSuccess(formattedPhone, validation.formattedNumber);
+      const phoneWithCountry = phone.startsWith('+') ? phone : `+593${phone}`;
+  
+      const { data, error } = await supabase
+        .from('participants')
+        .select('id')
+        .eq('phone', phoneWithCountry)
+        .single();
+  
+      if (error || !data) {
+        toast.error("❌ Participante no encontrado con ese número.");
+        return;
+      }
+  
+      const participantId = data.id;
+  
+      onPhoneValidationSuccess(phoneWithCountry, participantId);
       onClose();
     } else {
       setValidation({
@@ -86,6 +103,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       });
     }
   };
+
 
   // Limpiar número antes de usar
   const cleanedPhone = phone.startsWith('0') ? phone.slice(1) : phone;
