@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -98,7 +97,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     }
   }, [buyerData, form]);
 
-  // Debug logging utility
   const debugLog = (context: string, data: any) => {
     if (debugMode) {
       console.log(`[DEBUG - PaymentModal - ${context}]:`, data);
@@ -173,7 +171,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh]">
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-center text-gray-800">
             Finalizar Compra
@@ -193,10 +191,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-4">
-                  {/* Personal Information Section */}
                   <h3 className="font-medium">Información personal</h3>
                   
-                  {/* Buyer Name - Read Only */}
                   <FormField
                     control={form.control}
                     name="buyerName"
@@ -208,15 +204,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                             placeholder="Nombre completo" 
                             {...field} 
                             disabled={true}
-                            className="bg-gray-50"
+                            className="bg-gray-50 text-gray-700 cursor-not-allowed"
+                            value={buyerData?.name || ""}
                           />
                         </FormControl>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
                   
-                  {/* Buyer Phone - Read Only */}
                   <FormField
                     control={form.control}
                     name="buyerPhone"
@@ -228,15 +223,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                             placeholder="Número de teléfono" 
                             {...field} 
                             disabled={true}
-                            className="bg-gray-50"
+                            className="bg-gray-50 text-gray-700 cursor-not-allowed"
+                            value={buyerData?.phone || ""}
                           />
                         </FormControl>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
                   
-                  {/* Buyer Email */}
                   <FormField
                     control={form.control}
                     name="buyerEmail"
@@ -255,7 +249,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     )}
                   />
                   
-                  {/* Buyer Cedula/DNI */}
                   <FormField
                     control={form.control}
                     name="buyerCedula"
@@ -275,10 +268,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 </div>
                 
                 <div className="space-y-4">
-                  {/* Payment Section */}
                   <h3 className="font-medium">Método de pago</h3>
                   
-                  {/* Payment Method */}
                   <FormField
                     control={form.control}
                     name="paymentMethod"
@@ -304,7 +295,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     )}
                   />
                   
-                  {/* Payment Proof */}
                   {form.watch("paymentMethod") === "transfer" && (
                     <PaymentUploadZone
                       previewUrl={previewUrl}
@@ -315,12 +305,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 </div>
               </div>
 
-              {/* Feedback Section */}
               <div className="space-y-4 pt-4 border-t">
                 <h3 className="text-sm font-medium text-muted-foreground">¿Nos ayudas con una opinión rápida?</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Personal Note */}
                   <FormField
                     control={form.control}
                     name="nota"
@@ -337,7 +325,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     )}
                   />
                   
-                  {/* Product Suggestion */}
                   <FormField
                     control={form.control}
                     name="sugerenciaProducto"
@@ -355,7 +342,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                   />
                 </div>
                 
-                {/* Suspicious Report - Full Width */}
                 <FormField
                   control={form.control}
                   name="reporteSospechoso"
@@ -376,7 +362,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           </Form>
         </div>
         
-        {/* Sticky Footer with Action Buttons */}
         <DialogFooter className="sticky bottom-0 pt-4 bg-white border-t mt-4 flex flex-col sm:flex-row gap-2">
           <Button
             type="button"
