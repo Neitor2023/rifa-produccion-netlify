@@ -139,39 +139,26 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         console.log('Participant ID:', participantId);
         console.log('Raffle ID:', raffleSeller.raffle_id);
         console.log('Seller ID:', raffleSeller.seller_id);
-        
-        toast.info(
-          `🔍 Validando con:
-        📞 Número: ${validatedNumber}
-        🆔 Participante: ${participantId || 'N/A'}
-        🎟️ Rifa: ${raffleSeller.raffle_id}
-        🧑‍💼 Vendedor: ${raffleSeller.seller_id}`
-        );
-        
       }
     
-      const isValidUUID = (str: string) => {
-        return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
-      };
-      
-      if (participantId && isValidUUID(participantId)) {
+      if (participantId) {
         handleParticipantValidation(participantId);
       } else {
         handleNumberValidation(validatedNumber);
       }
-
     } catch (error) {
       console.error('Error processing validation:', error);
       toast.error('Error al procesar la validación');
     }
 
-        toast.info(
-          `🔍 Validando con:
-        📞 Número: ${validatedNumber}
-        🆔 Participante: ${participantId || 'N/A'}
-        🎟️ Rifa: ${raffleSeller.raffle_id}
-        🧑‍💼 Vendedor: ${raffleSeller.seller_id}`
-        );  
+    toast.info(
+      `🔍 Validando con:
+    📞 Número validado: ${validatedNumber}
+    🆔 Participante: ${participantId || 'N/A'}
+    🎟️ Rifa: ${raffleSeller.raffle_id}
+    🧑‍💼 Vendedor: ${raffleSeller.seller_id}
+    🔢 Números seleccionados: ${selectedNumbers.join(', ')}`
+    );
     
   };
   
