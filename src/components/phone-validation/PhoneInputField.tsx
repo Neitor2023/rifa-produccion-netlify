@@ -11,7 +11,7 @@ const PhoneInputField: React.FC<PhoneInputFieldProps> = ({ value, onChange }) =>
   return (
     <div className="space-y-2">
       <label htmlFor="phone" className="text-sm font-medium">
-        Número de teléfono
+        Número de ( teléfono o cédula ) XXX
       </label>
       <Input
         id="phone"
