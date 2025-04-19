@@ -139,6 +139,15 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         console.log('Participant ID:', participantId);
         console.log('Raffle ID:', raffleSeller.raffle_id);
         console.log('Seller ID:', raffleSeller.seller_id);
+        
+        toast.info(
+          `🔍 Validando con:
+        📞 Número: ${validatedNumber}
+        🆔 Participante: ${participantId || 'N/A'}
+        🎟️ Rifa: ${raffleSeller.raffle_id}
+        🧑‍💼 Vendedor: ${raffleSeller.seller_id}`
+        );
+        
       }
     
       if (participantId) {
@@ -151,14 +160,13 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       toast.error('Error al procesar la validación');
     }
 
-    toast.info(
-      `🔍 Validando con:
-    📞 Número validado: ${validatedNumber}
-    🆔 Participante: ${participantId || 'N/A'}
-    🎟️ Rifa: ${raffleSeller.raffle_id}
-    🧑‍💼 Vendedor: ${raffleSeller.seller_id}
-    🔢 Números seleccionados: ${selectedNumbers.join(', ')}`
-    );
+        toast.info(
+          `🔍 Validando con:
+        📞 Número: ${validatedNumber}
+        🆔 Participante: ${participantId || 'N/A'}
+        🎟️ Rifa: ${raffleSeller.raffle_id}
+        🧑‍💼 Vendedor: ${raffleSeller.seller_id}`
+        );  
     
   };
   
@@ -292,7 +300,9 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       <PhoneValidationModal 
         isOpen={isPhoneModalOpen}
         onClose={() => setIsPhoneModalOpen(false)}
-        onPhoneValidationSuccess={handleValidationSuccess}
+        onPhoneValidationSuccess={(validatedNumber, participantId) =>
+          handleValidationSuccess(validatedNumber, participantId, selectedNumbers)
+        }
         selectedNumber={selectedReservedNumber}
         raffleNumbers={numbers}
         raffleSellerId={raffleSeller.seller_id}
