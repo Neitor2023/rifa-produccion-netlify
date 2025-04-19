@@ -79,6 +79,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   
   useEffect(() => {
     if (buyerData) {
+console.log("📦 Datos recibidos en PaymentModal:", buyerData);
       form.setValue('buyerName', buyerData.name);
       form.setValue('buyerPhone', buyerData.phone);
       form.setValue("buyerCedula", buyerData.cedula);
