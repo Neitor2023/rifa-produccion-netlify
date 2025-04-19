@@ -48,7 +48,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       try {
         // Assume Mexican phone number if no country code is provided
         let cleanedPhone = phone;
-        
+        console.log('telefonito antes del if',cleanedPhone);
         // Eliminar el 0 inicial si existe
         if (cleanedPhone.startsWith('0')) {
           console.log('telefonito antes',cleanedPhone);
