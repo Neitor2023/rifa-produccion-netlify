@@ -51,7 +51,9 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         
         // Eliminar el 0 inicial si existe
         if (cleanedPhone.startsWith('0')) {
+          console.log('telefonito antes',cleanedPhone);
           cleanedPhone = cleanedPhone.slice(1);
+          console.log('telefonito despues',cleanedPhone);
         }
         
         const phoneWithCountry = phone.startsWith('+') ? phone : `+593${cleanedPhone}`;
