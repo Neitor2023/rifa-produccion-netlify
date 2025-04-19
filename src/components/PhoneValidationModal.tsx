@@ -81,26 +81,54 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 
   const handleNumberSubmit = async () => {
     if (validation.isValid) {
-      let cleanedPhone2 = phone;
-      if (cleanedPhone2.startsWith('0')) {
-        cleanedPhone2 = cleanedPhone2.slice(1);
-      }      
-      const phoneWithCountry = phone.startsWith('+') ? phone : `+593${cleanedPhone2}`;
+      let cleanedPhoneInput = phone.startsWith('0') ? phone.slice(1) : phone;
+      const phoneWithCountry = phone.startsWith('+') ? phone : `+593${cleanedPhoneInput}`;
       const cleanedPhone = phoneWithCountry.trim();
-      
-      const { data, error } = await supabase
+  
+      let participant = null;
+      let foundBy = '';
+  
+      // 🔍 Buscar por teléfono
+      const { data: byPhone, error: errPhone } = await supabase
         .from('participants')
-        .select('id')
+        .select('id, name, phone, cedula')
         .eq('phone', cleanedPhone)
         .single();
   
-      if (error || !data) {
-        toast.error("❌ Participante no encontrado con ese número.");
+      if (byPhone) {
+        participant = byPhone;
+        foundBy = 'phone';
+      } else {
+        // 🔁 Si no encuentra por teléfono, buscar por cédula
+        const { data: byCedula, error: errCedula } = await supabase
+          .from('participants')
+          .select('id, name, phone, cedula')
+          .eq('cedula', cleanedPhone.replace('+593', '')) // sin prefijo si es cédula
+          .single();
+  
+        if (byCedula) {
+          participant = byCedula;
+          foundBy = 'cedula';
+        }
+      }
+  
+      if (!participant) {
+        toast.error(`❌ Participante no encontrado con el dato ingresado: ${cleanedPhone}`);
         return;
       }
   
-      const participantId = data.id;
-      onPhoneValidationSuccess(phoneWithCountry, participantId);
+      const { id, name, phone: foundPhone, cedula: foundCedula } = participant;
+  
+      onPhoneValidationSuccess(
+        foundPhone || cleanedPhone,
+        id,
+        {
+          name,
+          phone: foundPhone || cleanedPhone,
+          cedula: foundCedula || ''
+        }
+      );
+  
       onClose();
     } else {
       setValidation({
@@ -110,6 +138,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       });
     }
   };
+
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
