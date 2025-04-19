@@ -138,7 +138,17 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         console.log('Validation success with number:', validatedNumber);
         console.log('Participant ID:', participantId);
         console.log('Raffle ID:', raffleSeller.raffle_id);
-        console.log('Seller ID:', raffleSeller.seller_id);                
+        console.log('Seller ID:', raffleSeller.seller_id);
+        
+        toast.info(
+          `🔍 Validando con:
+        📞 Número: ${validatedNumber}
+        🆔 Participante: ${participantId || 'N/A'}
+        🎟️ Rifa: ${raffleSeller.raffle_id}
+        🧑‍💼 Vendedor: ${raffleSeller.seller_id}`
+          🔢 Números seleccionados: {selectedNumbersList?.join(', ') || 'Ninguno'}
+        );
+        
       }
     
       if (participantId) {
@@ -151,17 +161,15 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       toast.error('Error al procesar la validación');
     }
 
-    toast.info(
-      <>
-        🔍 Validando con:<br />
-        📞 Número: {validatedNumber}<br />
-        🆔 Participante: {participantId || 'N/A'}<br />
-        🎟️ Rifa: {raffleSeller.raffle_id}<br />
-        🧑‍💼 Vendedor: {raffleSeller.seller_id}<br />
-        🔢 Números seleccionados: {selectedNumbersList?.join(', ') || 'Ninguno'}
-      </>
-    );
-   
+        toast.info(
+          `🔍 Validando con:<br />
+        📞 Número: ${validatedNumber}<br />
+        🆔 Participante: ${participantId || 'N/A'}<br />
+        🎟️ Rifa: ${raffleSeller.raffle_id}<br />
+        🧑‍💼 Vendedor: ${raffleSeller.seller_id}`<br />
+          🔢 Números seleccionados: {selectedNumbersList?.join(', ') || 'Ninguno'}
+        );  
+    
   };
   
   const handleParticipantValidation = async (participantId: string) => {
@@ -294,7 +302,9 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       <PhoneValidationModal 
         isOpen={isPhoneModalOpen}
         onClose={() => setIsPhoneModalOpen(false)}
-        onPhoneValidationSuccess={handleValidationSuccess}
+        onPhoneValidationSuccess={(validatedNumber, participantId) =>
+          handleValidationSuccess(validatedNumber, participantId, selectedNumbers)
+        }
         selectedNumber={selectedReservedNumber}
         raffleNumbers={numbers}
         raffleSellerId={raffleSeller.seller_id}
