@@ -151,14 +151,15 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       toast.error('Error al procesar la validación');
     }
 
-    toast.info(
-      `🔍 Validando con:
-      📞 Número validado: ${validatedNumber}
-      🆔 Participante: ${participantId || 'N/A'}
-      🎟️ Rifa: ${raffleSeller.raffle_id}
-      🧑‍💼 Vendedor: ${raffleSeller.seller_id}
-      🔢 Números seleccionados: ${selectedNumbersList?.join(', ') || 'Ninguno'}`
-    );
+  toast.info(
+    `🔍 Validando con:
+📞 Número validado: ${validatedNumber}
+🆔 Participante: ${participantId || 'N/A'}
+🎟️ Rifa: ${raffleSeller.raffle_id}
+🧑‍💼 Vendedor: ${raffleSeller.seller_id}
+🔢 Números seleccionados: ${selectedNumbersList?.join(', ') || 'Ninguno'}`
+  );
+
     
   };
   
