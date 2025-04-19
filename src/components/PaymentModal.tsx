@@ -180,14 +180,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                   form={form}
                   readOnlyData={buyerData}
                 />
-
-  <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded mb-4 border border-blue-300">
-    <p><strong>🧾 Datos recibidos:</strong></p>
-    <p>📛 Nombre: {buyerData.name || 'No disponible'}</p>
-    <p>📞 Teléfono: {buyerData.phone || 'No disponible'}</p>
-    <p>🪪 Cédula: {buyerData.cedula || 'No disponible'}</p>
-  </div>
-                
+<div className="text-sm text-blue-600 bg-blue-50 p-2 rounded mb-4 border border-blue-300">
+  <p><strong>🧾 Datos recibidos:</strong></p>
+  <p>📛 Nombre: {buyerData?.name || 'No disponible'}</p>
+  <p>📞 Teléfono: {buyerData?.phone || 'No disponible'}</p>
+  <p>🪪 Cédula: {buyerData?.cedula || 'No disponible'}</p>
+</div>
+      
                 <PaymentMethodFields
                   form={form}
                   previewUrl={previewUrl}
