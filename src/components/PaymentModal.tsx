@@ -5,7 +5,6 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Form } from "@/components/ui/form";
-import { X } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import PaymentSummary from './payment/PaymentSummary';
