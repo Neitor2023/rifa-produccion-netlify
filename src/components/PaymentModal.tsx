@@ -4,36 +4,21 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle,
-  DialogFooter,
   DialogDescription,
   DialogClose
 } from '@/components/ui/dialog';
-import { 
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from "@/components/ui/form";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
-import { Input } from '@/components/ui/input';
+import { Form } from "@/components/ui/form";
 import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { LoaderCircle, Check, X } from 'lucide-react';
+import { LoaderCircle, X } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import PaymentSummary from './payment/PaymentSummary';
-import PaymentUploadZone from './payment/PaymentUploadZone';
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from 'sonner';
+import PaymentSummary from './payment/PaymentSummary';
+import PaymentFormFields from './payment/PaymentFormFields';
+import PaymentMethodFields from './payment/PaymentMethodFields';
+import PaymentNotes from './payment/PaymentNotes';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -190,144 +175,52 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
         <ScrollArea className="flex-1 overflow-y-auto px-1">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
               <PaymentSummary 
                 selectedNumbers={selectedNumbers}
                 price={price}
               />
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <h3 className="font-medium text-gray-800">Información personal</h3>
-                  
-                  <FormField
-                    control={form.control}
-                    name="buyerName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nombre</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Nombre completo" 
-                            {...field} 
-                            readOnly
-                            className="bg-gray-50 text-gray-700 font-medium cursor-not-allowed"
-                            value={buyerData?.name || ""}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="buyerPhone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Teléfono</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Número de teléfono" 
-                            {...field} 
-                            readOnly
-                            className="bg-gray-50 text-gray-700 font-medium cursor-not-allowed"
-                            value={buyerData?.phone || ""}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="buyerEmail"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="email"
-                            placeholder="correo@ejemplo.com" 
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                <PaymentFormFields 
+                  form={form}
+                  readOnlyData={buyerData}
+                />
                 
-                <div className="space-y-4">
-                  <h3 className="font-medium text-gray-800">Método de pago</h3>
-                  
-                  <FormField
-                    control={form.control}
-                    name="paymentMethod"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Selecciona el método</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Seleccionar método de pago" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="cash">Efectivo</SelectItem>
-                            <SelectItem value="transfer">Transferencia bancaria</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  {form.watch("paymentMethod") === "transfer" && (
-                    <PaymentUploadZone
-                      previewUrl={previewUrl}
-                      onFileUpload={handleImageUpload}
-                      onFileRemove={handleRemoveImage}
-                    />
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-4 pt-4 border-t">
-                <h3 className="text-sm font-medium text-muted-foreground">Comentarios adicionales (opcional)</h3>
-                
-                <FormField
-                  control={form.control}
-                  name="nota"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="¿Alguna nota o comentario adicional?" 
-                          {...field}
-                          className="resize-none"
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
+                <PaymentMethodFields
+                  form={form}
+                  previewUrl={previewUrl}
+                  onFileUpload={handleImageUpload}
+                  onFileRemove={handleRemoveImage}
                 />
               </div>
+
+              <PaymentNotes form={form} />
             </form>
           </Form>
         </ScrollArea>
         
-        <DialogFooter className="sticky bottom-0 pt-4 bg-white border-t mt-4">
+        <div className="flex justify-end space-x-2 pt-4 border-t mt-4">
           <Button
+            type="button"
+            variant="outline"
             onClick={onClose}
-            className="w-full bg-[#9b87f5] hover:bg-[#7E69AB] text-white font-medium transition-colors"
+            className="flex-1 sm:flex-none"
           >
-            Volver
+            Cancelar
           </Button>
-        </DialogFooter>
+          <Button
+            type="submit"
+            onClick={form.handleSubmit(onSubmit)}
+            disabled={isSubmitting}
+            className="flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB]"
+          >
+            {isSubmitting ? (
+              <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+            ) : null}
+            Completar Pago
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
