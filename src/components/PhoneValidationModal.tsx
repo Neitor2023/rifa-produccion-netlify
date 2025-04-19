@@ -123,7 +123,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         
 
           
-        <div className="space-y-4 py-4">
+        <div className="space-y-2">
           <PhoneInputField 
             value={phone}
             onChange={setPhone}
