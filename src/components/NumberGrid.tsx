@@ -323,7 +323,13 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         onClose={() => setIsPhoneModalOpen(false)}
         onPhoneValidationSuccess={(validatedNumber, participantId, buyerInfo) => {
           // toast.info(`Números que llegaron a la validación: ${selectedNumbers.length > 0 ? selectedNumbers.join(', ') : 'Ninguno'}`);
-          toast.info(
+            <Toaster
+              position="top-right"    // coloca los toasts en la esquina superior derecha
+              visibleToasts={10}      // muestra simultáneamente hasta 10 notificaciones
+              gap={12}                // separa cada toast con 12px de espacio vertical
+              closeButton             // muestra un “✕” que el usuario puede clicar
+            />
+                toast.info(
             <div>
               🔍 Antes de irse a PhoneValidationModal:<br/>
               📞 Número validado: {validatedNumber}<br/>
