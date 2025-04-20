@@ -606,13 +606,13 @@ export function usePaymentProcessor({
     
     await Promise.all(updatePromises);
   };
-useEffect(() => {
+//useEffect(() => {
   if (validatedBuyerData) {
     console.log("🔁 usePaymentProcessor validatedBuyerData antes de renderizar:", validatedBuyerData?.name, validatedBuyerData?.phone, validatedBuyerData?.cedula);
   } else {
     console.log("🔁 usePaymentProcessor validatedBuyerData no está definido");
   }
-}, [validatedBuyerData]);
+//}, [validatedBuyerData]);
 
   return {
     selectedNumbers,
