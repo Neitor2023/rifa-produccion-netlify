@@ -325,7 +325,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           // toast.info(`Números que llegaron a la validación: ${selectedNumbers.length > 0 ? selectedNumbers.join(', ') : 'Ninguno'}`);
           toast.info(
             <div>
-              🔍 Validando con:<br/>
+              🔍 Antes de ir a PhoneValidationModal:<br/>
               📞 Número validado: {validatedNumber}<br/>
               🆔 Participante: {participantId || 'N/A'}<br/>
               🧑‍💼 Nombre: {buyerInfo.name}<br/>
