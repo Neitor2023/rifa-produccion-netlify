@@ -162,7 +162,8 @@ const VentaBoletos: React.FC = () => {
         prize={selectedPrize}
         prizeImages={prizeImages || []}
       />
-      
+      console.log("📦 590 Datos que se envían a PaymentModal:", validatedBuyerData);
+
       <PaymentModal 
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
