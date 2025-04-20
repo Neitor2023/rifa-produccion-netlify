@@ -79,6 +79,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       reporteSospechoso: "",
     },
   });
+useEffect(() => {
+  if (buyerName) {
+    console.log("🔁 buyerName :", buyerName, buyerPhone, buyerCedula);
+  } else {
+    console.log("🔁 buyerName no está definido");
+  }
+}, [buyerName]);
   
   useEffect(() => {
     if (buyerData) {

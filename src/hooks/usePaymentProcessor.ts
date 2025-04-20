@@ -400,7 +400,6 @@ export function usePaymentProcessor({
     
     if (existingNumber && existingNumber.participant_id) {
       // Obtener información del participante
-      console.log("///////////////////////////////////");
       const { data: participant, error } = await supabase
         .from('participants')
         .select('name, phone, cedula')
