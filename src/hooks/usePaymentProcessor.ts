@@ -608,9 +608,9 @@ export function usePaymentProcessor({
   };
 useEffect(() => {
   if (buyerData) {
-    console.log("🔁 validatedBuyerData antes de renderizar:", validatedBuyerData?.name, validatedBuyerData?.phone, validatedBuyerData?.cedula);
+    console.log("🔁 usePaymentProcessor validatedBuyerData antes de renderizar:", validatedBuyerData?.name, validatedBuyerData?.phone, validatedBuyerData?.cedula);
   } else {
-    console.log("🔁 validatedBuyerData no está definido");
+    console.log("🔁 usePaymentProcessor validatedBuyerData no está definido");
   }
 }, [buyerData]);
 
