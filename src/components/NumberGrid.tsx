@@ -173,7 +173,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           🎟️ Rifa: {raffleSeller.raffle_id}<br/>
           🧑‍💼 Vendedor: {raffleSeller.seller_id}<br/>
           🔢 Números seleccionados: {selectedNumbers?.join(', ') || 'Ninguno'}
-        </div>, {duration: 10000      // este toast concreto dura 10 segundos
+        </div>, {duration: 8000      // este toast concreto dura 8 segundos
       });  
       
       if (buyerInfo) {
