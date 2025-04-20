@@ -163,6 +163,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         visibleToasts={10}      // muestra simultáneamente hasta 10 notificaciones
         gap={12}                // separa cada toast con 12px de espacio vertical
         closeButton             // muestra un “✕” que el usuario puede clicar	
+        duration: 8000          // este toast concreto dura 8 segundos
       />
       
       toast.info(
