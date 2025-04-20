@@ -103,7 +103,6 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       let participant = null;
       let foundBy = '';
 
-      // Search by phone
       const { data: byPhone, error: errPhone } = await supabase
         .from('participants')
         .select('id, name, phone, cedula, direccion, sugerencia_producto')
@@ -114,7 +113,6 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         participant = byPhone;
         foundBy = 'phone';
       } else {
-        // Search by cedula if not found by phone
         const { data: byCedula, error: errCedula } = await supabase
           .from('participants')
           .select('id, name, phone, cedula, direccion, sugerencia_producto')

@@ -11,24 +11,19 @@ import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { PaymentFormData } from '../PaymentModal';
 import { cn } from "@/lib/utils";
+import { ValidatedBuyerInfo } from '@/types/participant';
 
 interface PaymentFormFieldsProps {
   form: UseFormReturn<PaymentFormData>;
-  readOnlyData?: {
-    name: string;
-    phone: string;
-    cedula?: string;
-    direccion?: string;
-    sugerencia_producto?: string;
-  };
+  readOnlyData?: ValidatedBuyerInfo;
 }
 
 const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyData }) => {
-  const readOnlyStyles = "bg-gray-50 text-gray-700 font-medium cursor-not-allowed border-gray-200";
+  const readOnlyStyles = "bg-gray-50 text-gray-700 font-medium cursor-not-allowed border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700";
   
   return (
     <div className="space-y-4">
-      <h3 className="font-medium text-gray-800">Información personal</h3>
+      <h3 className="font-medium text-gray-800 dark:text-gray-200">Información personal</h3>
       
       <FormField
         control={form.control}
@@ -40,7 +35,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
               <Input 
                 {...field}
                 readOnly
-                className={cn(readOnlyStyles, "hover:bg-gray-50")}
+                className={cn(readOnlyStyles, "hover:bg-gray-50 dark:hover:bg-gray-800")}
                 value={readOnlyData?.name || field.value}
               />
             </FormControl>
@@ -59,7 +54,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
               <Input 
                 {...field}
                 readOnly
-                className={cn(readOnlyStyles, "hover:bg-gray-50")}
+                className={cn(readOnlyStyles, "hover:bg-gray-50 dark:hover:bg-gray-800")}
                 value={readOnlyData?.phone || field.value}
               />
             </FormControl>
@@ -78,7 +73,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
               <Input 
                 {...field}
                 readOnly
-                className={cn(readOnlyStyles, "hover:bg-gray-50")}
+                className={cn(readOnlyStyles, "hover:bg-gray-50 dark:hover:bg-gray-800")}
                 value={readOnlyData?.cedula || field.value}
               />
             </FormControl>
@@ -93,7 +88,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
           <FormControl>
             <Input 
               readOnly
-              className={cn(readOnlyStyles, "hover:bg-gray-50")}
+              className={cn(readOnlyStyles, "hover:bg-gray-50 dark:hover:bg-gray-800")}
               value={readOnlyData.direccion}
             />
           </FormControl>
@@ -106,7 +101,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
           <FormControl>
             <Input 
               readOnly
-              className={cn(readOnlyStyles, "hover:bg-gray-50")}
+              className={cn(readOnlyStyles, "hover:bg-gray-50 dark:hover:bg-gray-800")}
               value={readOnlyData.sugerencia_producto}
             />
           </FormControl>
