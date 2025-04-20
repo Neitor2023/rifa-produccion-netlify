@@ -49,15 +49,22 @@ export function usePaymentProcessor({
    */
   const findOrCreateParticipant = async (phone: string, name?: string): Promise<string | null> => {
     try {
+      // 1. Registro de entrada para depuración
       debugLog('findOrCreateParticipant input', { phone, name, raffle_id: raffleId });
       
+      // 2. Intento de buscar un participante existente
       const existingParticipant = await findExistingParticipant(phone);
       if (existingParticipant) {
+        
+        // 2a. Si existe, actualizará su nombre si es diferente y devuelve su id
         return handleExistingParticipant(existingParticipant, name);
       }
       
+      // 3. Si no existe, crea uno nuevo con teléfono y nombre
       return createNewParticipant(phone, name);
     } catch (error) {
+      
+      // 4. En caso de error, lo maneja (p.ej. muestra un toast) y devuelve null
       handleParticipantError(error, 'findOrCreateParticipant');
       return null;
     }
@@ -69,9 +76,9 @@ export function usePaymentProcessor({
   const findExistingParticipant = async (phone: string) => {
     const { data, error } = await supabase
       .from('participants')
-      .select('id, name')
+      .select('id, name, phone, cedula')
       .eq('phone', phone)
- //     .eq('raffle_id', raffleId)
+      .eq('raffle_id', raffleId)
       .maybeSingle();
       
     if (error) {
