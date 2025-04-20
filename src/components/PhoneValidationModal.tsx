@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -14,17 +13,21 @@ import ValidationMessage from './phone-validation/ValidationMessage';
 import PhoneInputField from './phone-validation/PhoneInputField';
 import ModalFooter from './phone-validation/ModalFooter';
 
+interface ValidatedBuyerInfo {
+  name: string;
+  phone: string;
+  cedula?: string;
+  direccion?: string;
+  sugerencia_producto?: string;
+}
+
 interface PhoneValidationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onPhoneValidationSuccess: (
     phone: string, 
     participantId: string,
-    buyerInfo?: { 
-      name: string; 
-      phone: string; 
-      cedula: string;
-    }
+    buyerInfo?: ValidatedBuyerInfo
   ) => void;
   selectedNumber?: string;
   raffleNumbers?: any[];
@@ -37,6 +40,10 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   isOpen,
   onClose,
   onPhoneValidationSuccess,
+  selectedNumber,
+  raffleNumbers,
+  raffleSellerId,
+  raffleId,
   debugMode = false
 }) => {
   const [phone, setPhone] = useState('');
@@ -87,66 +94,67 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
     }
   }, [phone]);
 
-const handleNumberSubmit = async () => {
-  if (validation.isValid) {
-    let cleanedPhoneInput = phone.startsWith('0') ? phone.slice(1) : phone;
-    const phoneWithCountry = phone.startsWith('+') ? phone : `+593${cleanedPhoneInput}`;
-    const cleanedPhone = phoneWithCountry.trim();
+  const handleNumberSubmit = async () => {
+    if (validation.isValid) {
+      let cleanedPhoneInput = phone.startsWith('0') ? phone.slice(1) : phone;
+      const phoneWithCountry = phone.startsWith('+') ? phone : `+593${cleanedPhoneInput}`;
+      const cleanedPhone = phoneWithCountry.trim();
 
-    let participant = null;
-    let foundBy = '';
+      let participant = null;
+      let foundBy = '';
 
-    // 🔍 Buscar por teléfono
-    const { data: byPhone, error: errPhone } = await supabase
-      .from('participants')
-      .select('id, name, phone, cedula')
-      .eq('phone', cleanedPhone)
-      .single();
-
-    if (byPhone) {
-      participant = byPhone;
-      foundBy = 'phone';
-    } else {
-      // 🔁 Si no encuentra por teléfono, buscar por cédula
-      const { data: byCedula, error: errCedula } = await supabase
+      // Search by phone
+      const { data: byPhone, error: errPhone } = await supabase
         .from('participants')
-        .select('id, name, phone, cedula')
-        .eq('cedula', cleanedPhone.replace('+593', '')) // sin prefijo si es cédula
-        .single();
+        .select('id, name, phone, cedula, direccion, sugerencia_producto')
+        .eq('phone', cleanedPhone)
+        .maybeSingle();
 
-      if (byCedula) {
-        participant = byCedula;
-        foundBy = 'cedula';
+      if (byPhone) {
+        participant = byPhone;
+        foundBy = 'phone';
+      } else {
+        // Search by cedula if not found by phone
+        const { data: byCedula, error: errCedula } = await supabase
+          .from('participants')
+          .select('id, name, phone, cedula, direccion, sugerencia_producto')
+          .eq('cedula', cleanedPhone.replace('+593', ''))
+          .maybeSingle();
+
+        if (byCedula) {
+          participant = byCedula;
+          foundBy = 'cedula';
+        }
       }
-    }
 
-    if (!participant) {
-      toast.error(`❌ Participante no encontrado con el dato ingresado: ${cleanedPhone}`);
-      return;
-    }
-
-    const { id, name, phone: foundPhone, cedula: foundCedula } = participant;
-
-    onPhoneValidationSuccess(
-      foundPhone || cleanedPhone,
-      id,
-      {
-        name,
-        phone: foundPhone || cleanedPhone,
-        cedula: foundCedula
+      if (!participant) {
+        toast.error(`❌ Participante no encontrado con el dato ingresado: ${cleanedPhone}`);
+        return;
       }
-    );
 
-    onClose();
-  } else {
-    setValidation({
-      isValid: false,
-      message: "Por favor ingrese un número válido",
-      formattedNumber: ""
-    });
-  }
-};
+      const { id, name, phone: foundPhone, cedula, direccion, sugerencia_producto } = participant;
 
+      onPhoneValidationSuccess(
+        foundPhone || cleanedPhone,
+        id,
+        {
+          name,
+          phone: foundPhone || cleanedPhone,
+          cedula,
+          direccion,
+          sugerencia_producto
+        }
+      );
+
+      onClose();
+    } else {
+      setValidation({
+        isValid: false,
+        message: "Por favor ingrese un número válido",
+        formattedNumber: ""
+      });
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
