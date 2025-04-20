@@ -61,7 +61,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-// 🧾 Comprobamos si llegan los datos del comprador
+// 🧾 111 Comprobamos si llegan los datos del comprador
 console.log("🧾 Datos buyerData recibidos en PaymentModal:", buyerData);
   
   const form = useForm<PaymentFormData>({
@@ -81,7 +81,7 @@ console.log("🧾 Datos buyerData recibidos en PaymentModal:", buyerData);
   
   useEffect(() => {
     if (buyerData) {
-      console.log("📦 999 Datos recibidos en PaymentModal:", buyerData);
+      console.log("📦 Datos recibidos en PaymentModal:", buyerData);
       form.setValue('buyerName', buyerData.name);
       form.setValue('buyerPhone', buyerData.phone);
       form.setValue("buyerCedula", buyerData.cedula);
