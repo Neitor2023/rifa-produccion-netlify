@@ -58,7 +58,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
   const [selectedReservedNumber, setSelectedReservedNumber] = useState<string | null>(null);
   const [buyerData, setBuyerData] = useState<{ name: string; phone: string; cedula: string } | null>(null);
-  
+  const [validatedBuyerInfo, setValidatedBuyerInfo] = useState<ValidatedBuyerInfo | null>(null);
+
   const toggleNumber = (number: string, status: string) => {
     if (highlightReserved && status === 'reserved') {
       setSelectedReservedNumber(number);
@@ -164,6 +165,10 @@ const NumberGrid: React.FC<NumberGridProps> = ({
 🧑‍💼 Vendedor: ${raffleSeller.seller_id}
 🔢 Números seleccionados: ${selectedNumbers?.join(', ') || 'Ninguno'}`
       );    
+if (buyerInfo) {
+  setValidatedBuyerInfo(buyerInfo);
+}
+      
       if (participantId && /^[0-9a-fA-F\-]{36}$/.test(participantId)) {
         handleParticipantValidation(participantId);
       } else {
