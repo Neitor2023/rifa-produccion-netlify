@@ -159,9 +159,9 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       });
 
       <Toaster
-        position="top-right"    // coloca los toasts en la esquina superior derecha
+        position="top-left"    // coloca los toasts en la esquina superior derecha
         visibleToasts={10}      // muestra simultáneamente hasta 10 notificaciones
-        gap={120}                // separa cada toast con 12px de espacio vertical
+        gap={52}                // separa cada toast con 12px de espacio vertical
         closeButton             // muestra un “✕” que el usuario puede clicar
       />
       
