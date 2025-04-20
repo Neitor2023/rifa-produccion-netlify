@@ -327,7 +327,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
             <div>
               🔍 Antes de irse a PhoneValidationModal:<br/>
 
-            </div>, {duration: 10000      // este toast concreto dura 10 segundos
+            </div>, {duration: 8000      // este toast concreto dura 8 segundos
           });            
           handleValidationSuccess(validatedNumber, participantId, buyerInfo);
         }}
