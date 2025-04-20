@@ -71,7 +71,7 @@ export function usePaymentProcessor({
   };
   
   /**
-   * Searches for an existing participant with the given phone number
+   * Busca un participante existente con el número de teléfono proporcionado
    */
   const findExistingParticipant = async (phone: string) => {
     const { data, error } = await supabase
@@ -95,10 +95,10 @@ export function usePaymentProcessor({
   };
   
   /**
-   * Updates an existing participant if needed and returns their ID
+   * Actualiza un participante existente si es necesario y devuelve su identificación
    */
   const handleExistingParticipant = async (participant: { id: string, name: string }, newName?: string): Promise<string> => {
-    // If we have a name and it's different from the existing one, update it
+    // Si tenemos un nombre y es diferente al existente, actualízalo
     if (newName && newName !== participant.name) {
       const { error } = await supabase
         .from('participants')
@@ -106,7 +106,7 @@ export function usePaymentProcessor({
         .eq('id', participant.id);
       
       if (error) {
-        console.error('Error updating participant name:', error);
+        console.error('Error participante actualizando name:', error);
       }
     }
     
@@ -114,20 +114,21 @@ export function usePaymentProcessor({
   };
   
   /**
-   * Creates a new participant in the database
+   * Crea un nuevo participante en la base de datos
    */
   const createNewParticipant = async (phone: string, name?: string): Promise<string | null> => {
     if (!name) {
       return null;
     }
     
-    debugLog('Creating new participant', { name, phone, raffle_id: raffleId, seller_id: raffleSeller?.seller_id });
+    debugLog('Creando nuevo participante', { name, phone, cedula, raffle_id: raffleId, seller_id: raffleSeller?.seller_id });
     
     const { data, error } = await supabase
       .from('participants')
       .insert({
         name: name,
         phone: phone,
+        cedula: cedula,
         email: '', // Required field, but not available at reservation time
         raffle_id: raffleId,
         seller_id: raffleSeller?.seller_id
