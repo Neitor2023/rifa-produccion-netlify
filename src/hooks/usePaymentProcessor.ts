@@ -415,6 +415,7 @@ export function usePaymentProcessor({
           phone: participant.phone,
           cedula: participant.cedula,
         });
+        console.log("///////////////////////////////////");
 useEffect(() => {
   if (validatedBuyerData) {
     console.log("🔁 usePaymentProcessor validatedBuyerData antes de renderizar:", validatedBuyerData?.name, validatedBuyerData?.phone, validatedBuyerData?.cedula);
