@@ -129,7 +129,7 @@ export function usePaymentProcessor({
         name: name,
         phone: phone,
         cedula: cedula,
-        email: '', // Required field, but not available at reservation time
+        email: '', // Campo obligatorio, pero no disponible en el momento de la reserva.
         raffle_id: raffleId,
         seller_id: raffleSeller?.seller_id
       })
@@ -137,17 +137,17 @@ export function usePaymentProcessor({
       .single();
     
     if (error) {
-      console.error('Error creating participant:', error);
+      console.error('Error creando participante:', error);
       toast.error('Error al crear participante: ' + error.message);
       return null;
     }
     
-    debugLog('Created new participant with ID', data?.id);
+    debugLog('Nuevo participante creado con ID', data?.id);
     return data?.id || null;
   };
   
   /**
-   * Handles and logs participant-related errors
+   * Maneja y registra errores relacionados con los participantes
    */
   const handleParticipantError = (error: any, context: string) => {
     console.error(`Error in ${context}:`, error);
@@ -155,14 +155,14 @@ export function usePaymentProcessor({
   };
 
   // -----------------
-  // SELLER VALIDATION
+  // VALIDACIÓN DEL VENDEDOR
   // -----------------
 
   /**
-   * Validates that the seller has not exceeded their maximum number of sales
-   * @param newNumbersCount Number of new numbers to be sold or reserved
-   * @returns Boolean indicating if the operation can proceed
-   */
+  * Valida que el vendedor no haya excedido su número máximo de ventas.
+  * @param newNumbersCount Número de números nuevos a vender o reservar.
+  * @returns Booleano que indica si la operación puede continuar.
+  */
   const validateSellerMaxNumbers = async (newNumbersCount: number): Promise<boolean> => {
     if (!raffleSeller) {
       toast.error('Información del vendedor no disponible');
@@ -172,7 +172,7 @@ export function usePaymentProcessor({
     const soldCount = getSoldNumbersCount(raffleSeller.seller_id);
     const maxAllowed = raffleSeller.cant_max;
     
-    debugLog('Validating seller max numbers', { 
+    debugLog('Validación de números máximos de vendedores', { 
       soldCount, 
       newNumbersCount, 
       maxAllowed, 
@@ -188,10 +188,10 @@ export function usePaymentProcessor({
   };
 
   /**
-   * Gets the count of numbers sold by a specific seller
-   * @param sellerId The seller's ID
-   * @returns Number of sold tickets
-   */
+  * Obtiene el recuento de números vendidos por un vendedor específico
+  * @param sellerId El ID del vendedor
+  * @returns Número de boletos vendidos
+  */
   const getSoldNumbersCount = (sellerId: string): number => {
     if (!raffleNumbers || !sellerId) return 0;
     
@@ -368,12 +368,12 @@ export function usePaymentProcessor({
   };
   
   /**
-   * Checks if reserved numbers have existing participant data
-   * and sets the validated buyer data if available
-   */
+  * Comprueba si los números reservados tienen datos de participantes existentes
+  * y establece los datos validados del comprador si están disponibles
+  */
   const checkReservedNumbersParticipant = async (numbers: string[]) => {
     try {
-      // Check if we're processing a reserved number with an existing participant_id
+      // Verifique si estamos procesando un número reservado con un participant_id existente
       const reservedNumbers = numbers.filter(numStr => {
         const existingNumber = raffleNumbers?.find(n => n.number === numStr);
         return existingNumber && existingNumber.status === 'reserved' && existingNumber.participant_id;
@@ -382,12 +382,12 @@ export function usePaymentProcessor({
       if (reservedNumbers.length > 0) {
         await fetchParticipantForReservedNumber(reservedNumbers[0]);
       } else {
-        // Reset validated buyer data if there are no reserved numbers
+        // Restablecer los datos del comprador validado si no hay números reservados
         setValidatedBuyerData(null);
       }
     } catch (error) {
       console.error('Error checking participant for reserved numbers:', error);
-      // Don't throw here, as we want to proceed with payment even if this fails
+      // No lo tires aquí, ya que queremos proceder con el pago incluso si esto falla
     }
   };
   
@@ -415,7 +415,13 @@ export function usePaymentProcessor({
           phone: participant.phone,
           cedula: participant.cedula,
         });
-        
+useEffect(() => {
+  if (validatedBuyerData) {
+    console.log("🔁 usePaymentProcessor validatedBuyerData antes de renderizar:", validatedBuyerData?.name, validatedBuyerData?.phone, validatedBuyerData?.cedula);
+  } else {
+    console.log("🔁 usePaymentProcessor validatedBuyerData no está definido");
+  }
+}, [validatedBuyerData]);        
         debugLog('Set validated buyer data', participant);
       }
     }
@@ -614,13 +620,13 @@ export function usePaymentProcessor({
     
     await Promise.all(updatePromises);
   };
-//useEffect(() => {
+useEffect(() => {
   if (validatedBuyerData) {
     console.log("🔁 usePaymentProcessor validatedBuyerData antes de renderizar:", validatedBuyerData?.name, validatedBuyerData?.phone, validatedBuyerData?.cedula);
   } else {
     console.log("🔁 usePaymentProcessor validatedBuyerData no está definido");
   }
-//}, [validatedBuyerData]);
+}, [validatedBuyerData]);
 
   return {
     selectedNumbers,
