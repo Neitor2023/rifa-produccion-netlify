@@ -162,8 +162,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         position="top-right"    // coloca los toasts en la esquina superior derecha
         visibleToasts={10}      // muestra simultáneamente hasta 10 notificaciones
         gap={12}                // separa cada toast con 12px de espacio vertical
-        closeButton             // muestra un “✕” que el usuario puede clicar	
-        duration: 8000          // este toast concreto dura 8 segundos
+        closeButton             // muestra un “✕” que el usuario puede clicar
       />
       
       toast.info(
@@ -174,8 +173,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           🎟️ Rifa: {raffleSeller.raffle_id}<br/>
           🧑‍💼 Vendedor: {raffleSeller.seller_id}<br/>
           🔢 Números seleccionados: {selectedNumbers?.join(', ') || 'Ninguno'}
-        </div>
-      );  
+        </div>, {duration: 8000      // este toast concreto dura 8 segundos
+      });  
       
       if (buyerInfo) {
         setValidatedBuyerInfo(buyerInfo);
