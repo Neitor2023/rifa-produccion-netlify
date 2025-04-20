@@ -168,6 +168,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       });
     }
   }, [isOpen, selectedNumbers, price, buyerData]);
+useEffect(() => {
+  if (buyerData) {
+    console.log("🔁 PaymentModal buyerData antes de renderizar:", buyerData?.name, buyerData?.phone, buyerData?.cedula);
+  } else {
+    console.log("🔁 PaymentModal buyerData no está definido");
+  }
+}, [buyerData]);
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>

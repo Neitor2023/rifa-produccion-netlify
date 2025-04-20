@@ -606,8 +606,14 @@ export function usePaymentProcessor({
     
     await Promise.all(updatePromises);
   };
-// Ver buyerData
-console.log("🔁 2512 usePaymentProcessor buyerData antes de renderizar buyerData:", buyerData);  
+useEffect(() => {
+  if (buyerData) {
+    console.log("🔁 validatedBuyerData antes de renderizar:", validatedBuyerData?.name, validatedBuyerData?.phone, validatedBuyerData?.cedula);
+  } else {
+    console.log("🔁 validatedBuyerData no está definido");
+  }
+}, [buyerData]);
+
   return {
     selectedNumbers,
     setSelectedNumbers,
