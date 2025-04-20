@@ -49,7 +49,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   raffleSeller,
   onReserve,
   onProceedToPayment,
-  debugMode = false,
+  debugMode = true,
   soldNumbersCount = 0
 }) => {
   const [selectedNumbers, setSelectedNumbers] = useState<string[]>([]);
@@ -322,21 +322,22 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         isOpen={isPhoneModalOpen}
         onClose={() => setIsPhoneModalOpen(false)}
         onPhoneValidationSuccess={(validatedNumber, participantId, buyerInfo) => {
-          // toast.info(`Números que llegaron a la validación: ${selectedNumbers.length > 0 ? selectedNumbers.join(', ') : 'Ninguno'}`);
-          toast.info(
-            <div>
-              🔍 Antes de ir a PhoneValidationModal:<br/>
-              📞 Número validado: {validatedNumber}<br/>
-              🆔 Participante: {participantId || 'N/A'}<br/>
-              🧑‍💼 Nombre: {buyerInfo.name}<br/>
-              📱 Teléfono: {buyerInfo.phone}<br/>
-              🆔 Cédula: {buyerInfo.cedula}<br/>
-              📍 Dirección: {buyerInfo.direccion}<br/>
-              💡 Sugerencia: {buyerInfo.sugerencia_producto}<br/>
-              🔢 Números seleccionados: {selectedNumbers?.join(', ') || 'Ninguno'}
-            </div>,
-            { duration: 8000 }
-          );            
+          if (debugMode) {
+            toast.info(
+              <div>
+                🔍 Antes de ir a PhoneValidationModal:<br/>
+                📞 Número validado: {validatedNumber}<br/>
+                🆔 Participante: {participantId || 'N/A'}<br/>
+                🧑‍💼 Nombre: {buyerInfo.name}<br/>
+                📱 Teléfono: {buyerInfo.phone}<br/>
+                🆔 Cédula: {buyerInfo.cedula}<br/>
+                📍 Dirección: {buyerInfo.direccion}<br/>
+                💡 Sugerencia: {buyerInfo.sugerencia_producto}<br/>
+                🔢 Números seleccionados: {selectedNumbers?.join(', ') || 'Ninguno'}
+              </div>,
+              { duration: 8000 }
+            );
+          }
           handleValidationSuccess(validatedNumber, participantId, buyerInfo);
         }}
         selectedNumber={selectedReservedNumber}
