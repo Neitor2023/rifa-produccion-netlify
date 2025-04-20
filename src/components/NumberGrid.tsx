@@ -131,15 +131,14 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     setHighlightReserved(false);
   };
   
-    const handleValidationSuccess = async (
-      validatedNumber: string,
-      participantId?: string,
-      selectedNumbersList?: string[],
-      buyerInfo?: { name: string; phone: string; cedula: string }
-    ) => {
-      if (buyerInfo) {
-        setBuyerData(buyerInfo); // ✅ Aquí pasas los datos al estado
-      }
+  const handleValidationSuccess = (
+    validatedNumber: string,
+    participantId: string,
+    buyerInfo?: { name: string; phone: string; cedula?: string }
+  ) => {
+    if (buyerInfo) {
+      setBuyerData(buyerInfo);
+    }
     setIsPhoneModalOpen(false);
     
     try {
@@ -149,28 +148,25 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         console.log('Raffle ID:', raffleSeller.raffle_id);
         console.log('Seller ID:', raffleSeller.seller_id);
       }
-console.log("🧪 Datos validados:", {
-  validatedNumber,
-  participantId,
-  raffleId: raffleSeller.raffle_id,
-  sellerId: raffleSeller.seller_id,
-  selectedNumbersList
-});
+      console.log("🧪 Datos validados:", {
+        validatedNumber,
+        participantId,
+        raffleId: raffleSeller.raffle_id,
+        sellerId: raffleSeller.seller_id,
+        selectedNumbersList: selectedNumbers
+      });
 
-    
-  toast.info(
-    `🔍 Validando con:
+      toast.info(
+        `🔍 Validando con:
 📞 Número validado: ${validatedNumber}
 🆔 Participante: ${participantId || 'N/A'}
 🎟️ Rifa: ${raffleSeller.raffle_id}
 🧑‍💼 Vendedor: ${raffleSeller.seller_id}
-🔢 Números seleccionados: ${selectedNumbersList?.join(', ') || 'Ninguno'}`
-  );    
+🔢 Números seleccionados: ${selectedNumbers?.join(', ') || 'Ninguno'}`
+      );    
       if (participantId && /^[0-9a-fA-F\-]{36}$/.test(participantId)) {
-        // Es un UUID válido
         handleParticipantValidation(participantId);
       } else {
-        // No es UUID, probablemente es el número telefónico
         handleNumberValidation(validatedNumber);
       }
     } catch (error) {
@@ -311,7 +307,7 @@ console.log("🧪 Datos validados:", {
         onClose={() => setIsPhoneModalOpen(false)}
         onPhoneValidationSuccess={(validatedNumber, participantId, buyerInfo) => {
           toast.info(`Números que llegaron a la validación: ${selectedNumbers.length > 0 ? selectedNumbers.join(', ') : 'Ninguno'}`);
-          handleValidationSuccess(validatedNumber, participantId, selectedNumbers, buyerInfo);
+          handleValidationSuccess(validatedNumber, participantId, buyerInfo);
         }}
         selectedNumber={selectedReservedNumber}
         raffleNumbers={numbers}

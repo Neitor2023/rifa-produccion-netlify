@@ -17,7 +17,15 @@ import ModalFooter from './phone-validation/ModalFooter';
 interface PhoneValidationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onPhoneValidationSuccess: (phone: string, formattedPhone: string) => void;
+  onPhoneValidationSuccess: (
+    phone: string, 
+    participantId: string,
+    buyerInfo?: { 
+      name: string; 
+      phone: string; 
+      cedula?: string;
+    }
+  ) => void;
   selectedNumber?: string;
   raffleNumbers?: any[];
   raffleSellerId?: string;
@@ -125,7 +133,7 @@ const handleNumberSubmit = async () => {
       {
         name,
         phone: foundPhone || cleanedPhone,
-        cedula: foundCedula || ''
+        cedula: foundCedula
       }
     );
 
