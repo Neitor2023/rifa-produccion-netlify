@@ -55,7 +55,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   price,
   onComplete,
   buyerData,
-  debugMode = true
+  debugMode = false
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
