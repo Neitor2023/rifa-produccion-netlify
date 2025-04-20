@@ -164,18 +164,18 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         gap={52}                // separa cada toast con 12px de espacio vertical
         closeButton             // muestra un “✕” que el usuario puede clicar
       />
-      
-      toast.info(
-        <div>
-          🔍 Validando con:<br/>
-          📞 Número validado: {validatedNumber}<br/>
-          🆔 Participante: {participantId || 'N/A'}<br/>
-          🎟️ Rifa: {raffleSeller.raffle_id}<br/>
-          🧑‍💼 Vendedor: {raffleSeller.seller_id}<br/>
-          🔢 Números seleccionados: {selectedNumbers?.join(', ') || 'Ninguno'}
-        </div>, {duration: 8000      // este toast concreto dura 8 segundos
-      });  
-      
+/**      
+*      toast.info(
+*        <div>
+*          🔍 Validando con:<br/>
+*          📞 Número validado: {validatedNumber}<br/>
+*          🆔 Participante: {participantId || 'N/A'}<br/>
+*          🎟️ Rifa: {raffleSeller.raffle_id}<br/>
+*          🧑‍💼 Vendedor: {raffleSeller.seller_id}<br/>
+*          🔢 Números seleccionados: {selectedNumbers?.join(', ') || 'Ninguno'}
+*        </div>, {duration: 8000      // este toast concreto dura 8 segundos
+*      });  
+*/      
       if (buyerInfo) {
         setValidatedBuyerInfo(buyerInfo);
       }
