@@ -79,17 +79,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       reporteSospechoso: "",
     },
   });
-useEffect(() => {
-  if (buyerName) {
-    console.log("🔁 buyerName :", buyerName, buyerPhone, buyerCedula);
-  } else {
-    console.log("🔁 buyerName no está definido");
-  }
-}, [buyerName]);
+
   
   useEffect(() => {
     if (buyerData) {
-      console.log("📦 Updating form with buyer data:", buyerData);
+      console.log("📦 Formulario de actualización con datos del comprador:", buyerData);
       form.setValue('buyerName', buyerData.name);
       form.setValue('buyerPhone', buyerData.phone);
       if (buyerData.cedula) {
