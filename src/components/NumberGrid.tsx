@@ -323,7 +323,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         onClose={() => setIsPhoneModalOpen(false)}
         onPhoneValidationSuccess={(validatedNumber, participantId, buyerInfo) => {
           handleValidationSuccess(validatedNumber, participantId, buyerInfo);          
-          if (debugMode) {
+          if (!debugMode) {
             toast.info(
               <div>
                 🔍 Antes de ir a PhoneValidationModal:<br/>
