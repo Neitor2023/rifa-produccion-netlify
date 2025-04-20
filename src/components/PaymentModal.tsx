@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/dialog';
 import { Form } from "@/components/ui/form";
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { toast } from 'sonner';
+import { Toaster, toast } from 'sonner';
 import PaymentSummary from './payment/PaymentSummary';
 import PaymentFormFields from './payment/PaymentFormFields';
 import PaymentMethodFields from './payment/PaymentMethodFields';
@@ -109,6 +109,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     debugLog('Form submit - data', data);
     
     if (data.paymentMethod === "transfer" && !uploadedImage) {
+      <Toaster
+        position="top-right"    // coloca los toasts en la esquina superior derecha
+        visibleToasts={10}      // muestra simultáneamente hasta 10 notificaciones
+        gap={12}                // separa cada toast con 12px de espacio vertical
+        closeButton             // muestra un “✕” que el usuario puede clicar	
+      />      
       toast.error("Por favor suba un comprobante de pago");
       debugLog('Validation error', 'Missing payment proof for transfer');
       setIsSubmitting(false);

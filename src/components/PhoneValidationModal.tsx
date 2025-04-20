@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { Toaster, toast } from 'sonner';
 import ValidationMessage from './phone-validation/ValidationMessage';
 import PhoneInputField from './phone-validation/PhoneInputField';
 import ModalFooter from './phone-validation/ModalFooter';
@@ -126,6 +126,12 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       }
 
       if (!participant) {
+        <Toaster
+          position="top-right"    // coloca los toasts en la esquina superior derecha
+          visibleToasts={10}      // muestra simultáneamente hasta 10 notificaciones
+          gap={12}                // separa cada toast con 12px de espacio vertical
+          closeButton             // muestra un “✕” que el usuario puede clicar	
+        />        
         toast.error(`❌ Participante no encontrado con el dato ingresado: ${cleanedPhone}`);
         return;
       }
