@@ -61,7 +61,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-// 🧾 111 Comprobamos si llegan los datos del comprador
+// 🧾 Comprobamos si llegan los datos del comprador
 console.log("🧾 Datos buyerData recibidos en PaymentModal:", buyerData);
   
   const form = useForm<PaymentFormData>({
@@ -182,13 +182,6 @@ console.log("🧾 Datos buyerData recibidos en PaymentModal:", buyerData);
                   form={form}
                   readOnlyData={buyerData}
                 />
-<div className="text-sm text-blue-600 bg-blue-50 p-2 rounded mb-4 border border-blue-300">
-  <p><strong>🧾 Datos recibidos:</strong></p>
-  <p>📛 Nombre: {buyerData?.name || 'No disponible'}</p>
-  <p>📞 Teléfono: {buyerData?.phone || 'No disponible'}</p>
-  <p>🪪 Cédula: {buyerData?.cedula || 'No disponible'}</p>
-</div>
-      
                 <PaymentMethodFields
                   form={form}
                   previewUrl={previewUrl}
