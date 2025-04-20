@@ -325,13 +325,18 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           // toast.info(`Números que llegaron a la validación: ${selectedNumbers.length > 0 ? selectedNumbers.join(', ') : 'Ninguno'}`);
           toast.info(
             <div>
-              🔍 Antes de irse a PhoneValidationModal:<br/>
+              🔍 Validando con:<br/>
               📞 Número validado: {validatedNumber}<br/>
               🆔 Participante: {participantId || 'N/A'}<br/>
-              🧑‍💼 buyerInfo: {buyerInfo}<br/>
+              🧑‍💼 Nombre: {buyerInfo.name}<br/>
+              📱 Teléfono: {buyerInfo.phone}<br/>
+              🆔 Cédula: {buyerInfo.cedula}<br/>
+              📍 Dirección: {buyerInfo.direccion}<br/>
+              💡 Sugerencia: {buyerInfo.sugerencia_producto}<br/>
               🔢 Números seleccionados: {selectedNumbers?.join(', ') || 'Ninguno'}
-            </div>, {duration: 8000      // este toast concreto dura 8 segundos
-          });            
+            </div>,
+            { duration: 8000 }
+          );            
           handleValidationSuccess(validatedNumber, participantId, buyerInfo);
         }}
         selectedNumber={selectedReservedNumber}
