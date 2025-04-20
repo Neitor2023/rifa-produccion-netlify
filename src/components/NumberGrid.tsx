@@ -171,7 +171,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           📞 Número validado: {validatedNumber}<br/>
           🆔 Participante: {participantId || 'N/A'}<br/>
           🎟️ Rifa: {raffleSeller.raffle_id}<br/>
-          🧑‍💼 Vendedor: {raffleSeller.seller_id}<br/>
+
           🔢 Números seleccionados: {selectedNumbers?.join(', ') || 'Ninguno'}
         </div>, {duration: 10000      // este toast concreto dura 10 segundos
       });  
