@@ -322,6 +322,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         isOpen={isPhoneModalOpen}
         onClose={() => setIsPhoneModalOpen(false)}
         onPhoneValidationSuccess={(validatedNumber, participantId, buyerInfo) => {
+          handleValidationSuccess(validatedNumber, participantId, buyerInfo);          
           if (debugMode) {
             toast.info(
               <div>
@@ -338,7 +339,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
               { duration: 8000 }
             );
           }
-          handleValidationSuccess(validatedNumber, participantId, buyerInfo);
         }}
         selectedNumber={selectedReservedNumber}
         raffleNumbers={numbers}
