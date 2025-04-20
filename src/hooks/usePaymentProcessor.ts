@@ -23,14 +23,14 @@ export function usePaymentProcessor({
   refetchRaffleNumbers,
   debugMode = false
 }: UsePaymentProcessorProps) {
-  // State management
+  // Gestión estatal
   const [selectedNumbers, setSelectedNumbers] = useState<string[]>([]);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isVoucherOpen, setIsVoucherOpen] = useState(false);
   const [paymentData, setPaymentData] = useState<PaymentFormData | null>(null);
   const [validatedBuyerData, setValidatedBuyerData] = useState<{ name: string, phone: string, cedula: string } | null>(null);
 
-  // Debug logging utility
+  // Utilidad de registro de depuración
   const debugLog = (context: string, data: any) => {
     if (debugMode) {
       console.log(`[DEBUG - ${context}]:`, data);
@@ -38,15 +38,15 @@ export function usePaymentProcessor({
   };
 
   // -----------------
-  // PARTICIPANT MANAGEMENT
+  // GESTIÓN DE PARTICIPANTES
   // -----------------
 
   /**
-   * Finds an existing participant or creates a new one if not found
-   * @param phone Participant's phone number
-   * @param name Optional participant name (required for new participants)
-   * @returns Participant ID or null if operation failed
-   */
+  * Busca un participante existente o crea uno nuevo si no se encuentra
+  * @param phone Número de teléfono del participante
+  * @param name Nombre del participante opcional (obligatorio para nuevos participantes)
+  * @returns ID del participante o nulo si la operación falló
+  */
   const findOrCreateParticipant = async (phone: string, name?: string): Promise<string | null> => {
     try {
       // 1. Registro de entrada para depuración
