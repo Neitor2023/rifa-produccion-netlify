@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -18,7 +19,6 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoaderCircle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ValidatedBuyerInfo } from '@/types/participant';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -26,7 +26,11 @@ interface PaymentModalProps {
   selectedNumbers: string[];
   price: number;
   onComplete: (paymentData: PaymentFormData) => void;
-  buyerData?: ValidatedBuyerInfo;
+  buyerData?: {
+    name: string;
+    phone: string;
+    cedula: string;
+  };
   debugMode?: boolean;
 }
 
@@ -179,10 +183,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 <PaymentFormFields 
                   form={form}
                   readOnlyData={buyerData}
+                   previewUrl={previewUrl}
                 />
                 <PaymentMethodFields
                   form={form}
-                  previewUrl={previewUrl}
+                 
                   onFileUpload={handleImageUpload}
                   onFileRemove={handleRemoveImage}
                 />
