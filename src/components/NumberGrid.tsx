@@ -49,7 +49,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   raffleSeller,
   onReserve,
   onProceedToPayment,
-  debugMode = true,
+  debugMode = false,
   soldNumbersCount = 0
 }) => {
   const [selectedNumbers, setSelectedNumbers] = useState<string[]>([]);
