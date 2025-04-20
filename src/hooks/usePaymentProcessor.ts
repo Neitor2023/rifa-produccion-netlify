@@ -606,7 +606,8 @@ export function usePaymentProcessor({
     
     await Promise.all(updatePromises);
   };
-
+// Ver buyerData
+console.log("🔁 2512 usePaymentProcessor buyerData antes de renderizar buyerData:", buyerData);  
   return {
     selectedNumbers,
     setSelectedNumbers,
