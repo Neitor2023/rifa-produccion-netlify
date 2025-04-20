@@ -169,6 +169,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     }
   }, [isOpen, selectedNumbers, price, buyerData]);
   
+// Ver buyerData
+console.log("🔁 2512 buyerData antes de renderizar buyerData:", buyerData);  
+  
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col">
