@@ -58,7 +58,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
   const [selectedReservedNumber, setSelectedReservedNumber] = useState<string | null>(null);
-  const [buyerData, setBuyerData] = useState<{ name: string; phone: string; cedula: string } | null>(null);
+  const [buyerData, setBuyerData] = useState<ValidatedBuyerInfo | null>(null);
   const [validatedBuyerInfo, setValidatedBuyerInfo] = useState<ValidatedBuyerInfo | null>(null);
 
   const toggleNumber = (number: string, status: string) => {

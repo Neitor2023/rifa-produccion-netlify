@@ -19,6 +19,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoaderCircle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ValidatedBuyerInfo } from '@/types/participant';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -26,11 +27,7 @@ interface PaymentModalProps {
   selectedNumbers: string[];
   price: number;
   onComplete: (paymentData: PaymentFormData) => void;
-  buyerData?: {
-    name: string;
-    phone: string;
-    cedula: string;
-  };
+  buyerData?: ValidatedBuyerInfo;
   debugMode?: boolean;
 }
 
@@ -44,6 +41,7 @@ const paymentFormSchema = z.object({
   }),
   paymentProof: z.any().optional(),
   nota: z.string().optional(),
+  direccion: z.string().optional(),
   sugerenciaProducto: z.string().optional(),
   reporteSospechoso: z.string().optional(),
 });
@@ -63,8 +61,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   
-  // 🧾 Comprobamos si llegan los datos del comprador
-  console.log("🧾 Datos buyerData recibidos en PaymentModal:", buyerData);
+  // Log incoming buyer data
+  console.log("🧾 Incoming buyerData to PaymentModal:", buyerData);
   
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentFormSchema),
@@ -76,17 +74,26 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       paymentMethod: undefined,
       paymentProof: undefined,
       nota: "",
-      sugerenciaProducto: "",
+      direccion: buyerData?.direccion || "",
+      sugerenciaProducto: buyerData?.sugerencia_producto || "",
       reporteSospechoso: "",
     },
   });
   
   useEffect(() => {
     if (buyerData) {
-      console.log("📦 Datos recibidos en PaymentModal:", buyerData);
+      console.log("📦 Updating form with buyer data:", buyerData);
       form.setValue('buyerName', buyerData.name);
       form.setValue('buyerPhone', buyerData.phone);
-      form.setValue("buyerCedula", buyerData.cedula);
+      if (buyerData.cedula) {
+        form.setValue("buyerCedula", buyerData.cedula);
+      }
+      if (buyerData.direccion) {
+        form.setValue("direccion", buyerData.direccion);
+      }
+      if (buyerData.sugerencia_producto) {
+        form.setValue("sugerenciaProducto", buyerData.sugerencia_producto);
+      }
     }
   }, [buyerData, form]);
 
@@ -179,21 +186,19 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 selectedNumbers={selectedNumbers}
                 price={price}
               />                 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-6">
                 <PaymentFormFields 
                   form={form}
                   readOnlyData={buyerData}
-                   previewUrl={previewUrl}
+                  previewUrl={previewUrl}
                 />
                 <PaymentMethodFields
                   form={form}
-                 
+                  previewUrl={previewUrl}
                   onFileUpload={handleImageUpload}
                   onFileRemove={handleRemoveImage}
                 />
               </div>
-
-              <PaymentNotes form={form} />
             </form>
           </Form>
         </ScrollArea>
