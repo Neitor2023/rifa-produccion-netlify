@@ -81,7 +81,7 @@ console.log("🧾 Datos buyerData recibidos en PaymentModal:", buyerData);
   
   useEffect(() => {
     if (buyerData) {
-      console.log("📦 Datos recibidos en PaymentModal:", buyerData);
+      console.log("📦 2512 Datos recibidos en PaymentModal:", buyerData);
       form.setValue('buyerName', buyerData.name);
       form.setValue('buyerPhone', buyerData.phone);
       form.setValue("buyerCedula", buyerData.cedula);
