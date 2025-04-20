@@ -157,22 +157,15 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         sellerId: raffleSeller.seller_id,
         selectedNumbersList: selectedNumbers
       });
-      <Toaster
-        position="top-right"    // posiciona los toasts arriba a la derecha
-        visibleToasts={10}      // permite hasta 10 toasts simultáneos
-        gap={12}                // 12px de espacio entre cada toast
-      />
+
       toast.info(
-        <div>
-          🔍 Validando con:<br/>
-          📞 Número validado: {validatedNumber}<br/>
-          🆔 Participante: {participantId || 'N/A'}<br/>
-          🎟️ Rifa: {raffleSeller.raffle_id}<br/>
-          🧑‍💼 Vendedor: {raffleSeller.seller_id}<br/>
-          🔢 Números seleccionados: {selectedNumbers?.join(', ') || 'Ninguno'}
-        </div>
-      );
-      
+        `🔍 Validando con:
+📞 Número validado: ${validatedNumber}
+🆔 Participante: ${participantId || 'N/A'}
+🎟️ Rifa: ${raffleSeller.raffle_id}
+🧑‍💼 Vendedor: ${raffleSeller.seller_id}
+🔢 Números seleccionados: ${selectedNumbers?.join(', ') || 'Ninguno'}`
+      );    
       
       if (buyerInfo) {
         setValidatedBuyerInfo(buyerInfo);
