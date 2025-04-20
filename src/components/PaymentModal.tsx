@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -61,8 +62,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-// 🧾 Comprobamos si llegan los datos del comprador
-console.log("🧾 Datos buyerData recibidos en PaymentModal:", buyerData);
+  
+  // 🧾 Comprobamos si llegan los datos del comprador
+  console.log("🧾 Datos buyerData recibidos en PaymentModal:", buyerData);
   
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentFormSchema),

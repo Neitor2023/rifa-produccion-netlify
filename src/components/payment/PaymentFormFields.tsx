@@ -16,10 +16,13 @@ interface PaymentFormFieldsProps {
   readOnlyData?: {
     name: string;
     phone: string;
+    cedula?: string;
   };
 }
 
 const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyData }) => {
+  console.log("📋 PaymentFormFields receiving readOnlyData:", readOnlyData);
+  
   return (
     <div className="space-y-4">
       <h3 className="font-medium text-gray-800">Información personal</h3>
@@ -55,6 +58,25 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
                 readOnly
                 className="bg-gray-50 text-gray-700 font-medium cursor-not-allowed"
                 value={readOnlyData?.phone || field.value}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      
+      <FormField
+        control={form.control}
+        name="buyerCedula"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Cédula/DNI</FormLabel>
+            <FormControl>
+              <Input 
+                {...field}
+                readOnly={!!readOnlyData?.cedula}
+                className={readOnlyData?.cedula ? "bg-gray-50 text-gray-700 font-medium cursor-not-allowed" : ""}
+                value={readOnlyData?.cedula || field.value}
               />
             </FormControl>
             <FormMessage />

@@ -80,6 +80,8 @@ const VentaBoletos: React.FC = () => {
     return <LoadingSpinner />;
   }
 
+  console.log("📦 Datos validados en VentaBoletos antes de pasarlos a PaymentModal:", validatedBuyerData);
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       <div className="container px-4 py-6 max-w-3xl mx-auto">
@@ -162,7 +164,6 @@ const VentaBoletos: React.FC = () => {
         prize={selectedPrize}
         prizeImages={prizeImages || []}
       />
-      console.log("📦 590 Datos que se envían a PaymentModal:", validatedBuyerData);
 
       <PaymentModal 
         isOpen={isPaymentModalOpen}
@@ -171,6 +172,7 @@ const VentaBoletos: React.FC = () => {
         price={raffle?.price || 0}
         onComplete={handleCompletePayment}
         buyerData={validatedBuyerData}
+        debugMode={debugMode}
       />
       
       <DigitalVoucher 
