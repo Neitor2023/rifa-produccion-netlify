@@ -612,7 +612,7 @@ useEffect(() => {
   } else {
     console.log("🔁 usePaymentProcessor validatedBuyerData no está definido");
   }
-}, [buyerData]);
+}, [validatedBuyerData]);
 
   return {
     selectedNumbers,
