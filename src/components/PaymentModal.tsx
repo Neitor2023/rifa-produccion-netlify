@@ -189,7 +189,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               <div className="space-y-6">
                 <PaymentFormFields 
                   form={form}
-                  readOnlyData={buyerData}
+ //                 readOnlyData={buyerData}
                   previewUrl={previewUrl}
                 />
                 <PaymentMethodFields
