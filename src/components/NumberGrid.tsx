@@ -11,6 +11,7 @@ import { NumberGridControls } from './NumberGridControls';
 import { NumberGridLegend } from './NumberGridLegend';
 import NumberGridHeader from './NumberGridHeader';
 import NumberGridItem from './NumberGridItem';
+import { ValidatedBuyerInfo } from '@/types/participant';
 
 interface RaffleNumber {
   id: string;
@@ -135,7 +136,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const handleValidationSuccess = (
     validatedNumber: string,
     participantId: string,
-    buyerInfo?: { name: string; phone: string; cedula: string }
+    buyerInfo?: ValidatedBuyerInfo
   ) => {
     if (buyerInfo) {
       setBuyerData(buyerInfo);
@@ -165,9 +166,10 @@ const NumberGrid: React.FC<NumberGridProps> = ({
 🧑‍💼 Vendedor: ${raffleSeller.seller_id}
 🔢 Números seleccionados: ${selectedNumbers?.join(', ') || 'Ninguno'}`
       );    
-if (buyerInfo) {
-  setValidatedBuyerInfo(buyerInfo);
-}
+      
+      if (buyerInfo) {
+        setValidatedBuyerInfo(buyerInfo);
+      }
       
       if (participantId && /^[0-9a-fA-F\-]{36}$/.test(participantId)) {
         handleParticipantValidation(participantId);
