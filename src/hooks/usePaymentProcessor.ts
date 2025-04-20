@@ -399,7 +399,8 @@ export function usePaymentProcessor({
     const existingNumber = raffleNumbers?.find(n => n.number === numStr);
     
     if (existingNumber && existingNumber.participant_id) {
-      // Get participant info
+      // Obtener información del participante
+      console.log("///////////////////////////////////");
       const { data: participant, error } = await supabase
         .from('participants')
         .select('name, phone, cedula')
@@ -409,13 +410,13 @@ export function usePaymentProcessor({
       if (error) throw error;
       
       if (participant) {
-        // Set validated buyer data
+        // Establecer datos de comprador validados
         setValidatedBuyerData({
           name: participant.name,
           phone: participant.phone,
           cedula: participant.cedula,
         });
-        console.log("///////////////////////////////////");
+        
 useEffect(() => {
   if (validatedBuyerData) {
     console.log("🔁 usePaymentProcessor validatedBuyerData antes de renderizar:", validatedBuyerData?.name, validatedBuyerData?.phone, validatedBuyerData?.cedula);
