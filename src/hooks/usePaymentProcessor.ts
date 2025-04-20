@@ -71,7 +71,7 @@ export function usePaymentProcessor({
       .from('participants')
       .select('id, name')
       .eq('phone', phone)
-      .eq('raffle_id', raffleId)
+ //     .eq('raffle_id', raffleId)
       .maybeSingle();
       
     if (error) {
