@@ -134,7 +134,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const handleValidationSuccess = (
     validatedNumber: string,
     participantId: string,
-    buyerInfo?: { name: string; phone: string; cedula?: string }
+    buyerInfo?: { name: string; phone: string; cedula: string }
   ) => {
     if (buyerInfo) {
       setBuyerData(buyerInfo);

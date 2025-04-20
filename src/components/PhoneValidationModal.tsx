@@ -23,7 +23,7 @@ interface PhoneValidationModalProps {
     buyerInfo?: { 
       name: string; 
       phone: string; 
-      cedula?: string;
+      cedula: string;
     }
   ) => void;
   selectedNumber?: string;

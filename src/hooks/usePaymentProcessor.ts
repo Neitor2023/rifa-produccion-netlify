@@ -28,7 +28,7 @@ export function usePaymentProcessor({
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isVoucherOpen, setIsVoucherOpen] = useState(false);
   const [paymentData, setPaymentData] = useState<PaymentFormData | null>(null);
-  const [validatedBuyerData, setValidatedBuyerData] = useState<{ name: string, phone: string, cedula?: string } | null>(null);
+  const [validatedBuyerData, setValidatedBuyerData] = useState<{ name: string, phone: string, cedula: string } | null>(null);
 
   // Debug logging utility
   const debugLog = (context: string, data: any) => {
@@ -405,7 +405,7 @@ export function usePaymentProcessor({
         setValidatedBuyerData({
           name: participant.name,
           phone: participant.phone,
-          cedula: participant.cedula || ''
+          cedula: participant.cedula,
         });
         
         debugLog('Set validated buyer data', participant);
