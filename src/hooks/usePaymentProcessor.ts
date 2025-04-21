@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { toast } from 'sonner';
+import { ValidatedBuyerInfo } from '@/types/participant';
+import { useParticipantManager } from './useParticipantManager';
+import { useNumberStatus } from './useNumberStatus';
 
 interface UsePaymentProcessorProps {
   raffleSeller: {
@@ -28,7 +31,7 @@ export function usePaymentProcessor({
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isVoucherOpen, setIsVoucherOpen] = useState(false);
   const [paymentData, setPaymentData] = useState<PaymentFormData | null>(null);
-  const [validatedBuyerData, setValidatedBuyerData] = useState<{ name: string, phone: string, cedula: string } | null>(null);
+  const [validatedBuyerData, setValidatedBuyerData] = useState<ValidatedBuyerInfo | null>(null);
 
   // Utilidad de registro de depuración
   const debugLog = (context: string, data: any) => {
@@ -37,122 +40,8 @@ export function usePaymentProcessor({
     }
   };
 
-  // -----------------
-  // GESTIÓN DE PARTICIPANTES
-  // -----------------
-
-  /**
-  * Busca un participante existente o crea uno nuevo si no se encuentra
-  * @param phone Número de teléfono del participante
-  * @param name Nombre del participante opcional (obligatorio para nuevos participantes)
-  * @returns ID del participante o nulo si la operación falló
-  */
-  const findOrCreateParticipant = async (phone: string, name?: string): Promise<string | null> => {
-    try {
-      // 1. Registro de entrada para depuración
-      debugLog('findOrCreateParticipant input', { phone, name, raffle_id: raffleId });
-      
-      // 2. Intento de buscar un participante existente
-      const existingParticipant = await findExistingParticipant(phone);
-      if (existingParticipant) {
-        
-        // 2a. Si existe, actualizará su nombre si es diferente y devuelve su id
-        return handleExistingParticipant(existingParticipant, name);
-      }
-      
-      // 3. Si no existe, crea uno nuevo con teléfono y nombre
-      return createNewParticipant(phone, name);
-    } catch (error) {
-      
-      // 4. En caso de error, lo maneja (p.ej. muestra un toast) y devuelve null
-      handleParticipantError(error, 'findOrCreateParticipant');
-      return null;
-    }
-  };
-  
-  /**
-   * Busca un participante existente con el número de teléfono proporcionado
-   */
-  const findExistingParticipant = async (phone: string) => {
-    const { data, error } = await supabase
-      .from('participants')
-      .select('id, name, phone, cedula')
-      .eq('phone', phone)
-      .eq('raffle_id', raffleId)
-      .maybeSingle();
-      
-    if (error) {
-      console.error('Error searching for participant:', error);
-      return null;
-    }
-    
-    if (data) {
-      debugLog('Found existing participant', data);
-      return data;
-    }
-    
-    return null;
-  };
-  
-  /**
-   * Actualiza un participante existente si es necesario y devuelve su identificación
-   */
-  const handleExistingParticipant = async (participant: { id: string, name: string }, newName?: string): Promise<string> => {
-    // Si tenemos un nombre y es diferente al existente, actualízalo
-    if (newName && newName !== participant.name) {
-      const { error } = await supabase
-        .from('participants')
-        .update({ name: newName })
-        .eq('id', participant.id);
-      
-      if (error) {
-        console.error('Error participante actualizando name:', error);
-      }
-    }
-    
-    return participant.id;
-  };
-  
-  /**
-   * Crea un nuevo participante en la base de datos
-   */
-  const createNewParticipant = async (phone: string, name?: string): Promise<string | null> => {
-    if (!name) {
-      return null;
-    }
-    
-    debugLog('Creando nuevo participante', { name, phone, cedula, raffle_id: raffleId, seller_id: raffleSeller?.seller_id });
-    
-    const { data, error } = await supabase
-      .from('participants')
-      .insert({
-        name: name,
-        phone: phone,
-        cedula: cedula,
-        email: '', // Campo obligatorio, pero no disponible en el momento de la reserva.
-        raffle_id: raffleId,
-        seller_id: raffleSeller?.seller_id
-      })
-      .select('id')
-      .single();
-    
-    if (error) {
-      console.error('Error creando participante:', error);
-      toast.error('Error al crear participante: ' + error.message);
-      return null;
-    }
-    
-    debugLog('Nuevo participante creado con ID', data?.id);
-    return data?.id || null;
-  };
-  
-  /**
-   * Maneja y registra errores relacionados con los participantes
-   */
-  const handleParticipantError = (error: any, context: string) => {
-    console.error(`Error in ${context}:`, error);
-    toast.error(`Error al buscar o crear participante: ${error.message || 'Error desconocido'}`);
-  };
+  const { findOrCreateParticipant } = useParticipantManager({ raffleId, debugMode, raffleSeller });
+  const { updateRaffleNumbersStatus } = useNumberStatus({ raffleSeller, raffleId, raffleNumbers, debugMode });
 
   // -----------------
   // VALIDACIÓN DEL VENDEDOR
@@ -251,66 +140,6 @@ export function usePaymentProcessor({
       console.error('Error reserving numbers:', error);
       toast.error('Error al apartar números');
     }
-  };
-  
-  /**
-   * Updates status and related fields for multiple raffle numbers
-   * @param numbers Array of number strings to update
-   * @param status New status ('reserved', 'sold', 'available')
-   * @param participantId Optional participant ID to associate with the numbers
-   */
-  const updateRaffleNumbersStatus = async (numbers: string[], status: string, participantId: string | null = null) => {
-    if (!raffleSeller?.seller_id) {
-      throw new Error('Seller ID not available');
-    }
-    
-    const updatePromises = numbers.map(async (numStr) => {
-      const num = parseInt(numStr);
-      const existingNumber = raffleNumbers?.find(n => n.number === numStr);
-      
-      const updateData: any = { 
-        status, 
-        seller_id: raffleSeller.seller_id
-      };
-      
-      // Add participant_id if available
-      if (participantId) {
-        updateData.participant_id = participantId;
-      }
-      
-      // Add or remove expiration date based on status
-      if (status === 'reserved') {
-        updateData.reservation_expires_at = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-      } else if (status === 'sold') {
-        updateData.reservation_expires_at = null;
-      }
-      
-      // Execute the appropriate database operation based on number existence
-      if (existingNumber) {
-        debugLog(`Updating number ${numStr}`, updateData);
-        const { error } = await supabase
-          .from('raffle_numbers')
-          .update(updateData)
-          .eq('id', existingNumber.id);
-        
-        if (error) throw error;
-      } else {
-        const insertData = { 
-          ...updateData,
-          raffle_id: raffleId, 
-          number: num
-        };
-        
-        debugLog(`Inserting new number ${numStr}`, insertData);
-        const { error } = await supabase
-          .from('raffle_numbers')
-          .insert(insertData);
-        
-        if (error) throw error;
-      }
-    });
-    
-    await Promise.all(updatePromises);
   };
   
   // -----------------

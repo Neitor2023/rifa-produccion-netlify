@@ -21,7 +21,6 @@ interface PaymentFormFieldsProps {
 }
 
 const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyData, previewUrl }) => {
-  // Enhanced styling for read-only fields with better contrast
   const readOnlyStyles = "bg-gray-100 text-gray-800 font-medium border-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 cursor-not-allowed";
   
   return (
@@ -45,7 +44,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
           </FormItem>
         )}
       />
-      
+
       {/* Two-column grid layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* First column - Read-only fields */}
@@ -89,7 +88,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
           />
         </div>
         
-        {/* Second column - Editable fields */}
+        {/* Second column - Email and Payment Method fields */}
         <div className="space-y-4">
           <FormField
             control={form.control}
@@ -108,6 +107,9 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
               </FormItem>
             )}
           />
+          
+          {/* Payment method should appear immediately below Email */}
+          {/* We'll render the PaymentMethodFields component after this in PaymentModal, respecting this new layout */}
         </div>
       </div>
       
@@ -194,3 +196,4 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
 };
 
 export default PaymentFormFields;
+

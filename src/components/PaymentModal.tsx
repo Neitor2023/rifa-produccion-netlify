@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -194,20 +193,37 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 price={price}
               />                 
               <div className="space-y-6">
+                {/* Payment Form Fields */}
                 <PaymentFormFields 
                   form={form}
                   readOnlyData={buyerData}
                   previewUrl={previewUrl}
                 />
-                <PaymentMethodFields
-                  form={form}
-                  previewUrl={previewUrl}
-                  onFileUpload={handleImageUpload}
-                  onFileRemove={handleRemoveImage}
-                />
+                {/* Move PaymentMethodFields here (below Email in right column) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Empty in left column for alignment */}
+                  <div></div>
+                  {/* PaymentMethodFields only takes the right column */}
+                  <div>
+                    <PaymentMethodFields
+                      form={form}
+                      previewUrl={previewUrl}
+                      onFileUpload={handleImageUpload}
+                      onFileRemove={handleRemoveImage}
+                    />
+                  </div>
+                </div>
               </div>
             </form>
           </Form>
+          {/* Informational message after all fields */}
+          <div className="mt-6 p-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 dark:bg-blue-900/40 dark:border-blue-700 dark:text-blue-50 text-sm">
+            <strong>Información Importante:</strong> 
+            <br />
+            Ahora se muestran automáticamente los datos del participante (Nombre, Teléfono y Cédula) vinculados al <strong>ID de Participante</strong> asociado a los números reservados.
+            <br />
+            Revise que estos datos corresponden efectivamente al titular del número seleccionado.
+          </div>
         </ScrollArea>
         
         <PaymentModalActions 
