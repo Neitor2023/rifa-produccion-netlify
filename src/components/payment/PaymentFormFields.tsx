@@ -19,11 +19,18 @@ interface PaymentFormFieldsProps {
   form: UseFormReturn<PaymentFormData>;
   readOnlyData?: ValidatedBuyerInfo;
   previewUrl?: string | null;
+  onFileUpload?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onFileRemove?: () => void;
 }
 
-const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyData, previewUrl }) => {
+const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
+  form,
+  readOnlyData,
+  previewUrl,
+  onFileUpload,
+  onFileRemove,
+}) => {
   const readOnlyStyles = "bg-gray-100 text-gray-800 font-medium border-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 cursor-not-allowed";
-
   return (
     <div className="space-y-6">
       {/* Full width field - Buyer Name */}
@@ -34,7 +41,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
           <FormItem>
             <FormLabel>Nombre completo</FormLabel>
             <FormControl>
-              <Input 
+              <Input
                 {...field}
                 readOnly
                 className={cn(readOnlyStyles, "hover:bg-gray-100 dark:hover:bg-gray-800")}
@@ -57,7 +64,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
               <FormItem>
                 <FormLabel>Cédula/DNI</FormLabel>
                 <FormControl>
-                  <Input 
+                  <Input
                     {...field}
                     readOnly
                     className={cn(readOnlyStyles, "hover:bg-gray-100 dark:hover:bg-gray-800")}
@@ -75,7 +82,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
               <FormItem>
                 <FormLabel>Teléfono</FormLabel>
                 <FormControl>
-                  <Input 
+                  <Input
                     {...field}
                     readOnly
                     className={cn(readOnlyStyles, "hover:bg-gray-100 dark:hover:bg-gray-800")}
@@ -96,9 +103,9 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input 
+                  <Input
                     type="email"
-                    placeholder="correo@ejemplo.com" 
+                    placeholder="correo@ejemplo.com"
                     {...field}
                   />
                 </FormControl>
@@ -109,8 +116,8 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
           <PaymentMethodFields
             form={form}
             previewUrl={previewUrl || null}
-            onFileUpload={() => {}}
-            onFileRemove={() => {}}
+            onFileUpload={onFileUpload || (() => {})}
+            onFileRemove={onFileRemove || (() => {})}
           />
         </div>
       </div>
@@ -123,7 +130,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
             <FormItem>
               <FormLabel>Dirección (opcional)</FormLabel>
               <FormControl>
-                <Input 
+                <Input
                   placeholder="Ingrese su dirección"
                   {...field}
                   defaultValue={readOnlyData?.direccion || ""}
@@ -140,7 +147,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
             <FormItem>
               <FormLabel>Sugerencia de producto (opcional)</FormLabel>
               <FormControl>
-                <Input 
+                <Input
                   placeholder="¿Qué producto le gustaría ver en el futuro?"
                   {...field}
                   defaultValue={readOnlyData?.sugerencia_producto || ""}
