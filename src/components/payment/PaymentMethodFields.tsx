@@ -25,11 +25,11 @@ interface PaymentMethodFieldsProps {
   onFileRemove: () => void;
 }
 
-const PaymentMethodFields: React.FC<PaymentMethodFieldsProps> = ({
-  form,
-  previewUrl,
-  onFileUpload,
-  onFileRemove
+const PaymentMethodFields: React.FC<PaymentMethodFieldsProps> = ({ 
+  form, 
+  previewUrl, 
+  onFileUpload, 
+  onFileRemove 
 }) => {
   return (
     <div className="space-y-4">
@@ -38,9 +38,9 @@ const PaymentMethodFields: React.FC<PaymentMethodFieldsProps> = ({
         name="paymentMethod"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="sr-only">Seleccione un método de pago</FormLabel>
-            <Select
-              onValueChange={field.onChange}
+            <FormLabel>Método de Pago</FormLabel>
+            <Select 
+              onValueChange={field.onChange} 
               defaultValue={field.value}
             >
               <FormControl>
@@ -57,6 +57,7 @@ const PaymentMethodFields: React.FC<PaymentMethodFieldsProps> = ({
           </FormItem>
         )}
       />
+      
       {form.watch("paymentMethod") === "transfer" && (
         <PaymentUploadZone
           previewUrl={previewUrl}

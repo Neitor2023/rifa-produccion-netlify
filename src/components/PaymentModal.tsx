@@ -1,15 +1,28 @@
-
 import React, { useState, useEffect } from 'react';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogClose,
+} from '@/components/ui/dialog';
+import { X } from 'lucide-react';
+import { Toaster, toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Toaster, toast } from 'sonner';
-import PaymentModalContainer from './payment/PaymentModalContainer';
-import { PaymentModalHeader } from './payment/PaymentModalHeader';
-import PaymentModalContent from './payment/PaymentModalContent';
-import PaymentModalForm from './payment/PaymentModalForm';
-import { PaymentModalActions } from './payment/PaymentModalActions';
 import { ValidatedBuyerInfo } from '@/types/participant';
+import { PaymentModalHeader } from './payment/PaymentModalHeader';
+import { PaymentModalActions } from './payment/PaymentModalActions';
+import PaymentModalContent from './payment/PaymentModalContent';
+
+interface PaymentModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  selectedNumbers: string[];
+  price: number;
+  onComplete: (paymentData: PaymentFormData) => void;
+  buyerData?: ValidatedBuyerInfo;
+  debugMode?: boolean;
+}
 
 const paymentFormSchema = z.object({
   buyerName: z.string().min(3, { message: "Nombre debe tener al menos 3 caracteres" }),
@@ -28,19 +41,9 @@ const paymentFormSchema = z.object({
 
 export type PaymentFormData = z.infer<typeof paymentFormSchema>;
 
-interface PaymentModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  selectedNumbers: string[];
-  price: number;
-  onComplete: (paymentData: PaymentFormData) => void;
-  buyerData?: ValidatedBuyerInfo;
-  debugMode?: boolean;
-}
-
-const PaymentModal: React.FC<PaymentModalProps> = ({
-  isOpen,
-  onClose,
+const PaymentModal: React.FC<PaymentModalProps> = ({ 
+  isOpen, 
+  onClose, 
   selectedNumbers,
   price,
   onComplete,
@@ -50,7 +53,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
+  
+  console.log("🧾 Incoming buyerData to PaymentModal:", buyerData);
+  
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentFormSchema),
     defaultValues: {
@@ -67,75 +72,126 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     },
   });
 
+  
   useEffect(() => {
-    // Always update form fields with latest buyerData when modal opens or data changes
     if (buyerData) {
-      form.setValue('buyerName', buyerData.name || "");
-      form.setValue('buyerPhone', buyerData.phone || "");
+      console.log("📦 Form updating with buyer data:", buyerData);
+      form.setValue('buyerName', buyerData.name);
+      form.setValue('buyerPhone', buyerData.phone);
       form.setValue('buyerCedula', buyerData.cedula || "");
-      if (buyerData.direccion) form.setValue("direccion", buyerData.direccion);
-      if (buyerData.sugerencia_producto) form.setValue("sugerenciaProducto", buyerData.sugerencia_producto);
+      if (buyerData.direccion) {
+        form.setValue("direccion", buyerData.direccion);
+      }
+      if (buyerData.sugerencia_producto) {
+        form.setValue("sugerenciaProducto", buyerData.sugerencia_producto);
+      }
     }
-  }, [buyerData, isOpen, form]);
+  }, [buyerData, form]);
 
+  const debugLog = (context: string, data: any) => {
+    if (debugMode) {
+      console.log(`[DEBUG - PaymentModal - ${context}]:`, data);
+    }
+  };
+  
   const onSubmit = (data: PaymentFormData) => {
     setIsSubmitting(true);
+    debugLog('Form submit - data', data);
+    
     if (data.paymentMethod === "transfer" && !uploadedImage) {
+      <Toaster
+        position="top-right"
+        visibleToasts={10}
+        gap={12}
+        closeButton
+      />
       toast.error("Por favor suba un comprobante de pago");
+      debugLog('Validation error', 'Missing payment proof for transfer');
       setIsSubmitting(false);
       return;
     }
+    
     if (uploadedImage) {
       data.paymentProof = uploadedImage;
+      debugLog('Payment proof attached', {
+        name: uploadedImage.name,
+        size: uploadedImage.size,
+        type: uploadedImage.type
+      });
     }
+    
+    debugLog('Sending payment data to parent component', data);
     onComplete(data);
     setIsSubmitting(false);
-    form.reset();
-    setUploadedImage(null);
-    setPreviewUrl(null);
+    resetForm();
   };
-
+  
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
+    debugLog('Image upload', {
+      name: file.name,
+      size: file.size,
+      type: file.type
+    });
+    
     setUploadedImage(file);
-    setPreviewUrl(URL.createObjectURL(file));
+    const preview = URL.createObjectURL(file);
+    setPreviewUrl(preview);
   };
 
   const handleRemoveImage = () => {
+    debugLog('Removing uploaded image', null);
+    setUploadedImage(null);
+    setPreviewUrl(null);
+  };
+  
+  const resetForm = () => {
+    debugLog('Resetting form', null);
+    form.reset();
     setUploadedImage(null);
     setPreviewUrl(null);
   };
 
   useEffect(() => {
     if (!isOpen) {
-      form.reset();
-      setUploadedImage(null);
-      setPreviewUrl(null);
+      resetForm();
+    } else {
+      debugLog('Modal opened', {
+        selectedNumbers,
+        price,
+        buyerData
+      });
     }
-  }, [isOpen, form]);
-
+  }, [isOpen, selectedNumbers, price, buyerData]);
+  
   return (
-    <PaymentModalContainer open={isOpen} onClose={onClose}>
-      <PaymentModalHeader />
-      <PaymentModalForm form={form} onSubmit={onSubmit}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col">
+        <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DialogClose>
+
+        <PaymentModalHeader />
+
         <PaymentModalContent
           form={form}
           selectedNumbers={selectedNumbers}
           price={price}
           previewUrl={previewUrl}
-          // pass the correct buyerData for proper field fill
           buyerData={buyerData}
-          onFileUpload={handleImageUpload}
-          onFileRemove={handleRemoveImage}
         />
-        <PaymentModalActions
+        
+        <PaymentModalActions 
           isSubmitting={isSubmitting}
           onClose={onClose}
           onSubmit={form.handleSubmit(onSubmit)}
         />
-      </PaymentModalForm>
-    </PaymentModalContainer>
+      </DialogContent>
+    </Dialog>
   );
 };
+
 export default PaymentModal;
