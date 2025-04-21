@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   FormField,
@@ -40,7 +39,7 @@ const PaymentMethodFields: React.FC<PaymentMethodFieldsProps> = ({
         name="paymentMethod"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Selecciona el método</FormLabel>
+            <FormLabel>Seleccionar método de pago</FormLabel>
             <Select 
               onValueChange={field.onChange} 
               defaultValue={field.value}

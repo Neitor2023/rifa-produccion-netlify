@@ -5,6 +5,9 @@ import { toast } from 'sonner';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import { useParticipantManager } from './useParticipantManager';
 import { useNumberStatus } from './useNumberStatus';
+import { useSelection } from './usePaymentProcessor/selection';
+import { useModalState } from './usePaymentProcessor/modalState';
+import { usePayment } from './usePaymentProcessor/payment';
 
 interface UsePaymentProcessorProps {
   raffleSeller: {
@@ -26,12 +29,10 @@ export function usePaymentProcessor({
   refetchRaffleNumbers,
   debugMode = false
 }: UsePaymentProcessorProps) {
-  // Gestión estatal
-  const [selectedNumbers, setSelectedNumbers] = useState<string[]>([]);
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [isVoucherOpen, setIsVoucherOpen] = useState(false);
-  const [paymentData, setPaymentData] = useState<PaymentFormData | null>(null);
-  const [validatedBuyerData, setValidatedBuyerData] = useState<ValidatedBuyerInfo | null>(null);
+  // Split out state logic
+  const { selectedNumbers, setSelectedNumbers } = useSelection();
+  const { isPaymentModalOpen, setIsPaymentModalOpen, isVoucherOpen, setIsVoucherOpen } = useModalState();
+  const { paymentData, setPaymentData, handleProofCheck } = usePayment();
 
   // Utilidad de registro de depuración
   const debugLog = (context: string, data: any) => {
@@ -450,13 +451,14 @@ useEffect(() => {
     
     await Promise.all(updatePromises);
   };
-useEffect(() => {
-  if (validatedBuyerData) {
-    console.log("🔁 usePaymentProcessor validatedBuyerData antes de renderizar:", validatedBuyerData?.name, validatedBuyerData?.phone, validatedBuyerData?.cedula);
-  } else {
-    console.log("🔁 usePaymentProcessor validatedBuyerData no está definido");
-  }
-}, [validatedBuyerData]);
+
+  useEffect(() => {
+    if (validatedBuyerData) {
+      console.log("🔁 usePaymentProcessor validatedBuyerData antes de renderizar:", validatedBuyerData?.name, validatedBuyerData?.phone, validatedBuyerData?.cedula);
+    } else {
+      console.log("🔁 usePaymentProcessor validatedBuyerData no está definido");
+    }
+  }, [validatedBuyerData]);
 
   return {
     selectedNumbers,

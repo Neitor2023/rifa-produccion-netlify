@@ -12,6 +12,7 @@ import { NumberGridLegend } from './NumberGridLegend';
 import NumberGridHeader from './NumberGridHeader';
 import NumberGridItem from './NumberGridItem';
 import { ValidatedBuyerInfo } from '@/types/participant';
+import GridLayout from './NumberGrid/GridLayout';
 
 interface RaffleNumber {
   id: string;
@@ -242,40 +243,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     onProceedToPayment([validatedNumber]);
   };
 
-  const renderGrid = () => {
-    const grid = [];
-    for (let row = 0; row < 10; row++) {
-      const rowItems = [];
-      for (let col = 0; col < 10; col++) {
-        const num = row * 10 + col;
-        const paddedNum = num.toString().padStart(2, '0');
-        const raffleNumber = numbers.find(n => n.number === paddedNum);
-        const status = raffleNumber ? raffleNumber.status : 'available';
-        const isSelected = selectedNumbers.includes(paddedNum);
-        const isHighlighted = highlightReserved && status === 'reserved';
-        
-        rowItems.push(
-          <NumberGridItem
-            key={paddedNum}
-            number={paddedNum}
-            status={status}
-            isSelected={isSelected}
-            isHighlighted={isHighlighted}
-            onToggle={() => toggleNumber(paddedNum, status)}
-          />
-        );
-      }
-      
-      grid.push(
-        <div key={`row-${row}`} className="flex gap-1 sm:gap-2 justify-center">
-          {rowItems}
-        </div>
-      );
-    }
-    
-    return grid;
-  };
-
   return (
     <div className="mb-8">
       <NumberGridHeader 
@@ -302,9 +269,12 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       )}
       
       <Card className="p-2 sm:p-4 mb-4 bg-white dark:bg-gray-800 overflow-x-auto">
-        <div className="flex flex-col gap-1 sm:gap-2 min-w-fit">
-          {renderGrid()}
-        </div>
+        <GridLayout
+          numbers={numbers}
+          selectedNumbers={selectedNumbers}
+          highlightReserved={highlightReserved}
+          toggleNumber={toggleNumber}
+        />
       </Card>
       
       <NumberGridControls 

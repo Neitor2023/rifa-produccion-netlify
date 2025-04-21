@@ -13,6 +13,7 @@ import { UseFormReturn } from "react-hook-form";
 import { PaymentFormData } from '../PaymentModal';
 import { cn } from "@/lib/utils";
 import { ValidatedBuyerInfo } from '@/types/participant';
+import PaymentMethodFields from './PaymentMethodFields';
 
 interface PaymentFormFieldsProps {
   form: UseFormReturn<PaymentFormData>;
@@ -22,7 +23,7 @@ interface PaymentFormFieldsProps {
 
 const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyData, previewUrl }) => {
   const readOnlyStyles = "bg-gray-100 text-gray-800 font-medium border-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 cursor-not-allowed";
-  
+
   return (
     <div className="space-y-6">
       {/* Full width field - Buyer Name */}
@@ -37,7 +38,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
                 {...field}
                 readOnly
                 className={cn(readOnlyStyles, "hover:bg-gray-100 dark:hover:bg-gray-800")}
-                value={readOnlyData?.name || field.value}
+                value={readOnlyData?.name || ""}
               />
             </FormControl>
             <FormMessage />
@@ -48,7 +49,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
       {/* Two-column grid layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* First column - Read-only fields */}
-        <div className="space-y-4">          
+        <div className="space-y-4">
           <FormField
             control={form.control}
             name="buyerCedula"
@@ -60,14 +61,13 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
                     {...field}
                     readOnly
                     className={cn(readOnlyStyles, "hover:bg-gray-100 dark:hover:bg-gray-800")}
-                    value={readOnlyData?.cedula || field.value}
+                    value={readOnlyData?.cedula || ""}
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          
           <FormField
             control={form.control}
             name="buyerPhone"
@@ -79,7 +79,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
                     {...field}
                     readOnly
                     className={cn(readOnlyStyles, "hover:bg-gray-100 dark:hover:bg-gray-800")}
-                    value={readOnlyData?.phone || field.value}
+                    value={readOnlyData?.phone || ""}
                   />
                 </FormControl>
                 <FormMessage />
@@ -87,8 +87,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
             )}
           />
         </div>
-        
-        {/* Second column - Email and Payment Method fields */}
+        {/* Second column - Email, Payment Method */}
         <div className="space-y-4">
           <FormField
             control={form.control}
@@ -107,15 +106,16 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
               </FormItem>
             )}
           />
-          
-          {/* Payment method should appear immediately below Email */}
-          {/* We'll render the PaymentMethodFields component after this in PaymentModal, respecting this new layout */}
+          <PaymentMethodFields
+            form={form}
+            previewUrl={previewUrl || null}
+            onFileUpload={() => {}}
+            onFileRemove={() => {}}
+          />
         </div>
       </div>
-      
-      {/* Full width additional fields */}
+      {/* Additional fields */}
       <div className="space-y-4">
-        {/* Address field */}
         <FormField
           control={form.control}
           name="direccion"
@@ -133,8 +133,6 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
             </FormItem>
           )}
         />
-        
-        {/* Product suggestion field */}
         <FormField
           control={form.control}
           name="sugerenciaProducto"
@@ -152,8 +150,6 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
             </FormItem>
           )}
         />
-        
-        {/* Note field */}
         <FormField
           control={form.control}
           name="nota"
@@ -171,8 +167,6 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
             </FormItem>
           )}
         />
-        
-        {/* Suspicious report field */}
         <FormField
           control={form.control}
           name="reporteSospechoso"
@@ -196,4 +190,3 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
 };
 
 export default PaymentFormFields;
-

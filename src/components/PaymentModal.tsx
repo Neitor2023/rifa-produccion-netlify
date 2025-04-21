@@ -60,7 +60,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   
-  // Log incoming buyer data
   console.log("🧾 Incoming buyerData to PaymentModal:", buyerData);
   
   const form = useForm<PaymentFormData>({
@@ -109,11 +108,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     
     if (data.paymentMethod === "transfer" && !uploadedImage) {
       <Toaster
-        position="top-right"    // coloca los toasts en la esquina superior derecha
-        visibleToasts={10}      // muestra simultáneamente hasta 10 notificaciones
-        gap={12}                // separa cada toast con 12px de espacio vertical
-        closeButton             // muestra un “✕” que el usuario puede clicar	
-      />      
+        position="top-right"
+        visibleToasts={10}
+        gap={12}
+        closeButton
+      />
       toast.error("Por favor suba un comprobante de pago");
       debugLog('Validation error', 'Missing payment proof for transfer');
       setIsSubmitting(false);
@@ -193,34 +192,18 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 price={price}
               />                 
               <div className="space-y-6">
-                {/* Payment Form Fields */}
                 <PaymentFormFields 
                   form={form}
                   readOnlyData={buyerData}
                   previewUrl={previewUrl}
                 />
-                {/* Move PaymentMethodFields here (below Email in right column) */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Empty in left column for alignment */}
-                  <div></div>
-                  {/* PaymentMethodFields only takes the right column */}
-                  <div>
-                    <PaymentMethodFields
-                      form={form}
-                      previewUrl={previewUrl}
-                      onFileUpload={handleImageUpload}
-                      onFileRemove={handleRemoveImage}
-                    />
-                  </div>
-                </div>
               </div>
             </form>
           </Form>
-          {/* Informational message after all fields */}
           <div className="mt-6 p-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 dark:bg-blue-900/40 dark:border-blue-700 dark:text-blue-50 text-sm">
-            <strong>Información Importante:</strong> 
+            <strong>Información Importante:</strong>
             <br />
-            Ahora se muestran automáticamente los datos del participante (Nombre, Teléfono y Cédula) vinculados al <strong>ID de Participante</strong> asociado a los números reservados.
+            Ahora se muestran automáticamente los datos del participante (<strong>Nombre</strong>: {buyerData?.name || 'N/A'}, <strong>Teléfono</strong>: {buyerData?.phone || 'N/A'}, <strong>Cédula</strong>: {buyerData?.cedula || 'N/A'}) vinculados al <strong>ID de Participante</strong> asociado a los números reservados.
             <br />
             Revise que estos datos corresponden efectivamente al titular del número seleccionado.
           </div>
