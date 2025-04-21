@@ -1,9 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { toast } from 'sonner';
-import { ValidatedBuyerInfo } from '@/types/participant';
 import { useParticipantManager } from './useParticipantManager';
 import { useNumberStatus } from './useNumberStatus';
 import { useSelection } from './usePaymentProcessor/selection';
@@ -46,6 +44,19 @@ export function usePaymentProcessor({
 
   const { findOrCreateParticipant } = useParticipantManager({ raffleId, debugMode, raffleSeller });
   const { updateRaffleNumbersStatus } = useNumberStatus({ raffleSeller, raffleId, raffleNumbers, debugMode });
+
+  // Log the validated buyer data whenever it changes
+  useEffect(() => {
+    if (validatedBuyerData) {
+      console.log("🔁 usePaymentProcessor validatedBuyerData:", 
+        validatedBuyerData.name, 
+        validatedBuyerData.phone, 
+        validatedBuyerData.cedula
+      );
+    } else {
+      console.log("🔁 usePaymentProcessor validatedBuyerData is undefined");
+    }
+  }, [validatedBuyerData]);
 
   // -----------------
   // VALIDACIÓN DEL VENDEDOR
@@ -249,13 +260,6 @@ export function usePaymentProcessor({
           cedula: participant.cedula,
         });
         
-        useEffect(() => {
-          if (validatedBuyerData) {
-            console.log("🔁 usePaymentProcessor validatedBuyerData antes de renderizar:", validatedBuyerData?.name, validatedBuyerData?.phone, validatedBuyerData?.cedula);
-          } else {
-            console.log("🔁 usePaymentProcessor validatedBuyerData no está definido");
-          }
-        }, [validatedBuyerData]);        
         debugLog('Set validated buyer data', participant);
       }
     }
@@ -454,14 +458,6 @@ export function usePaymentProcessor({
     
     await Promise.all(updatePromises);
   };
-
-  useEffect(() => {
-    if (validatedBuyerData) {
-      console.log("🔁 usePaymentProcessor validatedBuyerData antes de renderizar:", validatedBuyerData?.name, validatedBuyerData?.phone, validatedBuyerData?.cedula);
-    } else {
-      console.log("🔁 usePaymentProcessor validatedBuyerData no está definido");
-    }
-  }, [validatedBuyerData]);
 
   return {
     selectedNumbers,

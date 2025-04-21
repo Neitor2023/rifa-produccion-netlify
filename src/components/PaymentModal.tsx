@@ -9,15 +9,13 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Toaster, toast } from 'sonner';
 import PaymentSummary from './payment/PaymentSummary';
 import PaymentFormFields from './payment/PaymentFormFields';
-import PaymentMethodFields from './payment/PaymentMethodFields';
 import PaymentNotes from './payment/PaymentNotes';
 import { PaymentModalHeader } from './payment/PaymentModalHeader';
 import { PaymentModalActions } from './payment/PaymentModalActions';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { LoaderCircle, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
 import { ValidatedBuyerInfo } from '@/types/participant';
 
 interface PaymentModalProps {
@@ -81,12 +79,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   
   useEffect(() => {
     if (buyerData) {
-      console.log("📦 Formulario de actualización con datos del comprador:", buyerData);
+      console.log("📦 Form updating with buyer data:", buyerData);
       form.setValue('buyerName', buyerData.name);
       form.setValue('buyerPhone', buyerData.phone);
-      if (buyerData.cedula) {
-        form.setValue("buyerCedula", buyerData.cedula);
-      }
+      form.setValue('buyerCedula', buyerData.cedula || "");
       if (buyerData.direccion) {
         form.setValue("direccion", buyerData.direccion);
       }

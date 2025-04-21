@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   FormField,
@@ -32,21 +33,19 @@ const PaymentMethodFields: React.FC<PaymentMethodFieldsProps> = ({
 }) => {
   return (
     <div className="space-y-4">
-      <h3 className="font-medium text-gray-800">Método de pago</h3>
-      
       <FormField
         control={form.control}
         name="paymentMethod"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Seleccionar método de pago</FormLabel>
+            <FormLabel>Select a Payment Method</FormLabel>
             <Select 
               onValueChange={field.onChange} 
               defaultValue={field.value}
             >
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar método de pago" />
+                  <SelectValue placeholder="Select a Payment Method" />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
