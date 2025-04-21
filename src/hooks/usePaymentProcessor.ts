@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentFormData } from '@/components/PaymentModal';
@@ -8,6 +9,7 @@ import { useNumberStatus } from './useNumberStatus';
 import { useSelection } from './usePaymentProcessor/selection';
 import { useModalState } from './usePaymentProcessor/modalState';
 import { usePayment } from './usePaymentProcessor/payment';
+import { useBuyerData } from './usePaymentProcessor/buyerData';
 
 interface UsePaymentProcessorProps {
   raffleSeller: {
@@ -33,6 +35,7 @@ export function usePaymentProcessor({
   const { selectedNumbers, setSelectedNumbers } = useSelection();
   const { isPaymentModalOpen, setIsPaymentModalOpen, isVoucherOpen, setIsVoucherOpen } = useModalState();
   const { paymentData, setPaymentData, handleProofCheck } = usePayment();
+  const { validatedBuyerData, setValidatedBuyerData } = useBuyerData();
 
   // Utilidad de registro de depuración
   const debugLog = (context: string, data: any) => {
@@ -246,13 +249,13 @@ export function usePaymentProcessor({
           cedula: participant.cedula,
         });
         
-useEffect(() => {
-  if (validatedBuyerData) {
-    console.log("🔁 usePaymentProcessor validatedBuyerData antes de renderizar:", validatedBuyerData?.name, validatedBuyerData?.phone, validatedBuyerData?.cedula);
-  } else {
-    console.log("🔁 usePaymentProcessor validatedBuyerData no está definido");
-  }
-}, [validatedBuyerData]);        
+        useEffect(() => {
+          if (validatedBuyerData) {
+            console.log("🔁 usePaymentProcessor validatedBuyerData antes de renderizar:", validatedBuyerData?.name, validatedBuyerData?.phone, validatedBuyerData?.cedula);
+          } else {
+            console.log("🔁 usePaymentProcessor validatedBuyerData no está definido");
+          }
+        }, [validatedBuyerData]);        
         debugLog('Set validated buyer data', participant);
       }
     }
