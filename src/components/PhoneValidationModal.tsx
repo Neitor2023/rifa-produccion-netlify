@@ -169,9 +169,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
             Ingrese su número de ( teléfono o cédula ) para continuar
           </DialogDescription>
         </DialogHeader>
-        
-
-          
+                  
         <div className="space-y-4 py-4">         
           <PhoneInputField 
             value={phone}
