@@ -1,5 +1,5 @@
+
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { toast } from 'sonner';
 import { useParticipantManager } from './useParticipantManager';
@@ -8,6 +8,9 @@ import { useSelection } from './usePaymentProcessor/selection';
 import { useModalState } from './usePaymentProcessor/modalState';
 import { usePayment } from './usePaymentProcessor/payment';
 import { useBuyerData } from './usePaymentProcessor/buyerData';
+import { useSellerValidation } from './usePaymentProcessor/sellerValidation';
+import { useNumberAvailability } from './usePaymentProcessor/numberAvailability';
+import { usePaymentCompletion } from './usePaymentProcessor/paymentCompletion';
 
 interface UsePaymentProcessorProps {
   raffleSeller: {
@@ -34,6 +37,18 @@ export function usePaymentProcessor({
   const { isPaymentModalOpen, setIsPaymentModalOpen, isVoucherOpen, setIsVoucherOpen } = useModalState();
   const { paymentData, setPaymentData, handleProofCheck } = usePayment();
   const { validatedBuyerData, setValidatedBuyerData } = useBuyerData();
+  const { validateSellerMaxNumbers, getSoldNumbersCount } = useSellerValidation(raffleSeller, raffleNumbers, debugMode);
+  const { checkNumbersAvailability, checkReservedNumbersParticipant } = useNumberAvailability({ 
+    raffleNumbers, 
+    raffleSeller, 
+    setValidatedBuyerData,
+    debugMode 
+  });
+  const { uploadPaymentProof, processParticipant, updateNumbersToSold } = usePaymentCompletion({
+    raffleSeller,
+    raffleId,
+    debugMode
+  });
 
   // Utilidad de registro de depuración
   const debugLog = (context: string, data: any) => {
@@ -57,53 +72,6 @@ export function usePaymentProcessor({
       console.log("🔁 usePaymentProcessor validatedBuyerData is undefined");
     }
   }, [validatedBuyerData]);
-
-  // -----------------
-  // VALIDACIÓN DEL VENDEDOR
-  // -----------------
-
-  /**
-  * Valida que el vendedor no haya excedido su número máximo de ventas.
-  * @param newNumbersCount Número de números nuevos a vender o reservar.
-  * @returns Booleano que indica si la operación puede continuar.
-  */
-  const validateSellerMaxNumbers = async (newNumbersCount: number): Promise<boolean> => {
-    if (!raffleSeller) {
-      toast.error('Información del vendedor no disponible');
-      return false;
-    }
-
-    const soldCount = getSoldNumbersCount(raffleSeller.seller_id);
-    const maxAllowed = raffleSeller.cant_max;
-    
-    debugLog('Validación de números máximos de vendedores', { 
-      soldCount, 
-      newNumbersCount, 
-      maxAllowed, 
-      total: soldCount + newNumbersCount
-    });
-    
-    if (soldCount + newNumbersCount > maxAllowed) {
-      toast.error(`No puede vender más de ${maxAllowed} números en total. Ya ha vendido ${soldCount}.`);
-      return false;
-    }
-    
-    return true;
-  };
-
-  /**
-  * Obtiene el recuento de números vendidos por un vendedor específico
-  * @param sellerId El ID del vendedor
-  * @returns Número de boletos vendidos
-  */
-  const getSoldNumbersCount = (sellerId: string): number => {
-    if (!raffleNumbers || !sellerId) return 0;
-    
-    return raffleNumbers.filter(number => 
-      number.seller_id === sellerId && 
-      number.status === 'sold'
-    ).length;
-  };
 
   // -----------------
   // RAFFLE NUMBER OPERATIONS
@@ -197,74 +165,6 @@ export function usePaymentProcessor({
     }
   };
   
-  /**
-   * Checks if numbers are available for purchase
-   * @param numbers Array of number strings to check
-   * @returns Array of unavailable numbers
-   */
-  const checkNumbersAvailability = async (numbers: string[]): Promise<string[]> => {
-    return numbers.filter(numStr => {
-      const existingNumber = raffleNumbers?.find(n => n.number === numStr);
-      return existingNumber && 
-             existingNumber.status !== 'available' && 
-             (existingNumber.status !== 'reserved' || existingNumber.seller_id !== raffleSeller?.seller_id);
-    });
-  };
-  
-  /**
-  * Comprueba si los números reservados tienen datos de participantes existentes
-  * y establece los datos validados del comprador si están disponibles
-  */
-  const checkReservedNumbersParticipant = async (numbers: string[]) => {
-    try {
-      // Verifique si estamos procesando un número reservado con un participant_id existente
-      const reservedNumbers = numbers.filter(numStr => {
-        const existingNumber = raffleNumbers?.find(n => n.number === numStr);
-        return existingNumber && existingNumber.status === 'reserved' && existingNumber.participant_id;
-      });
-      
-      if (reservedNumbers.length > 0) {
-        await fetchParticipantForReservedNumber(reservedNumbers[0]);
-      } else {
-        // Restablecer los datos del comprador validado si no hay números reservados
-        setValidatedBuyerData(null);
-      }
-    } catch (error) {
-      console.error('Error checking participant for reserved numbers:', error);
-      // No lo tires aquí, ya que queremos proceder con el pago incluso si esto falla
-    }
-  };
-  
-  /**
-   * Fetches participant data for a reserved number
-   * @param numStr The reserved number string
-   */
-  const fetchParticipantForReservedNumber = async (numStr: string) => {
-    const existingNumber = raffleNumbers?.find(n => n.number === numStr);
-    
-    if (existingNumber && existingNumber.participant_id) {
-      // Obtener información del participante
-      const { data: participant, error } = await supabase
-        .from('participants')
-        .select('name, phone, cedula')
-        .eq('id', existingNumber.participant_id)
-        .single();
-      
-      if (error) throw error;
-      
-      if (participant) {
-        // Establecer datos de comprador validados
-        setValidatedBuyerData({
-          name: participant.name,
-          phone: participant.phone,
-          cedula: participant.cedula,
-        });
-        
-        debugLog('Set validated buyer data', participant);
-      }
-    }
-  };
-  
   // -----------------
   // PAYMENT COMPLETION
   // -----------------
@@ -305,7 +205,7 @@ export function usePaymentProcessor({
       }
       
       // Update numbers to sold status
-      await updateNumbersToSold(selectedNumbers, participantId, paymentProofUrl);
+      await updateNumbersToSold(selectedNumbers, participantId, paymentProofUrl, raffleNumbers);
       debugLog('Numbers updated to sold', { 
         count: selectedNumbers.length, 
         numbers: selectedNumbers 
@@ -330,133 +230,6 @@ export function usePaymentProcessor({
       debugLog('Payment completion error', error);
       toast.error('Error al completar el pago');
     }
-  };
-  
-  /**
-   * Uploads payment proof to Supabase storage
-   * @param paymentProof File object or URL string
-   * @returns Public URL of the uploaded file or null
-   */
-  const uploadPaymentProof = async (paymentProof: File | string | null): Promise<string | null> => {
-    if (!paymentProof || !(paymentProof instanceof File)) {
-      return typeof paymentProof === 'string' ? paymentProof : null;
-    }
-    
-    try {
-      const fileName = `${raffleId}_${Date.now()}_${paymentProof.name}`;
-      
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('payment_proofs')
-        .upload(fileName, paymentProof);
-      
-      if (uploadError) throw uploadError;
-      
-      const { data: urlData } = supabase.storage
-        .from('payment_proofs')
-        .getPublicUrl(fileName);
-        
-      return urlData.publicUrl;
-    } catch (error) {
-      console.error('Error uploading payment proof:', error);
-      throw error;
-    }
-  };
-  
-  /**
-   * Processes participant data during payment completion
-   * @param data Payment form data
-   * @returns Participant ID or null if operation failed
-   */
-  const processParticipant = async (data: PaymentFormData): Promise<string | null> => {
-    try {
-      // Check for existing participant
-      const { data: existingParticipant } = await supabase
-        .from('participants')
-        .select('id')
-        .eq('phone', data.buyerPhone)
-        .eq('raffle_id', raffleId)
-        .maybeSingle();
-      
-      // Update existing participant
-      if (existingParticipant) {
-        const participantId = existingParticipant.id;
-        
-        await supabase
-          .from('participants')
-          .update({ name: data.buyerName })
-          .eq('id', participantId);
-          
-        return participantId;
-      } 
-      
-      // Create new participant
-      const { data: newParticipant, error: participantError } = await supabase
-        .from('participants')
-        .insert({
-          name: data.buyerName,
-          phone: data.buyerPhone,
-          email: '',
-          raffle_id: raffleId,
-          seller_id: raffleSeller.seller_id
-        })
-        .select('id')
-        .single();
-      
-      if (participantError) throw participantError;
-      
-      return newParticipant.id;
-    } catch (error) {
-      console.error('Error processing participant:', error);
-      throw error;
-    }
-  };
-  
-  /**
-   * Updates raffle numbers to sold status
-   * @param numbers Array of number strings to mark as sold
-   * @param participantId Participant ID to associate with numbers
-   * @param paymentProofUrl Optional URL to payment proof
-   */
-  const updateNumbersToSold = async (numbers: string[], participantId: string, paymentProofUrl: string | null) => {
-    const updatePromises = numbers.map(async (numStr) => {
-      const num = parseInt(numStr);
-      const existingNumber = raffleNumbers?.find(n => n.number === numStr);
-      
-      if (existingNumber) {
-        // If there's already a payment proof, don't overwrite it
-        const proofToUse = paymentProofUrl || existingNumber.payment_proof;
-        
-        const { error } = await supabase
-          .from('raffle_numbers')
-          .update({ 
-            status: 'sold', 
-            seller_id: raffleSeller.seller_id,
-            participant_id: participantId,
-            payment_proof: proofToUse,
-            payment_approved: true,
-            reservation_expires_at: null
-          })
-          .eq('id', existingNumber.id);
-        
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('raffle_numbers')
-          .insert({ 
-            raffle_id: raffleId, 
-            number: num, 
-            status: 'sold', 
-            seller_id: raffleSeller.seller_id,
-            participant_id: participantId,
-            payment_proof: paymentProofUrl,
-            payment_approved: true
-          });
-        
-        if (error) throw error;
-      }
-    });
-    
-    await Promise.all(updatePromises);
   };
 
   return {

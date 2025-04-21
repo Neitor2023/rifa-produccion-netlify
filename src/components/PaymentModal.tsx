@@ -4,19 +4,15 @@ import {
   DialogContent, 
   DialogClose,
 } from '@/components/ui/dialog';
-import { Form } from "@/components/ui/form";
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { X } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
-import PaymentSummary from './payment/PaymentSummary';
-import PaymentFormFields from './payment/PaymentFormFields';
-import PaymentNotes from './payment/PaymentNotes';
-import { PaymentModalHeader } from './payment/PaymentModalHeader';
-import { PaymentModalActions } from './payment/PaymentModalActions';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { X } from 'lucide-react';
 import { ValidatedBuyerInfo } from '@/types/participant';
+import { PaymentModalHeader } from './payment/PaymentModalHeader';
+import { PaymentModalActions } from './payment/PaymentModalActions';
+import PaymentModalContent from './payment/PaymentModalContent';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -180,30 +176,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
         <PaymentModalHeader />
 
-        <ScrollArea className="flex-1 overflow-y-auto px-1">
-          <Form {...form}>         
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
-              <PaymentSummary 
-                selectedNumbers={selectedNumbers}
-                price={price}
-              />                 
-              <div className="space-y-6">
-                <PaymentFormFields 
-                  form={form}
-                  readOnlyData={buyerData}
-                  previewUrl={previewUrl}
-                />
-              </div>
-            </form>
-          </Form>
-          <div className="mt-6 p-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 dark:bg-blue-900/40 dark:border-blue-700 dark:text-blue-50 text-sm">
-            <strong>Información Importante:</strong>
-            <br />
-            Ahora se muestran automáticamente los datos del participante (<strong>Nombre</strong>: {buyerData?.name || 'N/A'}, <strong>Teléfono</strong>: {buyerData?.phone || 'N/A'}, <strong>Cédula</strong>: {buyerData?.cedula || 'N/A'}) vinculados al <strong>ID de Participante</strong> asociado a los números reservados.
-            <br />
-            Revise que estos datos corresponden efectivamente al titular del número seleccionado.
-          </div>
-        </ScrollArea>
+        <PaymentModalContent
+          form={form}
+          selectedNumbers={selectedNumbers}
+          price={price}
+          previewUrl={previewUrl}
+          buyerData={buyerData}
+        />
         
         <PaymentModalActions 
           isSubmitting={isSubmitting}

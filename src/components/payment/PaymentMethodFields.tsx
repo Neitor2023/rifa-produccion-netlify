@@ -38,14 +38,14 @@ const PaymentMethodFields: React.FC<PaymentMethodFieldsProps> = ({
         name="paymentMethod"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Select a Payment Method</FormLabel>
+            <FormLabel>Método de Pago</FormLabel>
             <Select 
               onValueChange={field.onChange} 
               defaultValue={field.value}
             >
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a Payment Method" />
+                  <SelectValue placeholder="Seleccione un método de pago" />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
