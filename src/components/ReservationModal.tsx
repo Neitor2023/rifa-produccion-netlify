@@ -69,7 +69,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     // Format phone number for Ecuador
     const formattedPhone = formatPhoneNumber(data.buyerPhone);
     
-    console.log("📞 ReservationModal submitting with:", {
+    console.log("📞 Envío de ReservationModal con:", {
       name: data.buyerName,
       phone: formattedPhone,
       cedula: data.buyerCedula,

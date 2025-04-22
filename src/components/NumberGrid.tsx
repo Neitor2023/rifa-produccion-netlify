@@ -102,8 +102,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   
   const handleConfirmReservation = (data: { buyerName: string; buyerPhone: string }) => {
     if (debugMode) {
-      console.log('Reservation data:', data);
-      console.log('Selected numbers:', selectedNumbers);
+      console.log('NumberGrid.tsx: Datos de reserva:', data);
+      console.log('NumberGrid.tsx: Números seleccionados:', selectedNumbers);
     }
     
     if (!data.buyerName || !data.buyerPhone) {
@@ -140,7 +140,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     buyerInfo?: ValidatedBuyerInfo
   ) => {
     if (buyerInfo) {
-      console.log("✅ NumberGrid received validated buyer info:", {
+      console.log("✅ NumberGrid recibió información validada del comprador:", {
         name: buyerInfo.name,
         phone: buyerInfo.phone,
         cedula: buyerInfo.cedula,
@@ -151,20 +151,20 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       setBuyerData(buyerInfo);
       setValidatedBuyerInfo(buyerInfo);
     } else {
-      console.log("⚠️ NumberGrid did not receive buyer info from validation");
+      console.log("⚠️ NumberGrid no recibió la información del comprador de la validación");
     }
     
     setIsPhoneModalOpen(false);
     
     try {
       if (debugMode) {
-        console.log('Validation success with number:', validatedNumber);
-        console.log('Participant ID:', participantId);
-        console.log('Raffle ID:', raffleSeller.raffle_id);
-        console.log('Seller ID:', raffleSeller.seller_id);
+        console.log('NumberGrid.tsx: Éxito de validación con número:', validatedNumber);
+        console.log('NumberGrid.tsx: Participant ID:', participantId);
+        console.log('NumberGrid.tsx: Raffle ID:', raffleSeller.raffle_id);
+        console.log('NumberGrid.tsx: Seller ID:', raffleSeller.seller_id);
       }
       
-      console.log("🧪 Datos validados:", {
+      console.log("🧪 NumberGrid.tsx: Datos validados:", {
         validatedNumber,
         participantId,
         raffleId: raffleSeller.raffle_id,
@@ -182,14 +182,14 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         handleNumberValidation(validatedNumber);
       }
     } catch (error) {
-      console.error('Error processing validation:', error);
-      toast.error('Error al procesar la validación');
+      console.error('NumberGrid.tsx: Validación de procesamiento de errores:', error);
+      toast.error('NumberGrid.tsx: Error al procesar la validación');
     }    
   };
   
   const handleParticipantValidation = async (participantId: string) => {
     if (debugMode) {
-      console.log('Querying Supabase for reserved numbers with participant ID:', participantId);
+      console.log('NumberGrid.tsx: Consulta a Supabase de números reservados con ID de participante:', participantId);
     }
     
     const { data: reservedNumbers, error } = await supabase
@@ -201,8 +201,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       .eq('seller_id', raffleSeller.seller_id);
     
     if (error) {
-      console.error('Error fetching reserved numbers:', error);
-      toast.error('Error al buscar números reservados');
+      console.error('NumberGrid.tsx: Error al obtener los números reservados:', error);
+      toast.error('NumberGrid.tsx: Error al buscar números reservados');
       return;
     }
     
@@ -212,17 +212,17 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       );
       
       if (debugMode) {
-        console.log('Found reserved numbers:', allReservedNumbers);
+        console.log('NumberGrid.tsx: Números reservados encontrados:', allReservedNumbers);
       }
       
       toast.success(`${allReservedNumbers.length} número(s) encontrados`);
       onProceedToPayment(allReservedNumbers);
     } else {
       if (debugMode) {
-        console.log('No reserved numbers found with direct query');
+        console.log('NumberGrid.tsx: No se encontraron números reservados con consulta directa');
       }
       
-      toast.error('❗ No se encontraron números reservados para este participante.');
+      toast.error('❗ NumberGrid.tsx: No se encontraron números reservados para este participante.');
     }
   };
   
@@ -230,7 +230,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     const number = numbers.find(n => n.number === validatedNumber && n.status === 'reserved');
     
     if (!number) {
-      toast.error('Número no encontrado');
+      toast.error('NumberGrid.tsx: Número no encontrado');
       return;
     }
     
@@ -288,7 +288,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         onClose={() => setIsPhoneModalOpen(false)}
         onPhoneValidationSuccess={(validatedNumber, participantId, buyerInfo) => {
           if (buyerInfo) {
-            console.log("🔄 Before calling handleValidationSuccess with:", {
+            console.log("🔄 NumberGrid.tsx: Antes de llamar a handleValidationSuccess con:", {
               validatedNumber,
               participantId,
               buyerInfo: {
@@ -305,7 +305,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           if (debugMode && buyerInfo) {
             toast.info(
               <div>
-                🔍 Validated participant:<br/>
+                🔍 NumberGrid.tsx: Antes de llamar a handleValidationSuccess conValidated participant:<br/>
                 📞 Número: {validatedNumber}<br/>
                 🆔 ID: {participantId || 'N/A'}<br/>
                 🧑‍💼 Nombre: {buyerInfo.name}<br/>
