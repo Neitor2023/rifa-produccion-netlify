@@ -125,6 +125,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   };
   
   const handlePayReserved = (number: string) => {
+    console.log("▶️ src/components/NumberGrid.tsx: Pago reservado para número:", number, validatedBuyerData);
+    
     // Resalta que vamos a pagar un número reservado
     setHighlightReserved(true);
     setShowReservedMessage(true);
@@ -280,6 +282,10 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           selectedNumbers={selectedNumbers}
           highlightReserved={highlightReserved}
           toggleNumber={toggleNumber}
+          onPayReserved={(num) => {
+            // tu función original
+            handlePayReserved(num);
+          }}          
         />
       </Card>
       
