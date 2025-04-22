@@ -24,6 +24,7 @@ interface GridLayoutProps {
   
   // Nuevo prop para pagar reservas
   onPayReserved: (number: string) => void;  
+  validatedBuyerData: ValidatedBuyerInfo | null;
 }
 
 const GridLayout: React.FC<GridLayoutProps> = ({
