@@ -285,7 +285,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           onPayReserved={(num) => {
             // tu función original
             handlePayReserved(num);
-          }}          
+          }}     
+          validatedBuyerData={validatedBuyerData} 
         />
       </Card>
       
