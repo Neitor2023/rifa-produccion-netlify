@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import {
   FormField,
@@ -21,7 +20,11 @@ interface PaymentFormFieldsProps {
   previewUrl?: string | null;
 }
 
-const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyData, previewUrl }) => {
+const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ 
+  form, 
+  readOnlyData, 
+  previewUrl 
+}) => {
   console.log("🔵 PaymentFormFields received readOnlyData:", readOnlyData);
   
   const readOnlyStyles = "bg-gray-100 text-gray-800 font-medium border-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 cursor-not-allowed";
@@ -30,9 +33,9 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
   useEffect(() => {
     if (readOnlyData) {
       console.log("🔄 Updating form with readOnlyData:", readOnlyData);
-      form.setValue('buyerName', readOnlyData.name || "");
-      form.setValue('buyerPhone', readOnlyData.phone || "");
-      form.setValue('buyerCedula', readOnlyData.cedula || "");
+      form.setValue('buyerName', readOnlyData.name);
+      form.setValue('buyerPhone', readOnlyData.phone);
+      form.setValue('buyerCedula', readOnlyData.cedula || '');
       
       if (readOnlyData.direccion) {
         form.setValue('direccion', readOnlyData.direccion);
@@ -42,11 +45,16 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
         form.setValue('sugerenciaProducto', readOnlyData.sugerencia_producto);
       }
       
-      console.log("🔄 Updated form values:", form.getValues());
+      console.log("🔄 Form values after update:", form.getValues());
     } else {
       console.log("⚠️ No readOnlyData provided to PaymentFormFields");
     }
   }, [readOnlyData, form]);
+
+  // Using form.watch() for reactive updates
+  const buyerName = form.watch('buyerName');
+  const buyerPhone = form.watch('buyerPhone');
+  const buyerCedula = form.watch('buyerCedula');
 
   return (
     <div className="space-y-6">
@@ -60,6 +68,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
             <FormControl>
               <Input 
                 {...field}
+                value={buyerName}
                 readOnly
                 className={cn(readOnlyStyles, "hover:bg-gray-100 dark:hover:bg-gray-800")}
               />
@@ -82,6 +91,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
                 <FormControl>
                   <Input 
                     {...field}
+                    value={buyerCedula}
                     readOnly
                     className={cn(readOnlyStyles, "hover:bg-gray-100 dark:hover:bg-gray-800")}
                   />
@@ -99,6 +109,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
                 <FormControl>
                   <Input 
                     {...field}
+                    value={buyerPhone}
                     readOnly
                     className={cn(readOnlyStyles, "hover:bg-gray-100 dark:hover:bg-gray-800")}
                   />

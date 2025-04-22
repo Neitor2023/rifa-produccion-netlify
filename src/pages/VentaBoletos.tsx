@@ -68,7 +68,27 @@ const VentaBoletos: React.FC = () => {
     refetchRaffleNumbers,
     debugMode
   });
-  
+
+  // Log validatedBuyerData whenever it changes
+  useEffect(() => {
+    console.log("📦 VentaBoletos - validatedBuyerData:", validatedBuyerData ? {
+      name: validatedBuyerData.name,
+      phone: validatedBuyerData.phone,
+      cedula: validatedBuyerData.cedula,
+      direccion: validatedBuyerData.direccion,
+      sugerencia_producto: validatedBuyerData.sugerencia_producto
+    } : 'null');
+  }, [validatedBuyerData]);
+
+  // Log before rendering PaymentModal
+  console.log("📦 VentaBoletos - Rendering PaymentModal with validatedBuyerData:", 
+    validatedBuyerData ? {
+      name: validatedBuyerData.name,
+      phone: validatedBuyerData.phone,
+      cedula: validatedBuyerData.cedula
+    } : 'null'
+  );
+
   // Event handlers
   const handleViewPrizeDetails = (prize: Prize) => {
     setSelectedPrize(prize);

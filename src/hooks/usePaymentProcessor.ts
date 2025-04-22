@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { toast } from 'sonner';
@@ -32,7 +31,6 @@ export function usePaymentProcessor({
   refetchRaffleNumbers,
   debugMode = false
 }: UsePaymentProcessorProps) {
-  // Split out state logic
   const { selectedNumbers, setSelectedNumbers } = useSelection();
   const { isPaymentModalOpen, setIsPaymentModalOpen, isVoucherOpen, setIsVoucherOpen } = useModalState();
   const { paymentData, setPaymentData, handleProofCheck } = usePayment();
@@ -50,7 +48,6 @@ export function usePaymentProcessor({
     debugMode
   });
 
-  // Utilidad de registro de depuración
   const debugLog = (context: string, data: any) => {
     if (debugMode) {
       console.log(`[DEBUG - ${context}]:`, data);
@@ -60,36 +57,33 @@ export function usePaymentProcessor({
   const { findOrCreateParticipant } = useParticipantManager({ raffleId, debugMode, raffleSeller });
   const { updateRaffleNumbersStatus } = useNumberStatus({ raffleSeller, raffleId, raffleNumbers, debugMode });
 
-  // Log the validated buyer data whenever it changes
   useEffect(() => {
     if (validatedBuyerData) {
-      console.log("🔁 usePaymentProcessor validatedBuyerData:", 
-        validatedBuyerData.name, 
-        validatedBuyerData.phone, 
-        validatedBuyerData.cedula
-      );
+      console.log("🔄 usePaymentProcessor validatedBuyerData updated:", {
+        name: validatedBuyerData.name,
+        phone: validatedBuyerData.phone,
+        cedula: validatedBuyerData.cedula || 'N/A',
+        direccion: validatedBuyerData.direccion || 'N/A',
+        sugerencia_producto: validatedBuyerData.sugerencia_producto || 'N/A'
+      });
     } else {
-      console.log("🔁 usePaymentProcessor validatedBuyerData is undefined");
+      console.log("🔄 usePaymentProcessor validatedBuyerData is null");
     }
   }, [validatedBuyerData]);
 
-  // -----------------
-  // RAFFLE NUMBER OPERATIONS
-  // -----------------
-
-  /**
-   * Handles the reservation of multiple raffle numbers
-   * @param numbers Array of number strings to reserve
-   * @param buyerPhone Buyer's phone number
-   * @param buyerName Buyer's name
-   * @param buyerCedula Buyer's cedula/ID number
-   */
   const handleReserveNumbers = async (
     numbers: string[], 
     buyerPhone?: string, 
     buyerName?: string, 
     buyerCedula?: string
   ) => {
+    console.log("🎯 handleReserveNumbers called with:", {
+      numbers,
+      buyerPhone,
+      buyerName,
+      buyerCedula
+    });
+    
     if (!raffleSeller?.seller_id) {
       toast.error('Información del vendedor no disponible');
       return;
@@ -100,7 +94,6 @@ export function usePaymentProcessor({
       return;
     }
     
-    // Validate against seller's maximum allowed numbers
     if (!(await validateSellerMaxNumbers(numbers.length))) {
       return;
     }
@@ -108,16 +101,14 @@ export function usePaymentProcessor({
     try {
       debugLog('Reserve numbers called with', { numbers, buyerPhone, buyerName, buyerCedula });
       
-      // Find or create participant
       const participantId = await findOrCreateParticipant(buyerPhone, buyerName, buyerCedula);
-      debugLog('Participant ID for reservation', participantId);
+      console.log("👤 Participant created/found:", participantId);
       
       if (!participantId) {
         toast.error('No se pudo crear o encontrar al participante');
         return;
       }
       
-      // Update or insert raffle numbers
       await updateRaffleNumbersStatus(
         numbers, 
         'reserved', 
@@ -129,38 +120,29 @@ export function usePaymentProcessor({
         }
       );
       
-      // Refresh data and reset selection
       await refetchRaffleNumbers();
       setSelectedNumbers([]);
       
       toast.success(`${numbers.length} número(s) apartados exitosamente`);
     } catch (error) {
-      console.error('Error reserving numbers:', error);
+      console.error('❌ Error reserving numbers:', error);
       toast.error('Error al apartar números');
     }
   };
-  
-  // -----------------
-  // PAYMENT PROCESSING
-  // -----------------
-  
-  /**
-   * Initiates the payment process for selected numbers
-   * @param numbers Array of number strings to purchase
-   */
+
   const handleProceedToPayment = async (numbers: string[]) => {
+    console.log("💰 handleProceedToPayment called with numbers:", numbers);
+    
     if (numbers.length === 0) {
       toast.error('Seleccione al menos un número para comprar');
       return;
     }
     
     try {
-      // Validate against seller's maximum allowed numbers
       if (!(await validateSellerMaxNumbers(numbers.length))) {
         return;
       }
       
-      // Check number availability
       const unavailableNumbers = await checkNumbersAvailability(numbers);
       
       if (unavailableNumbers.length > 0) {
@@ -168,27 +150,25 @@ export function usePaymentProcessor({
         return;
       }
       
-      // Check for existing participant on reserved numbers
       await checkReservedNumbersParticipant(numbers);
       
-      // Proceed with payment
       setSelectedNumbers(numbers);
       setIsPaymentModalOpen(true);
+      
+      console.log("✅ Payment modal opened with validatedBuyerData:", validatedBuyerData);
     } catch (error) {
-      console.error('Error proceeding to payment:', error);
+      console.error('❌ Error proceeding to payment:', error);
       toast.error('Error al procesar el pago');
     }
   };
-  
-  // -----------------
-  // PAYMENT COMPLETION
-  // -----------------
-  
-  /**
-   * Completes the payment process for selected numbers
-   * @param data Payment form data from PaymentModal
-   */
+
   const handleCompletePayment = async (data: PaymentFormData) => {
+    console.log("🔄 handleCompletePayment called with data:", {
+      buyerName: data.buyerName,
+      buyerPhone: data.buyerPhone,
+      buyerCedula: data.buyerCedula
+    });
+    
     if (!raffleSeller?.seller_id) {
       toast.error('Información del vendedor no disponible');
       return;
@@ -201,16 +181,13 @@ export function usePaymentProcessor({
         sellerId: raffleSeller.seller_id
       });
       
-      // Validate against seller's maximum allowed numbers
       if (!(await validateSellerMaxNumbers(selectedNumbers.length))) {
         return;
       }
       
-      // Upload payment proof if available
       const paymentProofUrl = await uploadPaymentProof(data.paymentProof);
       debugLog('Payment proof upload result', { paymentProofUrl });
       
-      // Find or create participant
       const participantId = await processParticipant(data);
       debugLog('Participant processing result', { participantId });
       
@@ -219,17 +196,14 @@ export function usePaymentProcessor({
         return;
       }
       
-      // Update numbers to sold status
       await updateNumbersToSold(selectedNumbers, participantId, paymentProofUrl, raffleNumbers);
       debugLog('Numbers updated to sold', { 
         count: selectedNumbers.length, 
         numbers: selectedNumbers 
       });
       
-      // Refresh data
       await refetchRaffleNumbers();
       
-      // Set payment data and show voucher
       setPaymentData({
         ...data,
         paymentProof: paymentProofUrl
@@ -257,6 +231,7 @@ export function usePaymentProcessor({
     paymentData,
     setPaymentData,
     validatedBuyerData,
+    setValidatedBuyerData,
     debugMode,
     handleReserveNumbers,
     handleProceedToPayment,
