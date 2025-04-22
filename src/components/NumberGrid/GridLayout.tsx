@@ -56,7 +56,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
           onToggle={() => {
           if (status === 'reserved') {
             // Aquí llamamos a tu handler de pago
-            console.log("▶️ Reservado pulsado:", paddedNum);
+            console.log("▶️ src/components/NumberGrid/GridLayout.tsx: pulsado reservado:", paddedNum);
             onPayReserved(paddedNum);
           } else {
             // Lógica normal de selección
