@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { ValidatedBuyerInfo } from '@/types/participant';
 
 export const useParticipantManager = ({ raffleId, debugMode = false, raffleSeller }) => {
   const debugLog = (context: string, data: any) => {
@@ -28,8 +29,9 @@ export const useParticipantManager = ({ raffleId, debugMode = false, raffleSelle
     return cleanedPhone;
   };
 
-  const findExistingParticipant = async (phone: string) => {
+  const findExistingParticipant = async (phone: string): Promise<ValidatedBuyerInfo | null> => {
     const formattedPhone = formatPhoneNumber(phone);
+    debugLog('Finding participant with formatted phone', formattedPhone);
     
     const { data, error } = await supabase
       .from('participants')

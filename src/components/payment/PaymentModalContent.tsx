@@ -23,6 +23,8 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
   previewUrl,
   buyerData
 }) => {
+  console.log("🔵 PaymentModalContent received buyerData:", buyerData);
+  
   return (
     <ScrollArea className="flex-1 overflow-y-auto px-1">
       <Form {...form}>         
@@ -43,7 +45,7 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
       <div className="mt-6 p-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 dark:bg-blue-900/40 dark:border-blue-700 dark:text-blue-50 text-sm">
         <strong>Información Importante:</strong>
         <br />
-        Ahora se muestran automáticamente los datos del participante:
+        Datos del participante:
         <br />
         <strong>Nombre:</strong> {buyerData?.name || 'no disponible'}
         <br />

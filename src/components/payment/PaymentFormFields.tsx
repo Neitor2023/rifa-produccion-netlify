@@ -22,6 +22,8 @@ interface PaymentFormFieldsProps {
 }
 
 const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyData, previewUrl }) => {
+  console.log("🔵 PaymentFormFields received readOnlyData:", readOnlyData);
+  
   const readOnlyStyles = "bg-gray-100 text-gray-800 font-medium border-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 cursor-not-allowed";
 
   return (

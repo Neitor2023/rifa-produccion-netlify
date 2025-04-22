@@ -18,6 +18,13 @@ export const useNumberStatus = ({ raffleSeller, raffleId, raffleNumbers, debugMo
       throw new Error('Seller ID not available');
     }
 
+    debugLog('Updating raffle numbers with participant data', { 
+      numbers, 
+      status, 
+      participantId, 
+      participantData 
+    });
+
     const updatePromises = numbers.map(async (numStr) => {
       const num = parseInt(numStr);
       const existingNumber = raffleNumbers?.find(n => n.number === numStr);

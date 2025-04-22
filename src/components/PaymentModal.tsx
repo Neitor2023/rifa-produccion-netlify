@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -54,20 +55,20 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   
-  console.log("🧾 Incoming buyerData to PaymentModal:", buyerData);
+  console.log("🧾 PaymentModal received buyerData:", buyerData);
   
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentFormSchema),
     defaultValues: {
-      buyerName: buyerData?.name || "",
-      buyerPhone: buyerData?.phone || "",
-      buyerCedula: buyerData?.cedula || "",
+      buyerName: "",
+      buyerPhone: "",
+      buyerCedula: "",
       buyerEmail: "",
       paymentMethod: undefined,
       paymentProof: undefined,
       nota: "",
-      direccion: buyerData?.direccion || "",
-      sugerenciaProducto: buyerData?.sugerencia_producto || "",
+      direccion: "",
+      sugerenciaProducto: "",
       reporteSospechoso: "",
     },
   });
@@ -76,12 +77,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   useEffect(() => {
     if (buyerData) {
       console.log("📦 Form updating with buyer data:", buyerData);
-      form.setValue('buyerName', buyerData.name);
-      form.setValue('buyerPhone', buyerData.phone);
+      form.setValue('buyerName', buyerData.name || "");
+      form.setValue('buyerPhone', buyerData.phone || "");
       form.setValue('buyerCedula', buyerData.cedula || "");
+      
       if (buyerData.direccion) {
         form.setValue("direccion", buyerData.direccion);
       }
+      
       if (buyerData.sugerencia_producto) {
         form.setValue("sugerenciaProducto", buyerData.sugerencia_producto);
       }
@@ -99,12 +102,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     debugLog('Form submit - data', data);
     
     if (data.paymentMethod === "transfer" && !uploadedImage) {
-      <Toaster
-        position="top-right"
-        visibleToasts={10}
-        gap={12}
-        closeButton
-      />
       toast.error("Por favor suba un comprobante de pago");
       debugLog('Validation error', 'Missing payment proof for transfer');
       setIsSubmitting(false);
@@ -118,6 +115,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         size: uploadedImage.size,
         type: uploadedImage.type
       });
+    }
+    
+    // Ensure the data includes the buyerData values
+    if (buyerData) {
+      data.buyerName = buyerData.name;
+      data.buyerPhone = buyerData.phone;
+      data.buyerCedula = buyerData.cedula || "";
     }
     
     debugLog('Sending payment data to parent component', data);
@@ -188,6 +192,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           isSubmitting={isSubmitting}
           onClose={onClose}
           onSubmit={form.handleSubmit(onSubmit)}
+        />
+        
+        <Toaster
+          position="top-right"
+          visibleToasts={10}
+          gap={12}
+          closeButton
         />
       </DialogContent>
     </Dialog>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -56,7 +57,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   const formatPhoneNumber = (inputPhone: string): string => {
     let cleanedPhone = inputPhone.trim();
     
-    // Check if it's a cedula first
+    // Check if it's a cedula first (only digits, at least 5 characters)
     if (cleanedPhone.length >= 5 && /^\d+$/.test(cleanedPhone)) {
       return cleanedPhone; // Return cedula as is if it's only digits
     }
@@ -127,7 +128,8 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 
   const handleNumberSubmit = async () => {
     if (validation.isValid) {
-      let cleanedPhone = formatPhoneNumber(phone);
+      const cleanedPhone = formatPhoneNumber(phone);
+      console.log("🔍 Searching for participant with:", cleanedPhone);
 
       let participant = null;
       let foundBy = '';
@@ -142,6 +144,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       if (byPhone) {
         participant = byPhone;
         foundBy = 'phone';
+        console.log("✅ Found participant by phone:", participant);
       } else if (/^\d+$/.test(phone)) {
         // If it's a numeric string, try to find by cedula
         const { data: byCedula, error: errCedula } = await supabase
@@ -153,10 +156,12 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         if (byCedula) {
           participant = byCedula;
           foundBy = 'cedula';
+          console.log("✅ Found participant by cedula:", participant);
         }
       }
 
       if (!participant) {
+        console.log("❌ No participant found");
         toast.error(`❌ Participante no encontrado con el dato ingresado: ${cleanedPhone}`);
         return;
       }
