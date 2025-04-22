@@ -27,7 +27,11 @@ export const useParticipantManager = ({ raffleId, debugMode = false, raffleSelle
     return null;
   };
 
-  const handleExistingParticipant = async (participant: { id: string, name: string }, newName?: string, newCedula?: string): Promise<string> => {
+  const handleExistingParticipant = async (
+    participant: { id: string; name: string; cedula?: string }, 
+    newName?: string, 
+    newCedula?: string
+  ): Promise<string> => {
     const updateData: any = {};
     
     if (newName && newName !== participant.name) {
