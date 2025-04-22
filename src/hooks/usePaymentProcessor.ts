@@ -59,7 +59,7 @@ export function usePaymentProcessor({
 
   useEffect(() => {
     if (validatedBuyerData) {
-      console.log("🔄 usePaymentProcessor validatedBuyerData updated:", {
+      console.log("🔄 src/hooks/usePaymentProcessor.ts: Datos del comprador validados actualizados:", {
         name: validatedBuyerData.name,
         phone: validatedBuyerData.phone,
         cedula: validatedBuyerData.cedula || 'N/A',
@@ -67,7 +67,7 @@ export function usePaymentProcessor({
         sugerencia_producto: validatedBuyerData.sugerencia_producto || 'N/A'
       });
     } else {
-      console.log("🔄 usePaymentProcessor validatedBuyerData is null");
+      console.log("🔄 src/hooks/usePaymentProcessor.ts: ValidadoBuyerData es nulo");
     }
   }, [validatedBuyerData]);
 
@@ -77,7 +77,7 @@ export function usePaymentProcessor({
     buyerName?: string, 
     buyerCedula?: string
   ) => {
-    console.log("🎯 handleReserveNumbers called with:", {
+    console.log("🎯 src/hooks/usePaymentProcessor.ts: llamado con:", {
       numbers,
       buyerPhone,
       buyerName,
@@ -85,12 +85,12 @@ export function usePaymentProcessor({
     });
     
     if (!raffleSeller?.seller_id) {
-      toast.error('Información del vendedor no disponible');
+      toast.error('src/hooks/usePaymentProcessor.ts: Información del vendedor no disponible');
       return;
     }
     
     if (!buyerPhone || !buyerName) {
-      toast.error('Nombre y teléfono son obligatorios para apartar números');
+      toast.error('src/hooks/usePaymentProcessor.ts: Nombre y teléfono son obligatorios para apartar números');
       return;
     }
     
@@ -99,13 +99,13 @@ export function usePaymentProcessor({
     }
     
     try {
-      debugLog('Reserve numbers called with', { numbers, buyerPhone, buyerName, buyerCedula });
+      debugLog('src/hooks/usePaymentProcessor.ts: Números de reserva llamados con', { numbers, buyerPhone, buyerName, buyerCedula });
       
       const participantId = await findOrCreateParticipant(buyerPhone, buyerName, buyerCedula);
-      console.log("👤 Participant created/found:", participantId);
+      console.log("👤 src/hooks/usePaymentProcessor.ts: Participante creado / encontrado:", participantId);
       
       if (!participantId) {
-        toast.error('No se pudo crear o encontrar al participante');
+        toast.error('src/hooks/usePaymentProcessor.ts: No se pudo crear o encontrar al participante');
         return;
       }
       
@@ -123,15 +123,15 @@ export function usePaymentProcessor({
       await refetchRaffleNumbers();
       setSelectedNumbers([]);
       
-      toast.success(`${numbers.length} número(s) apartados exitosamente`);
+      toast.success(`src/hooks/usePaymentProcessor.ts: ${numbers.length} número(s) apartados exitosamente`);
     } catch (error) {
-      console.error('❌ Error reserving numbers:', error);
-      toast.error('Error al apartar números');
+      console.error('src/hooks/usePaymentProcessor.ts: ❌ Error al reservar números:', error);
+      toast.error('src/hooks/usePaymentProcessor.ts: Error al apartar números');
     }
   };
 
   const handleProceedToPayment = async (numbers: string[]) => {
-    console.log("💰 handleProceedToPayment called with numbers:", numbers);
+    console.log("💰 src/hooks/usePaymentProcessor.ts: handleProceedToPayment llamado con números:", numbers);
     
     if (numbers.length === 0) {
       toast.error('Seleccione al menos un número para comprar');
@@ -155,22 +155,22 @@ export function usePaymentProcessor({
       setSelectedNumbers(numbers);
       setIsPaymentModalOpen(true);
       
-      console.log("✅ Payment modal opened with validatedBuyerData:", validatedBuyerData);
+      console.log("✅ src/hooks/usePaymentProcessor.ts: Modal de pago abierto con validatedBuyerData:", validatedBuyerData);
     } catch (error) {
-      console.error('❌ Error proceeding to payment:', error);
+      console.error('src/hooks/usePaymentProcessor.ts: ❌ Error al proceder al pago:', error);
       toast.error('Error al procesar el pago');
     }
   };
 
   const handleCompletePayment = async (data: PaymentFormData) => {
-    console.log("🔄 handleCompletePayment called with data:", {
+    console.log("🔄 src/hooks/usePaymentProcessor.ts: handleCompletePayment llamado con datos:", {
       buyerName: data.buyerName,
       buyerPhone: data.buyerPhone,
       buyerCedula: data.buyerCedula
     });
     
     if (!raffleSeller?.seller_id) {
-      toast.error('Información del vendedor no disponible');
+      toast.error('src/hooks/usePaymentProcessor.ts: Información del vendedor no disponible');
       return;
     }
     
@@ -186,18 +186,18 @@ export function usePaymentProcessor({
       }
       
       const paymentProofUrl = await uploadPaymentProof(data.paymentProof);
-      debugLog('Payment proof upload result', { paymentProofUrl });
+      debugLog('src/hooks/usePaymentProcessor.ts: Resultado de carga del comprobante de pago', { paymentProofUrl });
       
       const participantId = await processParticipant(data);
-      debugLog('Participant processing result', { participantId });
+      debugLog('src/hooks/usePaymentProcessor.ts: Resultado del procesamiento del participante', { participantId });
       
       if (!participantId) {
-        toast.error('Error al procesar la información del participante');
+        toast.error('src/hooks/usePaymentProcessor.ts: Error al procesar la información del participante');
         return;
       }
       
       await updateNumbersToSold(selectedNumbers, participantId, paymentProofUrl, raffleNumbers);
-      debugLog('Numbers updated to sold', { 
+      debugLog('src/hooks/usePaymentProcessor.ts: Números actualizados a vendidos', { 
         count: selectedNumbers.length, 
         numbers: selectedNumbers 
       });
@@ -213,11 +213,11 @@ export function usePaymentProcessor({
       setIsVoucherOpen(true);
       
       toast.success('Pago completado exitosamente');
-      debugLog('Payment completed successfully', null);
+      debugLog('src/hooks/usePaymentProcessor.ts:Pago completado exitosamente', null);
     } catch (error) {
-      console.error('Error completing payment:', error);
-      debugLog('Payment completion error', error);
-      toast.error('Error al completar el pago');
+      console.error('src/hooks/usePaymentProcessor.ts: Error al completar el pago:', error);
+      debugLog('src/hooks/usePaymentProcessor.ts: Error de finalización del pago', error);
+      toast.error('src/hooks/usePaymentProcessor.ts: Error al completar el pago');
     }
   };
 
