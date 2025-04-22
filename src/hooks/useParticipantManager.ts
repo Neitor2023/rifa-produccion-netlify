@@ -9,17 +9,40 @@ export const useParticipantManager = ({ raffleId, debugMode = false, raffleSelle
     }
   };
 
+  const formatPhoneNumber = (phone: string): string => {
+    let cleanedPhone = phone.trim();
+    
+    // If it starts with "+5930", replace with "+593"
+    if (cleanedPhone.startsWith('+5930')) {
+      cleanedPhone = '+593' + cleanedPhone.substring(5);
+    }
+    // If it starts with "0", remove it and add "+593"
+    else if (cleanedPhone.startsWith('0')) {
+      cleanedPhone = '+593' + cleanedPhone.substring(1);
+    }
+    // If it doesn't have any prefix, add "+593"
+    else if (!cleanedPhone.startsWith('+')) {
+      cleanedPhone = '+593' + cleanedPhone;
+    }
+    
+    return cleanedPhone;
+  };
+
   const findExistingParticipant = async (phone: string) => {
+    const formattedPhone = formatPhoneNumber(phone);
+    
     const { data, error } = await supabase
       .from('participants')
       .select('id, name, phone, cedula, direccion, sugerencia_producto')
-      .eq('phone', phone)
+      .eq('phone', formattedPhone)
       .eq('raffle_id', raffleId)
       .maybeSingle();
+      
     if (error) {
       console.error('Error searching for participant:', error);
       return null;
     }
+    
     if (data) {
       debugLog('Found existing participant', data);
       return data;
@@ -28,9 +51,17 @@ export const useParticipantManager = ({ raffleId, debugMode = false, raffleSelle
   };
 
   const handleExistingParticipant = async (
-    participant: { id: string; name: string; cedula?: string }, 
+    participant: { 
+      id: string; 
+      name: string; 
+      phone?: string;
+      cedula?: string;
+      direccion?: string;
+      sugerencia_producto?: string;
+    }, 
     newName?: string, 
-    newCedula?: string
+    newCedula?: string,
+    newPhone?: string
   ): Promise<string> => {
     const updateData: any = {};
     
@@ -40,6 +71,13 @@ export const useParticipantManager = ({ raffleId, debugMode = false, raffleSelle
     
     if (newCedula && newCedula !== participant.cedula) {
       updateData.cedula = newCedula;
+    }
+
+    if (newPhone) {
+      const formattedPhone = formatPhoneNumber(newPhone);
+      if (formattedPhone !== participant.phone) {
+        updateData.phone = formattedPhone;
+      }
     }
     
     if (Object.keys(updateData).length > 0) {
@@ -57,13 +95,21 @@ export const useParticipantManager = ({ raffleId, debugMode = false, raffleSelle
 
   const createNewParticipant = async (phone: string, name?: string, cedula?: string): Promise<string | null> => {
     if (!name) return null;
-    debugLog('Creating new participant', { name, phone, cedula, raffle_id: raffleId, seller_id: raffleSeller?.seller_id });
+    
+    const formattedPhone = formatPhoneNumber(phone);
+    debugLog('Creating new participant', { 
+      name, 
+      formattedPhone, 
+      cedula, 
+      raffle_id: raffleId, 
+      seller_id: raffleSeller?.seller_id 
+    });
     
     const { data, error } = await supabase
       .from('participants')
       .insert({
         name,
-        phone,
+        phone: formattedPhone,
         email: '',
         cedula: cedula || null,
         raffle_id: raffleId,
@@ -87,7 +133,12 @@ export const useParticipantManager = ({ raffleId, debugMode = false, raffleSelle
       const existingParticipant = await findExistingParticipant(phone);
       
       if (existingParticipant) {
-        return handleExistingParticipant(existingParticipant, name, cedula);
+        return handleExistingParticipant(
+          existingParticipant, 
+          name, 
+          cedula, 
+          phone
+        );
       }
       
       return createNewParticipant(phone, name, cedula);
@@ -98,5 +149,10 @@ export const useParticipantManager = ({ raffleId, debugMode = false, raffleSelle
     }
   };
 
-  return { findOrCreateParticipant, findExistingParticipant, createNewParticipant };
+  return { 
+    findOrCreateParticipant, 
+    findExistingParticipant, 
+    createNewParticipant,
+    formatPhoneNumber 
+  };
 };
