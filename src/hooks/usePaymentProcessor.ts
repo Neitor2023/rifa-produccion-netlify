@@ -82,8 +82,14 @@ export function usePaymentProcessor({
    * @param numbers Array of number strings to reserve
    * @param buyerPhone Buyer's phone number
    * @param buyerName Buyer's name
+   * @param buyerCedula Buyer's cedula/ID number
    */
-  const handleReserveNumbers = async (numbers: string[], buyerPhone?: string, buyerName?: string) => {
+  const handleReserveNumbers = async (
+    numbers: string[], 
+    buyerPhone?: string, 
+    buyerName?: string, 
+    buyerCedula?: string
+  ) => {
     if (!raffleSeller?.seller_id) {
       toast.error('Información del vendedor no disponible');
       return;
@@ -100,10 +106,10 @@ export function usePaymentProcessor({
     }
     
     try {
-      debugLog('Reserve numbers called with', { numbers, buyerPhone, buyerName });
+      debugLog('Reserve numbers called with', { numbers, buyerPhone, buyerName, buyerCedula });
       
       // Find or create participant
-      const participantId = await findOrCreateParticipant(buyerPhone, buyerName);
+      const participantId = await findOrCreateParticipant(buyerPhone, buyerName, buyerCedula);
       debugLog('Participant ID for reservation', participantId);
       
       if (!participantId) {
@@ -112,7 +118,16 @@ export function usePaymentProcessor({
       }
       
       // Update or insert raffle numbers
-      await updateRaffleNumbersStatus(numbers, 'reserved', participantId);
+      await updateRaffleNumbersStatus(
+        numbers, 
+        'reserved', 
+        participantId, 
+        { 
+          buyerName: buyerName, 
+          buyerPhone: buyerPhone, 
+          buyerCedula: buyerCedula 
+        }
+      );
       
       // Refresh data and reset selection
       await refetchRaffleNumbers();

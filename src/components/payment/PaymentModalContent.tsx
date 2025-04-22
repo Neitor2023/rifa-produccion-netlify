@@ -43,7 +43,7 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
       <div className="mt-6 p-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 dark:bg-blue-900/40 dark:border-blue-700 dark:text-blue-50 text-sm">
         <strong>Información Importante:</strong>
         <br />
-        Ahora se muestran automáticamente los datos del participante (<strong>Nombre</strong>: {buyerData?.name || 'N/A'}, <strong>Teléfono</strong>: {buyerData?.phone || 'N/A'}, <strong>Cédula</strong>: {buyerData?.cedula || 'N/A'}) vinculados al <strong>ID de Participante</strong> asociado a los números reservados.
+        Ahora se muestran automáticamente los datos del participante (<strong>Nombre</strong>: {buyerData?.name || 'No disponible'}, <strong>Teléfono</strong>: {buyerData?.phone || 'No disponible'}, <strong>Cédula</strong>: {buyerData?.cedula || 'No disponible'}) vinculados al <strong>ID de Participante</strong> asociado a los números reservados.
         <br />
         Revise que estos datos corresponden efectivamente al titular del número seleccionado.
       </div>

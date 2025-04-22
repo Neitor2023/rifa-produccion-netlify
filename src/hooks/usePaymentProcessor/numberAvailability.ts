@@ -42,21 +42,46 @@ export function useNumberAvailability({
   */
   const checkReservedNumbersParticipant = async (numbers: string[]) => {
     try {
-      // Verifique si estamos procesando un número reservado con un participant_id existente
+      // First check for direct participant data in raffle_numbers
       const reservedNumbers = numbers.filter(numStr => {
         const existingNumber = raffleNumbers?.find(n => n.number === numStr);
-        return existingNumber && existingNumber.status === 'reserved' && existingNumber.participant_id;
+        return existingNumber && existingNumber.status === 'reserved';
       });
       
       if (reservedNumbers.length > 0) {
-        await fetchParticipantForReservedNumber(reservedNumbers[0]);
-      } else {
-        // Restablecer los datos del comprador validado si no hay números reservados
-        setValidatedBuyerData(null);
+        const numStr = reservedNumbers[0];
+        const existingNumber = raffleNumbers?.find(n => n.number === numStr);
+        
+        if (existingNumber) {
+          // Try to get data directly from raffle_numbers first
+          if (existingNumber.participant_name && existingNumber.participant_phone) {
+            setValidatedBuyerData({
+              name: existingNumber.participant_name,
+              phone: existingNumber.participant_phone,
+              cedula: existingNumber.participant_cedula || "",
+            });
+            debugLog('Set buyer data from raffle_numbers', {
+              name: existingNumber.participant_name,
+              phone: existingNumber.participant_phone,
+              cedula: existingNumber.participant_cedula
+            });
+            return;
+          }
+          
+          // Fallback to getting data from participants table if participant_id exists
+          if (existingNumber.participant_id) {
+            await fetchParticipantForReservedNumber(numStr);
+            return;
+          }
+        }
       }
+      
+      // If we get here, no participant data was found
+      setValidatedBuyerData(null);
+      
     } catch (error) {
       console.error('Error checking participant for reserved numbers:', error);
-      // No lo tires aquí, ya que queremos proceder con el pago incluso si esto falla
+      // Don't throw here as we want to proceed with payment even if this fails
     }
   };
   
@@ -68,24 +93,26 @@ export function useNumberAvailability({
     const existingNumber = raffleNumbers?.find(n => n.number === numStr);
     
     if (existingNumber && existingNumber.participant_id) {
-      // Obtener información del participante
+      // Obtain participant information
       const { data: participant, error } = await supabase
         .from('participants')
-        .select('name, phone, cedula')
+        .select('name, phone, cedula, direccion, sugerencia_producto')
         .eq('id', existingNumber.participant_id)
         .single();
       
       if (error) throw error;
       
       if (participant) {
-        // Establecer datos de comprador validados
+        // Set validated buyer data
         setValidatedBuyerData({
           name: participant.name,
           phone: participant.phone,
-          cedula: participant.cedula,
+          cedula: participant.cedula || "",
+          direccion: participant.direccion || "",
+          sugerencia_producto: participant.sugerencia_producto || "",
         });
         
-        debugLog('Set validated buyer data', participant);
+        debugLog('Set validated buyer data from participants table', participant);
       }
     }
   };

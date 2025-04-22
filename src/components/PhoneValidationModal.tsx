@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -53,19 +54,50 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
     formattedNumber: ''
   });
 
+  const formatPhoneNumber = (inputPhone: string): string => {
+    let cleanedPhone = inputPhone.trim();
+    
+    // Check if it's a cedula first
+    if (cleanedPhone.length >= 5 && /^\d+$/.test(cleanedPhone)) {
+      return cleanedPhone; // Return cedula as is if it's only digits
+    }
+    
+    // Remove Ecuador's prefix if it starts with +5930
+    if (cleanedPhone.startsWith('+5930')) {
+      cleanedPhone = '+593' + cleanedPhone.substring(5);
+    }
+    // If it starts with 0, remove it and add +593
+    else if (cleanedPhone.startsWith('0')) {
+      cleanedPhone = '+593' + cleanedPhone.substring(1);
+    }
+    // If it doesn't have any prefix, add +593
+    else if (!cleanedPhone.startsWith('+')) {
+      cleanedPhone = '+593' + cleanedPhone;
+    }
+    
+    return cleanedPhone;
+  };
+
   useEffect(() => {
     if (phone.length > 0) {
       try {
-        let cleanedPhone = phone;
-        if (cleanedPhone.startsWith('0')) {
-          cleanedPhone = cleanedPhone.slice(1);
+        // Handle possible cedula input
+        if (phone.length >= 5 && /^\d+$/.test(phone)) {
+          setValidation({
+            isValid: true,
+            message: 'Cédula válida',
+            formattedNumber: phone
+          });
+          return;
         }
         
-        const phoneWithCountry = phone.startsWith('+') ? phone : `+593${cleanedPhone}`;
-        const isValid = isValidPhoneNumber(phoneWithCountry);
+        let formattedPhone = formatPhoneNumber(phone);
+        
+        // Validate as phone number
+        const isValid = isValidPhoneNumber(formattedPhone);
         
         if (isValid) {
-          const parsedPhone = parsePhoneNumber(phoneWithCountry);
+          const parsedPhone = parsePhoneNumber(formattedPhone);
           setValidation({
             isValid: true,
             message: 'Número válido',
@@ -96,13 +128,12 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 
   const handleNumberSubmit = async () => {
     if (validation.isValid) {
-      let cleanedPhoneInput = phone.startsWith('0') ? phone.slice(1) : phone;
-      const phoneWithCountry = phone.startsWith('+') ? phone : `+593${cleanedPhoneInput}`;
-      const cleanedPhone = phoneWithCountry.trim();
+      let cleanedPhone = formatPhoneNumber(phone);
 
       let participant = null;
       let foundBy = '';
 
+      // First try to find by phone number
       const { data: byPhone, error: errPhone } = await supabase
         .from('participants')
         .select('id, name, phone, cedula, direccion, sugerencia_producto')
@@ -112,11 +143,12 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       if (byPhone) {
         participant = byPhone;
         foundBy = 'phone';
-      } else {
+      } else if (/^\d+$/.test(phone)) {
+        // If it's a numeric string, try to find by cedula
         const { data: byCedula, error: errCedula } = await supabase
           .from('participants')
           .select('id, name, phone, cedula, direccion, sugerencia_producto')
-          .eq('cedula', cleanedPhone.replace('+593', ''))
+          .eq('cedula', phone)
           .maybeSingle();
 
         if (byCedula) {
@@ -126,12 +158,6 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       }
 
       if (!participant) {
-        <Toaster
-          position="top-right"    // coloca los toasts en la esquina superior derecha
-          visibleToasts={10}      // muestra simultáneamente hasta 10 notificaciones
-          gap={12}                // separa cada toast con 12px de espacio vertical
-          closeButton             // muestra un “✕” que el usuario puede clicar	
-        />        
         toast.error(`❌ Participante no encontrado con el dato ingresado: ${cleanedPhone}`);
         return;
       }
@@ -154,7 +180,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
     } else {
       setValidation({
         isValid: false,
-        message: "Por favor ingrese un número válido",
+        message: "Por favor ingrese un número o cédula válida",
         formattedNumber: ""
       });
     }

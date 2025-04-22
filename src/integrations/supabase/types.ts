@@ -325,7 +325,10 @@ export type Database = {
           deleted_at: string | null
           id: string
           number: number
+          participant_cedula: string | null
           participant_id: string | null
+          participant_name: string | null
+          participant_phone: string | null
           payment_approved: boolean | null
           payment_proof: string | null
           raffle_id: string | null
@@ -339,7 +342,10 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           number: number
+          participant_cedula?: string | null
           participant_id?: string | null
+          participant_name?: string | null
+          participant_phone?: string | null
           payment_approved?: boolean | null
           payment_proof?: string | null
           raffle_id?: string | null
@@ -353,7 +359,10 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           number?: number
+          participant_cedula?: string | null
           participant_id?: string | null
+          participant_name?: string | null
+          participant_phone?: string | null
           payment_approved?: boolean | null
           payment_proof?: string | null
           raffle_id?: string | null
