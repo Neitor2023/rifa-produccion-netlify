@@ -6,21 +6,15 @@ import {
   DialogHeader, 
   DialogTitle,
   DialogDescription
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
 import { supabase } from '@/integrations/supabase/client';
 import { Toaster, toast } from 'sonner';
 import ValidationMessage from './phone-validation/ValidationMessage';
 import PhoneInputField from './phone-validation/PhoneInputField';
 import ModalFooter from './phone-validation/ModalFooter';
-
-interface ValidatedBuyerInfo {
-  name: string;
-  phone: string;
-  cedula?: string;
-  direccion?: string;
-  sugerencia_producto?: string;
-}
+import { ValidatedBuyerInfo } from '@/types/participant';
+import { formatPhoneNumber } from '@/utils/phoneUtils';
 
 interface PhoneValidationModalProps {
   isOpen: boolean;
@@ -54,30 +48,6 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
     formattedNumber: ''
   });
 
-  const formatPhoneNumber = (inputPhone: string): string => {
-    let cleanedPhone = inputPhone.trim();
-    
-    // Check if it's a cedula first (only digits, at least 5 characters)
-    if (cleanedPhone.length >= 5 && /^\d+$/.test(cleanedPhone)) {
-      return cleanedPhone; // Return cedula as is if it's only digits
-    }
-    
-    // Remove Ecuador's prefix if it starts with +5930
-    if (cleanedPhone.startsWith('+5930')) {
-      cleanedPhone = '+593' + cleanedPhone.substring(5);
-    }
-    // If it starts with 0, remove it and add +593
-    else if (cleanedPhone.startsWith('0')) {
-      cleanedPhone = '+593' + cleanedPhone.substring(1);
-    }
-    // If it doesn't have any prefix, add +593
-    else if (!cleanedPhone.startsWith('+')) {
-      cleanedPhone = '+593' + cleanedPhone;
-    }
-    
-    return cleanedPhone;
-  };
-
   useEffect(() => {
     if (phone.length > 0) {
       try {
@@ -91,7 +61,9 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           return;
         }
         
+        console.log("📱 Validating phone:", phone);
         let formattedPhone = formatPhoneNumber(phone);
+        console.log("📱 Formatted phone:", formattedPhone);
         
         // Validate as phone number
         const isValid = isValidPhoneNumber(formattedPhone);
@@ -103,14 +75,17 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
             message: 'Número válido',
             formattedNumber: parsedPhone.formatInternational()
           });
+          console.log("✅ Valid phone:", parsedPhone.formatInternational());
         } else {
           setValidation({
             isValid: false,
             message: 'Número inválido',
             formattedNumber: ''
           });
+          console.log("❌ Invalid phone");
         }
       } catch (error) {
+        console.error("❌ Phone validation error:", error);
         setValidation({
           isValid: false,
           message: 'Formato incorrecto',
@@ -128,13 +103,17 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 
   const handleNumberSubmit = async () => {
     if (validation.isValid) {
+      // If it's a numeric string, it could be a cedula or a phone number
+      const isNumericOnly = /^\d+$/.test(phone);
       const cleanedPhone = formatPhoneNumber(phone);
-      console.log("🔍 Searching for participant with:", cleanedPhone);
+      console.log("🔍 Original input:", phone);
+      console.log("🔍 Formatted for search:", cleanedPhone);
 
       let participant = null;
       let foundBy = '';
 
       // First try to find by phone number
+      console.log("🔍 Searching by phone:", cleanedPhone);
       const { data: byPhone, error: errPhone } = await supabase
         .from('participants')
         .select('id, name, phone, cedula, direccion, sugerencia_producto')
@@ -145,8 +124,9 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         participant = byPhone;
         foundBy = 'phone';
         console.log("✅ Found participant by phone:", participant);
-      } else if (/^\d+$/.test(phone)) {
+      } else if (isNumericOnly) {
         // If it's a numeric string, try to find by cedula
+        console.log("🔍 Searching by cedula:", phone);
         const { data: byCedula, error: errCedula } = await supabase
           .from('participants')
           .select('id, name, phone, cedula, direccion, sugerencia_producto')
@@ -161,23 +141,28 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       }
 
       if (!participant) {
-        console.log("❌ No participant found");
+        console.log("❌ No participant found by phone or cedula");
         toast.error(`❌ Participante no encontrado con el dato ingresado: ${cleanedPhone}`);
         return;
       }
 
       const { id, name, phone: foundPhone, cedula, direccion, sugerencia_producto } = participant;
 
+      const validatedInfo: ValidatedBuyerInfo = {
+        id,
+        name,
+        phone: foundPhone || cleanedPhone,
+        cedula,
+        direccion,
+        sugerencia_producto
+      };
+
+      console.log("✅ Successfully validated participant:", validatedInfo);
+      
       onPhoneValidationSuccess(
         foundPhone || cleanedPhone,
         id,
-        {
-          name,
-          phone: foundPhone || cleanedPhone,
-          cedula,
-          direccion,
-          sugerencia_producto
-        }
+        validatedInfo
       );
 
       onClose();

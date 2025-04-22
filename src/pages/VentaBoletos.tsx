@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import RaffleHeader from '@/components/RaffleHeader';
 import PrizeCarousel from '@/components/PrizeCarousel';
 import PrizeDetailModal from '@/components/PrizeDetailModal';
@@ -75,6 +74,20 @@ const VentaBoletos: React.FC = () => {
     setSelectedPrize(prize);
     setIsPrizeModalOpen(true);
   };
+
+  // Log validatedBuyerData whenever it changes to help with debugging
+  useEffect(() => {
+    if (validatedBuyerData) {
+      console.log("🔄 VentaBoletos - validatedBuyerData updated:", {
+        id: validatedBuyerData.id,
+        name: validatedBuyerData.name,
+        phone: validatedBuyerData.phone,
+        cedula: validatedBuyerData.cedula
+      });
+    } else {
+      console.log("🔄 VentaBoletos - No validatedBuyerData available");
+    }
+  }, [validatedBuyerData]);
 
   if (isLoading) {
     return <LoadingSpinner />;

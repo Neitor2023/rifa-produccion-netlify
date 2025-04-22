@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   FormField,
   FormItem,
@@ -26,6 +26,28 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
   
   const readOnlyStyles = "bg-gray-100 text-gray-800 font-medium border-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 cursor-not-allowed";
 
+  // When readOnlyData changes, update the form values
+  useEffect(() => {
+    if (readOnlyData) {
+      console.log("🔄 Updating form with readOnlyData:", readOnlyData);
+      form.setValue('buyerName', readOnlyData.name || "");
+      form.setValue('buyerPhone', readOnlyData.phone || "");
+      form.setValue('buyerCedula', readOnlyData.cedula || "");
+      
+      if (readOnlyData.direccion) {
+        form.setValue('direccion', readOnlyData.direccion);
+      }
+      
+      if (readOnlyData.sugerencia_producto) {
+        form.setValue('sugerenciaProducto', readOnlyData.sugerencia_producto);
+      }
+      
+      console.log("🔄 Updated form values:", form.getValues());
+    } else {
+      console.log("⚠️ No readOnlyData provided to PaymentFormFields");
+    }
+  }, [readOnlyData, form]);
+
   return (
     <div className="space-y-6">
       {/* Full width field - Buyer Name */}
@@ -40,7 +62,6 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
                 {...field}
                 readOnly
                 className={cn(readOnlyStyles, "hover:bg-gray-100 dark:hover:bg-gray-800")}
-                value={readOnlyData?.name || ""}
               />
             </FormControl>
             <FormMessage />
@@ -63,7 +84,6 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
                     {...field}
                     readOnly
                     className={cn(readOnlyStyles, "hover:bg-gray-100 dark:hover:bg-gray-800")}
-                    value={readOnlyData?.cedula || ""}
                   />
                 </FormControl>
                 <FormMessage />
@@ -81,7 +101,6 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
                     {...field}
                     readOnly
                     className={cn(readOnlyStyles, "hover:bg-gray-100 dark:hover:bg-gray-800")}
-                    value={readOnlyData?.phone || ""}
                   />
                 </FormControl>
                 <FormMessage />
@@ -128,7 +147,6 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
                 <Input 
                   placeholder="Ingrese su dirección"
                   {...field}
-                  defaultValue={readOnlyData?.direccion || ""}
                 />
               </FormControl>
               <FormMessage />
@@ -145,7 +163,6 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ form, readOnlyDat
                 <Input 
                   placeholder="¿Qué producto le gustaría ver en el futuro?"
                   {...field}
-                  defaultValue={readOnlyData?.sugerencia_producto || ""}
                 />
               </FormControl>
               <FormMessage />

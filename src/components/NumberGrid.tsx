@@ -140,8 +140,20 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     buyerInfo?: ValidatedBuyerInfo
   ) => {
     if (buyerInfo) {
+      console.log("✅ NumberGrid received validated buyer info:", {
+        name: buyerInfo.name,
+        phone: buyerInfo.phone,
+        cedula: buyerInfo.cedula,
+        id: buyerInfo.id,
+        direccion: buyerInfo.direccion,
+        sugerencia_producto: buyerInfo.sugerencia_producto
+      });
       setBuyerData(buyerInfo);
+      setValidatedBuyerInfo(buyerInfo);
+    } else {
+      console.log("⚠️ NumberGrid did not receive buyer info from validation");
     }
+    
     setIsPhoneModalOpen(false);
     
     try {
@@ -151,6 +163,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         console.log('Raffle ID:', raffleSeller.raffle_id);
         console.log('Seller ID:', raffleSeller.seller_id);
       }
+      
       console.log("🧪 Datos validados:", {
         validatedNumber,
         participantId,
@@ -159,24 +172,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         selectedNumbersList: selectedNumbers
       });
 
-      <Toaster
-        position="top-left"    // coloca los toasts en la esquina superior derecha
-        visibleToasts={10}      // muestra simultáneamente hasta 10 notificaciones
-        gap={52}                // separa cada toast con 12px de espacio vertical
-        closeButton             // muestra un “✕” que el usuario puede clicar
-      />
-/**      
-*      toast.info(
-*        <div>
-*          🔍 Validando con:<br/>
-*          📞 Número validado: {validatedNumber}<br/>
-*          🆔 Participante: {participantId || 'N/A'}<br/>
-*          🎟️ Rifa: {raffleSeller.raffle_id}<br/>
-*          🧑‍💼 Vendedor: {raffleSeller.seller_id}<br/>
-*          🔢 Números seleccionados: {selectedNumbers?.join(', ') || 'Ninguno'}
-*        </div>, {duration: 8000      // este toast concreto dura 8 segundos
-*      });  
-*/      
       if (buyerInfo) {
         setValidatedBuyerInfo(buyerInfo);
       }
@@ -292,19 +287,32 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         isOpen={isPhoneModalOpen}
         onClose={() => setIsPhoneModalOpen(false)}
         onPhoneValidationSuccess={(validatedNumber, participantId, buyerInfo) => {
-          handleValidationSuccess(validatedNumber, participantId, buyerInfo);          
-          if (debugMode) {
+          if (buyerInfo) {
+            console.log("🔄 Before calling handleValidationSuccess with:", {
+              validatedNumber,
+              participantId,
+              buyerInfo: {
+                id: buyerInfo.id,
+                name: buyerInfo.name,
+                phone: buyerInfo.phone,
+                cedula: buyerInfo.cedula
+              }
+            });
+          }
+          
+          handleValidationSuccess(validatedNumber, participantId, buyerInfo);
+          
+          if (debugMode && buyerInfo) {
             toast.info(
               <div>
-                🔍 Antes de ir a PhoneValidationModal:<br/>
-                📞 Número validado: {validatedNumber}<br/>
-                🆔 Participante: {participantId || 'N/A'}<br/>
+                🔍 Validated participant:<br/>
+                📞 Número: {validatedNumber}<br/>
+                🆔 ID: {participantId || 'N/A'}<br/>
                 🧑‍💼 Nombre: {buyerInfo.name}<br/>
                 📱 Teléfono: {buyerInfo.phone}<br/>
-                🆔 Cédula: {buyerInfo.cedula}<br/>
-                📍 Dirección: {buyerInfo.direccion}<br/>
-                💡 Sugerencia: {buyerInfo.sugerencia_producto}<br/>
-                🔢 Números seleccionados: {selectedNumbers?.join(', ') || 'Ninguno'}
+                🆔 Cédula: {buyerInfo.cedula || 'N/A'}<br/>
+                📍 Dirección: {buyerInfo.direccion || 'N/A'}<br/>
+                💡 Sugerencia: {buyerInfo.sugerencia_producto || 'N/A'}<br/>
               </div>,
               { duration: 8000 }
             );

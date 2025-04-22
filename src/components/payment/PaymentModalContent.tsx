@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Form } from "@/components/ui/form";
 import { UseFormReturn } from 'react-hook-form';
@@ -24,6 +24,20 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
   buyerData
 }) => {
   console.log("🔵 PaymentModalContent received buyerData:", buyerData);
+  
+  // Log when buyerData changes to debug
+  useEffect(() => {
+    if (buyerData) {
+      console.log("📋 PaymentModalContent - Updated buyerData:", {
+        name: buyerData.name,
+        phone: buyerData.phone,
+        cedula: buyerData.cedula,
+        id: buyerData.id
+      });
+    } else {
+      console.log("⚠️ PaymentModalContent - No buyerData received");
+    }
+  }, [buyerData]);
   
   return (
     <ScrollArea className="flex-1 overflow-y-auto px-1">

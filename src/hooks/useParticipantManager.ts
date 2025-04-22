@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ValidatedBuyerInfo } from '@/types/participant';
+import { formatPhoneNumber } from '@/utils/phoneUtils';
 
 export const useParticipantManager = ({ raffleId, debugMode = false, raffleSeller }) => {
   const debugLog = (context: string, data: any) => {
@@ -10,28 +11,10 @@ export const useParticipantManager = ({ raffleId, debugMode = false, raffleSelle
     }
   };
 
-  const formatPhoneNumber = (phone: string): string => {
-    let cleanedPhone = phone.trim();
-    
-    // If it starts with "+5930", replace with "+593"
-    if (cleanedPhone.startsWith('+5930')) {
-      cleanedPhone = '+593' + cleanedPhone.substring(5);
-    }
-    // If it starts with "0", remove it and add "+593"
-    else if (cleanedPhone.startsWith('0')) {
-      cleanedPhone = '+593' + cleanedPhone.substring(1);
-    }
-    // If it doesn't have any prefix, add "+593"
-    else if (!cleanedPhone.startsWith('+')) {
-      cleanedPhone = '+593' + cleanedPhone;
-    }
-    
-    return cleanedPhone;
-  };
-
   const findExistingParticipant = async (phone: string): Promise<ValidatedBuyerInfo & { id: string } | null> => {
     const formattedPhone = formatPhoneNumber(phone);
     debugLog('Finding participant with formatted phone', formattedPhone);
+    console.log("🔍 Looking for participant with formatted phone:", formattedPhone);
     
     const { data, error } = await supabase
       .from('participants')
@@ -47,8 +30,11 @@ export const useParticipantManager = ({ raffleId, debugMode = false, raffleSelle
     
     if (data) {
       debugLog('Found existing participant', data);
+      console.log("✅ Found existing participant:", data);
       return data as ValidatedBuyerInfo & { id: string };
     }
+    
+    console.log("❌ No participant found with phone:", formattedPhone);
     return null;
   };
 
@@ -83,12 +69,15 @@ export const useParticipantManager = ({ raffleId, debugMode = false, raffleSelle
     }
     
     if (Object.keys(updateData).length > 0) {
+      console.log("📝 Updating participant data:", updateData);
       const { error } = await supabase
         .from('participants')
         .update(updateData)
         .eq('id', participant.id);
       if (error) {
         console.error('Error updating participant:', error);
+      } else {
+        console.log("✅ Participant updated successfully");
       }
     }
     
@@ -107,6 +96,13 @@ export const useParticipantManager = ({ raffleId, debugMode = false, raffleSelle
       seller_id: raffleSeller?.seller_id 
     });
     
+    console.log("🆕 Creating new participant:", { 
+      name, 
+      formattedPhone, 
+      cedula, 
+      raffle_id: raffleId
+    });
+    
     const { data, error } = await supabase
       .from('participants')
       .insert({
@@ -122,19 +118,24 @@ export const useParticipantManager = ({ raffleId, debugMode = false, raffleSelle
       
     if (error) {
       toast.error('Error al crear participante: ' + error.message);
+      console.error("❌ Error creating participant:", error);
       return null;
     }
     
     debugLog('New participant created with ID', data?.id);
+    console.log("✅ New participant created with ID:", data?.id);
     return data?.id || null;
   };
 
   const findOrCreateParticipant = async (phone: string, name?: string, cedula?: string) => {
     try {
       debugLog('findOrCreateParticipant input', { phone, name, cedula, raffle_id: raffleId });
+      console.log("🔄 findOrCreateParticipant called with:", { phone, name, cedula });
+      
       const existingParticipant = await findExistingParticipant(phone);
       
       if (existingParticipant) {
+        console.log("🔄 Using existing participant:", existingParticipant);
         // This is now safe because findExistingParticipant returns an object with id
         return handleExistingParticipant(
           existingParticipant, 
@@ -144,6 +145,7 @@ export const useParticipantManager = ({ raffleId, debugMode = false, raffleSelle
         );
       }
       
+      console.log("🔄 No existing participant found, creating new one");
       return createNewParticipant(phone, name, cedula);
     } catch (error) {
       console.error('Error in findOrCreateParticipant:', error);

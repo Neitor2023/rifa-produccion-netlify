@@ -22,6 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from 'sonner';
+import { formatPhoneNumber } from '@/utils/phoneUtils';
 
 const formSchema = z.object({
   buyerName: z.string().min(3, { message: "El nombre debe tener al menos 3 caracteres" }),
@@ -53,26 +54,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     },
   });
 
-  const formatPhoneNumber = (phone: string): string => {
-    let formattedPhone = phone.trim();
-    
-    // Remove Ecuador's prefix if it starts with +5930
-    if (formattedPhone.startsWith('+5930')) {
-      formattedPhone = '+593' + formattedPhone.substring(5);
-    }
-    // If it starts with 0, remove it and add +593
-    else if (formattedPhone.startsWith('0')) {
-      formattedPhone = '+593' + formattedPhone.substring(1);
-    }
-    // If it doesn't have any prefix, add +593
-    else if (!formattedPhone.startsWith('+')) {
-      formattedPhone = '+593' + formattedPhone;
-    }
-    
-    console.log("🔄 Formatted phone:", formattedPhone, "from original:", phone);
-    return formattedPhone;
-  };
-
   const handleSubmit = (data: FormData) => {
     if (selectedNumbers.length === 0) {
       toast.error('Debe seleccionar al menos un número para apartar');
@@ -91,7 +72,8 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     console.log("📞 ReservationModal submitting with:", {
       name: data.buyerName,
       phone: formattedPhone,
-      cedula: data.buyerCedula
+      cedula: data.buyerCedula,
+      selectedNumbers
     });
     
     onConfirm({
