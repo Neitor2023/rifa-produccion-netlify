@@ -39,7 +39,7 @@ interface RaffleSeller {
 interface NumberGridProps {
   numbers: RaffleNumber[];
   raffleSeller: RaffleSeller;
-  onReserve: (selectedNumbers: string[], buyerPhone?: string, buyerName?: string) => void;
+  onReserve: (selectedNumbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula: string) => void;
   onProceedToPayment: (selectedNumbers: string[]) => void;
   debugMode?: boolean;
   soldNumbersCount?: number;
@@ -111,7 +111,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       return;
     }
     
-    onReserve(selectedNumbers, data.buyerPhone, data.buyerName);
+    onReserve(selectedNumbers, data.buyerPhone, data.buyerName, data.buyerCedula);
     setIsReservationModalOpen(false);
     setSelectedNumbers([]);
   };
