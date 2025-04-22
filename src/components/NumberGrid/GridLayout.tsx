@@ -21,13 +21,17 @@ interface GridLayoutProps {
   selectedNumbers: string[];
   highlightReserved: boolean;
   toggleNumber: (number: string, status: string) => void;
+  
+  // Nuevo prop para pagar reservas
+  onPayReserved: (number: string) => void;  
 }
 
 const GridLayout: React.FC<GridLayoutProps> = ({
   numbers,
   selectedNumbers,
   highlightReserved,
-  toggleNumber
+  toggleNumber,
+  onPayReserved      // lo recibimos aquí
 }) => {
   const grid = [];
   for (let row = 0; row < 10; row++) {
@@ -47,7 +51,17 @@ const GridLayout: React.FC<GridLayoutProps> = ({
           status={status}
           isSelected={isSelected}
           isHighlighted={isHighlighted}
-          onToggle={() => toggleNumber(paddedNum, status)}
+ //         onToggle={() => toggleNumber(paddedNum, status)}
+          onToggle={() => {
+          if (status === 'reserved') {
+            // Aquí llamamos a tu handler de pago
+            console.log("▶️ Reservado pulsado:", paddedNum);
+            onPayReserved(paddedNum);
+          } else {
+            // Lógica normal de selección
+            toggleNumber(paddedNum, status);
+          }
+        }}          
         />
       );
     }
