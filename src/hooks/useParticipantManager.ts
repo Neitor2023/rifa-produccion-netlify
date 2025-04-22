@@ -29,7 +29,7 @@ export const useParticipantManager = ({ raffleId, debugMode = false, raffleSelle
     return cleanedPhone;
   };
 
-  const findExistingParticipant = async (phone: string): Promise<ValidatedBuyerInfo | null> => {
+  const findExistingParticipant = async (phone: string): Promise<ValidatedBuyerInfo & { id: string } | null> => {
     const formattedPhone = formatPhoneNumber(phone);
     debugLog('Finding participant with formatted phone', formattedPhone);
     
@@ -47,7 +47,7 @@ export const useParticipantManager = ({ raffleId, debugMode = false, raffleSelle
     
     if (data) {
       debugLog('Found existing participant', data);
-      return data;
+      return data as ValidatedBuyerInfo & { id: string };
     }
     return null;
   };
@@ -135,6 +135,7 @@ export const useParticipantManager = ({ raffleId, debugMode = false, raffleSelle
       const existingParticipant = await findExistingParticipant(phone);
       
       if (existingParticipant) {
+        // This is now safe because findExistingParticipant returns an object with id
         return handleExistingParticipant(
           existingParticipant, 
           name, 
