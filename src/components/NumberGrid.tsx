@@ -124,9 +124,20 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     onProceedToPayment(selectedNumbers);
   };
   
-  const handlePayReserved = () => {
+  const handlePayReserved = (number: string) => {
+    // Resalta que vamos a pagar un número reservado
     setHighlightReserved(true);
     setShowReservedMessage(true);
+
+    // Log para depurar
+    console.log("▶️ src/components/NumberGrid.tsx: handlePayReserved llamado para numero reservado:", number);
+    console.log("🔄 src/components/NumberGrid.tsx: Actual validatedBuyerData:", validatedBuyerData);
+  
+    // Guarda el número reservado que vamos a pagar
+    setSelectedReservedNumber(number);
+  
+    // Abre el PaymentModal
+    setIsPaymentModalOpen(true);    
   };
   
   const handleCloseReservedMessage = () => {

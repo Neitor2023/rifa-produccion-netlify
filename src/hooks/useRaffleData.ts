@@ -65,7 +65,7 @@ export function useRaffleData({ raffleId, sellerId }: UseRaffleDataProps) {
     }
   });
   
-  // Fetch prize images
+  // Obtener imágenes de premios
   const { data: prizeImages, isLoading: isLoadingPrizeImages } = useQuery({
     queryKey: ['prizeImages', prizes?.map(p => p.id)],
     queryFn: async () => {
@@ -86,7 +86,7 @@ export function useRaffleData({ raffleId, sellerId }: UseRaffleDataProps) {
     enabled: !!prizes?.length
   });
   
-  // Fetch organization data
+  // Obtener datos de la organización
   const { data: organization, isLoading: isLoadingOrganization } = useQuery({
     queryKey: ['organization'],
     queryFn: async () => {
@@ -101,7 +101,7 @@ export function useRaffleData({ raffleId, sellerId }: UseRaffleDataProps) {
     }
   });
   
-  // Fetch admin user
+  // Obtener usuario administrador
   const { data: adminUser, isLoading: isLoadingAdmin } = useQuery({
     queryKey: ['admin', raffle?.id_admin],
     queryFn: async () => {
@@ -123,7 +123,7 @@ export function useRaffleData({ raffleId, sellerId }: UseRaffleDataProps) {
     enabled: !!raffle?.id_admin
   });
   
-  // Fetch organizer user
+  // Recuperar usuario del organizador
   const { data: organizerUser, isLoading: isLoadingOrganizer } = useQuery({
     queryKey: ['organizer', raffle?.id_organizer],
     queryFn: async () => {
@@ -145,7 +145,7 @@ export function useRaffleData({ raffleId, sellerId }: UseRaffleDataProps) {
     enabled: !!raffle?.id_organizer
   });
   
-  // Fetch raffle numbers
+  // Obtener números de rifa
   const { data: raffleNumbers, isLoading: isLoadingRaffleNumbers, refetch: refetchRaffleNumbers } = useQuery({
     queryKey: ['raffleNumbers', raffleId],
     queryFn: async () => {
@@ -160,7 +160,7 @@ export function useRaffleData({ raffleId, sellerId }: UseRaffleDataProps) {
     }
   });
   
-  // Fetch raffle seller
+  // Busca al vendedor de rifa
   const { data: raffleSeller } = useQuery({
     queryKey: ['raffleSeller', raffleId, seller?.id],
     queryFn: async () => {
