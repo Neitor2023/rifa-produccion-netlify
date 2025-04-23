@@ -31,7 +31,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
   selectedNumbers,
   highlightReserved,
   toggleNumber,
-  onPayReserved      // lo recibimos aquí
+  onPayReserved,      // lo recibimos aquí
 }) => {
   // Al principio de GridLayout, justo tras los props:
   const numberMap = React.useMemo(
@@ -58,7 +58,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
           isHighlighted={isHighlighted}
  //         onToggle={() => toggleNumber(paddedNum, status)}
           onToggle={() => {
-          if (status === 'reserved') {
+          if (highlightReserved && status === 'reserved') {
             // Aquí llamamos a tu handler de pago
             console.log("▶️ src/components/NumberGrid/GridLayout.tsx: pulsado reservado:", paddedNum);
             onPayReserved(paddedNum);
