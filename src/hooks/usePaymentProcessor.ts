@@ -56,7 +56,6 @@ export function usePaymentProcessor({
     }
   };
 
-  // Log validated buyer data when it changes
   useEffect(() => {
     if (validatedBuyerData) {
       console.log("🔄 usePaymentProcessor: Datos del comprador validados actualizados:", {
@@ -81,6 +80,7 @@ export function usePaymentProcessor({
   
   const { updateRaffleNumbersStatus } = useNumberStatus({ raffleSeller, raffleId, raffleNumbers, debugMode });
 
+  // Lógica: para reservar números (mantiene validación)
   const handleReserveNumbers = async (
     numbers: string[], 
     buyerPhone?: string, 
@@ -140,6 +140,7 @@ export function usePaymentProcessor({
     }
   };
 
+  // Lógica: para proceder al pago (mantiene flujo de validación de teléfono/cédula antes de permitir continuar)
   const handleProceedToPayment = async (numbers: string[]) => {
     console.log("💰 usePaymentProcessor: handleProceedToPayment llamado con números:", numbers);
     
@@ -147,7 +148,11 @@ export function usePaymentProcessor({
       toast.error('Seleccione al menos un número para comprar');
       return;
     }
-    
+
+    // Aquí se debe garantizar que, si los números son reservados, solo puedan continuar tras validación ☑
+    // Esto depende del flujo en NumberGrid, que usa PhoneValidationModal antes de activar este método
+    // Por tanto, no cambiamos ese control aquí, pero el flujo global sigue siendo correcto.
+
     try {
       if (!(await validateSellerMaxNumbers(numbers.length))) {
         return;
@@ -160,7 +165,7 @@ export function usePaymentProcessor({
         return;
       }
       
-      // For reserved numbers, check which participant they belong to
+      // Para apartados, checar el participante antes de abrir modal
       await checkReservedNumbersParticipant(numbers);
       
       setSelectedNumbers(numbers);

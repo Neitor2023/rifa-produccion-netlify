@@ -8,6 +8,21 @@ import PaymentSummary from './PaymentSummary';
 import PaymentFormFields from './PaymentFormFields';
 import { ValidatedBuyerInfo } from '@/types/participant';
 
+// Nuevo: Subcomponente para mostrar datos validados limpios
+const BuyerInfoPreview: React.FC<{ buyerData?: ValidatedBuyerInfo | null }> = ({ buyerData }) => (
+  <div className="mt-6 p-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 dark:bg-blue-900/40 dark:border-blue-700 dark:text-blue-50 text-sm">
+    <strong>Información Importante:</strong>
+    <br />
+    Datos del participante:
+    <br />
+    <strong>Nombre:</strong> {buyerData?.name || ''}
+    <br />
+    <strong>Teléfono:</strong> {buyerData?.phone || ''}
+    <br />
+    <strong>Cédula:</strong> {buyerData?.cedula || ''}
+  </div>
+);
+
 interface PaymentModalContentProps {
   form: UseFormReturn<PaymentFormData>;
   selectedNumbers: string[];
@@ -27,30 +42,28 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
   onFileUpload,
   onFileRemove
 }) => {
-  console.log("🔵 PaymentModalContent received buyerData:", buyerData);
-  
-  // Log when buyerData changes to debug
   useEffect(() => {
     if (buyerData) {
-      console.log("📋 PaymentModalContent - Updated buyerData:", {
-        name: buyerData.name,
-        phone: buyerData.phone,
-        cedula: buyerData.cedula,
-        id: buyerData.id
-      });
-    } else {
-      console.log("⚠️ PaymentModalContent - No buyerData received");
+      form.setValue('buyerName', buyerData.name || '');
+      form.setValue('buyerPhone', buyerData.phone || '');
+      form.setValue('buyerCedula', buyerData.cedula || '');
+      if (buyerData.direccion) {
+        form.setValue("direccion", buyerData.direccion);
+      }
+      if (buyerData.sugerencia_producto) {
+        form.setValue("sugerenciaProducto", buyerData.sugerencia_producto);
+      }
     }
-  }, [buyerData]);
+  }, [buyerData, form]);
   
   return (
     <ScrollArea className="flex-1 overflow-y-auto px-1">
-      <Form {...form}>         
+      <Form {...form}>
         <form onSubmit={form.handleSubmit(() => {})} className="space-y-6 py-4">
           <PaymentSummary 
             selectedNumbers={selectedNumbers}
             price={price}
-          />                 
+          />
           <div className="space-y-6">
             <PaymentFormFields 
               form={form}
@@ -62,17 +75,7 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
           </div>
         </form>
       </Form>
-      <div className="mt-6 p-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 dark:bg-blue-900/40 dark:border-blue-700 dark:text-blue-50 text-sm">
-        <strong>Información Importante:</strong>
-        <br />
-        Datos del participante:
-        <br />
-        <strong>Nombre:</strong> {buyerData?.name || 'no disponible'}
-        <br />
-        <strong>Teléfono:</strong> {buyerData?.phone || 'no disponible'}
-        <br />
-        <strong>Cédula:</strong> {buyerData?.cedula || 'no disponible'}
-      </div>
+      <BuyerInfoPreview buyerData={buyerData} />
     </ScrollArea>
   );
 };

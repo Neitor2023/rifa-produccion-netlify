@@ -1,12 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle,
-  DialogDescription
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -15,6 +9,60 @@ import PhoneInputField from './phone-validation/PhoneInputField';
 import ModalFooter from './phone-validation/ModalFooter';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
+
+function usePhoneValidation(phone: string) {
+  const [validation, setValidation] = useState({
+    isValid: false,
+    message: '',
+    formattedNumber: ''
+  });
+
+  useEffect(() => {
+    if (phone.length > 0) {
+      try {
+        if (phone.length >= 5 && /^\d+$/.test(phone)) {
+          setValidation({
+            isValid: true,
+            message: 'Cédula válida',
+            formattedNumber: phone
+          });
+          return;
+        }
+
+        let formattedPhone = formatPhoneNumber(phone);
+        const isValid = isValidPhoneNumber(formattedPhone);
+
+        if (isValid) {
+          const parsedPhone = parsePhoneNumber(formattedPhone);
+          setValidation({
+            isValid: true,
+            message: 'Número válido',
+            formattedNumber: parsedPhone.formatInternational()
+          });
+        } else {
+          setValidation({
+            isValid: false,
+            message: 'Número inválido',
+            formattedNumber: ''
+          });
+        }
+      } catch (error) {
+        setValidation({
+          isValid: false,
+          message: 'Formato incorrecto',
+          formattedNumber: ''
+        });
+      }
+    } else {
+      setValidation({
+        isValid: false,
+        message: '',
+        formattedNumber: ''
+      });
+    }
+  }, [phone]);
+  return validation;
+}
 
 interface PhoneValidationModalProps {
   isOpen: boolean;
@@ -42,80 +90,17 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   debugMode = false
 }) => {
   const [phone, setPhone] = useState('');
-  const [validation, setValidation] = useState({
-    isValid: false,
-    message: '',
-    formattedNumber: ''
-  });
-
-  useEffect(() => {
-    if (phone.length > 0) {
-      try {
-        // Handle possible cedula input
-        if (phone.length >= 5 && /^\d+$/.test(phone)) {
-          setValidation({
-            isValid: true,
-            message: 'Cédula válida',
-            formattedNumber: phone
-          });
-          return;
-        }
-        
-        console.log("📱 PhoneValidationModal - Validating phone:", phone);
-        let formattedPhone = formatPhoneNumber(phone);
-        console.log("📱 PhoneValidationModal - Formatted phone:", formattedPhone);
-        
-        // Validate as phone number
-        const isValid = isValidPhoneNumber(formattedPhone);
-        
-        if (isValid) {
-          const parsedPhone = parsePhoneNumber(formattedPhone);
-          setValidation({
-            isValid: true,
-            message: 'Número válido',
-            formattedNumber: parsedPhone.formatInternational()
-          });
-          console.log("✅ PhoneValidationModal - Valid phone:", parsedPhone.formatInternational());
-        } else {
-          setValidation({
-            isValid: false,
-            message: 'Número inválido',
-            formattedNumber: ''
-          });
-          console.log("❌ PhoneValidationModal - Invalid phone");
-        }
-      } catch (error) {
-        console.error("❌ PhoneValidationModal - Phone validation error:", error);
-        setValidation({
-          isValid: false,
-          message: 'Formato incorrecto',
-          formattedNumber: ''
-        });
-      }
-    } else {
-      setValidation({
-        isValid: false,
-        message: '',
-        formattedNumber: ''
-      });
-    }
-  }, [phone]);
+  const validation = usePhoneValidation(phone);
 
   const handleNumberSubmit = async () => {
     if (validation.isValid) {
-      // If it's a numeric string, it could be a cedula or a phone number
       const isNumericOnly = /^\d+$/.test(phone);
       const cleanedPhone = formatPhoneNumber(phone);
-      console.log("🔍 PhoneValidationModal - Original input:", phone);
-      console.log("🔍 PhoneValidationModal - Formatted for search:", cleanedPhone);
-
       let participant = null;
       let foundBy = '';
 
       try {
-        // First try to find by phone number
-        console.log("🔍 PhoneValidationModal - Searching by phone:", cleanedPhone);
-        const { data: byPhone, error: errPhone } = await supabase
+        const { data: byPhone } = await supabase
           .from('participants')
           .select('id, name, phone, cedula, direccion, sugerencia_producto')
           .eq('phone', cleanedPhone)
@@ -124,11 +109,8 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         if (byPhone) {
           participant = byPhone;
           foundBy = 'phone';
-          console.log("✅ PhoneValidationModal - Found participant by phone:", participant);
         } else if (isNumericOnly) {
-          // If it's a numeric string, try to find by cedula
-          console.log("🔍 PhoneValidationModal - Searching by cedula:", phone);
-          const { data: byCedula, error: errCedula } = await supabase
+          const { data: byCedula } = await supabase
             .from('participants')
             .select('id, name, phone, cedula, direccion, sugerencia_producto')
             .eq('cedula', phone)
@@ -137,12 +119,10 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           if (byCedula) {
             participant = byCedula;
             foundBy = 'cedula';
-            console.log("✅ PhoneValidationModal - Found participant by cedula:", participant);
           }
         }
 
         if (!participant) {
-          console.log("❌ PhoneValidationModal - No participant found by phone or cedula");
           toast.error(`❌ Participante no encontrado con el dato ingresado: ${cleanedPhone}`);
           return;
         }
@@ -157,8 +137,6 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           direccion,
           sugerencia_producto
         };
-
-        console.log("✅ PhoneValidationModal - Successfully validated participant:", validatedInfo);
         
         onPhoneValidationSuccess(
           foundPhone || cleanedPhone,
@@ -168,15 +146,10 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 
         onClose();
       } catch (error) {
-        console.error("❌ PhoneValidationModal - Error during validation:", error);
         toast.error("Error durante la validación. Por favor intente nuevamente.");
       }
     } else {
-      setValidation({
-        isValid: false,
-        message: "Por favor ingrese un número o cédula válida",
-        formattedNumber: ""
-      });
+      // Validación fallida
     }
   };
 
