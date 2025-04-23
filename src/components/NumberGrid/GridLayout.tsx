@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import NumberGridItem from '../NumberGridItem';
 
@@ -23,7 +24,6 @@ interface GridLayoutProps {
   
   // Nuevo prop para pagar reservas
   onPayReserved: (number: string) => void;  
-  // validatedBuyerData: ValidatedBuyerInfo | null;
 }
 
 const GridLayout: React.FC<GridLayoutProps> = ({
@@ -31,13 +31,19 @@ const GridLayout: React.FC<GridLayoutProps> = ({
   selectedNumbers,
   highlightReserved,
   toggleNumber,
-  onPayReserved,      // lo recibimos aquí
+  onPayReserved,
 }) => {
   // Al principio de GridLayout, justo tras los props:
   const numberMap = React.useMemo(
     () => Object.fromEntries(numbers.map(n => [n.number, n])),
     [numbers]
   );  
+
+  // Log when highlightReserved changes
+  React.useEffect(() => {
+    console.log("📊 GridLayout - highlightReserved changed:", highlightReserved);
+  }, [highlightReserved]);
+
   const grid = [];
   for (let row = 0; row < 10; row++) {
     const rowItems = [];
@@ -56,17 +62,16 @@ const GridLayout: React.FC<GridLayoutProps> = ({
           status={status}
           isSelected={isSelected}
           isHighlighted={isHighlighted}
- //         onToggle={() => toggleNumber(paddedNum, status)}
           onToggle={() => {
-          if (highlightReserved && status === 'reserved') {
-            // Aquí llamamos a tu handler de pago
-            console.log("▶️ src/components/NumberGrid/GridLayout.tsx: pulsado reservado:", paddedNum);
-            onPayReserved(paddedNum);
-          } else {
-            // Lógica normal de selección
-            toggleNumber(paddedNum, status);
-          }
-        }}          
+            if (highlightReserved && status === 'reserved') {
+              // Aquí llamamos a tu handler de pago
+              console.log("▶️ src/components/NumberGrid/GridLayout.tsx: pulsado reservado:", paddedNum);
+              onPayReserved(paddedNum);
+            } else {
+              // Lógica normal de selección
+              toggleNumber(paddedNum, status);
+            }
+          }}          
         />
       );
     }

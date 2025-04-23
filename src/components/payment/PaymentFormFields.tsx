@@ -33,8 +33,8 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
   useEffect(() => {
     if (readOnlyData) {
       console.log("🔄 Updating form with readOnlyData:", readOnlyData);
-      form.setValue('buyerName', readOnlyData.name);
-      form.setValue('buyerPhone', readOnlyData.phone);
+      form.setValue('buyerName', readOnlyData.name || '');
+      form.setValue('buyerPhone', readOnlyData.phone || '');
       form.setValue('buyerCedula', readOnlyData.cedula || '');
       
       if (readOnlyData.direccion) {
@@ -51,7 +51,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
     }
   }, [readOnlyData, form]);
 
-  // Using form.watch() for reactive updates
+  // Using form.watch() for reactive updates to ensure the UI reflects the form values
   const buyerName = form.watch('buyerName');
   const buyerPhone = form.watch('buyerPhone');
   const buyerCedula = form.watch('buyerCedula');
@@ -68,7 +68,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
             <FormControl>
               <Input 
                 {...field}
-                value={buyerName}
+                value={buyerName || ''}
                 readOnly
                 className={cn(readOnlyStyles, "hover:bg-gray-100 dark:hover:bg-gray-800")}
               />
@@ -91,7 +91,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
                 <FormControl>
                   <Input 
                     {...field}
-                    value={buyerCedula}
+                    value={buyerCedula || ''}
                     readOnly
                     className={cn(readOnlyStyles, "hover:bg-gray-100 dark:hover:bg-gray-800")}
                   />
@@ -109,7 +109,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
                 <FormControl>
                   <Input 
                     {...field}
-                    value={buyerPhone}
+                    value={buyerPhone || ''}
                     readOnly
                     className={cn(readOnlyStyles, "hover:bg-gray-100 dark:hover:bg-gray-800")}
                   />

@@ -75,6 +75,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
   // Update form values when buyerData changes
   useEffect(() => {
+    console.log("📦 Modal is open:", isOpen, "buyerData:", buyerData);
+    
     if (buyerData && isOpen) {
       console.log("📦 Modal is open, updating form with buyer data:", buyerData);
       form.setValue('buyerName', buyerData.name || "");

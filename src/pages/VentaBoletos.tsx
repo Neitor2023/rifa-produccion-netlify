@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import RaffleHeader from '@/components/RaffleHeader';
 import PrizeCarousel from '@/components/PrizeCarousel';
@@ -72,6 +73,7 @@ const VentaBoletos: React.FC = () => {
   // Log validatedBuyerData whenever it changes
   useEffect(() => {
     console.log("📦 VentaBoletos - validatedBuyerData:", validatedBuyerData ? {
+      id: validatedBuyerData.id || 'N/A',
       name: validatedBuyerData.name,
       phone: validatedBuyerData.phone,
       cedula: validatedBuyerData.cedula,
@@ -83,6 +85,7 @@ const VentaBoletos: React.FC = () => {
   // Log before rendering PaymentModal
   console.log("📦 VentaBoletos - Rendering PaymentModal with validatedBuyerData:", 
     validatedBuyerData ? {
+      id: validatedBuyerData.id || 'N/A',
       name: validatedBuyerData.name,
       phone: validatedBuyerData.phone,
       cedula: validatedBuyerData.cedula
@@ -99,7 +102,7 @@ const VentaBoletos: React.FC = () => {
   useEffect(() => {
     if (validatedBuyerData) {
       console.log("🔄 VentaBoletos - validatedBuyerData updated:", {
-        id: validatedBuyerData.id,
+        id: validatedBuyerData.id || 'N/A',
         name: validatedBuyerData.name,
         phone: validatedBuyerData.phone,
         cedula: validatedBuyerData.cedula

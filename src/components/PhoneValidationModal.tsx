@@ -61,9 +61,9 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           return;
         }
         
-        console.log("📱 Validating phone:", phone);
+        console.log("📱 PhoneValidationModal - Validating phone:", phone);
         let formattedPhone = formatPhoneNumber(phone);
-        console.log("📱 Formatted phone:", formattedPhone);
+        console.log("📱 PhoneValidationModal - Formatted phone:", formattedPhone);
         
         // Validate as phone number
         const isValid = isValidPhoneNumber(formattedPhone);
@@ -75,17 +75,17 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
             message: 'Número válido',
             formattedNumber: parsedPhone.formatInternational()
           });
-          console.log("✅ Valid phone:", parsedPhone.formatInternational());
+          console.log("✅ PhoneValidationModal - Valid phone:", parsedPhone.formatInternational());
         } else {
           setValidation({
             isValid: false,
             message: 'Número inválido',
             formattedNumber: ''
           });
-          console.log("❌ Invalid phone");
+          console.log("❌ PhoneValidationModal - Invalid phone");
         }
       } catch (error) {
-        console.error("❌ Phone validation error:", error);
+        console.error("❌ PhoneValidationModal - Phone validation error:", error);
         setValidation({
           isValid: false,
           message: 'Formato incorrecto',
@@ -106,14 +106,14 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       // If it's a numeric string, it could be a cedula or a phone number
       const isNumericOnly = /^\d+$/.test(phone);
       const cleanedPhone = formatPhoneNumber(phone);
-      console.log("🔍 Original input:", phone);
-      console.log("🔍 Formatted for search:", cleanedPhone);
+      console.log("🔍 PhoneValidationModal - Original input:", phone);
+      console.log("🔍 PhoneValidationModal - Formatted for search:", cleanedPhone);
 
       let participant = null;
       let foundBy = '';
 
       // First try to find by phone number
-      console.log("🔍 Searching by phone:", cleanedPhone);
+      console.log("🔍 PhoneValidationModal - Searching by phone:", cleanedPhone);
       const { data: byPhone, error: errPhone } = await supabase
         .from('participants')
         .select('id, name, phone, cedula, direccion, sugerencia_producto')
@@ -123,10 +123,10 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       if (byPhone) {
         participant = byPhone;
         foundBy = 'phone';
-        console.log("✅ Found participant by phone:", participant);
+        console.log("✅ PhoneValidationModal - Found participant by phone:", participant);
       } else if (isNumericOnly) {
         // If it's a numeric string, try to find by cedula
-        console.log("🔍 Searching by cedula:", phone);
+        console.log("🔍 PhoneValidationModal - Searching by cedula:", phone);
         const { data: byCedula, error: errCedula } = await supabase
           .from('participants')
           .select('id, name, phone, cedula, direccion, sugerencia_producto')
@@ -136,12 +136,12 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         if (byCedula) {
           participant = byCedula;
           foundBy = 'cedula';
-          console.log("✅ Found participant by cedula:", participant);
+          console.log("✅ PhoneValidationModal - Found participant by cedula:", participant);
         }
       }
 
       if (!participant) {
-        console.log("❌ No participant found by phone or cedula");
+        console.log("❌ PhoneValidationModal - No participant found by phone or cedula");
         toast.error(`❌ Participante no encontrado con el dato ingresado: ${cleanedPhone}`);
         return;
       }
@@ -157,7 +157,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         sugerencia_producto
       };
 
-      console.log("✅ Successfully validated participant:", validatedInfo);
+      console.log("✅ PhoneValidationModal - Successfully validated participant:", validatedInfo);
       
       onPhoneValidationSuccess(
         foundPhone || cleanedPhone,

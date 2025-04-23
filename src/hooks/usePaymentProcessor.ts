@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { toast } from 'sonner';
@@ -45,6 +46,7 @@ export function usePaymentProcessor({
   const { uploadPaymentProof, processParticipant, updateNumbersToSold } = usePaymentCompletion({
     raffleSeller,
     raffleId,
+    setValidatedBuyerData, // Pass the setter to usePaymentCompletion
     debugMode
   });
 
@@ -54,12 +56,18 @@ export function usePaymentProcessor({
     }
   };
 
-  const { findOrCreateParticipant } = useParticipantManager({ raffleId, debugMode, raffleSeller });
+  const { findOrCreateParticipant } = useParticipantManager({ 
+    raffleId, 
+    debugMode, 
+    raffleSeller,
+    setValidatedBuyerData // Pass the setter to useParticipantManager
+  });
   const { updateRaffleNumbersStatus } = useNumberStatus({ raffleSeller, raffleId, raffleNumbers, debugMode });
 
   useEffect(() => {
     if (validatedBuyerData) {
       console.log("🔄 src/hooks/usePaymentProcessor.ts: Datos del comprador validados actualizados:", {
+        id: validatedBuyerData.id || 'N/A',
         name: validatedBuyerData.name,
         phone: validatedBuyerData.phone,
         cedula: validatedBuyerData.cedula || 'N/A',
@@ -77,7 +85,7 @@ export function usePaymentProcessor({
     buyerName?: string, 
     buyerCedula?: string
   ) => {
-    console.log("🎯 src/hooks/usePaymentProcessor.ts: llamado con:", {
+    console.log("🎯 src/hooks/usePaymentProcessor.ts: handleReserveNumbers llamado con:", {
       numbers,
       buyerPhone,
       buyerName,

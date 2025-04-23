@@ -4,7 +4,17 @@ import { toast } from 'sonner';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
 
-export const useParticipantManager = ({ raffleId, debugMode = false, raffleSeller }) => {
+export const useParticipantManager = ({ 
+  raffleId, 
+  debugMode = false, 
+  raffleSeller, 
+  setValidatedBuyerData 
+}: { 
+  raffleId: string;
+  debugMode?: boolean;
+  raffleSeller: any;
+  setValidatedBuyerData?: (data: ValidatedBuyerInfo) => void;
+}) => {
   const debugLog = (context: string, data: any) => {
     if (debugMode) {
       console.log(`[DEBUG - ParticipantManager - ${context}]:`, data);
@@ -31,6 +41,22 @@ export const useParticipantManager = ({ raffleId, debugMode = false, raffleSelle
     if (data) {
       debugLog('Found existing participant', data);
       console.log("✅ Found existing participant:", data);
+      
+      // Update the global validatedBuyerData state if the setter is provided
+      if (setValidatedBuyerData) {
+        const buyerInfo: ValidatedBuyerInfo = {
+          id: data.id,
+          name: data.name,
+          phone: data.phone,
+          cedula: data.cedula,
+          direccion: data.direccion,
+          sugerencia_producto: data.sugerencia_producto
+        };
+        
+        console.log("🔄 Setting validatedBuyerData in findExistingParticipant:", buyerInfo);
+        setValidatedBuyerData(buyerInfo);
+      }
+      
       return data as ValidatedBuyerInfo & { id: string };
     }
     
@@ -78,6 +104,21 @@ export const useParticipantManager = ({ raffleId, debugMode = false, raffleSelle
         console.error('Error updating participant:', error);
       } else {
         console.log("✅ Participant updated successfully");
+        
+        // Update the global validatedBuyerData state with the updated participant info
+        if (setValidatedBuyerData) {
+          const buyerInfo: ValidatedBuyerInfo = {
+            id: participant.id,
+            name: newName || participant.name,
+            phone: newPhone ? formatPhoneNumber(newPhone) : participant.phone,
+            cedula: newCedula || participant.cedula,
+            direccion: participant.direccion,
+            sugerencia_producto: participant.sugerencia_producto
+          };
+          
+          console.log("🔄 Setting validatedBuyerData in handleExistingParticipant:", buyerInfo);
+          setValidatedBuyerData(buyerInfo);
+        }
       }
     }
     
@@ -113,7 +154,7 @@ export const useParticipantManager = ({ raffleId, debugMode = false, raffleSelle
         raffle_id: raffleId,
         seller_id: raffleSeller?.seller_id
       })
-      .select('id')
+      .select('id, name, phone, cedula')
       .single();
       
     if (error) {
@@ -124,6 +165,20 @@ export const useParticipantManager = ({ raffleId, debugMode = false, raffleSelle
     
     debugLog('New participant created with ID', data?.id);
     console.log("✅ New participant created with ID:", data?.id);
+    
+    // Update the global validatedBuyerData state with the new participant
+    if (data && setValidatedBuyerData) {
+      const buyerInfo: ValidatedBuyerInfo = {
+        id: data.id,
+        name: data.name,
+        phone: data.phone,
+        cedula: data.cedula
+      };
+      
+      console.log("🔄 Setting validatedBuyerData in createNewParticipant:", buyerInfo);
+      setValidatedBuyerData(buyerInfo);
+    }
+    
     return data?.id || null;
   };
 
@@ -136,7 +191,6 @@ export const useParticipantManager = ({ raffleId, debugMode = false, raffleSelle
       
       if (existingParticipant) {
         console.log("🔄 Using existing participant:", existingParticipant);
-        // This is now safe because findExistingParticipant returns an object with id
         return handleExistingParticipant(
           existingParticipant, 
           name, 

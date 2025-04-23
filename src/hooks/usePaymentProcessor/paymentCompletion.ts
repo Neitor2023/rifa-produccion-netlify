@@ -1,16 +1,18 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentFormData } from '@/components/PaymentModal';
+import { ValidatedBuyerInfo } from '@/types/participant';
 
 interface UsePaymentCompletionProps {
   raffleSeller: any;
   raffleId: string;
+  setValidatedBuyerData?: (data: ValidatedBuyerInfo) => void;
   debugMode?: boolean;
 }
 
 export function usePaymentCompletion({
   raffleSeller,
   raffleId,
+  setValidatedBuyerData,
   debugMode = false
 }: UsePaymentCompletionProps) {
   
@@ -94,6 +96,21 @@ export function usePaymentCompletion({
           console.error("Error updating participant:", updateError);
         } else {
           console.log("✅ Updated participant with new data:", updateData);
+          
+          // Update the validatedBuyerData to reflect the updated participant info
+          if (setValidatedBuyerData) {
+            const buyerInfo: ValidatedBuyerInfo = {
+              id: participantId,
+              name: data.buyerName,
+              phone: data.buyerPhone,
+              cedula: data.buyerCedula,
+              direccion: data.direccion,
+              sugerencia_producto: data.sugerenciaProducto
+            };
+            
+            console.log("🔄 Setting validatedBuyerData in processParticipant:", buyerInfo);
+            setValidatedBuyerData(buyerInfo);
+          }
         }
         
         return participantId;
@@ -123,6 +140,22 @@ export function usePaymentCompletion({
       }
       
       console.log("✅ Created new participant with ID:", newParticipant.id);
+      
+      // Update the validatedBuyerData with the new participant info
+      if (setValidatedBuyerData && newParticipant) {
+        const buyerInfo: ValidatedBuyerInfo = {
+          id: newParticipant.id,
+          name: data.buyerName,
+          phone: data.buyerPhone,
+          cedula: data.buyerCedula,
+          direccion: data.direccion,
+          sugerencia_producto: data.sugerenciaProducto
+        };
+        
+        console.log("🔄 Setting validatedBuyerData with new participant:", buyerInfo);
+        setValidatedBuyerData(buyerInfo);
+      }
+      
       return newParticipant.id;
     } catch (error) {
       console.error('Error processing participant:', error);
@@ -151,12 +184,25 @@ export function usePaymentCompletion({
     // Get participant data to store in raffle_numbers
     const { data: participantData, error: participantError } = await supabase
       .from('participants')
-      .select('name, phone, cedula')
+      .select('name, phone, cedula, direccion, sugerencia_producto')
       .eq('id', participantId)
       .single();
       
     if (participantError) {
       console.error("Error fetching participant data:", participantError);
+    } else if (participantData && setValidatedBuyerData) {
+      // Update the validatedBuyerData with the complete participant info
+      const buyerInfo: ValidatedBuyerInfo = {
+        id: participantId,
+        name: participantData.name,
+        phone: participantData.phone,
+        cedula: participantData.cedula,
+        direccion: participantData.direccion,
+        sugerencia_producto: participantData.sugerencia_producto
+      };
+      
+      console.log("🔄 Setting validatedBuyerData in updateNumbersToSold:", buyerInfo);
+      setValidatedBuyerData(buyerInfo);
     }
     
     const updatePromises = numbers.map(async (numStr) => {
