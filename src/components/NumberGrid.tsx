@@ -139,8 +139,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     setSelectedReservedNumber(number);
   
     // Abre el PaymentModal
+    setIsPaymentModalOpen(true);   
     onProceedToPayment([number]);
-    // setIsPaymentModalOpen(true);    
   };
   
   const handleCloseReservedMessage = () => {
