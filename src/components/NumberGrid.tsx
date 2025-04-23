@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'sonner';
 import { Card } from '@/components/ui/card';
@@ -133,6 +134,21 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     setSelectedReservedNumber(number);
   
     onProceedToPayment([number]);
+  };
+
+  // Function to activate reserved numbers highlighting mode
+  const activateReservedNumbersMode = () => {
+    setHighlightReserved(true);
+    setShowReservedMessage(true);
+    console.log("🔍 src/components/NumberGrid.tsx: Modo de números reservados activado");
+    
+    // Find any reserved numbers in the grid
+    const reservedNumbers = numbers.filter(n => n.status === 'reserved');
+    if (reservedNumbers.length === 0) {
+      toast.warning('No hay números apartados para pagar');
+    } else {
+      toast.info(`Hay ${reservedNumbers.length} número(s) apartados. Haga click en un número para proceder al pago.`);
+    }
   };
   
   const handleCloseReservedMessage = () => {
@@ -284,7 +300,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         raffleSeller={raffleSeller}
         onClearSelection={clearSelection}
         onReserve={handleReserve}
-        onPayReserved={() => {}} // Fixed: Adding empty function to satisfy type checking
+        onPayReserved={activateReservedNumbersMode}
         onProceedToPayment={handleProceedToPayment}
       />
       

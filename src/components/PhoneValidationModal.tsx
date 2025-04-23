@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
 import { supabase } from '@/integrations/supabase/client';
-import { Toaster, toast } from 'sonner';
+import { toast } from 'sonner';
 import ValidationMessage from './phone-validation/ValidationMessage';
 import PhoneInputField from './phone-validation/PhoneInputField';
 import ModalFooter from './phone-validation/ModalFooter';
@@ -112,60 +112,65 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       let participant = null;
       let foundBy = '';
 
-      // First try to find by phone number
-      console.log("🔍 PhoneValidationModal - Searching by phone:", cleanedPhone);
-      const { data: byPhone, error: errPhone } = await supabase
-        .from('participants')
-        .select('id, name, phone, cedula, direccion, sugerencia_producto')
-        .eq('phone', cleanedPhone)
-        .maybeSingle();
-
-      if (byPhone) {
-        participant = byPhone;
-        foundBy = 'phone';
-        console.log("✅ PhoneValidationModal - Found participant by phone:", participant);
-      } else if (isNumericOnly) {
-        // If it's a numeric string, try to find by cedula
-        console.log("🔍 PhoneValidationModal - Searching by cedula:", phone);
-        const { data: byCedula, error: errCedula } = await supabase
+      try {
+        // First try to find by phone number
+        console.log("🔍 PhoneValidationModal - Searching by phone:", cleanedPhone);
+        const { data: byPhone, error: errPhone } = await supabase
           .from('participants')
           .select('id, name, phone, cedula, direccion, sugerencia_producto')
-          .eq('cedula', phone)
+          .eq('phone', cleanedPhone)
           .maybeSingle();
 
-        if (byCedula) {
-          participant = byCedula;
-          foundBy = 'cedula';
-          console.log("✅ PhoneValidationModal - Found participant by cedula:", participant);
+        if (byPhone) {
+          participant = byPhone;
+          foundBy = 'phone';
+          console.log("✅ PhoneValidationModal - Found participant by phone:", participant);
+        } else if (isNumericOnly) {
+          // If it's a numeric string, try to find by cedula
+          console.log("🔍 PhoneValidationModal - Searching by cedula:", phone);
+          const { data: byCedula, error: errCedula } = await supabase
+            .from('participants')
+            .select('id, name, phone, cedula, direccion, sugerencia_producto')
+            .eq('cedula', phone)
+            .maybeSingle();
+
+          if (byCedula) {
+            participant = byCedula;
+            foundBy = 'cedula';
+            console.log("✅ PhoneValidationModal - Found participant by cedula:", participant);
+          }
         }
+
+        if (!participant) {
+          console.log("❌ PhoneValidationModal - No participant found by phone or cedula");
+          toast.error(`❌ Participante no encontrado con el dato ingresado: ${cleanedPhone}`);
+          return;
+        }
+
+        const { id, name, phone: foundPhone, cedula, direccion, sugerencia_producto } = participant;
+
+        const validatedInfo: ValidatedBuyerInfo = {
+          id,
+          name,
+          phone: foundPhone || cleanedPhone,
+          cedula,
+          direccion,
+          sugerencia_producto
+        };
+
+        console.log("✅ PhoneValidationModal - Successfully validated participant:", validatedInfo);
+        
+        onPhoneValidationSuccess(
+          foundPhone || cleanedPhone,
+          id,
+          validatedInfo
+        );
+
+        onClose();
+      } catch (error) {
+        console.error("❌ PhoneValidationModal - Error during validation:", error);
+        toast.error("Error durante la validación. Por favor intente nuevamente.");
       }
-
-      if (!participant) {
-        console.log("❌ PhoneValidationModal - No participant found by phone or cedula");
-        toast.error(`❌ Participante no encontrado con el dato ingresado: ${cleanedPhone}`);
-        return;
-      }
-
-      const { id, name, phone: foundPhone, cedula, direccion, sugerencia_producto } = participant;
-
-      const validatedInfo: ValidatedBuyerInfo = {
-        id,
-        name,
-        phone: foundPhone || cleanedPhone,
-        cedula,
-        direccion,
-        sugerencia_producto
-      };
-
-      console.log("✅ PhoneValidationModal - Successfully validated participant:", validatedInfo);
-      
-      onPhoneValidationSuccess(
-        foundPhone || cleanedPhone,
-        id,
-        validatedInfo
-      );
-
-      onClose();
     } else {
       setValidation({
         isValid: false,
