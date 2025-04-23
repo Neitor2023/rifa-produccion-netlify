@@ -1,9 +1,9 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { UseFormReturn, Controller } from "react-hook-form";
+import { UseFormReturn } from "react-hook-form";
 import { PaymentFormData } from '../PaymentModal';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import PaymentMethodFields from './PaymentMethodFields';
@@ -13,12 +13,16 @@ interface PaymentFormFieldsProps {
   form: UseFormReturn<PaymentFormData>;
   readOnlyData?: ValidatedBuyerInfo | null;
   previewUrl: string | null;
+  onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onFileRemove: () => void;
 }
 
 const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
   form,
   readOnlyData,
-  previewUrl
+  previewUrl,
+  onFileUpload,
+  onFileRemove
 }) => {
   // Log readOnlyData to debug
   useEffect(() => {
@@ -40,6 +44,10 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
   const watchedPhone = form.watch('buyerPhone');
   const watchedName = form.watch('buyerName');
   const watchedCedula = form.watch('buyerCedula');
+  const watchedEmail = form.watch('buyerEmail');
+  const watchedDireccion = form.watch('direccion');
+  const watchedSugerencia = form.watch('sugerenciaProducto');
+  const watchedPaymentMethod = form.watch('paymentMethod');
 
   return (
     <>
@@ -178,10 +186,13 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
       <PaymentMethodFields form={form} />
       
       {/* Upload Payment Proof */}
-      <PaymentUploadZone 
-        form={form} 
-        previewUrl={previewUrl} 
-      />
+      {watchedPaymentMethod === "transfer" && (
+        <PaymentUploadZone 
+          previewUrl={previewUrl}
+          onFileUpload={onFileUpload}
+          onFileRemove={onFileRemove}
+        />
+      )}
     </>
   );
 };

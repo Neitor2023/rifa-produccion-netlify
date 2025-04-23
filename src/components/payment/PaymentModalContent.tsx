@@ -14,6 +14,8 @@ interface PaymentModalContentProps {
   price: number;
   previewUrl: string | null;
   buyerData?: ValidatedBuyerInfo;
+  onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onFileRemove: () => void;
 }
 
 const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
@@ -21,7 +23,9 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
   selectedNumbers,
   price,
   previewUrl,
-  buyerData
+  buyerData,
+  onFileUpload,
+  onFileRemove
 }) => {
   console.log("🔵 PaymentModalContent received buyerData:", buyerData);
   
@@ -52,6 +56,8 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
               form={form}
               readOnlyData={buyerData}
               previewUrl={previewUrl}
+              onFileUpload={onFileUpload}
+              onFileRemove={onFileRemove}
             />
           </div>
         </form>

@@ -217,6 +217,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           price={price}
           previewUrl={previewUrl}
           buyerData={buyerData}
+          onFileUpload={handleImageUpload}
+          onFileRemove={handleRemoveImage}
         />
         
         <PaymentModalActions 

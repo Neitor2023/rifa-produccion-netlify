@@ -16,21 +16,12 @@ import {
 } from "@/components/ui/select";
 import { UseFormReturn } from "react-hook-form";
 import { PaymentFormData } from '../PaymentModal';
-import PaymentUploadZone from './PaymentUploadZone';
 
 interface PaymentMethodFieldsProps {
   form: UseFormReturn<PaymentFormData>;
-  previewUrl: string | null;
-  onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onFileRemove: () => void;
 }
 
-const PaymentMethodFields: React.FC<PaymentMethodFieldsProps> = ({ 
-  form, 
-  previewUrl, 
-  onFileUpload, 
-  onFileRemove 
-}) => {
+const PaymentMethodFields: React.FC<PaymentMethodFieldsProps> = ({ form }) => {
   return (
     <div className="space-y-4">
       <FormField
@@ -57,14 +48,6 @@ const PaymentMethodFields: React.FC<PaymentMethodFieldsProps> = ({
           </FormItem>
         )}
       />
-      
-      {form.watch("paymentMethod") === "transfer" && (
-        <PaymentUploadZone
-          previewUrl={previewUrl}
-          onFileUpload={onFileUpload}
-          onFileRemove={onFileRemove}
-        />
-      )}
     </div>
   );
 };
