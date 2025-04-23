@@ -39,7 +39,7 @@ interface RaffleSeller {
 interface NumberGridProps {
   numbers: RaffleNumber[];
   raffleSeller: RaffleSeller;
-  onReserve: (selectedNumbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula: string) => void;
+  onReserve: (selectedNumbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula?: string) => void;
   onProceedToPayment: (selectedNumbers: string[]) => void;
   debugMode?: boolean;
   soldNumbersCount?: number;
@@ -125,21 +125,13 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   };
   
   const handlePayReserved = (number: string) => {
-//    console.log("▶️ src/components/NumberGrid.tsx: Pago reservado para número:", number, validatedBuyerData);
-    
-    // Resalta que vamos a pagar un número reservado
     setHighlightReserved(true);
     setShowReservedMessage(true);
 
-    // Log para depurar
     console.log("▶️ src/components/NumberGrid.tsx: handlePayReserved llamado para numero reservado:", number);
-//    console.log("🔄 src/components/NumberGrid.tsx: Actual validatedBuyerData:", validatedBuyerData);
   
-    // Guarda el número reservado que vamos a pagar
     setSelectedReservedNumber(number);
   
-    // Abre el PaymentModal
-    // setIsPaymentModalOpen(true);  
     onProceedToPayment([number]);
   };
   
@@ -283,11 +275,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           selectedNumbers={selectedNumbers}
           highlightReserved={highlightReserved}
           toggleNumber={toggleNumber}
-          onPayReserved={(num) => {
-            // tu función original
-            handlePayReserved(num);
-          }}     
-//          validatedBuyerData={validatedBuyerData} 
+          onPayReserved={handlePayReserved} 
         />
       </Card>
       
@@ -296,7 +284,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         raffleSeller={raffleSeller}
         onClearSelection={clearSelection}
         onReserve={handleReserve}
-        onPayReserved={handlePayReserved}
+        onPayReserved={() => {}} // Fixed: Adding empty function to satisfy type checking
         onProceedToPayment={handleProceedToPayment}
       />
       

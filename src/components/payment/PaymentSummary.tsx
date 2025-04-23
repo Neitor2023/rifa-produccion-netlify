@@ -6,28 +6,38 @@ interface PaymentSummaryProps {
   price: number;
 }
 
-const PaymentSummary: React.FC<PaymentSummaryProps> = ({ selectedNumbers, price }) => {
-  const totalAmount = selectedNumbers.length * price;
-
+const PaymentSummary: React.FC<PaymentSummaryProps> = ({
+  selectedNumbers,
+  price,
+}) => {
+  // Calculate total
+  const total = selectedNumbers.length * price;
+  
   return (
-    <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-md mb-4 shadow-sm">
-      <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-        {selectedNumbers.length > 1 ? 'Números seleccionados:' : 'Número seleccionado:'}
-      </div>
-      <div className="flex flex-wrap gap-1 mb-3">
-        {selectedNumbers.map((number) => (
-          <span key={number} className="bg-rifa-purple text-white px-2 py-1 text-xs rounded-md">
-            {number}
-          </span>
-        ))}
-      </div>
-      <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-        <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600 dark:text-gray-400">
+    <div className="space-y-4">
+      <h3 className="text-lg font-medium">Resumen del Pago</h3>
+      
+      <div className="bg-blue-50 p-4 rounded-md border border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
+        <div className="mb-2">
+          <span className="font-medium text-sm text-gray-700 dark:text-gray-300">Números seleccionados:</span>
+          <div className="flex flex-wrap gap-1 mt-1">
+            {selectedNumbers.map((num) => (
+              <span 
+                key={num}
+                className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded dark:bg-blue-800 dark:text-blue-100"
+              >
+                {num}
+              </span>
+            ))}
+          </div>
+        </div>
+        
+        <div className="flex justify-between items-center border-t border-blue-200 dark:border-blue-700 pt-2 mt-2">
+          <span className="font-medium text-sm text-gray-700 dark:text-gray-300">
             {selectedNumbers.length} número(s) x ${price.toFixed(2)}
           </span>
-          <span className="font-medium text-lg dark:text-gray-200">
-            ${totalAmount.toFixed(2)}
+          <span className="font-bold text-green-700 dark:text-green-400">
+            ${total.toFixed(2)}
           </span>
         </div>
       </div>

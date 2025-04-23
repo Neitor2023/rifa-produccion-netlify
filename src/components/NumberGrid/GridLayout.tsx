@@ -87,7 +87,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
     <div className="flex flex-col gap-1 sm:gap-2 min-w-fit">
       {grid}
     </div>
-  )
+  );
 };
 
 export default GridLayout;
