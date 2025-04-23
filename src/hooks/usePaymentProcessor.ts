@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { toast } from 'sonner';
@@ -80,7 +79,6 @@ export function usePaymentProcessor({
   
   const { updateRaffleNumbersStatus } = useNumberStatus({ raffleSeller, raffleId, raffleNumbers, debugMode });
 
-  // Lógica: para reservar números (mantiene validación)
   const handleReserveNumbers = async (
     numbers: string[], 
     buyerPhone?: string, 
@@ -140,38 +138,56 @@ export function usePaymentProcessor({
     }
   };
 
-  // Lógica: para proceder al pago (mantiene flujo de validación de teléfono/cédula antes de permitir continuar)
-  const handleProceedToPayment = async (numbers: string[]) => {
+  const handleProceedToPayment = async (numbers: string[], participantData?: ValidatedBuyerInfo) => {
     console.log("💰 usePaymentProcessor: handleProceedToPayment llamado con números:", numbers);
-    
+
     if (numbers.length === 0) {
       toast.error('Seleccione al menos un número para comprar');
       return;
     }
 
-    // Aquí se debe garantizar que, si los números son reservados, solo puedan continuar tras validación ☑
-    // Esto depende del flujo en NumberGrid, que usa PhoneValidationModal antes de activar este método
-    // Por tanto, no cambiamos ese control aquí, pero el flujo global sigue siendo correcto.
-
     try {
       if (!(await validateSellerMaxNumbers(numbers.length))) {
         return;
       }
-      
+
       const unavailableNumbers = await checkNumbersAvailability(numbers);
-      
       if (unavailableNumbers.length > 0) {
         toast.error(`Números ${unavailableNumbers.join(', ')} no están disponibles`);
         return;
       }
-      
-      // Para apartados, checar el participante antes de abrir modal
-      await checkReservedNumbersParticipant(numbers);
-      
+
+      if (raffleNumbers && numbers.length > 0) {
+        const reserved = numbers
+          .map(numStr => raffleNumbers.find(n =>
+            (n.number === numStr || n.number === parseInt(numStr)) && n.status === 'reserved'
+          ))
+          .filter(Boolean);
+
+        if (reserved.length > 0) {
+          if (!participantData || !participantData.id) {
+            toast.error('Debe validar su teléfono o cédula antes de pagar sus números apartados.');
+            return;
+          }
+
+          for (const n of reserved) {
+            if (
+              participantData.id !== n.participant_id &&
+              participantData.phone !== n.participant_phone &&
+              participantData.cedula !== n.participant_cedula
+            ) {
+              toast.error(`Usted no tiene permiso para pagar el número apartado ${n.number}`);
+              return;
+            }
+          }
+          setValidatedBuyerData(participantData);
+        }
+      }
+
       setSelectedNumbers(numbers);
       setIsPaymentModalOpen(true);
-      
-      console.log("✅ usePaymentProcessor: Modal de pago abierto con validatedBuyerData:", validatedBuyerData);
+
+      debugLog("usePaymentProcessor: Modal de pago abierto con datos validados:", participantData || validatedBuyerData);
     } catch (error) {
       console.error('usePaymentProcessor: ❌ Error al proceder al pago:', error);
       toast.error('Error al procesar el pago');

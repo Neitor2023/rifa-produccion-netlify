@@ -68,7 +68,7 @@ interface PhoneValidationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onPhoneValidationSuccess: (
-    phone: string, 
+    phone: string,
     participantId: string,
     buyerInfo?: ValidatedBuyerInfo
   ) => void;
@@ -96,24 +96,28 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
     if (validation.isValid) {
       const isNumericOnly = /^\d+$/.test(phone);
       const cleanedPhone = formatPhoneNumber(phone);
-      let participant = null;
+      let participant: ValidatedBuyerInfo | null = null;
       let foundBy = '';
 
       try {
+        // BUSCA por teléfono (y la rifa!)
         const { data: byPhone } = await supabase
           .from('participants')
           .select('id, name, phone, cedula, direccion, sugerencia_producto')
           .eq('phone', cleanedPhone)
+          .eq('raffle_id', raffleId)
           .maybeSingle();
 
         if (byPhone) {
           participant = byPhone;
           foundBy = 'phone';
         } else if (isNumericOnly) {
+          // BUSCA por cédula (y la rifa!)
           const { data: byCedula } = await supabase
             .from('participants')
             .select('id, name, phone, cedula, direccion, sugerencia_producto')
             .eq('cedula', phone)
+            .eq('raffle_id', raffleId)
             .maybeSingle();
 
           if (byCedula) {
@@ -127,29 +131,23 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           return;
         }
 
-        const { id, name, phone: foundPhone, cedula, direccion, sugerencia_producto } = participant;
-
-        const validatedInfo: ValidatedBuyerInfo = {
-          id,
-          name,
-          phone: foundPhone || cleanedPhone,
-          cedula,
-          direccion,
-          sugerencia_producto
-        };
-        
+        // Retorna SIEMPRE UN OBJETO COMPLETO para el flujo posterior
         onPhoneValidationSuccess(
-          foundPhone || cleanedPhone,
-          id,
-          validatedInfo
+          participant.phone || cleanedPhone,
+          participant.id,
+          {
+            id: participant.id,
+            name: participant.name,
+            phone: participant.phone || cleanedPhone,
+            cedula: participant.cedula,
+            direccion: participant.direccion,
+            sugerencia_producto: participant.sugerencia_producto
+          }
         );
-
         onClose();
       } catch (error) {
         toast.error("Error durante la validación. Por favor intente nuevamente.");
       }
-    } else {
-      // Validación fallida
     }
   };
 
@@ -162,20 +160,20 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
             Ingrese su número de ( teléfono o cédula ) para continuar
           </DialogDescription>
         </DialogHeader>
-                  
-        <div className="space-y-4 py-4">         
-          <PhoneInputField 
+
+        <div className="space-y-4 py-4">
+          <PhoneInputField
             value={phone}
             onChange={setPhone}
           />
-          <ValidationMessage 
-            message={validation.message}            
+          <ValidationMessage
+            message={validation.message}
             isValid={validation.isValid}
             formattedNumber={validation.formattedNumber}
-          />      
+          />
         </div>
-        
-        <ModalFooter 
+
+        <ModalFooter
           onCancel={onClose}
           onValidate={handleNumberSubmit}
           isValid={validation.isValid}
