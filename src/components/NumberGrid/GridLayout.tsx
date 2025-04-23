@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useMemo } from 'react';
 import NumberGridItem from '../NumberGridItem';
 
 interface RaffleNumber {
@@ -34,13 +33,18 @@ const GridLayout: React.FC<GridLayoutProps> = ({
   toggleNumber,
   onPayReserved      // lo recibimos aquí
 }) => {
+  // Al principio de GridLayout, justo tras los props:
+  const numberMap = React.useMemo(
+    () => Object.fromEntries(numbers.map(n => [n.number, n])),
+    [numbers]
+  );  
   const grid = [];
   for (let row = 0; row < 10; row++) {
     const rowItems = [];
     for (let col = 0; col < 10; col++) {
       const num = row * 10 + col;
       const paddedNum = num.toString().padStart(2, '0');
-      const raffleNumber = numbers.find(n => n.number === paddedNum);
+      const raffleNumber = numberMap[paddedNum];
       const status = raffleNumber ? raffleNumber.status : 'available';
       const isSelected = selectedNumbers.includes(paddedNum);
       const isHighlighted = highlightReserved && status === 'reserved';
