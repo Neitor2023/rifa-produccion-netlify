@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { usePaymentProcessor } from '@/hooks/usePaymentProcessor';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PhoneValidationModal from './PhoneValidationModal';
@@ -53,6 +54,18 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   debugMode = false,
   soldNumbersCount = 0
 }) => {
+  const {
+    isPaymentModalOpen,
+    setIsPaymentModalOpen,
+    validatedBuyerData,
+    /* otros valores si los necesitas */
+  } = usePaymentProcessor({
+    raffleSeller,
+    raffleId: raffleSeller.raffle_id,
+    raffleNumbers: numbers,
+    refetchRaffleNumbers: async () => {}, // reemplaza con tu función real
+    debugMode
+  });
   const [selectedNumbers, setSelectedNumbers] = useState<string[]>([]);
   const [highlightReserved, setHighlightReserved] = useState(false);
   const [showReservedMessage, setShowReservedMessage] = useState(false);
