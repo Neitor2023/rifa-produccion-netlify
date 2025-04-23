@@ -13,7 +13,7 @@ import NumberGridHeader from './NumberGridHeader';
 import NumberGridItem from './NumberGridItem';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import GridLayout from './NumberGrid/GridLayout';
-
+//prueba
 interface RaffleNumber {
   id: string;
   raffle_id: string;
