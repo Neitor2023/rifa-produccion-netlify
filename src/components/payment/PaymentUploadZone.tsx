@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { FormLabel } from '@/components/ui/form';
-import { Upload } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Upload, X } from 'lucide-react';
 
 interface PaymentUploadZoneProps {
   previewUrl: string | null;
@@ -16,38 +16,50 @@ const PaymentUploadZone: React.FC<PaymentUploadZoneProps> = ({
   onFileRemove
 }) => {
   return (
-    <div className="space-y-2">
-      <FormLabel>Comprobante de pago</FormLabel>
-      
-      {previewUrl ? (
-        <div className="relative">
-          <img 
-            src={previewUrl} 
-            alt="Comprobante" 
-            className="w-full h-48 object-cover rounded-md border"
-          />
-          <Button
-            type="button"
-            variant="destructive"
-            size="sm"
-            className="absolute top-2 right-2"
-            onClick={onFileRemove}
-          >
-            Eliminar
-          </Button>
+    <div className="space-y-4">
+      <div className="flex flex-col gap-2">
+        <label className="font-medium">
+          Comprobante de Pago <span className="text-red-500">*</span>
+        </label>
+        
+        <div className="flex flex-col items-center p-4 border-2 border-dashed rounded-md">
+          <div className="space-y-2 text-center">
+            <Upload className="mx-auto h-8 w-8 text-gray-400" />
+            <div className="text-xs text-gray-500">
+              <label htmlFor="file-upload" className="relative cursor-pointer font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                <span>Suba una imagen del comprobante</span>
+                <Input
+                  id="file-upload"
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={onFileUpload}
+                />
+              </label>
+              <p>JPG, PNG, GIF hasta 10MB</p>
+            </div>
+          </div>
         </div>
-      ) : (
-        <div className="border border-dashed border-gray-300 rounded-md p-6 text-center relative">
-          <Upload className="h-8 w-8 mx-auto text-gray-400" />
-          <p className="mt-2 text-sm text-gray-500">
-            Haga clic para subir o arrastre su comprobante aquí
-          </p>
-          <input
-            type="file"
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            accept="image/*"
-            onChange={onFileUpload}
-          />
+      </div>
+      
+      {previewUrl && (
+        <div className="mt-4">
+          <div className="relative">
+            <img
+              src={previewUrl}
+              alt="Comprobante"
+              className="rounded-md max-h-64 mx-auto"
+            />
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full"
+              onClick={onFileRemove}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       )}
     </div>

@@ -128,12 +128,11 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const handlePayReserved = (number: string) => {
     setHighlightReserved(true);
     setShowReservedMessage(true);
-
     console.log("▶️ src/components/NumberGrid.tsx: handlePayReserved llamado para numero reservado:", number);
   
+    // Abrimos el modal de validación al hacer clic en un número reservado
     setSelectedReservedNumber(number);
-  
-    onProceedToPayment([number]);
+    setIsPhoneModalOpen(true);
   };
 
   // Function to activate reserved numbers highlighting mode
@@ -147,7 +146,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     if (reservedNumbers.length === 0) {
       toast.warning('No hay números apartados para pagar');
     } else {
-      toast.info(`Hay ${reservedNumbers.length} número(s) apartados. Haga click en un número para proceder al pago.`);
+      toast.info(`Hay ${reservedNumbers.length} número(s) apartados. Haga click en un número para proceder a la validación.`);
     }
   };
   
