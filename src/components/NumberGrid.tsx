@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'sonner';
 import { Card } from '@/components/ui/card';
@@ -13,6 +14,7 @@ import NumberGridHeader from './NumberGridHeader';
 import NumberGridItem from './NumberGridItem';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import GridLayout from './NumberGrid/GridLayout';
+import ReservedMessageAlert from './NumberGrid/ReservedMessageAlert';
 
 interface RaffleNumber {
   id: string;
@@ -62,6 +64,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const [buyerData, setBuyerData] = useState<ValidatedBuyerInfo | null>(null);
   const [validatedBuyerInfo, setValidatedBuyerInfo] = useState<ValidatedBuyerInfo | null>(null);
 
+  // Define the missing functions here
   const handlePayReserved = () => {
     setHighlightReserved(true);
     setShowReservedMessage(true);
@@ -73,6 +76,10 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     }
     
     toast.info(`Hay ${reservedNumbers.length} número(s) apartados. Seleccione uno para proceder al pago.`);
+  };
+  
+  const handleCloseReservedMessage = () => {
+    setShowReservedMessage(false);
   };
   
   const toggleNumber = (number: string, status: string) => {
@@ -223,21 +230,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       />
       
       {showReservedMessage && (
-        <Alert className="mb-4 bg-amber-50 border-amber-300 text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-300">
-          <div className="flex justify-between items-center">
-            <AlertDescription className="text-sm">
-              📢 Pulse sobre su número apartado para proceder al pago.
-            </AlertDescription>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={handleCloseReservedMessage}
-              className="h-6 w-6 p-0 rounded-full"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </Alert>
+        <ReservedMessageAlert onClose={handleCloseReservedMessage} />
       )}
       
       <Card className="p-2 sm:p-4 mb-4 bg-white dark:bg-gray-800 overflow-x-auto">
@@ -255,7 +248,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         raffleSeller={raffleSeller}
         onClearSelection={clearSelection}
         onReserve={handleReserve}
-        onPayReserved={activateReservedNumbersMode}
+        onPayReserved={handlePayReserved}
         onProceedToPayment={handleProceedToPayment}
       />
       
