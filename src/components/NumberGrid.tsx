@@ -64,6 +64,9 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const [validatedBuyerInfo, setValidatedBuyerInfo] = useState<ValidatedBuyerInfo | null>(null);
 
   const handlePayReserved = () => {
+    // */* modi 2
+    console.log('▶️ NumberGrid: handlePayReserved llamado');
+    console.log('▶️ highlightReserved antes de establecer:', highlightReserved);
     if (highlightReserved) {
       setHighlightReserved(false);
       setShowReservedMessage(false);
@@ -86,6 +89,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   };
   
   const toggleNumber = (number: string, status: string) => {
+    // */* modi 6
+    console.log(`🔄 NumberGrid toggleNumber llamado con`, { number, status, highlightReserved });
     if (highlightReserved && status === 'reserved') {
       const selectedNumber = numbers.find(n => n.number === number);
       if (selectedNumber) {
@@ -253,7 +258,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           selectedNumbers={selectedNumbers}
           highlightReserved={highlightReserved}
           toggleNumber={toggleNumber}
-          onPayReserved={handlePayReserved} 
+          // */* modi 1
+          // onPayReserved={handlePayReserved} 
         />
       </Card>
       

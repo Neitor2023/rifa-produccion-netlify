@@ -23,7 +23,8 @@ interface GridLayoutProps {
   toggleNumber: (number: string, status: string) => void;
   
   // Nuevo prop para pagar reservas
-  onPayReserved: (number: string) => void;  
+  // */* modi 4
+  // onPayReserved: (number: string) => void;  
 }
 
 const GridLayout: React.FC<GridLayoutProps> = ({
