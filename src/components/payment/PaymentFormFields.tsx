@@ -187,6 +187,22 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
 }) => {
   const watchedPaymentMethod = form.watch('paymentMethod');
 
+  useEffect(() => {
+    if (readOnlyData && form) {
+      console.log("Setting form values with readOnlyData:", readOnlyData);
+      if (readOnlyData.name)
+        form.setValue("buyerName", readOnlyData.name);
+      if (readOnlyData.phone)
+        form.setValue("buyerPhone", readOnlyData.phone);
+      if (readOnlyData.cedula)
+        form.setValue("buyerCedula", readOnlyData.cedula);
+      if (readOnlyData.direccion)
+        form.setValue("direccion", readOnlyData.direccion);
+      if (readOnlyData.sugerencia_producto)
+        form.setValue("sugerenciaProducto", readOnlyData.sugerencia_producto);
+    }
+  }, [readOnlyData, form]);
+
   return (
     <>
       <BuyerSection form={form} readOnlyData={readOnlyData} />

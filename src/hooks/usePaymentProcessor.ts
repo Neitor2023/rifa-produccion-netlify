@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -12,6 +11,7 @@ import { useBuyerData } from './usePaymentProcessor/buyerData';
 import { useSellerValidation } from './usePaymentProcessor/sellerValidation';
 import { useNumberAvailability } from './usePaymentProcessor/numberAvailability';
 import { usePaymentCompletion } from './usePaymentProcessor/paymentCompletion';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UsePaymentProcessorProps {
   raffleSeller: {
@@ -160,35 +160,35 @@ export function usePaymentProcessor({
       }
 
       if (raffleNumbers && numbers.length > 0) {
-        const reserved = numbers
-          .map(numStr => raffleNumbers.find(n =>
-            (n.number === numStr || n.number === parseInt(numStr)) && n.status === 'reserved'
-          ))
-          .filter(Boolean);
+        const selectedNumber = raffleNumbers.find(n => 
+          (n.number === numbers[0] || n.number === parseInt(numbers[0])) && n.status === 'reserved'
+        );
 
-        if (reserved.length > 0) {
+        if (selectedNumber) {
           if (!participantData || !participantData.id) {
             toast.error('Debe validar su teléfono o cédula antes de pagar sus números apartados.');
             return;
           }
 
-          for (const n of reserved) {
-            if (
-              participantData.id !== n.participant_id &&
-              participantData.phone !== n.participant_phone &&
-              participantData.cedula !== n.participant_cedula
-            ) {
-              toast.error(`Usted no tiene permiso para pagar el número apartado ${n.number}`);
-              return;
-            }
+          const { data: reservedNumbers } = await supabase
+            .from('raffle_numbers')
+            .select('number')
+            .eq('participant_id', participantData.id)
+            .eq('status', 'reserved')
+            .eq('seller_id', raffleSeller?.seller_id);
+
+          if (reservedNumbers && reservedNumbers.length > 0) {
+            const allReservedNumbers = reservedNumbers.map(n => n.number.toString().padStart(2, '0'));
+            setSelectedNumbers(allReservedNumbers);
           }
+
           setValidatedBuyerData(participantData);
+        } else {
+          setSelectedNumbers(numbers);
         }
       }
 
-      setSelectedNumbers(numbers);
       setIsPaymentModalOpen(true);
-
       debugLog("usePaymentProcessor: Modal de pago abierto con datos validados:", participantData || validatedBuyerData);
     } catch (error) {
       console.error('usePaymentProcessor: ❌ Error al proceder al pago:', error);
@@ -209,6 +209,22 @@ export function usePaymentProcessor({
     }
     
     try {
+      if (data.reporteSospechoso) {
+        const { error: fraudError } = await supabase
+          .from('fraud_reports')
+          .insert({
+            raffle_id: raffleId,
+            seller_id: raffleSeller.seller_id,
+            participant_id: validatedBuyerData?.id,
+            mensaje: data.reporteSospechoso,
+            estado: 'pendiente'
+          });
+
+        if (fraudError) {
+          console.error('Error al guardar reporte de fraude:', fraudError);
+        }
+      }
+
       debugLog('Complete Payment - starting', {
         selectedNumbers,
         data,
@@ -220,10 +236,7 @@ export function usePaymentProcessor({
       }
       
       const paymentProofUrl = await uploadPaymentProof(data.paymentProof);
-      debugLog('usePaymentProcessor: Resultado de carga del comprobante de pago', { paymentProofUrl });
-      
       const participantId = await processParticipant(data);
-      debugLog('usePaymentProcessor: Resultado del procesamiento del participante', { participantId });
       
       if (!participantId) {
         toast.error('usePaymentProcessor: Error al procesar la información del participante');
@@ -231,11 +244,6 @@ export function usePaymentProcessor({
       }
       
       await updateNumbersToSold(selectedNumbers, participantId, paymentProofUrl, raffleNumbers);
-      debugLog('usePaymentProcessor: Números actualizados a vendidos', { 
-        count: selectedNumbers.length, 
-        numbers: selectedNumbers 
-      });
-      
       await refetchRaffleNumbers();
       
       setPaymentData({
@@ -247,10 +255,8 @@ export function usePaymentProcessor({
       setIsVoucherOpen(true);
       
       toast.success('Pago completado exitosamente');
-      debugLog('usePaymentProcessor: Pago completado exitosamente', null);
     } catch (error) {
       console.error('usePaymentProcessor: Error al completar el pago:', error);
-      debugLog('usePaymentProcessor: Error de finalización del pago', error);
       toast.error('usePaymentProcessor: Error al completar el pago');
     }
   };

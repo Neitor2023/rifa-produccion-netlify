@@ -1,3 +1,4 @@
+
 import React, { useRef } from 'react';
 import { 
   Dialog, 
@@ -12,7 +13,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
 import { PaymentFormData } from './PaymentModal';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import QRCode from 'qrcode.react';
 
 interface DigitalVoucherProps {
   isOpen: boolean;
@@ -47,15 +47,6 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   });
 
   const paymentMethod = paymentData?.paymentMethod === 'cash' ? 'Efectivo' : 'Transferencia bancaria';
-  
-  // Generate QR code data
-  const qrData = {
-    title: raffleDetails?.title || '',
-    numbers: selectedNumbers,
-    price: raffleDetails?.price || 0,
-    lottery: raffleDetails?.lottery || '',
-    date: raffleDetails?.dateLottery || ''
-  };
 
   const handlePrint = () => {
     const content = printRef.current;
@@ -91,16 +82,6 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
           <div ref={printRef} className="print-content p-4">
             <Card className="p-6 mb-4 bg-white border border-gray-300">
               <div className="flex flex-col space-y-4">
-                {/* QR Code */}
-                <div className="flex justify-center mb-4">
-                  <QRCode 
-                    value={JSON.stringify(qrData)}
-                    size={128}
-                    level="H"
-                    className="p-2 bg-white rounded shadow-sm"
-                  />
-                </div>
-
                 {/* Raffle Details */}
                 <div className="border-b border-gray-200 pb-4">
                   <h3 className="font-bold text-xl mb-2 text-purple-700">
