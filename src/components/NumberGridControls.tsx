@@ -32,8 +32,6 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
         variant="outline" 
         className="flex items-center gap-2" 
         onClick={onClearSelection}
-        // Botón siempre habilitado
-        // disabled={selectedNumbers.length === 0}
       >
         <Check className="h-4 w-4" />
         <span>Limpiar</span>
@@ -43,8 +41,6 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
         variant="secondary"
         className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white"
         onClick={onReserve}
-        // Botón siempre habilitado
-        // disabled={selectedNumbers.length === 0}
       >
         <ShoppingCart className="h-4 w-4" />
         <span>Apartar</span>
@@ -54,7 +50,6 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
         variant="secondary"
         className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
         onClick={onPayReserved}
-        // Botón siempre habilitado
       >
         <CreditCard className="h-4 w-4" />
         <span>Pagar Apartados</span>
@@ -64,8 +59,6 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
         variant="secondary" 
         className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white"
         onClick={onProceedToPayment}
-        // Botón siempre habilitado
-        // disabled={selectedNumbers.length === 0}
       >
         <CreditCard className="h-4 w-4" />
         <span>Pagar</span>

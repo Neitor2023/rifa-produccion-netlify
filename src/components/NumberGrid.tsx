@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'sonner';
 import { Card } from '@/components/ui/card';
@@ -171,41 +170,15 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       });
       setBuyerData(buyerInfo);
       setValidatedBuyerInfo(buyerInfo);
-    } else {
-      console.log("⚠️ NumberGrid no recibió la información del comprador de la validación");
     }
     
     setIsPhoneModalOpen(false);
     
-    try {
-      if (debugMode) {
-        console.log('NumberGrid.tsx: Éxito de validación con número:', validatedNumber);
-        console.log('NumberGrid.tsx: Participant ID:', participantId);
-        console.log('NumberGrid.tsx: Raffle ID:', raffleSeller.raffle_id);
-        console.log('NumberGrid.tsx: Seller ID:', raffleSeller.seller_id);
-      }
-      
-      console.log("🧪 NumberGrid.tsx: Datos validados:", {
-        validatedNumber,
-        participantId,
-        raffleId: raffleSeller.raffle_id,
-        sellerId: raffleSeller.seller_id,
-        selectedNumbersList: selectedNumbers
-      });
-
-      if (buyerInfo) {
-        setValidatedBuyerInfo(buyerInfo);
-      }
-      
-      if (participantId && /^[0-9a-fA-F\-]{36}$/.test(participantId)) {
-        handleParticipantValidation(participantId);
-      } else {
-        handleNumberValidation(validatedNumber);
-      }
-    } catch (error) {
-      console.error('NumberGrid.tsx: Validación de procesamiento de errores:', error);
-      toast.error('NumberGrid.tsx: Error al procesar la validación');
-    }    
+    if (participantId && buyerInfo) {
+      handleParticipantValidation(participantId);
+    } else {
+      handleNumberValidation(validatedNumber);
+    }
   };
   
   const handleParticipantValidation = async (participantId: string) => {
@@ -308,38 +281,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       <PhoneValidationModal 
         isOpen={isPhoneModalOpen}
         onClose={() => setIsPhoneModalOpen(false)}
-        onPhoneValidationSuccess={(validatedNumber, participantId, buyerInfo) => {
-          if (buyerInfo) {
-            console.log("🔄 NumberGrid.tsx: Antes de llamar a handleValidationSuccess con:", {
-              validatedNumber,
-              participantId,
-              buyerInfo: {
-                id: buyerInfo.id,
-                name: buyerInfo.name,
-                phone: buyerInfo.phone,
-                cedula: buyerInfo.cedula
-              }
-            });
-          }
-          
-          handleValidationSuccess(validatedNumber, participantId, buyerInfo);
-          
-          if (debugMode && buyerInfo) {
-            toast.info(
-              <div>
-                🔍 NumberGrid.tsx: Antes de llamar a handleValidationSuccess conValidated participant:<br/>
-                📞 Número: {validatedNumber}<br/>
-                🆔 ID: {participantId || 'N/A'}<br/>
-                🧑‍💼 Nombre: {buyerInfo.name}<br/>
-                📱 Teléfono: {buyerInfo.phone}<br/>
-                🆔 Cédula: {buyerInfo.cedula || 'N/A'}<br/>
-                📍 Dirección: {buyerInfo.direccion || 'N/A'}<br/>
-                💡 Sugerencia: {buyerInfo.sugerencia_producto || 'N/A'}<br/>
-              </div>,
-              { duration: 8000 }
-            );
-          }
-        }}
+        onPhoneValidationSuccess={handleValidationSuccess}
         selectedNumber={selectedReservedNumber}
         raffleNumbers={numbers}
         raffleSellerId={raffleSeller.seller_id}

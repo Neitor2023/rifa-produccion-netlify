@@ -1,5 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { PaymentFormData } from '@/components/PaymentModal';
+import { ValidatedBuyerInfo } from '@/types/participant';
 import { toast } from 'sonner';
 import { useParticipantManager } from './useParticipantManager';
 import { useNumberStatus } from './useNumberStatus';
