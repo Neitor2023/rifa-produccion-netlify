@@ -7,16 +7,14 @@ import { PaymentFormData } from '../PaymentModal';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import PaymentMethodFields from './PaymentMethodFields';
 import PaymentUploadZone from './PaymentUploadZone';
+import PaymentNotes from './PaymentNotes';
+import SuspiciousActivityReport from './SuspiciousActivityReport';
 
 interface BuyerSectionProps {
   form: UseFormReturn<PaymentFormData>;
   readOnlyData?: ValidatedBuyerInfo | null;
 }
 
-/**
- * BuyerSection
- * Se asegura que los campos se autocompleten SOLO cuando readOnlyData o datos validados estén presentes
- */
 function BuyerSection({ form, readOnlyData }: BuyerSectionProps) {
   useEffect(() => {
     if (readOnlyData) {
@@ -31,8 +29,6 @@ function BuyerSection({ form, readOnlyData }: BuyerSectionProps) {
       if (readOnlyData.sugerencia_producto)
         form.setValue("sugerenciaProducto", readOnlyData.sugerencia_producto)
     }
-    // Solo reaccionar ante cambios de readOnlyData, para no sobrescribir tipeos
-    // eslint-disable-next-line
   }, [readOnlyData]);
 
   return (
@@ -128,7 +124,6 @@ function BuyerSection({ form, readOnlyData }: BuyerSectionProps) {
   );
 }
 
-// Información adicional (sin cambios)
 function AdditionalInfoSection({ form }: { form: UseFormReturn<PaymentFormData> }) {
   return (
     <div>
@@ -183,10 +178,6 @@ interface PaymentFormFieldsProps {
   onFileRemove: () => void;
 }
 
-/**
- * PaymentFormFields
- * Ajusta entrega de props a subcomponentes según sus definiciones.
- */
 const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
   form,
   readOnlyData,
@@ -200,11 +191,10 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
     <>
       <BuyerSection form={form} readOnlyData={readOnlyData} />
       <AdditionalInfoSection form={form} />
+      <PaymentNotes form={form} />
+      <SuspiciousActivityReport form={form} />
       <PaymentMethodFields
         form={form}
-        previewUrl={previewUrl}
-        onFileUpload={onFileUpload}
-        onFileRemove={onFileRemove}
       />
       {watchedPaymentMethod === "transfer" && (
         <PaymentUploadZone

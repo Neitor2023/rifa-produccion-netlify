@@ -16,6 +16,7 @@ export type Database = {
           id: string
           mensaje: string
           participant_id: string | null
+          raffle_id: string | null
           seller_id: string | null
           updated_at: string | null
         }
@@ -25,6 +26,7 @@ export type Database = {
           id?: string
           mensaje: string
           participant_id?: string | null
+          raffle_id?: string | null
           seller_id?: string | null
           updated_at?: string | null
         }
@@ -34,6 +36,7 @@ export type Database = {
           id?: string
           mensaje?: string
           participant_id?: string | null
+          raffle_id?: string | null
           seller_id?: string | null
           updated_at?: string | null
         }

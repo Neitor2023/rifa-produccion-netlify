@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import { 
   Dialog, 
@@ -31,7 +30,6 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
 }) => {
   const printRef = useRef<HTMLDivElement>(null);
 
-  // Close the print dialog when the component is unmounted
   useEffect(() => {
     return () => {
       if (isOpen) {
@@ -40,7 +38,6 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     };
   }, [isOpen, onClose]);
 
-  // Format the current date and time
   const formattedDate = new Date().toLocaleDateString('es-ES', {
     year: 'numeric',
     month: 'long',
@@ -49,10 +46,8 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     minute: '2-digit'
   });
 
-  // Format the payment method for display
   const paymentMethod = paymentData?.paymentMethod === 'cash' ? 'Efectivo' : 'Transferencia bancaria';
 
-  // Handle the print action
   const handlePrint = () => {
     const content = printRef.current;
     if (content) {
@@ -70,8 +65,8 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader className="pb-4">
-          <DialogTitle className="text-xl font-bold text-center">
-            Comprobante Digital
+          <DialogTitle className="text-2xl font-bold text-center bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-2 rounded-lg shadow-md">
+            COMPROBANTE DE PAGO
           </DialogTitle>
         </DialogHeader>
         
@@ -86,27 +81,20 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         
         <ScrollArea className="max-h-[70vh]">
           <div ref={printRef} className="print-content p-4">
-            <Card className="p-4 mb-4 bg-white border border-gray-300">
+            <Card className="p-6 mb-4 bg-white border border-gray-300">
               <div className="flex flex-col space-y-4">
                 <div className="text-center">
-                  <h2 className="text-lg font-bold text-gray-900 mb-1">COMPROBANTE DE PAGO</h2>
                   <p className="text-sm text-gray-600">{formattedDate}</p>
                 </div>
                 
                 <div className="border-t border-gray-300 my-2 pt-2">
-                  <h3 className="font-semibold text-sm text-gray-800">Datos del Comprador</h3>
-                  <p className="text-sm">Nombre: {paymentData?.buyerName || 'No proporcionado'}</p>
-                  <p className="text-sm">Teléfono: {paymentData?.buyerPhone || 'No proporcionado'}</p>
-                </div>
-                
-                <div className="border-t border-gray-300 my-2 pt-2">
-                  <h3 className="font-semibold text-sm text-gray-800">Detalles de la Compra</h3>
+                  <h3 className="font-semibold text-sm text-gray-800">Detalles de la Transacción</h3>
                   <p className="text-sm">Método de pago: {paymentMethod}</p>
                   <div className="mt-2">
                     <p className="text-sm font-semibold">Números comprados:</p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {selectedNumbers.map((num) => (
-                        <span key={num} className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs">
+                        <span key={num} className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-medium">
                           {num}
                         </span>
                       ))}

@@ -62,6 +62,19 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const [buyerData, setBuyerData] = useState<ValidatedBuyerInfo | null>(null);
   const [validatedBuyerInfo, setValidatedBuyerInfo] = useState<ValidatedBuyerInfo | null>(null);
 
+  const handlePayReserved = () => {
+    setHighlightReserved(true);
+    setShowReservedMessage(true);
+    
+    const reservedNumbers = numbers.filter(n => n.status === 'reserved');
+    if (reservedNumbers.length === 0) {
+      toast.warning('No hay números apartados para pagar');
+      return;
+    }
+    
+    toast.info(`Hay ${reservedNumbers.length} número(s) apartados. Seleccione uno para proceder al pago.`);
+  };
+  
   const toggleNumber = (number: string, status: string) => {
     if (highlightReserved && status === 'reserved') {
       setSelectedReservedNumber(number);
@@ -122,21 +135,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       return;
     }
     onProceedToPayment(selectedNumbers);
-  };
-  
-  const handlePayReserved = () => {
-    setHighlightReserved(true);
-    setShowReservedMessage(true);
-    toast.info('Seleccione un número reservado para proceder al pago');
-  };
-
-  const activateReservedNumbersMode = () => {
-    handlePayReserved();
-  };
-  
-  const handleCloseReservedMessage = () => {
-    setShowReservedMessage(false);
-    setHighlightReserved(false);
   };
   
   const handleValidationSuccess = (
