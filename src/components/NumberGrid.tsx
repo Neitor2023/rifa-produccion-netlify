@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'sonner';
 import { Card } from '@/components/ui/card';
@@ -64,10 +63,12 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const [buyerData, setBuyerData] = useState<ValidatedBuyerInfo | null>(null);
   const [validatedBuyerInfo, setValidatedBuyerInfo] = useState<ValidatedBuyerInfo | null>(null);
 
-  // Define the missing functions here
   const handlePayReserved = () => {
-    setHighlightReserved(true);
-    setShowReservedMessage(true);
+    if (highlightReserved) {
+      setHighlightReserved(false);
+      setShowReservedMessage(false);
+      return;
+    }
     
     const reservedNumbers = numbers.filter(n => n.status === 'reserved');
     if (reservedNumbers.length === 0) {
@@ -75,6 +76,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       return;
     }
     
+    setHighlightReserved(true);
+    setShowReservedMessage(true);
     toast.info(`Hay ${reservedNumbers.length} número(s) apartados. Seleccione uno para proceder al pago.`);
   };
   
@@ -84,6 +87,17 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   
   const toggleNumber = (number: string, status: string) => {
     if (highlightReserved && status === 'reserved') {
+      const selectedNumber = numbers.find(n => n.number === number);
+      if (selectedNumber) {
+        const allReservedNumbers = numbers
+          .filter(n => 
+            n.status === 'reserved' && 
+            n.participant_id === selectedNumber.participant_id
+          )
+          .map(n => n.number);
+          
+        setSelectedNumbers(allReservedNumbers);
+      }
       setSelectedReservedNumber(number);
       setIsPhoneModalOpen(true);
       return;

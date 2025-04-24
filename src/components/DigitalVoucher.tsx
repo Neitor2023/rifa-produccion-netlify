@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import { 
   Dialog, 
@@ -7,11 +8,12 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Printer, X, AlertTriangle } from 'lucide-react';
+import { Printer, X } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
 import { PaymentFormData } from './PaymentModal';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import QRCode from 'qrcode.react';
 
 interface DigitalVoucherProps {
   isOpen: boolean;
@@ -19,6 +21,12 @@ interface DigitalVoucherProps {
   paymentData?: PaymentFormData | null;
   selectedNumbers: string[];
   allowVoucherPrint?: boolean;
+  raffleDetails?: {
+    title: string;
+    price: number;
+    lottery: string;
+    dateLottery: string;
+  };
 }
 
 const DigitalVoucher: React.FC<DigitalVoucherProps> = ({ 
@@ -26,17 +34,10 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   onClose, 
   paymentData,
   selectedNumbers,
-  allowVoucherPrint = true
+  allowVoucherPrint = true,
+  raffleDetails
 }) => {
   const printRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    return () => {
-      if (isOpen) {
-        onClose();
-      }
-    };
-  }, [isOpen, onClose]);
 
   const formattedDate = new Date().toLocaleDateString('es-ES', {
     year: 'numeric',
@@ -47,6 +48,15 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   });
 
   const paymentMethod = paymentData?.paymentMethod === 'cash' ? 'Efectivo' : 'Transferencia bancaria';
+  
+  // Generate QR code data
+  const qrData = {
+    title: raffleDetails?.title || '',
+    numbers: selectedNumbers,
+    price: raffleDetails?.price || 0,
+    lottery: raffleDetails?.lottery || '',
+    date: raffleDetails?.dateLottery || ''
+  };
 
   const handlePrint = () => {
     const content = printRef.current;
@@ -65,14 +75,13 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader className="pb-4">
-          <DialogTitle className="text-2xl font-bold text-center bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-2 rounded-lg shadow-md">
+          <DialogTitle className="text-2xl font-bold text-center bg-gradient-to-r from-violet-700 to-purple-700 text-white py-3 rounded-lg shadow-lg">
             COMPROBANTE DE PAGO
           </DialogTitle>
         </DialogHeader>
         
         {!allowVoucherPrint && (
           <Alert className="mb-4 bg-amber-50 border-amber-300 text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-300">
-            <AlertTriangle className="h-4 w-4 mr-2" />
             <AlertDescription className="text-sm">
               Este vendedor no ha habilitado la impresión automática. Solicita el comprobante directamente al vendedor.
             </AlertDescription>
@@ -83,6 +92,38 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
           <div ref={printRef} className="print-content p-4">
             <Card className="p-6 mb-4 bg-white border border-gray-300">
               <div className="flex flex-col space-y-4">
+                {/* QR Code */}
+                <div className="flex justify-center mb-4">
+                  <QRCode 
+                    value={JSON.stringify(qrData)}
+                    size={128}
+                    level="H"
+                    className="p-2 bg-white rounded shadow-sm"
+                  />
+                </div>
+
+                {/* Raffle Details */}
+                <div className="border-b border-gray-200 pb-4">
+                  <h3 className="font-bold text-xl mb-2 text-purple-700">
+                    {raffleDetails?.title || 'Rifa'}
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <span className="font-semibold">Valor:</span>{' '}
+                      {raffleDetails?.price?.toFixed(2) || 0}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Lotería:</span>{' '}
+                      {raffleDetails?.lottery || '-'}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Fecha Sorteo:</span>{' '}
+                      {raffleDetails?.dateLottery || '-'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Transaction Details */}
                 <div className="text-center">
                   <p className="text-sm text-gray-600">{formattedDate}</p>
                 </div>
@@ -136,7 +177,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
           {allowVoucherPrint && (
             <Button 
               type="button" 
-              className="bg-rifa-purple hover:bg-rifa-darkPurple"
+              className="bg-purple-700 hover:bg-purple-800"
               onClick={handlePrint}
             >
               <Printer className="h-4 w-4 mr-2" />
