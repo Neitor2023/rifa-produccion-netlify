@@ -13,7 +13,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
 import { PaymentFormData } from './PaymentModal';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import QRCode from 'qrcode.react';
+// import QRCode from 'qrcode.react';
+import { QRCode } from 'qrcode.react';
 
 interface DigitalVoucherProps {
   isOpen: boolean;
