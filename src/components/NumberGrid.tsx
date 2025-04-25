@@ -64,7 +64,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const [validatedBuyerInfo, setValidatedBuyerInfo] = useState<ValidatedBuyerInfo | null>(null);
 
   const handlePayReserved = () => {
-    // */* modi 2
     console.log('▶️ NumberGrid: handlePayReserved llamado');
     console.log('▶️ highlightReserved antes de establecer:', highlightReserved);
     if (highlightReserved) {
@@ -258,8 +257,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           selectedNumbers={selectedNumbers}
           highlightReserved={highlightReserved}
           toggleNumber={toggleNumber}
-          // */* modi 1
-          // onPayReserved={handlePayReserved} 
+          onPayReserved={handlePayReserved} 
         />
       </Card>
       

@@ -21,10 +21,7 @@ interface GridLayoutProps {
   selectedNumbers: string[];
   highlightReserved: boolean;
   toggleNumber: (number: string, status: string) => void;
-  
-  // Nuevo prop para pagar reservas
-  // */* modi 4
-  // onPayReserved: (number: string) => void;  
+  onPayReserved: (number: string) => void;  
 }
 
 const GridLayout: React.FC<GridLayoutProps> = ({
@@ -83,7 +80,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
       </div>
     );
   }
-  // */* modi 7
+  
   console.log('📊 GridLayout - highlightReserved:', highlightReserved);
   return (
     <div className="flex flex-col gap-1 sm:gap-2 min-w-fit">
