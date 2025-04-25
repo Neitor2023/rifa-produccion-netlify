@@ -52,6 +52,20 @@ export function usePaymentProcessor({
     setValidatedBuyerData,
     debugMode
   });
+  
+  const { updateRaffleNumbersStatus } = useNumberStatus({ 
+    raffleSeller, 
+    raffleId, 
+    raffleNumbers, 
+    debugMode 
+  });
+  
+  const { findOrCreateParticipant } = useParticipantManager({ 
+    raffleId, 
+    debugMode, 
+    raffleSeller, 
+    setValidatedBuyerData 
+  });
 
   const debugLog = (context: string, data: any) => {
     if (debugMode) {

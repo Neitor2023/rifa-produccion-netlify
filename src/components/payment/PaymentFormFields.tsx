@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,7 @@ import PaymentUploadZone from './PaymentUploadZone';
 import PaymentNotes from './PaymentNotes';
 import SuspiciousActivityReport from './SuspiciousActivityReport';
 import BuyerInfoFields from './BuyerInfoFields';
+import EditableBuyerFields from './EditableBuyerFields';
 
 function AdditionalInfoSection({ form }: { form: UseFormReturn<PaymentFormData> }) {
   return (
