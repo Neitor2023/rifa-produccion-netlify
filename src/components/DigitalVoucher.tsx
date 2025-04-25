@@ -1,5 +1,6 @@
 
 import React, { useRef } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import { 
   Dialog, 
   DialogContent, 
@@ -61,6 +62,15 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     }
   };
 
+  const qrData = raffleDetails ? JSON.stringify({
+    title: raffleDetails.title,
+    numbers: selectedNumbers,
+    price: raffleDetails.price,
+    lottery: raffleDetails.lottery,
+    dateLottery: raffleDetails.dateLottery,
+    timestamp: formattedDate
+  }) : '';
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
@@ -101,6 +111,16 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
                       {raffleDetails?.dateLottery || '-'}
                     </div>
                   </div>
+                </div>
+
+                {/* QR Code */}
+                <div className="flex justify-center py-4">
+                  <QRCodeSVG
+                    value={qrData}
+                    size={160}
+                    level="H"
+                    includeMargin={true}
+                  />
                 </div>
 
                 {/* Transaction Details */}

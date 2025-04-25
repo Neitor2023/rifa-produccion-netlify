@@ -78,9 +78,11 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       return;
     }
     
-    setHighlightReserved(true);
-    setShowReservedMessage(true);
-    toast.info(`Hay ${reservedNumbers.length} número(s) apartados. Seleccione uno para proceder al pago.`);
+    if (!highlightReserved) {
+      setHighlightReserved(true);
+      setShowReservedMessage(true);
+      toast.info(`Hay ${reservedNumbers.length} número(s) apartados. Seleccione uno para proceder al pago.`);
+    }
   };
   
   const handleCloseReservedMessage = () => {
@@ -88,7 +90,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   };
   
   const toggleNumber = (number: string, status: string) => {
-    // */* modi 6
     console.log(`🔄 NumberGrid toggleNumber llamado con`, { number, status, highlightReserved });
     if (highlightReserved && status === 'reserved') {
       const selectedNumber = numbers.find(n => n.number === number);

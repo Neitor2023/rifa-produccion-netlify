@@ -217,6 +217,12 @@ const VentaBoletos: React.FC = () => {
         paymentData={paymentData}
         selectedNumbers={selectedNumbers}
         allowVoucherPrint={allowVoucherPrint}
+        raffleDetails={raffle ? {
+          title: raffle.title,
+          price: raffle.price,
+          lottery: raffle.lottery,
+          dateLottery: raffle.date_lottery
+        } : undefined}
       />
     </div>
   );
