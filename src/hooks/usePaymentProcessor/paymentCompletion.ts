@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -72,9 +71,11 @@ export function usePaymentCompletion({
         console.error("Error searching for existing participant:", searchError);
       }
       
+      let participantId: string | null = null;
+      
       // Update existing participant
       if (existingParticipant) {
-        const participantId = existingParticipant.id;
+        participantId = existingParticipant.id;
         console.log("✅ Found existing participant:", existingParticipant);
         
         const updateData: any = {
@@ -95,93 +96,58 @@ export function usePaymentCompletion({
           console.error("Error updating participant:", updateError);
         } else {
           console.log("✅ Updated participant with new data:", updateData);
-          
-          // Handle suspicious activity report if present using the participantId
-          if (data.reporteSospechoso) {
-            const { error: fraudError } = await supabase
-              .from('fraud_reports')
-              .insert({
-                raffle_id: raffleId,
-                seller_id: raffleSeller.seller_id,
-                participant_id: participantId,
-                mensaje: data.reporteSospechoso,
-                estado: 'pendiente'
-              });
-    
-            if (fraudError) {
-              console.error('Error al guardar reporte de fraude:', fraudError);
-            } else {
-              console.log("✅ Saved fraud report with participant_id:", participantId);
-            }
-          }
-          
-          // Update the validatedBuyerData to reflect the updated participant info
-          if (setValidatedBuyerData) {
-            const buyerInfo: ValidatedBuyerInfo = {
-              id: participantId,
-              name: data.buyerName,
-              phone: data.buyerPhone,
-              cedula: data.buyerCedula,
-              direccion: data.direccion,
-              sugerencia_producto: data.sugerenciaProducto
-            };
-            
-            console.log("🔄 Setting validatedBuyerData in processParticipant:", buyerInfo);
-            setValidatedBuyerData(buyerInfo);
-          }
+        }
+      } else {
+        console.log("🆕 Creating new participant");
+        
+        // Create new participant
+        const { data: newParticipant, error: participantError } = await supabase
+          .from('participants')
+          .insert({
+            name: data.buyerName,
+            phone: data.buyerPhone,
+            email: data.buyerEmail || '',
+            cedula: data.buyerCedula,
+            direccion: data.direccion || null,
+            sugerencia_producto: data.sugerenciaProducto || null,
+            raffle_id: raffleId,
+            seller_id: raffleSeller.seller_id
+          })
+          .select('id')
+          .single();
+        
+        if (participantError) {
+          console.error("Error creating new participant:", participantError);
+          throw participantError;
         }
         
-        return participantId;
-      } 
-      
-      console.log("🆕 Creating new participant");
-      
-      // Create new participant
-      const { data: newParticipant, error: participantError } = await supabase
-        .from('participants')
-        .insert({
-          name: data.buyerName,
-          phone: data.buyerPhone,
-          email: data.buyerEmail || '',
-          cedula: data.buyerCedula,
-          direccion: data.direccion || null,
-          sugerencia_producto: data.sugerenciaProducto || null,
-          raffle_id: raffleId,
-          seller_id: raffleSeller.seller_id
-        })
-        .select('id')
-        .single();
-      
-      if (participantError) {
-        console.error("Error creating new participant:", participantError);
-        throw participantError;
+        participantId = newParticipant.id;
+        console.log("✅ Created new participant with ID:", participantId);
       }
       
-      console.log("✅ Created new participant with ID:", newParticipant.id);
-      
-      // Handle suspicious activity report for new participant
-      if (data.reporteSospechoso) {
+      // Handle suspicious activity report if present using the participantId
+      if (data.reporteSospechoso && participantId) {
         const { error: fraudError } = await supabase
           .from('fraud_reports')
           .insert({
             raffle_id: raffleId,
             seller_id: raffleSeller.seller_id,
-            participant_id: newParticipant.id,
+            participant_id: participantId,
             mensaje: data.reporteSospechoso,
             estado: 'pendiente'
           });
 
         if (fraudError) {
-          console.error('Error al guardar reporte de fraude:', fraudError);
+          console.error('Error saving fraud report:', fraudError);
         } else {
-          console.log("✅ Saved fraud report with participant_id:", newParticipant.id);
+          console.log("✅ Saved fraud report with participant_id:", participantId);
         }
       }
       
-      // Update the validatedBuyerData with the new participant info
-      if (setValidatedBuyerData && newParticipant) {
+      // Update the validatedBuyerData if available
+      if (setValidatedBuyerData && participantId) {
         const buyerInfo: ValidatedBuyerInfo = {
-          id: newParticipant.id,
+          id: participantId,
           name: data.buyerName,
           phone: data.buyerPhone,
           cedula: data.buyerCedula,
@@ -189,20 +155,17 @@ export function usePaymentCompletion({
           sugerencia_producto: data.sugerenciaProducto
         };
         
-        console.log("🔄 Setting validatedBuyerData with new participant:", buyerInfo);
+        console.log("🔄 Setting validatedBuyerData in processParticipant:", buyerInfo);
         setValidatedBuyerData(buyerInfo);
       }
       
-      return newParticipant.id;
+      return participantId;
     } catch (error) {
       console.error('Error processing participant:', error);
       throw error;
     }
   };
-  
-  /**
-   * Updates raffle numbers to sold status
-   */
+
   const updateNumbersToSold = async (
     numbers: string[], 
     participantId: string, 
@@ -224,23 +187,9 @@ export function usePaymentCompletion({
       
     if (participantError) {
       console.error("Error fetching participant data:", participantError);
-    } else if (participantData && setValidatedBuyerData) {
-      // Update the validatedBuyerData with the complete participant info
-      const buyerInfo: ValidatedBuyerInfo = {
-        id: participantId,
-        name: participantData.name,
-        phone: participantData.phone,
-        cedula: participantData.cedula,
-        direccion: participantData.direccion,
-        sugerencia_producto: participantData.sugerencia_producto
-      };
-      
-      console.log("🔄 Setting validatedBuyerData in updateNumbersToSold:", buyerInfo);
-      setValidatedBuyerData(buyerInfo);
     }
     
     const updatePromises = numbers.map(async (numStr) => {
-      const num = parseInt(numStr);
       const existingNumber = raffleNumbers?.find(n => n.number === numStr);
       
       if (existingNumber) {
@@ -272,34 +221,6 @@ export function usePaymentCompletion({
         
         if (error) {
           console.error(`Error updating number ${numStr}:`, error);
-          throw error;
-        }
-      } else {
-        const insertData: any = { 
-          raffle_id: raffleId, 
-          number: num, 
-          status: 'sold', 
-          seller_id: raffleSeller.seller_id,
-          participant_id: participantId,
-          payment_proof: paymentProofUrl,
-          payment_approved: true
-        };
-        
-        // Add participant details if available
-        if (participantData) {
-          insertData.participant_name = participantData.name;
-          insertData.participant_phone = participantData.phone;
-          insertData.participant_cedula = participantData.cedula;
-        }
-        
-        console.log(`🆕 Inserting new number ${numStr} with data:`, insertData);
-        
-        const { error } = await supabase
-          .from('raffle_numbers')
-          .insert(insertData);
-        
-        if (error) {
-          console.error(`Error inserting number ${numStr}:`, error);
           throw error;
         }
       }
