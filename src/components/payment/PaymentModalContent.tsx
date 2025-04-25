@@ -6,7 +6,6 @@ import { UseFormReturn } from 'react-hook-form';
 import { PaymentFormData } from '../PaymentModal';
 import PaymentSummary from './PaymentSummary';
 import PaymentFormFields from './PaymentFormFields';
-import BuyerInfoFields from './BuyerInfoFields';
 import { ValidatedBuyerInfo } from '@/types/participant';
 
 interface PaymentModalContentProps {

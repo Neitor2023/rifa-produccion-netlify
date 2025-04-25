@@ -144,7 +144,7 @@ export function usePaymentProcessor({
     }
   };
 
-  // This function handles both fresh payments and payments for reserved numbers
+  // Handle new purchases of available numbers
   const handleProceedToPayment = async (numbers: string[], participantData?: ValidatedBuyerInfo) => {
     console.log("💰 usePaymentProcessor: handleProceedToPayment llamado con números:", numbers);
     console.log("💰 usePaymentProcessor: participantData:", participantData);
@@ -214,23 +214,6 @@ export function usePaymentProcessor({
     }
     
     try {
-      // Handle suspicious activity report if present
-      if (data.reporteSospechoso) {
-        const { error: fraudError } = await supabase
-          .from('fraud_reports')
-          .insert({
-            raffle_id: raffleId,
-            seller_id: raffleSeller.seller_id,
-            participant_id: validatedBuyerData?.id,
-            mensaje: data.reporteSospechoso,
-            estado: 'pendiente'
-          });
-
-        if (fraudError) {
-          console.error('Error al guardar reporte de fraude:', fraudError);
-        }
-      }
-
       debugLog('Complete Payment - starting', {
         selectedNumbers,
         data,
@@ -244,7 +227,7 @@ export function usePaymentProcessor({
       // Upload payment proof if provided
       const paymentProofUrl = await uploadPaymentProof(data.paymentProof);
       
-      // Process participant data
+      // Process participant data - this now handles saving fraud reports with participant_id
       const participantId = await processParticipant(data);
       
       if (!participantId) {
@@ -262,9 +245,15 @@ export function usePaymentProcessor({
         paymentProof: paymentProofUrl
       });
       
-      // Close payment modal and show receipt
+      // Close payment modal and show receipt only if allowed
       setIsPaymentModalOpen(false);
-      setIsVoucherOpen(true);
+      
+      if (allowVoucherPrint) {
+        setIsVoucherOpen(true);
+      } else {
+        toast.success('Pago completado exitosamente. El comprobante de pago está en revisión.');
+        toast.info('Es importante que le exija su comprobante de pago a su vendedor, este es su constancia de reclamo de premios.');
+      }
       
       toast.success('Pago completado exitosamente');
     } catch (error) {

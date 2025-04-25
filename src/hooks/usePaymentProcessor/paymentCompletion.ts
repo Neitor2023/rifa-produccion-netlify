@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -24,8 +25,6 @@ export function usePaymentCompletion({
 
   /**
    * Uploads payment proof to Supabase storage
-   * @param paymentProof File object or URL string
-   * @returns Public URL of the uploaded file or null
    */
   const uploadPaymentProof = async (paymentProof: File | string | null): Promise<string | null> => {
     if (!paymentProof || !(paymentProof instanceof File)) {
@@ -97,6 +96,25 @@ export function usePaymentCompletion({
         } else {
           console.log("✅ Updated participant with new data:", updateData);
           
+          // Handle suspicious activity report if present using the participantId
+          if (data.reporteSospechoso) {
+            const { error: fraudError } = await supabase
+              .from('fraud_reports')
+              .insert({
+                raffle_id: raffleId,
+                seller_id: raffleSeller.seller_id,
+                participant_id: participantId,
+                mensaje: data.reporteSospechoso,
+                estado: 'pendiente'
+              });
+    
+            if (fraudError) {
+              console.error('Error al guardar reporte de fraude:', fraudError);
+            } else {
+              console.log("✅ Saved fraud report with participant_id:", participantId);
+            }
+          }
+          
           // Update the validatedBuyerData to reflect the updated participant info
           if (setValidatedBuyerData) {
             const buyerInfo: ValidatedBuyerInfo = {
@@ -141,6 +159,25 @@ export function usePaymentCompletion({
       
       console.log("✅ Created new participant with ID:", newParticipant.id);
       
+      // Handle suspicious activity report for new participant
+      if (data.reporteSospechoso) {
+        const { error: fraudError } = await supabase
+          .from('fraud_reports')
+          .insert({
+            raffle_id: raffleId,
+            seller_id: raffleSeller.seller_id,
+            participant_id: newParticipant.id,
+            mensaje: data.reporteSospechoso,
+            estado: 'pendiente'
+          });
+
+        if (fraudError) {
+          console.error('Error al guardar reporte de fraude:', fraudError);
+        } else {
+          console.log("✅ Saved fraud report with participant_id:", newParticipant.id);
+        }
+      }
+      
       // Update the validatedBuyerData with the new participant info
       if (setValidatedBuyerData && newParticipant) {
         const buyerInfo: ValidatedBuyerInfo = {
@@ -165,9 +202,6 @@ export function usePaymentCompletion({
   
   /**
    * Updates raffle numbers to sold status
-   * @param numbers Array of number strings to mark as sold
-   * @param participantId Participant ID to associate with numbers
-   * @param paymentProofUrl Optional URL to payment proof
    */
   const updateNumbersToSold = async (
     numbers: string[], 
