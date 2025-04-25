@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -24,6 +25,7 @@ interface UsePaymentProcessorProps {
   raffleNumbers: any[];
   refetchRaffleNumbers: () => Promise<any>;
   debugMode?: boolean;
+  allowVoucherPrint?: boolean;
 }
 
 export function usePaymentProcessor({
@@ -31,7 +33,8 @@ export function usePaymentProcessor({
   raffleId,
   raffleNumbers,
   refetchRaffleNumbers,
-  debugMode = false
+  debugMode = false,
+  allowVoucherPrint = true
 }: UsePaymentProcessorProps) {
   const { selectedNumbers, setSelectedNumbers } = useSelection();
   const { isPaymentModalOpen, setIsPaymentModalOpen, isVoucherOpen, setIsVoucherOpen } = useModalState();
@@ -81,6 +84,7 @@ export function usePaymentProcessor({
   
   const { updateRaffleNumbersStatus } = useNumberStatus({ raffleSeller, raffleId, raffleNumbers, debugMode });
 
+  // Function to handle reserving numbers - this is separate from paying reserved numbers
   const handleReserveNumbers = async (
     numbers: string[], 
     buyerPhone?: string, 
@@ -140,8 +144,10 @@ export function usePaymentProcessor({
     }
   };
 
+  // This function handles both fresh payments and payments for reserved numbers
   const handleProceedToPayment = async (numbers: string[], participantData?: ValidatedBuyerInfo) => {
     console.log("💰 usePaymentProcessor: handleProceedToPayment llamado con números:", numbers);
+    console.log("💰 usePaymentProcessor: participantData:", participantData);
 
     if (numbers.length === 0) {
       toast.error('Seleccione al menos un número para comprar');
@@ -149,45 +155,44 @@ export function usePaymentProcessor({
     }
 
     try {
+      // Validate seller limits
       if (!(await validateSellerMaxNumbers(numbers.length))) {
         return;
       }
 
-      const unavailableNumbers = await checkNumbersAvailability(numbers);
-      if (unavailableNumbers.length > 0) {
-        toast.error(`Números ${unavailableNumbers.join(', ')} no están disponibles`);
-        return;
+      // For new purchases, check availability
+      const isReservedNumberPayment = participantData !== undefined;
+      if (!isReservedNumberPayment) {
+        const unavailableNumbers = await checkNumbersAvailability(numbers);
+        if (unavailableNumbers.length > 0) {
+          toast.error(`Números ${unavailableNumbers.join(', ')} no están disponibles`);
+          return;
+        }
       }
 
-      if (raffleNumbers && numbers.length > 0) {
-        const selectedNumber = raffleNumbers.find(n => 
-          (n.number === numbers[0] || n.number === parseInt(numbers[0])) && n.status === 'reserved'
-        );
+      // If participantData is provided, we're paying for reserved numbers
+      if (participantData) {
+        // Set the validated data to be used in the payment form
+        setValidatedBuyerData(participantData);
+        setSelectedNumbers(numbers);
+      } else {
+        // For fresh selections, check if any of the selected numbers are reserved
+        if (raffleNumbers && numbers.length > 0) {
+          const selectedNumber = raffleNumbers.find(n => 
+            (n.number === numbers[0] || n.number === parseInt(numbers[0])) && n.status === 'reserved'
+          );
 
-        if (selectedNumber) {
-          if (!participantData || !participantData.id) {
+          // If a reserved number is selected without validation, require validation
+          if (selectedNumber) {
             toast.error('Debe validar su teléfono o cédula antes de pagar sus números apartados.');
             return;
           }
 
-          const { data: reservedNumbers } = await supabase
-            .from('raffle_numbers')
-            .select('number')
-            .eq('participant_id', participantData.id)
-            .eq('status', 'reserved')
-            .eq('seller_id', raffleSeller?.seller_id);
-
-          if (reservedNumbers && reservedNumbers.length > 0) {
-            const allReservedNumbers = reservedNumbers.map(n => n.number.toString().padStart(2, '0'));
-            setSelectedNumbers(allReservedNumbers);
-          }
-
-          setValidatedBuyerData(participantData);
-        } else {
           setSelectedNumbers(numbers);
         }
       }
 
+      // Open the payment modal
       setIsPaymentModalOpen(true);
       debugLog("usePaymentProcessor: Modal de pago abierto con datos validados:", participantData || validatedBuyerData);
     } catch (error) {
@@ -209,6 +214,7 @@ export function usePaymentProcessor({
     }
     
     try {
+      // Handle suspicious activity report if present
       if (data.reporteSospechoso) {
         const { error: fraudError } = await supabase
           .from('fraud_reports')
@@ -235,7 +241,10 @@ export function usePaymentProcessor({
         return;
       }
       
+      // Upload payment proof if provided
       const paymentProofUrl = await uploadPaymentProof(data.paymentProof);
+      
+      // Process participant data
       const participantId = await processParticipant(data);
       
       if (!participantId) {
@@ -243,14 +252,17 @@ export function usePaymentProcessor({
         return;
       }
       
+      // Update number status to sold
       await updateNumbersToSold(selectedNumbers, participantId, paymentProofUrl, raffleNumbers);
       await refetchRaffleNumbers();
       
+      // Store payment data for receipt
       setPaymentData({
         ...data,
         paymentProof: paymentProofUrl
       });
       
+      // Close payment modal and show receipt
       setIsPaymentModalOpen(false);
       setIsVoucherOpen(true);
       
@@ -277,6 +289,7 @@ export function usePaymentProcessor({
     handleProceedToPayment,
     handleCompletePayment,
     findOrCreateParticipant,
-    getSoldNumbersCount
+    getSoldNumbersCount,
+    allowVoucherPrint
   };
 }

@@ -41,7 +41,7 @@ interface NumberGridProps {
   numbers: RaffleNumber[];
   raffleSeller: RaffleSeller;
   onReserve: (selectedNumbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula?: string) => void;
-  onProceedToPayment: (selectedNumbers: string[]) => void;
+  onProceedToPayment: (selectedNumbers: string[], participantData?: ValidatedBuyerInfo) => void;
   debugMode?: boolean;
   soldNumbersCount?: number;
 }
@@ -66,9 +66,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const handlePayReserved = () => {
     console.log('▶️ NumberGrid: handlePayReserved llamado');
     console.log('▶️ highlightReserved antes de establecer:', highlightReserved);
+    
     if (highlightReserved) {
-      setHighlightReserved(false);
-      setShowReservedMessage(false);
       return;
     }
     
@@ -78,11 +77,9 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       return;
     }
     
-    if (!highlightReserved) {
-      setHighlightReserved(true);
-      setShowReservedMessage(true);
-      toast.info(`Hay ${reservedNumbers.length} número(s) apartados. Seleccione uno para proceder al pago.`);
-    }
+    setHighlightReserved(true);
+    setShowReservedMessage(true);
+    toast.info(`Hay ${reservedNumbers.length} número(s) apartados. Seleccione uno para proceder al pago.`);
   };
   
   const handleCloseReservedMessage = () => {
@@ -91,6 +88,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   
   const toggleNumber = (number: string, status: string) => {
     console.log(`🔄 NumberGrid toggleNumber llamado con`, { number, status, highlightReserved });
+    
     if (highlightReserved && status === 'reserved') {
       const selectedNumber = numbers.find(n => n.number === number);
       if (selectedNumber) {
@@ -102,9 +100,9 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           .map(n => n.number);
           
         setSelectedNumbers(allReservedNumbers);
+        setSelectedReservedNumber(number);
+        setIsPhoneModalOpen(true);
       }
-      setSelectedReservedNumber(number);
-      setIsPhoneModalOpen(true);
       return;
     }
     
@@ -125,10 +123,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   
   const clearSelection = () => {
     setSelectedNumbers([]);
-    if (highlightReserved) {
-      setHighlightReserved(false);
-      setShowReservedMessage(false);
-    }
   };
   
   const handleReserve = () => {
@@ -184,7 +178,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     setIsPhoneModalOpen(false);
     
     if (participantId && buyerInfo) {
-      handleParticipantValidation(participantId);
+      onProceedToPayment(selectedNumbers, buyerInfo);
     } else {
       handleNumberValidation(validatedNumber);
     }

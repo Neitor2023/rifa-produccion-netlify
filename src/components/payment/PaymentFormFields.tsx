@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -9,120 +10,7 @@ import PaymentMethodFields from './PaymentMethodFields';
 import PaymentUploadZone from './PaymentUploadZone';
 import PaymentNotes from './PaymentNotes';
 import SuspiciousActivityReport from './SuspiciousActivityReport';
-
-interface BuyerSectionProps {
-  form: UseFormReturn<PaymentFormData>;
-  readOnlyData?: ValidatedBuyerInfo | null;
-}
-
-function BuyerSection({ form, readOnlyData }: BuyerSectionProps) {
-  useEffect(() => {
-    if (readOnlyData) {
-      if (readOnlyData.name)
-        form.setValue("buyerName", readOnlyData.name)
-      if (readOnlyData.phone)
-        form.setValue("buyerPhone", readOnlyData.phone)
-      if (readOnlyData.cedula)
-        form.setValue("buyerCedula", readOnlyData.cedula)
-      if (readOnlyData.direccion)
-        form.setValue("direccion", readOnlyData.direccion)
-      if (readOnlyData.sugerencia_producto)
-        form.setValue("sugerenciaProducto", readOnlyData.sugerencia_producto)
-    }
-  }, [readOnlyData]);
-
-  return (
-    <div>
-      <h3 className="font-medium mb-3">Información del Comprador</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField
-          control={form.control}
-          name="buyerName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Nombre completo <span className="text-red-500">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Ej. Juan Pérez"
-                  className="bg-gray-50 dark:bg-gray-800"
-                  {...field}
-                  value={field.value || readOnlyData?.name || ''}
-                  readOnly={!!readOnlyData}
-                  disabled={!!readOnlyData}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="buyerPhone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Teléfono <span className="text-red-500">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Ej. +1234567890"
-                  className="bg-gray-50 dark:bg-gray-800"
-                  {...field}
-                  value={field.value || readOnlyData?.phone || ''}
-                  readOnly={!!readOnlyData}
-                  disabled={!!readOnlyData}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="buyerCedula"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Cédula/DNI</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Ej. 12345678"
-                  className="bg-gray-50 dark:bg-gray-800"
-                  {...field}
-                  value={field.value || readOnlyData?.cedula || ''}
-                  readOnly={!!readOnlyData}
-                  disabled={!!readOnlyData}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="buyerEmail"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="nombre@ejemplo.com"
-                  type="email"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-    </div>
-  );
-}
+import BuyerInfoFields from './BuyerInfoFields';
 
 function AdditionalInfoSection({ form }: { form: UseFormReturn<PaymentFormData> }) {
   return (
@@ -170,6 +58,111 @@ function AdditionalInfoSection({ form }: { form: UseFormReturn<PaymentFormData> 
   );
 }
 
+function HiddenBuyerFields({ form, readOnlyData }: { form: UseFormReturn<PaymentFormData>; readOnlyData?: ValidatedBuyerInfo | null }) {
+  useEffect(() => {
+    if (readOnlyData) {
+      if (readOnlyData.name)
+        form.setValue("buyerName", readOnlyData.name)
+      if (readOnlyData.phone)
+        form.setValue("buyerPhone", readOnlyData.phone)
+      if (readOnlyData.cedula)
+        form.setValue("buyerCedula", readOnlyData.cedula)
+      if (readOnlyData.direccion)
+        form.setValue("direccion", readOnlyData.direccion)
+      if (readOnlyData.sugerencia_producto)
+        form.setValue("sugerenciaProducto", readOnlyData.sugerencia_producto)
+    }
+  }, [readOnlyData, form]);
+
+  // These are hidden fields, not rendered in UI
+  return null;
+}
+
+function EditableBuyerFields({ form }: { form: UseFormReturn<PaymentFormData> }) {
+  return (
+    <div>
+      <h3 className="font-medium mb-3">Información del Comprador</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <FormField
+          control={form.control}
+          name="buyerName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                Nombre completo <span className="text-red-500">*</span>
+              </FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Ej. Juan Pérez"
+                  className="bg-gray-50 dark:bg-gray-800"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="buyerPhone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                Teléfono <span className="text-red-500">*</span>
+              </FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Ej. +1234567890"
+                  className="bg-gray-50 dark:bg-gray-800"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="buyerCedula"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Cédula/DNI</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Ej. 12345678"
+                  className="bg-gray-50 dark:bg-gray-800"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="buyerEmail"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="nombre@ejemplo.com"
+                  type="email"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+    </div>
+  );
+}
+
 interface PaymentFormFieldsProps {
   form: UseFormReturn<PaymentFormData>;
   readOnlyData?: ValidatedBuyerInfo | null;
@@ -187,6 +180,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
 }) => {
   const watchedPaymentMethod = form.watch('paymentMethod');
 
+  // Silent update of form values with readOnlyData
   useEffect(() => {
     if (readOnlyData && form) {
       console.log("Setting form values with readOnlyData:", readOnlyData);
@@ -205,13 +199,20 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
 
   return (
     <>
-      <BuyerSection form={form} readOnlyData={readOnlyData} />
+      {readOnlyData ? (
+        <>
+          <BuyerInfoFields buyerData={readOnlyData} />
+          <HiddenBuyerFields form={form} readOnlyData={readOnlyData} />
+        </>
+      ) : (
+        <EditableBuyerFields form={form} />
+      )}
+
       <AdditionalInfoSection form={form} />
       <PaymentNotes form={form} />
       <SuspiciousActivityReport form={form} />
-      <PaymentMethodFields
-        form={form}
-      />
+      <PaymentMethodFields form={form} />
+      
       {watchedPaymentMethod === "transfer" && (
         <PaymentUploadZone
           previewUrl={previewUrl}

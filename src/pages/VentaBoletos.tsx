@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import RaffleHeader from '@/components/RaffleHeader';
 import PrizeCarousel from '@/components/PrizeCarousel';
@@ -44,7 +43,7 @@ const VentaBoletos: React.FC = () => {
     sellerId: SELLER_ID 
   });
   
-  // Payment processor hook
+  // Payment processor hook with allowVoucherPrint passed
   const {
     selectedNumbers,
     isPaymentModalOpen,
@@ -67,7 +66,8 @@ const VentaBoletos: React.FC = () => {
     raffleId: RAFFLE_ID,
     raffleNumbers,
     refetchRaffleNumbers,
-    debugMode
+    debugMode,
+    allowVoucherPrint
   });
 
   // Log validatedBuyerData whenever it changes

@@ -14,6 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
 import { PaymentFormData } from './PaymentModal';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertDialog, AlertDialogContent, AlertDialogTitle, AlertDialogDescription } from '@/components/ui/alert-dialog';
 
 interface DigitalVoucherProps {
   isOpen: boolean;
@@ -70,6 +71,30 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     dateLottery: raffleDetails.dateLottery,
     timestamp: formattedDate
   }) : '';
+  
+  // If voucher printing is not allowed, show only the alert dialog
+  if (!allowVoucherPrint) {
+    return (
+      <AlertDialog open={isOpen} onOpenChange={onClose}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogTitle className="text-xl font-bold text-red-600 mb-2">
+            Importante: Comprobante No Disponible
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-base leading-relaxed">
+            <p className="mb-4 text-gray-800 dark:text-gray-200">
+              Su comprobante de pago está en revisión, es importante que le exija su comprobante de pago a su vendedor, este es su constancia de reclamo de premios; cualquier novedad comuníquese a los teléfonos de los organizadores que se encuentran al final de la página web.
+            </p>
+            <Button 
+              onClick={onClose} 
+              className="w-full bg-red-600 hover:bg-red-700 text-white"
+            >
+              Entendido
+            </Button>
+          </AlertDialogDescription>
+        </AlertDialogContent>
+      </AlertDialog>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -80,14 +105,6 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
           </DialogTitle>
         </DialogHeader>
         
-        {!allowVoucherPrint && (
-          <Alert className="mb-4 bg-amber-50 border-amber-300 text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-300">
-            <AlertDescription className="text-sm">
-              Este vendedor no ha habilitado la impresión automática. Solicita el comprobante directamente al vendedor.
-            </AlertDescription>
-          </Alert>
-        )}
-        
         <ScrollArea className="max-h-[70vh]">
           <div ref={printRef} className="print-content p-4">
             <Card className="p-6 mb-4 bg-white border border-gray-300">
@@ -97,7 +114,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
                   <h3 className="font-bold text-xl mb-2 text-purple-700">
                     {raffleDetails?.title || 'Rifa'}
                   </h3>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="grid grid-cols-2 gap-2 text-sm text-gray-900">
                     <div>
                       <span className="font-semibold">Valor:</span>{' '}
                       {raffleDetails?.price?.toFixed(2) || 0}
@@ -130,9 +147,9 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
                 
                 <div className="border-t border-gray-300 my-2 pt-2">
                   <h3 className="font-semibold text-sm text-gray-800">Detalles de la Transacción</h3>
-                  <p className="text-sm">Método de pago: {paymentMethod}</p>
+                  <p className="text-sm text-gray-700">Método de pago: {paymentMethod}</p>
                   <div className="mt-2">
-                    <p className="text-sm font-semibold">Números comprados:</p>
+                    <p className="text-sm font-semibold text-gray-800">Números comprados:</p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {selectedNumbers.map((num) => (
                         <span key={num} className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-medium">
@@ -174,16 +191,14 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
             Cerrar
           </Button>
           
-          {allowVoucherPrint && (
-            <Button 
-              type="button" 
-              className="bg-purple-700 hover:bg-purple-800"
-              onClick={handlePrint}
-            >
-              <Printer className="h-4 w-4 mr-2" />
-              Imprimir
-            </Button>
-          )}
+          <Button 
+            type="button" 
+            className="bg-purple-700 hover:bg-purple-800"
+            onClick={handlePrint}
+          >
+            <Printer className="h-4 w-4 mr-2" />
+            Imprimir
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

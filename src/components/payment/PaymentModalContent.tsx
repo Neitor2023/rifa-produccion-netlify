@@ -6,22 +6,8 @@ import { UseFormReturn } from 'react-hook-form';
 import { PaymentFormData } from '../PaymentModal';
 import PaymentSummary from './PaymentSummary';
 import PaymentFormFields from './PaymentFormFields';
+import BuyerInfoFields from './BuyerInfoFields';
 import { ValidatedBuyerInfo } from '@/types/participant';
-
-// Nuevo: Subcomponente para mostrar datos validados limpios
-const BuyerInfoPreview: React.FC<{ buyerData?: ValidatedBuyerInfo | null }> = ({ buyerData }) => (
-  <div className="mt-6 p-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 dark:bg-blue-900/40 dark:border-blue-700 dark:text-blue-50 text-sm">
-    <strong>Información Importante:</strong>
-    <br />
-    Datos del participante:
-    <br />
-    <strong>Nombre:</strong> {buyerData?.name || ''}
-    <br />
-    <strong>Teléfono:</strong> {buyerData?.phone || ''}
-    <br />
-    <strong>Cédula:</strong> {buyerData?.cedula || ''}
-  </div>
-);
 
 interface PaymentModalContentProps {
   form: UseFormReturn<PaymentFormData>;
@@ -75,7 +61,6 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
           </div>
         </form>
       </Form>
-      <BuyerInfoPreview buyerData={buyerData} />
     </ScrollArea>
   );
 };
