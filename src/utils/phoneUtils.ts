@@ -6,7 +6,12 @@
  * - If doesn't have a prefix, adds "+593"
  */
 export const formatPhoneNumber = (phone: string): string => {
+  if (!phone) return "";
+  
   let cleanedPhone = phone.trim();
+  
+  // First, remove any non-numeric characters except for the + sign
+  cleanedPhone = cleanedPhone.replace(/[^\d+]/g, '');
   
   // If it starts with "+5930", replace with "+593"
   if (cleanedPhone.startsWith('+5930')) {

@@ -133,9 +133,9 @@ export function usePaymentProcessor({
     }
   };
 
-  const handleProceedToPayment = async (numbers: string[], participantData?: ValidatedBuyerInfo) => {
+  // Handler for direct payment (Pagar button)
+  const handleProceedToPayment = async (numbers: string[]) => {
     console.log("💰 usePaymentProcessor: handleProceedToPayment llamado con números:", numbers);
-    console.log("💰 usePaymentProcessor: participantData:", participantData);
 
     if (numbers.length === 0) {
       toast.error('Seleccione al menos un número para comprar');
@@ -147,38 +147,46 @@ export function usePaymentProcessor({
         return;
       }
 
-      const isReservedNumberPayment = participantData !== undefined;
-      if (!isReservedNumberPayment) {
-        const unavailableNumbers = await checkNumbersAvailability(numbers);
-        if (unavailableNumbers.length > 0) {
-          toast.error(`Números ${unavailableNumbers.join(', ')} no están disponibles`);
-          return;
-        }
+      // Check if numbers are available
+      const unavailableNumbers = await checkNumbersAvailability(numbers);
+      if (unavailableNumbers.length > 0) {
+        toast.error(`Números ${unavailableNumbers.join(', ')} no están disponibles`);
+        return;
       }
-
-      if (participantData) {
-        setValidatedBuyerData(participantData);
-        setSelectedNumbers(numbers);
-      } else {
-        if (raffleNumbers && numbers.length > 0) {
-          const selectedNumber = raffleNumbers.find(n => 
-            (n.number === numbers[0] || n.number === parseInt(numbers[0])) && n.status === 'reserved'
-          );
-
-          if (selectedNumber) {
-            toast.error('Debe validar su teléfono o cédula antes de pagar sus números apartados.');
-            return;
-          }
-
-          setSelectedNumbers(numbers);
-        }
-      }
-
+      
+      setSelectedNumbers(numbers);
       setIsPaymentModalOpen(true);
-      debugLog("usePaymentProcessor: Modal de pago abierto con datos validados:", participantData || validatedBuyerData);
+      
     } catch (error) {
       console.error('usePaymentProcessor: ❌ Error al proceder al pago:', error);
       toast.error('Error al procesar el pago');
+    }
+  };
+
+  // Handler for paying reserved numbers (Pagar Apartados button)
+  const handlePayReservedNumbers = async (numbers: string[], participantData: ValidatedBuyerInfo) => {
+    console.log("💰 usePaymentProcessor: handlePayReservedNumbers llamado con:", {
+      numbers,
+      participantData
+    });
+
+    if (numbers.length === 0) {
+      toast.error('No hay números seleccionados para pagar');
+      return;
+    }
+
+    try {
+      // Set the validated buyer data
+      setValidatedBuyerData(participantData);
+      setSelectedNumbers(numbers);
+      
+      // Open payment modal with pre-filled data
+      setIsPaymentModalOpen(true);
+      
+      debugLog("usePaymentProcessor: Modal de pago abierto con datos validados:", participantData);
+    } catch (error) {
+      console.error('usePaymentProcessor: ❌ Error al proceder al pago de números reservados:', error);
+      toast.error('Error al procesar el pago de números reservados');
     }
   };
 
@@ -221,6 +229,7 @@ export function usePaymentProcessor({
         return;
       }
       
+      // Update the numbers to sold status
       await updateNumbersToSold(selectedNumbers, participantId, paymentProofUrl, raffleNumbers);
       await refetchRaffleNumbers();
       
@@ -229,19 +238,35 @@ export function usePaymentProcessor({
         paymentProof: paymentProofUrl
       });
       
+      // Process fraud report if provided
       if (data.reporteSospechoso) {
-        const { error: fraudError } = await supabase
+        // Check if a report already exists
+        const { data: existingReport } = await supabase
           .from('fraud_reports')
-          .insert({
-            raffle_id: raffleId,
-            seller_id: raffleSeller.seller_id,
+          .select('id')
+          .match({
             participant_id: participantId,
-            mensaje: data.reporteSospechoso,
-            estado: 'pendiente'
-          });
+            raffle_id: raffleId,
+            seller_id: raffleSeller.seller_id
+          })
+          .maybeSingle();
+        
+        if (!existingReport) {
+          const { error: fraudError } = await supabase
+            .from('fraud_reports')
+            .insert({
+              raffle_id: raffleId,
+              seller_id: raffleSeller.seller_id,
+              participant_id: participantId,
+              mensaje: data.reporteSospechoso,
+              estado: 'pendiente'
+            });
 
-        if (fraudError) {
-          console.error('Error saving fraud report:', fraudError);
+          if (fraudError) {
+            console.error('Error saving fraud report:', fraudError);
+          }
+        } else {
+          console.log("⚠️ Fraud report already exists for this participant, skipping duplicate insert");
         }
       }
       
@@ -275,6 +300,7 @@ export function usePaymentProcessor({
     debugMode,
     handleReserveNumbers,
     handleProceedToPayment,
+    handlePayReservedNumbers,
     handleCompletePayment,
     findOrCreateParticipant,
     getSoldNumbersCount,

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import RaffleHeader from '@/components/RaffleHeader';
 import PrizeCarousel from '@/components/PrizeCarousel';
@@ -54,6 +55,7 @@ const VentaBoletos: React.FC = () => {
     validatedBuyerData,
     handleReserveNumbers,
     handleProceedToPayment,
+    handlePayReservedNumbers,
     handleCompletePayment,
     getSoldNumbersCount
   } = usePaymentProcessor({
@@ -156,6 +158,7 @@ const VentaBoletos: React.FC = () => {
               }}
               onReserve={handleReserveNumbers}
               onProceedToPayment={handleProceedToPayment}
+              onPayReserved={handlePayReservedNumbers}
               debugMode={debugMode}
               soldNumbersCount={getSoldNumbersCount(seller?.id || '')}
             />

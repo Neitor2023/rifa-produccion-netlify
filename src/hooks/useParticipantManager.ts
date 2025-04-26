@@ -153,6 +153,7 @@ export const useParticipantManager = ({
         cedula: cedula || null,
         raffle_id: raffleId,
         seller_id: raffleSeller?.seller_id
+        // nota field is removed as per requirements
       })
       .select('id, name, phone, cedula')
       .single();
