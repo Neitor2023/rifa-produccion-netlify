@@ -34,7 +34,8 @@ const GridLayout: React.FC<GridLayoutProps> = ({
   toggleNumber,
   onPayReserved,
   openPhoneModal,
-  selectReservedNumber,  
+  selectReservedNumber,
+  selectMultipleReserved,
 }) => {
   // Al principio de GridLayout, justo tras los props:
   const numberMap = React.useMemo(
