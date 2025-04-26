@@ -158,7 +158,8 @@ const VentaBoletos: React.FC = () => {
                 cant_max: maxNumbersAllowed
               }}
               onReserve={handleReserveNumbers}
-              onProceedToPayment={handleProceedToPayment}
+              onProceedToPayment={handleStartNewPayment}
+              onPayReserved={handleStartCompletePayment}
               debugMode={debugMode}
               soldNumbersCount={getSoldNumbersCount(seller?.id || '')}
             />
