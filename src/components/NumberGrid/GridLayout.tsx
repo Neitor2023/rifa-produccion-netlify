@@ -23,7 +23,8 @@ interface GridLayoutProps {
   toggleNumber: (number: string, status: string) => void;
   onPayReserved: (number: string) => void;  
   openPhoneModal: () => void;
-  selectReservedNumber: (number: string) => void;  
+  selectReservedNumber: (number: string) => void;
+  selectMultipleReserved: (nums: string[]) => void;
 }
 
 const GridLayout: React.FC<GridLayoutProps> = ({
@@ -67,9 +68,15 @@ const GridLayout: React.FC<GridLayoutProps> = ({
           onToggle={() => {
             if (highlightReserved && status === 'reserved') {
               console.log("▶️ GridLayout.tsx: pulsado reservado:", paddedNum);
-              // 1) seleccionamos el número
+              // 1) selecciona TODOS los números reservados de este participante
+              const thisParticipantId = numberMap[paddedNum].participant_id;
+              const allReserved = numbers
+                .filter(n => n.status === 'reserved' && n.participant_id === thisParticipantId)
+                .map(n => n.number);
+              // 2) lanza estas dos al padre
               selectReservedNumber(paddedNum);
-              // 2) abrimos la modal de validación
+              selectMultipleReserved(allReserved);
+              // 3) abre la modal de validación
               openPhoneModal();
             } else {
               toggleNumber(paddedNum, status);

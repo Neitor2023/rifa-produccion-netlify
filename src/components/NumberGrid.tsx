@@ -100,7 +100,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           .map(n => n.number);
           
         setSelectedNumbers(allReservedNumbers);
-        console.log(`🔄 NumberGrid setSelectedReservedNumber called with`, { number});
         setSelectedReservedNumber(number);
         setIsPhoneModalOpen(true);
       }
@@ -164,26 +163,28 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     buyerInfo?: ValidatedBuyerInfo
   ) => {
     if (buyerInfo) {
-      console.log("✅ NumberGrid recibió información validada del comprador:", {
-        name: buyerInfo.name,
-        phone: buyerInfo.phone,
-        cedula: buyerInfo.cedula,
-        id: buyerInfo.id,
-        direccion: buyerInfo.direccion,
-        sugerencia_producto: buyerInfo.sugerencia_producto
-      });
+      console.log("✅ NumberGrid recibió información validada del comprador:", buyerInfo);
       setBuyerData(buyerInfo);
       setValidatedBuyerInfo(buyerInfo);
     }
-    
+  
+    // 1) Cerrar modal de validación
     setIsPhoneModalOpen(false);
-    
-    if (participantId && buyerInfo) {
-      onProceedToPayment(selectedNumbers, buyerInfo);
-    } else {
-      handleNumberValidation(validatedNumber);
-    }
+  
+    // 2) Recoger todos los números reservados de este participante
+    const allReserved = numbers
+      .filter(n => n.status === 'reserved' && n.participant_id === participantId)
+      .map(n => n.number);
+  
+    console.log("▶️ NumberGrid: números reservados para el participante:", allReserved);
+  
+    // 3) Guardarlos en state
+    setSelectedNumbers(allReserved);
+  
+    // 4) Abrir modal de pago con esos números
+    onProceedToPayment(allReserved);
   };
+
   
   const handleParticipantValidation = async (participantId: string) => {
     if (debugMode) {
@@ -255,7 +256,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           toggleNumber={toggleNumber}
           onPayReserved={handlePayReserved} 
           openPhoneModal={() => setIsPhoneModalOpen(true)}
-          selectReservedNumber={num => setSelectedReservedNumber(num)}          
+          selectReservedNumber={num => setSelectedReservedNumber(num)}
+          selectMultipleReserved={nums => setSelectedNumbers(nums)}
         />
       </Card>
       
