@@ -62,6 +62,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const [selectedReservedNumber, setSelectedReservedNumber] = useState<string | null>(null);
   const [buyerData, setBuyerData] = useState<ValidatedBuyerInfo | null>(null);
   const [validatedBuyerInfo, setValidatedBuyerInfo] = useState<ValidatedBuyerInfo | null>(null);
+  const [isReservationPaymentOpen, setIsReservationPaymentOpen] = useState(false);
 
   const handlePayReserved = () => {
     console.log('▶️ NumberGrid: handlePayReserved called');
@@ -162,19 +163,21 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     participantId: string,
     buyerInfo?: ValidatedBuyerInfo
   ) => {
-    if (!buyerInfo) return;
-    
-    console.log("✅ Validación exitosa de participante:", buyerInfo);
+    if (!buyerInfo) {
+      toast.error("Error durante la validación. Por favor intente nuevamente");
+      return;
+    }
+  
+    console.log("✅ NumberGrid recibió info validada:", buyerInfo);
     setBuyerData(buyerInfo);
     setValidatedBuyerInfo(buyerInfo);
   
-    // Cerramos el modal de teléfono
+    // cerramos el modal de teléfono
     setIsPhoneModalOpen(false);
   
-    // ¡En lugar de onProceedToPayment normal, abrimos el modal de completar compra de apartados!
+    // abrimos el modal de completar datos de apartados
     setIsReservationPaymentOpen(true);
   };
-
   
   const handleParticipantValidation = async (participantId: string) => {
     if (debugMode) {
@@ -279,6 +282,13 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         onConfirm={handleConfirmReservation}
         selectedNumbers={selectedNumbers}
       />
+
+      <CompleteReservationModal
+        isOpen={isReservationPaymentOpen}
+        onClose={() => setIsReservationPaymentOpen(false)}
+        participantData={validatedBuyerInfo!}
+        selectedNumbers={selectedNumbers}
+      />      
     </div>
   );
 };
