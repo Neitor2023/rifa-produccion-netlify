@@ -162,26 +162,17 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     participantId: string,
     buyerInfo?: ValidatedBuyerInfo
   ) => {
-    if (buyerInfo) {
-      console.log("✅ NumberGrid recibió información validada del comprador:", {
-        name: buyerInfo.name,
-        phone: buyerInfo.phone,
-        cedula: buyerInfo.cedula,
-        id: buyerInfo.id,
-        direccion: buyerInfo.direccion,
-        sugerencia_producto: buyerInfo.sugerencia_producto
-      });
-      setBuyerData(buyerInfo);
-      setValidatedBuyerInfo(buyerInfo);
-    }
+    if (!buyerInfo) return;
     
+    console.log("✅ Validación exitosa de participante:", buyerInfo);
+    setBuyerData(buyerInfo);
+    setValidatedBuyerInfo(buyerInfo);
+  
+    // Cerramos el modal de teléfono
     setIsPhoneModalOpen(false);
-    
-    if (participantId && buyerInfo) {
-      onProceedToPayment(selectedNumbers, buyerInfo);
-    } else {
-      handleNumberValidation(validatedNumber);
-    }
+  
+    // ¡En lugar de onProceedToPayment normal, abrimos el modal de completar compra de apartados!
+    setIsReservationPaymentOpen(true);
   };
   
   const handleParticipantValidation = async (participantId: string) => {
