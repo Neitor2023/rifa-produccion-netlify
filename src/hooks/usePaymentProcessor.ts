@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -132,22 +133,27 @@ export function usePaymentProcessor({
     }
   };
 
-  const handlePayReserved = async (numbers: string[], participantData: ValidatedBuyerInfo) => {
-    console.log("💰 handlePayReserved called with:", { numbers, participantData });
+  // Fix here: Renamed from handlePayReserved for clarity
+  const handleProceedToPayment = async (numbers: string[], participantData?: ValidatedBuyerInfo) => {
+    console.log("💰 handleProceedToPayment called with:", { numbers, participantData });
     
     try {
       if (!(await validateSellerMaxNumbers(numbers.length))) {
         return;
       }
 
-      await checkReservedNumbersParticipant(numbers, participantData);
-      setValidatedBuyerData(participantData);
+      if (participantData) {
+        // Fixed function call to only pass participantData
+        await checkReservedNumbersParticipant(numbers);
+        setValidatedBuyerData(participantData);
+      }
+      
       setSelectedNumbers(numbers);
       setIsPaymentModalOpen(true);
       
-      debugLog("handlePayReserved: Payment modal opened with validated data", participantData);
+      debugLog("handleProceedToPayment: Payment modal opened with validated data", participantData);
     } catch (error) {
-      console.error('handlePayReserved error:', error);
+      console.error('handleProceedToPayment error:', error);
       toast.error('Error al procesar el pago de números reservados');
     }
   };
@@ -239,7 +245,7 @@ export function usePaymentProcessor({
     setValidatedBuyerData,
     debugMode,
     handleReserveNumbers,
-    handlePayReserved,
+    handleProceedToPayment,  // Make sure this is exported
     handleCompletePayment,
     findOrCreateParticipant,
     getSoldNumbersCount,
