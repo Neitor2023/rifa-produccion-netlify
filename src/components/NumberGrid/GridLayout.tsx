@@ -22,6 +22,8 @@ interface GridLayoutProps {
   highlightReserved: boolean;
   toggleNumber: (number: string, status: string) => void;
   onPayReserved: (number: string) => void;  
+  openPhoneModal: () => void;
+  selectReservedNumber: (number: string) => void;  
 }
 
 const GridLayout: React.FC<GridLayoutProps> = ({
@@ -30,6 +32,8 @@ const GridLayout: React.FC<GridLayoutProps> = ({
   highlightReserved,
   toggleNumber,
   onPayReserved,
+  openPhoneModal,
+  selectReservedNumber,  
 }) => {
   // Al principio de GridLayout, justo tras los props:
   const numberMap = React.useMemo(
@@ -63,10 +67,10 @@ const GridLayout: React.FC<GridLayoutProps> = ({
           onToggle={() => {
             if (highlightReserved && status === 'reserved') {
               console.log("▶️ GridLayout.tsx: pulsado reservado:", paddedNum);
-              // 1) Guarda el número seleccionado
-              setSelectedReservedNumber(paddedNum);
-              // 2) Abre la modal de validación
-              setIsPhoneModalOpen(true);
+              // 1) seleccionamos el número
+              selectReservedNumber(paddedNum);
+              // 2) abrimos la modal de validación
+              openPhoneModal();
             } else {
               toggleNumber(paddedNum, status);
             }
