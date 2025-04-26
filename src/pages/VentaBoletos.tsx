@@ -206,8 +206,8 @@ const VentaBoletos: React.FC = () => {
       />
 
       <PaymentModal 
-        isOpen={isPaymentModalOpen}
-        onClose={() => setIsPaymentModalOpen(false)}
+        isOpen={isNewPaymentOpen}
+        onClose={() => setIsNewPaymentOpen(false)}
         selectedNumbers={selectedNumbers}
         price={raffle?.price || 0}
         onComplete={handleCompletePayment}
