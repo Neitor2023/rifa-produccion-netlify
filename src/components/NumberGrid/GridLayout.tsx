@@ -75,7 +75,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
               // Ahora estos dos deben existir en los accesorios:
               selectReservedNumber(paddedNum);
               selectMultipleReserved(allReserved);
-        
+              
               openPhoneModal();
             } else {
               toggleNumber(paddedNum, status);
