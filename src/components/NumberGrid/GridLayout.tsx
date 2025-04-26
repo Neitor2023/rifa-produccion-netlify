@@ -67,10 +67,15 @@ const GridLayout: React.FC<GridLayoutProps> = ({
           isHighlighted={isHighlighted}
           onToggle={() => {
             if (highlightReserved && status === 'reserved') {
-              console.log("▶️ GridLayout.tsx: pulsado reservado:", paddedNum);
-              // 1) seleccionamos el número
+              const thisId = numberMap[paddedNum].participant_id!;
+              const allReserved = numbers
+                .filter(n => n.status === 'reserved' && n.participant_id === thisId)
+                .map(n => n.number);
+        
+              // Ahora estos dos deben existir en los accesorios:
               selectReservedNumber(paddedNum);
-              // 2) abrimos la modal de validación
+              selectMultipleReserved(allReserved);
+        
               openPhoneModal();
             } else {
               toggleNumber(paddedNum, status);
