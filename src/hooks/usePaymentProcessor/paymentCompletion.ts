@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -52,13 +51,11 @@ export function usePaymentCompletion({
     try {
       console.log("🔵 Processing participant with data:", data);
       
-      // Always format the phone number to international format
       const formattedPhone = formatPhoneNumber(data.buyerPhone);
       
-      // Check for existing participant
       const { data: existingParticipant, error: searchError } = await supabase
         .from('participants')
-        .select('id, name, phone, cedula, direccion, sugerencia_producto')
+        .select('id, name, phone, cedula, direccion, sugerencia_producto, nota')
         .eq('phone', formattedPhone)
         .eq('raffle_id', raffleId)
         .maybeSingle();
@@ -75,13 +72,13 @@ export function usePaymentCompletion({
 
         const updateData: any = {
           name: data.buyerName,
-          phone: formattedPhone // Ensure phone is always in international format
+          phone: formattedPhone,
+          nota: data.nota || null
         };
 
         if (data.buyerCedula) updateData.cedula = data.buyerCedula;
         if (data.direccion) updateData.direccion = data.direccion;
         if (data.sugerenciaProducto) updateData.sugerencia_producto = data.sugerenciaProducto;
-        // Removed nota field to comply with requirements
 
         const { error: updateError } = await supabase
           .from('participants')
@@ -99,14 +96,14 @@ export function usePaymentCompletion({
           .from('participants')
           .insert({
             name: data.buyerName,
-            phone: formattedPhone, // Ensure phone is always in international format
+            phone: formattedPhone,
             email: data.buyerEmail || '',
             cedula: data.buyerCedula,
             direccion: data.direccion || null,
             sugerencia_producto: data.sugerenciaProducto || null,
+            nota: data.nota || null,
             raffle_id: raffleId,
             seller_id: raffleSeller.seller_id
-            // Not saving nota field as per requirements
           })
           .select('id')
           .single();
@@ -117,41 +114,6 @@ export function usePaymentCompletion({
         }
 
         participantId = newParticipant.id;
-      }
-
-      // Handle suspicious activity report if present and participantId exists
-      if (data.reporteSospechoso && participantId) {
-        // Check if a report already exists for this participant and raffle
-        const { data: existingReport } = await supabase
-          .from('fraud_reports')
-          .select('id')
-          .match({
-            participant_id: participantId,
-            raffle_id: raffleId,
-            seller_id: raffleSeller.seller_id
-          })
-          .maybeSingle();
-
-        // Prevent duplicate reports
-        if (!existingReport) {
-          const { error: fraudError } = await supabase
-            .from('fraud_reports')
-            .insert({
-              raffle_id: raffleId,
-              seller_id: raffleSeller.seller_id,
-              participant_id: participantId,
-              mensaje: data.reporteSospechoso,
-              estado: 'pendiente'
-            });
-
-          if (fraudError) {
-            console.error('Error saving fraud report:', fraudError);
-          } else {
-            console.log("✅ Saved fraud report for participant:", participantId);
-          }
-        } else {
-          console.log("⚠️ Fraud report already exists for this participant, skipping duplicate insert");
-        }
       }
 
       return participantId;
