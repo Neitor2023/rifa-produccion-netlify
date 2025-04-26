@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -133,7 +132,6 @@ export function usePaymentProcessor({
     }
   };
 
-  // Handler for direct payment (Pagar button)
   const handleProceedToPayment = async (numbers: string[]) => {
     console.log("💰 usePaymentProcessor: handleProceedToPayment llamado con números:", numbers);
 
@@ -147,7 +145,6 @@ export function usePaymentProcessor({
         return;
       }
 
-      // Check if numbers are available
       const unavailableNumbers = await checkNumbersAvailability(numbers);
       if (unavailableNumbers.length > 0) {
         toast.error(`Números ${unavailableNumbers.join(', ')} no están disponibles`);
@@ -163,7 +160,6 @@ export function usePaymentProcessor({
     }
   };
 
-  // Handler for paying reserved numbers (Pagar Apartados button)
   const handlePayReservedNumbers = async (numbers: string[], participantData: ValidatedBuyerInfo) => {
     console.log("💰 usePaymentProcessor: handlePayReservedNumbers llamado con:", {
       numbers,
@@ -176,11 +172,9 @@ export function usePaymentProcessor({
     }
 
     try {
-      // Set the validated buyer data
       setValidatedBuyerData(participantData);
       setSelectedNumbers(numbers);
       
-      // Open payment modal with pre-filled data
       setIsPaymentModalOpen(true);
       
       debugLog("usePaymentProcessor: Modal de pago abierto con datos validados:", participantData);
@@ -194,7 +188,8 @@ export function usePaymentProcessor({
     console.log("🔄 handleCompletePayment called with data:", {
       buyerName: data.buyerName,
       buyerPhone: data.buyerPhone,
-      buyerCedula: data.buyerCedula
+      buyerCedula: data.buyerCedula,
+      paymentMethod: data.paymentMethod
     });
     
     if (!raffleSeller?.seller_id) {
@@ -229,7 +224,6 @@ export function usePaymentProcessor({
         return;
       }
       
-      // Update the numbers to sold status
       await updateNumbersToSold(selectedNumbers, participantId, paymentProofUrl, raffleNumbers);
       await refetchRaffleNumbers();
       
@@ -238,9 +232,7 @@ export function usePaymentProcessor({
         paymentProof: paymentProofUrl
       });
       
-      // Process fraud report if provided
       if (data.reporteSospechoso) {
-        // Check if a report already exists
         const { data: existingReport } = await supabase
           .from('fraud_reports')
           .select('id')

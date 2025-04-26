@@ -73,12 +73,11 @@ export function usePaymentCompletion({
         const updateData: any = {
           name: data.buyerName,
           phone: formattedPhone,
-          nota: data.nota || null
+          nota: data.nota,
+          cedula: data.buyerCedula || null,
+          direccion: data.direccion || null,
+          sugerencia_producto: data.sugerenciaProducto || null
         };
-
-        if (data.buyerCedula) updateData.cedula = data.buyerCedula;
-        if (data.direccion) updateData.direccion = data.direccion;
-        if (data.sugerenciaProducto) updateData.sugerencia_producto = data.sugerenciaProducto;
 
         const { error: updateError } = await supabase
           .from('participants')
@@ -137,26 +136,28 @@ export function usePaymentCompletion({
 
     const { data: participantData } = await supabase
       .from('participants')
-      .select('name, phone, cedula, direccion, sugerencia_producto')
+      .select('name, phone, cedula, direccion')
       .eq('id', participantId)
       .single();
+
+    if (!participantData) {
+      throw new Error('Participant data not found');
+    }
 
     const updatePromises = numbers.map(async (numStr) => {
       const existingNumber = raffleNumbers?.find(n => n.number === numStr);
 
       if (existingNumber) {
-        const proofToUse = paymentProofUrl || existingNumber.payment_proof;
-        
         const updateData = {
           status: 'sold',
           seller_id: raffleSeller.seller_id,
           participant_id: participantId,
-          payment_proof: proofToUse,
+          payment_proof: paymentProofUrl || existingNumber.payment_proof,
           payment_approved: true,
           reservation_expires_at: null,
-          participant_name: participantData?.name,
-          participant_phone: participantData?.phone,
-          participant_cedula: participantData?.cedula
+          participant_name: participantData.name,
+          participant_phone: participantData.phone,
+          participant_cedula: participantData.cedula
         };
 
         console.log(`🔄 Updating number ${numStr} with data:`, updateData);
