@@ -100,6 +100,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           .map(n => n.number);
           
         setSelectedNumbers(allReservedNumbers);
+        console.log(`🔄 NumberGrid setSelectedReservedNumber called with`, { number});
         setSelectedReservedNumber(number);
         setIsPhoneModalOpen(true);
       }
