@@ -282,13 +282,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         onConfirm={handleConfirmReservation}
         selectedNumbers={selectedNumbers}
       />
-
-      <CompleteReservationModal
-        isOpen={isReservationPaymentOpen}
-        onClose={() => setIsReservationPaymentOpen(false)}
-        participantData={validatedBuyerInfo!}
-        selectedNumbers={selectedNumbers}
-      />      
+  
     </div>
   );
 };
