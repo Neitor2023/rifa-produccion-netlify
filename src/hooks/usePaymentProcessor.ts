@@ -207,7 +207,14 @@ export function usePaymentProcessor({
       
       const paymentProofUrl = await uploadPaymentProof(data.paymentProof);
       
-      const participantId = await processParticipant(data);
+      let participantId: string | null;
+      
+      if (validatedBuyerData?.id) {
+        participantId = validatedBuyerData.id;
+        console.log("Using existing participant ID:", participantId);
+      } else {
+        participantId = await processParticipant(data);
+      }
       
       if (!participantId) {
         toast.error('Error al procesar la información del participante');
@@ -235,8 +242,6 @@ export function usePaymentProcessor({
 
         if (fraudError) {
           console.error('Error saving fraud report:', fraudError);
-        } else {
-          console.log("✅ Saved fraud report for participant:", participantId);
         }
       }
       

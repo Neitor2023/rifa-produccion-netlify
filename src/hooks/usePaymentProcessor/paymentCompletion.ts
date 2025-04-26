@@ -15,16 +15,12 @@ export function usePaymentCompletion({
   setValidatedBuyerData,
   debugMode = false
 }: UsePaymentCompletionProps) {
-  
   const debugLog = (context: string, data: any) => {
     if (debugMode) {
       console.log(`[DEBUG - PaymentCompletion - ${context}]:`, data);
     }
   };
 
-  /**
-   * Uploads payment proof to Supabase storage
-   */
   const uploadPaymentProof = async (paymentProof: File | string | null): Promise<string | null> => {
     if (!paymentProof || !(paymentProof instanceof File)) {
       return typeof paymentProof === 'string' ? paymentProof : null;
@@ -49,16 +45,11 @@ export function usePaymentCompletion({
       throw error;
     }
   };
-  
-  /**
-   * Processes participant data during payment completion
-   * @param data Payment form data
-   * @returns Participant ID or null if operation failed
-   */
+
   const processParticipant = async (data: PaymentFormData): Promise<string | null> => {
     try {
       console.log("🔵 Processing participant with data:", data);
-      
+
       // Check for existing participant
       const { data: existingParticipant, error: searchError } = await supabase
         .from('participants')
@@ -66,41 +57,37 @@ export function usePaymentCompletion({
         .eq('phone', data.buyerPhone)
         .eq('raffle_id', raffleId)
         .maybeSingle();
-      
+
       if (searchError) {
         console.error("Error searching for existing participant:", searchError);
       }
-      
+
       let participantId: string | null = null;
-      
-      // Update existing participant
+
       if (existingParticipant) {
         participantId = existingParticipant.id;
         console.log("✅ Found existing participant:", existingParticipant);
-        
+
         const updateData: any = {
           name: data.buyerName
         };
-        
-        // Only update these if they have values
+
         if (data.buyerCedula) updateData.cedula = data.buyerCedula;
         if (data.direccion) updateData.direccion = data.direccion;
         if (data.sugerenciaProducto) updateData.sugerencia_producto = data.sugerenciaProducto;
-        
+
         const { error: updateError } = await supabase
           .from('participants')
           .update(updateData)
           .eq('id', participantId);
-          
+
         if (updateError) {
           console.error("Error updating participant:", updateError);
-        } else {
-          console.log("✅ Updated participant with new data:", updateData);
+          throw updateError;
         }
       } else {
         console.log("🆕 Creating new participant");
-        
-        // Create new participant
+
         const { data: newParticipant, error: participantError } = await supabase
           .from('participants')
           .insert({
@@ -115,50 +102,47 @@ export function usePaymentCompletion({
           })
           .select('id')
           .single();
-        
+
         if (participantError) {
           console.error("Error creating new participant:", participantError);
           throw participantError;
         }
-        
-        participantId = newParticipant.id;
-        console.log("✅ Created new participant with ID:", participantId);
-      }
-      
-      // Handle suspicious activity report if present using the participantId
-      if (data.reporteSospechoso && participantId) {
-        const { error: fraudError } = await supabase
-          .from('fraud_reports')
-          .insert({
-            raffle_id: raffleId,
-            seller_id: raffleSeller.seller_id,
-            participant_id: participantId,
-            mensaje: data.reporteSospechoso,
-            estado: 'pendiente'
-          });
 
-        if (fraudError) {
-          console.error('Error saving fraud report:', fraudError);
-        } else {
-          console.log("✅ Saved fraud report with participant_id:", participantId);
+        participantId = newParticipant.id;
+      }
+
+      // Handle suspicious activity report if present and participantId exists
+      if (data.reporteSospechoso && participantId) {
+        // Check if a report already exists for this participant and raffle
+        const { data: existingReport } = await supabase
+          .from('fraud_reports')
+          .select('id')
+          .match({
+            participant_id: participantId,
+            raffle_id: raffleId,
+            seller_id: raffleSeller.seller_id
+          })
+          .maybeSingle();
+
+        if (!existingReport) {
+          const { error: fraudError } = await supabase
+            .from('fraud_reports')
+            .insert({
+              raffle_id: raffleId,
+              seller_id: raffleSeller.seller_id,
+              participant_id: participantId,
+              mensaje: data.reporteSospechoso,
+              estado: 'pendiente'
+            });
+
+          if (fraudError) {
+            console.error('Error saving fraud report:', fraudError);
+          } else {
+            console.log("✅ Saved fraud report for participant:", participantId);
+          }
         }
       }
-      
-      // Update the validatedBuyerData if available
-      if (setValidatedBuyerData && participantId) {
-        const buyerInfo: ValidatedBuyerInfo = {
-          id: participantId,
-          name: data.buyerName,
-          phone: data.buyerPhone,
-          cedula: data.buyerCedula,
-          direccion: data.direccion,
-          sugerencia_producto: data.sugerenciaProducto
-        };
-        
-        console.log("🔄 Setting validatedBuyerData in processParticipant:", buyerInfo);
-        setValidatedBuyerData(buyerInfo);
-      }
-      
+
       return participantId;
     } catch (error) {
       console.error('Error processing participant:', error);
@@ -167,8 +151,8 @@ export function usePaymentCompletion({
   };
 
   const updateNumbersToSold = async (
-    numbers: string[], 
-    participantId: string, 
+    numbers: string[],
+    participantId: string,
     paymentProofUrl: string | null,
     raffleNumbers: any[]
   ) => {
@@ -177,55 +161,45 @@ export function usePaymentCompletion({
       participantId,
       paymentProofUrl
     });
-    
-    // Get participant data to store in raffle_numbers
-    const { data: participantData, error: participantError } = await supabase
+
+    const { data: participantData } = await supabase
       .from('participants')
       .select('name, phone, cedula, direccion, sugerencia_producto')
       .eq('id', participantId)
       .single();
-      
-    if (participantError) {
-      console.error("Error fetching participant data:", participantError);
-    }
-    
+
     const updatePromises = numbers.map(async (numStr) => {
       const existingNumber = raffleNumbers?.find(n => n.number === numStr);
-      
+
       if (existingNumber) {
-        // If there's already a payment proof, don't overwrite it
         const proofToUse = paymentProofUrl || existingNumber.payment_proof;
         
-        const updateData: any = { 
-          status: 'sold', 
+        const updateData = {
+          status: 'sold',
           seller_id: raffleSeller.seller_id,
           participant_id: participantId,
           payment_proof: proofToUse,
           payment_approved: true,
-          reservation_expires_at: null
+          reservation_expires_at: null,
+          participant_name: participantData?.name,
+          participant_phone: participantData?.phone,
+          participant_cedula: participantData?.cedula
         };
-        
-        // Add participant details if available
-        if (participantData) {
-          updateData.participant_name = participantData.name;
-          updateData.participant_phone = participantData.phone;
-          updateData.participant_cedula = participantData.cedula;
-        }
-        
+
         console.log(`🔄 Updating number ${numStr} with data:`, updateData);
-        
+
         const { error } = await supabase
           .from('raffle_numbers')
           .update(updateData)
           .eq('id', existingNumber.id);
-        
+
         if (error) {
           console.error(`Error updating number ${numStr}:`, error);
           throw error;
         }
       }
     });
-    
+
     await Promise.all(updatePromises);
     console.log("✅ All numbers updated to sold status");
   };
