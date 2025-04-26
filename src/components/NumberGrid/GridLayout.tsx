@@ -39,7 +39,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
 
   // Log when highlightReserved changes
   React.useEffect(() => {
-    console.log("📊 GridLayout - highlightReserved changed:", highlightReserved);
+    console.log("📊 GridLayout.tsx: highlightReserved cambió:", highlightReserved);
   }, [highlightReserved]);
 
   const grid = [];
@@ -62,14 +62,15 @@ const GridLayout: React.FC<GridLayoutProps> = ({
           isHighlighted={isHighlighted}
           onToggle={() => {
             if (highlightReserved && status === 'reserved') {
-              // Directly call toggleNumber instead of onPayReserved
-              console.log("▶️ src/components/NumberGrid/GridLayout.tsx: pulsado reservado:", paddedNum);
-              toggleNumber(paddedNum, status);
+              console.log("▶️ GridLayout.tsx: pulsado reservado:", paddedNum);
+              // 1) Guarda el número seleccionado
+              setSelectedReservedNumber(paddedNum);
+              // 2) Abre la modal de validación
+              setIsPhoneModalOpen(true);
             } else {
-              // Lógica normal de selección
               toggleNumber(paddedNum, status);
             }
-          }}          
+          }}
         />
       );
     }
@@ -81,7 +82,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
     );
   }
   
-  console.log('📊 GridLayout - highlightReserved:', highlightReserved);
+  console.log('📊 GridLayout.tsx: - highlightReserved:', highlightReserved);
   return (
     <div className="flex flex-col gap-1 sm:gap-2 min-w-fit">
       {grid}
