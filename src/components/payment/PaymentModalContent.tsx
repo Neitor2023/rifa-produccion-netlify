@@ -32,11 +32,9 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
       form.setValue('buyerName', buyerData.name || '');
       form.setValue('buyerPhone', buyerData.phone || '');
       form.setValue('buyerCedula', buyerData.cedula || '');
-      
       if (buyerData.direccion) {
         form.setValue("direccion", buyerData.direccion);
       }
-      
       if (buyerData.sugerencia_producto) {
         form.setValue("sugerenciaProducto", buyerData.sugerencia_producto);
       }
