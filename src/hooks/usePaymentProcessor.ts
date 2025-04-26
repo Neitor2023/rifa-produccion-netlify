@@ -36,7 +36,9 @@ export function usePaymentProcessor({
   allowVoucherPrint = true
 }: UsePaymentProcessorProps) {
   const { selectedNumbers, setSelectedNumbers } = useSelection();
-  const { isPaymentModalOpen, setIsPaymentModalOpen, isVoucherOpen, setIsVoucherOpen } = useModalState();
+  const [isNewPaymentOpen,     setIsNewPaymentOpen]     = useState(false);  // para “Pagar”
+  const [isCompletePaymentOpen, setIsCompletePaymentOpen] = useState(false); // para “Pagar Apartados”
+  const [isVoucherOpen,        setIsVoucherOpen]        = useState(false);  
   const { paymentData, setPaymentData, handleProofCheck } = usePayment();
   const { validatedBuyerData, setValidatedBuyerData } = useBuyerData();
   const { validateSellerMaxNumbers, getSoldNumbersCount } = useSellerValidation(raffleSeller, raffleNumbers, debugMode);
@@ -166,7 +168,7 @@ export function usePaymentProcessor({
       }
       
       setSelectedNumbers(numbers);
-      setIsPaymentModalOpen(true);
+      setIsNewPaymentOpen(true);
       
     } catch (error) {
       console.error('usePaymentProcessor: ❌ Error al proceder al pago:', error);
@@ -189,7 +191,7 @@ export function usePaymentProcessor({
       setValidatedBuyerData(participantData);
       setSelectedNumbers(numbers);
       
-      setIsPaymentModalOpen(true);
+      setIsCompletePaymentOpen(true);   // abrimos el modal “completar apartados”
       
       debugLog("usePaymentProcessor: Modal de pago abierto con datos validados:", participantData);
     } catch (error) {
@@ -295,8 +297,10 @@ export function usePaymentProcessor({
   return {
     selectedNumbers,
     setSelectedNumbers,
-    isPaymentModalOpen,
-    setIsPaymentModalOpen,
+    isNewPaymentOpen,
+    setIsNewPaymentOpen,
+    isCompletePaymentOpen,
+    setIsCompletePaymentOpen,
     isVoucherOpen,
     setIsVoucherOpen,
     paymentData,

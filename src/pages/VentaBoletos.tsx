@@ -43,18 +43,20 @@ const VentaBoletos: React.FC = () => {
     sellerId: SELLER_ID 
   });
   
-  // Payment processor hook with allowVoucherPrint passed
+  // Gancho del procesador de pagos con allowVoucherPrint aprobado
   const {
     selectedNumbers,
-    isPaymentModalOpen,
-    setIsPaymentModalOpen,
+    isNewPaymentOpen,
+    setIsNewPaymentOpen,
+    isCompletePaymentOpen,
+    setIsCompletePaymentOpen,    
     isVoucherOpen,
     setIsVoucherOpen,
     paymentData,
     validatedBuyerData,
     handleReserveNumbers,
-    handleProceedToPayment,
-    handlePayReservedNumbers,
+    handleStartNewPayment,
+    handleStartCompletePayment,
     handleCompletePayment,
     getSoldNumbersCount
   } = usePaymentProcessor({
