@@ -259,8 +259,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         raffleSeller={raffleSeller}
         onClearSelection={clearSelection}
         onReserve={handleReserve}
-        onPayReserved={handlePayReserved}
-        onProceedToPayment={handleProceedToPayment}
+        onPayReserved={handleStartCompletePayment}  // antes onPayReserved
+        onProceedToPayment={handleStartNewPayment} // antes onProceedToPayment
       />
       
       <NumberGridLegend highlightReserved={highlightReserved} />
