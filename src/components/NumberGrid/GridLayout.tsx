@@ -39,7 +39,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
 
   // Log when highlightReserved changes
   React.useEffect(() => {
-    console.log("📊 GridLayout.tsx: highlightReserved cambió:", highlightReserved);
+    console.log("📊 GridLayout - highlightReserved changed:", highlightReserved);
   }, [highlightReserved]);
 
   const grid = [];
@@ -82,7 +82,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
     );
   }
   
-  console.log('📊 GridLayout.tsx: - highlightReserved:', highlightReserved);
+  console.log('📊 GridLayout - highlightReserved:', highlightReserved);
   return (
     <div className="flex flex-col gap-1 sm:gap-2 min-w-fit">
       {grid}
