@@ -66,24 +66,22 @@ export function usePaymentCompletion({
 
       let participantId: string | null = null;
 
-      const participantData = {
-        name: data.buyerName,
-        phone: formattedPhone,
-        nota: data.nota || null,
-        cedula: data.buyerCedula || null,
-        direccion: data.direccion || null,
-        sugerencia_producto: data.sugerenciaProducto || null,
-        raffle_id: raffleId,
-        seller_id: raffleSeller.seller_id
-      };
-
       if (existingParticipant) {
         participantId = existingParticipant.id;
         console.log("✅ Found existing participant:", existingParticipant);
 
+        const updateData: any = {
+          name: data.buyerName,
+          phone: formattedPhone,
+          nota: data.nota,
+          cedula: data.buyerCedula || null,
+          direccion: data.direccion || null,
+          sugerencia_producto: data.sugerenciaProducto || null
+        };
+
         const { error: updateError } = await supabase
           .from('participants')
-          .update(participantData)
+          .update(updateData)
           .eq('id', participantId);
 
         if (updateError) {
@@ -91,11 +89,21 @@ export function usePaymentCompletion({
           throw updateError;
         }
       } else {
-        console.log("🆕 Creating new participant with data:", participantData);
+        console.log("🆕 Creating new participant");
 
         const { data: newParticipant, error: participantError } = await supabase
           .from('participants')
-          .insert(participantData)
+          .insert({
+            name: data.buyerName,
+            phone: formattedPhone,
+            email: data.buyerEmail || '',
+            cedula: data.buyerCedula,
+            direccion: data.direccion || null,
+            sugerencia_producto: data.sugerenciaProducto || null,
+            nota: data.nota || null,
+            raffle_id: raffleId,
+            seller_id: raffleSeller.seller_id
+          })
           .select('id')
           .single();
 
@@ -128,7 +136,7 @@ export function usePaymentCompletion({
 
     const { data: participantData } = await supabase
       .from('participants')
-      .select('name, phone, cedula, direccion, nota, sugerencia_producto')
+      .select('name, phone, cedula, direccion')
       .eq('id', participantId)
       .single();
 
@@ -149,12 +157,7 @@ export function usePaymentCompletion({
           reservation_expires_at: null,
           participant_name: participantData.name,
           participant_phone: participantData.phone,
-          participant_cedula: participantData.cedula,
-          participant_data: {
-            direccion: participantData.direccion,
-            nota: participantData.nota,
-            sugerencia_producto: participantData.sugerencia_producto
-          }
+          participant_cedula: participantData.cedula
         };
 
         console.log(`🔄 Updating number ${numStr} with data:`, updateData);
