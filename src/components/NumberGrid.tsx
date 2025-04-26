@@ -282,6 +282,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         onConfirm={handleConfirmReservation}
         selectedNumbers={selectedNumbers}
       />
+
   
     </div>
   );
