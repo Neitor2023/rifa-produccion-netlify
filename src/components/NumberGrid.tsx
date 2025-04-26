@@ -174,6 +174,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     // ¡En lugar de onProceedToPayment normal, abrimos el modal de completar compra de apartados!
     setIsReservationPaymentOpen(true);
   };
+
   
   const handleParticipantValidation = async (participantId: string) => {
     if (debugMode) {
