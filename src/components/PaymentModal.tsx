@@ -55,7 +55,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   
-  console.log("🧾 PaymentModal received buyerData:", buyerData);
+  console.log("🧾 components/PaymentModal.tsx: recibió buyerData:", buyerData);
   
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentFormSchema),
