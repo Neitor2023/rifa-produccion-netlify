@@ -303,6 +303,8 @@ export function usePaymentProcessor({
     setIsCompletePaymentOpen,
     isVoucherOpen,
     setIsVoucherOpen,
+    handleStartNewPayment,
+    handleStartCompletePayment,    
     paymentData,
     setPaymentData,
     validatedBuyerData,
