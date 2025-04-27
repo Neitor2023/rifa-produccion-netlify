@@ -79,12 +79,9 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
   useEffect(() => {
     if (readOnlyData) {
       console.log("🔵 PaymentFormFields: Setting form values with readOnlyData for reserved numbers:", readOnlyData);
-      if (readOnlyData.name)
-        form.setValue("buyerName", readOnlyData.name);
-      if (readOnlyData.phone)
-        form.setValue("buyerPhone", readOnlyData.phone);
-      if (readOnlyData.cedula)
-        form.setValue("buyerCedula", readOnlyData.cedula);
+      form.setValue("buyerName", readOnlyData.name);
+      form.setValue("buyerPhone", readOnlyData.phone);
+      form.setValue("buyerCedula", readOnlyData.cedula || '');
       if (readOnlyData.direccion)
         form.setValue("direccion", readOnlyData.direccion);
       if (readOnlyData.sugerencia_producto)
