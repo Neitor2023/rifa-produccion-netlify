@@ -164,6 +164,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   ) => {
     if (buyerInfo) {
       console.log("✅ NumberGrid recibió información validada del comprador:", {
+        validatedNumber,
+        participantId,
         name: buyerInfo.name,
         phone: buyerInfo.phone,
         cedula: buyerInfo.cedula,
