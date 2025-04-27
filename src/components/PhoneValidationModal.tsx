@@ -105,7 +105,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           .from('participants')
           .select('id, name, phone, cedula, direccion, sugerencia_producto')
           .eq('phone', cleanedPhone)
-          .eq('raffle_id', raffleId)
+//          .eq('raffle_id', raffleId)
           .maybeSingle();
 
         if (byPhone) {
