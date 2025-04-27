@@ -13,52 +13,6 @@ import SuspiciousActivityReport from './SuspiciousActivityReport';
 import BuyerInfoFields from './BuyerInfoFields';
 import EditableBuyerFields from './EditableBuyerFields';
 
-function AdditionalInfoSection({ form }: { form: UseFormReturn<PaymentFormData> }) {
-  return (
-    <div>
-      <h3 className="font-medium mb-3">Información Adicional</h3>
-      <div className="grid grid-cols-1 gap-4">
-        <FormField
-          control={form.control}
-          name="direccion"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Dirección</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Ingrese su dirección"
-                  {...field}
-                  value={field.value || ''}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="sugerenciaProducto"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Sugerencia de Producto</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="¿Qué productos le gustaría ver en futuras rifas?"
-                  className="resize-none"
-                  {...field}
-                  value={field.value || ''}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-    </div>
-  );
-}
-
 interface PaymentFormFieldsProps {
   form: UseFormReturn<PaymentFormData>;
   readOnlyData?: ValidatedBuyerInfo | null;
@@ -76,51 +30,135 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
 }) => {
   const watchedPaymentMethod = form.watch('paymentMethod');
 
-  // Only set form values for reserved numbers payment (Pagar Apartados)
   useEffect(() => {
     if (readOnlyData) {
-      console.log("🔵 PaymentFormFields: Setting form values with readOnlyData:", {
+      console.log("🔵 PaymentFormFields: Reserved numbers flow - showing read-only participant data:", {
         name: readOnlyData.name,
         phone: readOnlyData.phone,
         cedula: readOnlyData.cedula || 'No disponible'
       });
-      
-      // Only set these values if we're in "Pagar Apartados" flow
-      form.setValue("buyerName", readOnlyData.name);
-      form.setValue("buyerPhone", readOnlyData.phone);
-      form.setValue("buyerCedula", readOnlyData.cedula || '');
-      
-      // Set additional data if available
-      if (readOnlyData.direccion) {
-        form.setValue("direccion", readOnlyData.direccion);
-      }
-      if (readOnlyData.sugerencia_producto) {
-        form.setValue("sugerenciaProducto", readOnlyData.sugerencia_producto);
-      }
     } else {
-      console.log("🔵 PaymentFormFields: Direct purchase - no pre-existing data to show");
+      console.log("🔵 PaymentFormFields: Direct purchase flow - no pre-existing data to show");
     }
-  }, [readOnlyData, form]);
+  }, [readOnlyData]);
 
-  // Clear validation errors for read-only fields in "Pagar Apartados" flow
-  useEffect(() => {
-    if (readOnlyData) {
-      form.clearErrors(["buyerName", "buyerPhone", "buyerCedula"]);
-    }
-  }, [readOnlyData, form]);
+  // For direct purchase flow, we don't pre-fill values
+  // For reserved numbers flow, we do nothing here since the BuyerInfoFields component will show read-only data
 
   return (
     <>
       {readOnlyData ? (
+        // "Pagar Apartados" flow - show read-only participant data and editable fields for complementary data
         <>
           <BuyerInfoFields buyerData={readOnlyData} />
           <EditableBuyerFields form={form} />
         </>
       ) : (
-        <EditableBuyerFields form={form} />
+        // Direct purchase flow - all fields are editable, nothing is pre-filled
+        <div className="grid grid-cols-1 gap-4">
+          <h3 className="font-medium mb-3">Información de Contacto</h3>
+          <FormField
+            control={form.control}
+            name="buyerName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nombre</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ingrese su nombre completo" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="buyerPhone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Teléfono</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ingrese su número de teléfono" type="tel" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="buyerCedula"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Cédula/DNI</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ingrese su número de cédula o documento" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="buyerEmail"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="Ingrese su email" 
+                    type="email" 
+                    {...field} 
+                    value={field.value || ''}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
       )}
+      
+      <div>
+        <h3 className="font-medium mb-3">Información Adicional</h3>
+        <div className="grid grid-cols-1 gap-4">
+          <FormField
+            control={form.control}
+            name="direccion"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Dirección</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Ingrese su dirección"
+                    {...field}
+                    value={field.value || ''}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-      <AdditionalInfoSection form={form} />
+          <FormField
+            control={form.control}
+            name="sugerenciaProducto"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Sugerencia de Producto</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="¿Qué productos le gustaría ver en futuras rifas?"
+                    className="resize-none"
+                    {...field}
+                    value={field.value || ''}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+      </div>
+
       <PaymentNotes form={form} />
       <SuspiciousActivityReport form={form} />
       <PaymentMethodFields form={form} />

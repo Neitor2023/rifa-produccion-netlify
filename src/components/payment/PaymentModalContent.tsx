@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Form } from "@/components/ui/form";
 import { UseFormReturn } from 'react-hook-form';
@@ -27,19 +27,9 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
   onFileUpload,
   onFileRemove
 }) => {
-  useEffect(() => {
-    if (buyerData) {
-      form.setValue('buyerName', buyerData.name || '');
-      form.setValue('buyerPhone', buyerData.phone || '');
-      form.setValue('buyerCedula', buyerData.cedula || '');
-      if (buyerData.direccion) {
-        form.setValue("direccion", buyerData.direccion);
-      }
-      if (buyerData.sugerencia_producto) {
-        form.setValue("sugerenciaProducto", buyerData.sugerencia_producto);
-      }
-    }
-  }, [buyerData, form]);
+  // We're not setting form values here anymore
+  // This ensures that for direct purchase flow, no data is pre-filled
+  // For reserved numbers flow, the BuyerInfoFields component will show read-only data
   
   return (
     <ScrollArea className="flex-1 overflow-y-auto px-1">

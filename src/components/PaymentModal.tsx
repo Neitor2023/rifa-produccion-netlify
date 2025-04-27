@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -73,24 +74,19 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   useEffect(() => {
     if (!isOpen) {
       resetForm();
-    } else {
-      debugLog('Modal opened', {
-        selectedNumbers,
-        price,
-        buyerData: buyerData ? 'present' : 'absent'
+    } else if (buyerData) {
+      console.log("🔵 PaymentModal: Reserved numbers payment flow - showing buyer data:", {
+        name: buyerData.name,
+        phone: buyerData.phone,
+        cedula: buyerData.cedula || 'No disponible'
       });
-
-      if (buyerData) {
-        console.log("🔵 PaymentModal: Setting form with buyer data for reserved numbers:", {
-          name: buyerData.name,
-          phone: buyerData.phone,
-          cedula: buyerData.cedula
-        });
-      } else {
-        console.log("🔵 PaymentModal: Direct purchase - no buyer data to show");
-      }
+      
+      // We don't pre-fill form fields for reserved numbers here
+      // The read-only fields will be shown by BuyerInfoFields component
+    } else {
+      console.log("🔵 PaymentModal: Direct purchase flow - no buyer data to show");
     }
-  }, [isOpen, selectedNumbers, price, buyerData, form]);
+  }, [isOpen, selectedNumbers, price, buyerData]);
 
   const debugLog = (context: string, data: any) => {
     if (debugMode) {
@@ -118,6 +114,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       });
     }
     
+    // For "Pagar Apartados" flow, use buyer data from the database
     if (buyerData) {
       data.buyerName = buyerData.name;
       data.buyerPhone = buyerData.phone;
