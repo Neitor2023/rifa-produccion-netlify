@@ -90,6 +90,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     console.log(`🔄 NumberGrid toggleNumber called with`, { number, status, highlightReserved });
     
     if (highlightReserved && status === 'reserved') {
+      console.log('▶️ NumberGrid.toggleNumber → abriendo PhoneValidationModal');
       const selectedNumber = numbers.find(n => n.number === number);
       if (selectedNumber) {
         const allReservedNumbers = numbers
@@ -270,7 +271,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       />
       
       <NumberGridLegend highlightReserved={highlightReserved} />
-      
+      console.log('▶️ NumberGrid render, isPhoneModalOpen=', isPhoneModalOpen);
       <PhoneValidationModal 
         isOpen={isPhoneModalOpen}
         onClose={() => setIsPhoneModalOpen(false)}

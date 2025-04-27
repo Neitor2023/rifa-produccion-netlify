@@ -151,7 +151,9 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    // Antes
+    // <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Validar número de ( teléfono o cédula )</DialogTitle>
@@ -173,6 +175,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         </div>
 
         <ModalFooter
+          console.log('▶️ ModalFooter botón validar clickeado')
           onCancel={onClose}
           onValidate={handleNumberSubmit}
           isValid={validation.isValid}
