@@ -186,7 +186,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       setIsPhoneModalOpen(false);
     
       // 2) Abrimos el modal de completar datos de apartados
-      setIsReservationModalOpen(true);
+      //setIsReservationModalOpen(true);
     
     if (participantId && buyerInfo) {
       onProceedToPayment(selectedNumbers, buyerInfo);
