@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -71,29 +70,27 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     },
   });
 
-  // Update form values when buyerData changes
   useEffect(() => {
-    console.log("📦 Modal is open:", isOpen, "buyerData:", buyerData);
-    
-    if (buyerData && isOpen) {
-      console.log("📦 Modal is open, updating form with buyer data:", buyerData);
-      form.setValue('buyerName', buyerData.name || "");
-      form.setValue('buyerPhone', buyerData.phone || "");
-      form.setValue('buyerCedula', buyerData.cedula || "");
-      
-      if (buyerData.direccion) {
-        form.setValue("direccion", buyerData.direccion);
-      }
-      
-      if (buyerData.sugerencia_producto) {
-        form.setValue("sugerenciaProducto", buyerData.sugerencia_producto);
-      }
-      
-      console.log("Form values after update:", form.getValues());
+    if (!isOpen) {
+      resetForm();
     } else {
-      console.log("Either modal is closed or no buyerData:", { isOpen, buyerData });
+      debugLog('Modal opened', {
+        selectedNumbers,
+        price,
+        buyerData: buyerData ? 'present' : 'absent'
+      });
+
+      if (buyerData) {
+        console.log("🔵 PaymentModal: Setting form with buyer data for reserved numbers:", {
+          name: buyerData.name,
+          phone: buyerData.phone,
+          cedula: buyerData.cedula
+        });
+      } else {
+        console.log("🔵 PaymentModal: Direct purchase - no buyer data to show");
+      }
     }
-  }, [buyerData, form, isOpen]);
+  }, [isOpen, selectedNumbers, price, buyerData, form]);
 
   const debugLog = (context: string, data: any) => {
     if (debugMode) {
@@ -121,7 +118,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       });
     }
     
-    // Ensure the data includes the buyerData values
     if (buyerData) {
       data.buyerName = buyerData.name;
       data.buyerPhone = buyerData.phone;
@@ -169,36 +165,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     setPreviewUrl(null);
   };
 
-  useEffect(() => {
-    if (!isOpen) {
-      resetForm();
-    } else {
-      debugLog('Modal opened', {
-        selectedNumbers,
-        price,
-        buyerData
-      });
-      
-      // When modal opens, update form with buyerData
-      if (buyerData) {
-        console.log("📦 Modal opened, updating form with buyer data:", buyerData);
-        form.setValue('buyerName', buyerData.name || "");
-        form.setValue('buyerPhone', buyerData.phone || "");
-        form.setValue('buyerCedula', buyerData.cedula || "");
-        
-        if (buyerData.direccion) {
-          form.setValue("direccion", buyerData.direccion);
-        }
-        
-        if (buyerData.sugerencia_producto) {
-          form.setValue("sugerenciaProducto", buyerData.sugerencia_producto);
-        }
-        
-        console.log("Form values after modal open:", form.getValues());
-      }
-    }
-  }, [isOpen, selectedNumbers, price, buyerData, form]);
-  
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col">

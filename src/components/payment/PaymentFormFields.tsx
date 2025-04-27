@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -59,25 +58,6 @@ function AdditionalInfoSection({ form }: { form: UseFormReturn<PaymentFormData> 
   );
 }
 
-function HiddenBuyerFields({ form, readOnlyData }: { form: UseFormReturn<PaymentFormData>; readOnlyData?: ValidatedBuyerInfo | null }) {
-  useEffect(() => {
-    if (readOnlyData) {
-      if (readOnlyData.name)
-        form.setValue("buyerName", readOnlyData.name)
-      if (readOnlyData.phone)
-        form.setValue("buyerPhone", readOnlyData.phone)
-      if (readOnlyData.cedula)
-        form.setValue("buyerCedula", readOnlyData.cedula)
-      if (readOnlyData.direccion)
-        form.setValue("direccion", readOnlyData.direccion)
-      if (readOnlyData.sugerencia_producto)
-        form.setValue("sugerenciaProducto", readOnlyData.sugerencia_producto)
-    }
-  }, [readOnlyData, form]);
-
-  return null;
-}
-
 interface PaymentFormFieldsProps {
   form: UseFormReturn<PaymentFormData>;
   readOnlyData?: ValidatedBuyerInfo | null;
@@ -95,9 +75,10 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
 }) => {
   const watchedPaymentMethod = form.watch('paymentMethod');
 
+  // Only set form values for reserved numbers payment (Pagar Apartados)
   useEffect(() => {
-    if (readOnlyData && form) {
-      console.log("Setting form values with readOnlyData:", readOnlyData);
+    if (readOnlyData) {
+      console.log("🔵 PaymentFormFields: Setting form values with readOnlyData for reserved numbers:", readOnlyData);
       if (readOnlyData.name)
         form.setValue("buyerName", readOnlyData.name);
       if (readOnlyData.phone)
@@ -111,12 +92,14 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
     }
   }, [readOnlyData, form]);
 
+  console.log("🔵 PaymentFormFields: Rendering with readOnlyData:", readOnlyData ? "present" : "absent");
+
   return (
     <>
       {readOnlyData ? (
         <>
           <BuyerInfoFields buyerData={readOnlyData} />
-          <HiddenBuyerFields form={form} readOnlyData={readOnlyData} />
+          <EditableBuyerFields form={form} />
         </>
       ) : (
         <EditableBuyerFields form={form} />

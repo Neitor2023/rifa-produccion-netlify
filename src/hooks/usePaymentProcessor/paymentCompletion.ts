@@ -49,73 +49,36 @@ export function usePaymentCompletion({
 
   const processParticipant = async (data: PaymentFormData): Promise<string | null> => {
     try {
-      console.log("🔵 Processing participant with data:", data);
+      console.log("🔵 Processing participant with data:", {
+        name: data.buyerName,
+        phone: data.buyerPhone,
+        cedula: data.buyerCedula
+      });
       
       const formattedPhone = formatPhoneNumber(data.buyerPhone);
       
-      const { data: existingParticipant, error: searchError } = await supabase
+      const { data: newParticipant, error: participantError } = await supabase
         .from('participants')
-        .select('id, name, phone, cedula, direccion, sugerencia_producto, nota')
-        .eq('phone', formattedPhone)
-        .eq('raffle_id', raffleId)
-        .maybeSingle();
-
-      if (searchError) {
-        console.error("Error searching for existing participant:", searchError);
-      }
-
-      let participantId: string | null = null;
-
-      if (existingParticipant) {
-        participantId = existingParticipant.id;
-        console.log("✅ Found existing participant:", existingParticipant);
-
-        const updateData: any = {
+        .insert({
           name: data.buyerName,
           phone: formattedPhone,
-          nota: data.nota,
-          cedula: data.buyerCedula || null,
+          email: data.buyerEmail,
+          cedula: data.buyerCedula,
           direccion: data.direccion || null,
-          sugerencia_producto: data.sugerenciaProducto || null
-        };
+          sugerencia_producto: data.sugerenciaProducto || null,
+          nota: data.nota || null,
+          raffle_id: raffleId,
+          seller_id: raffleSeller.seller_id
+        })
+        .select('id')
+        .single();
 
-        const { error: updateError } = await supabase
-          .from('participants')
-          .update(updateData)
-          .eq('id', participantId);
-
-        if (updateError) {
-          console.error("Error updating participant:", updateError);
-          throw updateError;
-        }
-      } else {
-        console.log("🆕 Creating new participant");
-
-        const { data: newParticipant, error: participantError } = await supabase
-          .from('participants')
-          .insert({
-            name: data.buyerName,
-            phone: formattedPhone,
-            email: data.buyerEmail || '',
-            cedula: data.buyerCedula,
-            direccion: data.direccion || null,
-            sugerencia_producto: data.sugerenciaProducto || null,
-            nota: data.nota || null,
-            raffle_id: raffleId,
-            seller_id: raffleSeller.seller_id
-          })
-          .select('id')
-          .single();
-
-        if (participantError) {
-          console.error("Error creating new participant:", participantError);
-          throw participantError;
-        }
-
-        participantId = newParticipant.id;
+      if (participantError) {
+        console.error("Error creating new participant:", participantError);
+        throw participantError;
       }
 
-      return participantId;
+      return newParticipant.id;
     } catch (error) {
       console.error('Error processing participant:', error);
       throw error;
