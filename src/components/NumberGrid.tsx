@@ -41,6 +41,7 @@ interface NumberGridProps {
   numbers: RaffleNumber[];
   raffleSeller: RaffleSeller;
   onReserve: (selectedNumbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula?: string) => void;
+  onPayReserved: (selectedNumbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula?: string) => void;
   onProceedToPayment: (selectedNumbers: string[], participantData?: ValidatedBuyerInfo) => void;
   debugMode?: boolean;
   soldNumbersCount?: number;
@@ -50,6 +51,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   numbers, 
   raffleSeller,
   onReserve,
+  onPayReserved,
   onProceedToPayment,
   debugMode = false,
   soldNumbersCount = 0
@@ -267,7 +269,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         onClearSelection={clearSelection}
         onReserve={handleReserve}
         onPayReserved={onPayReserved}           // antes onPayReserved handleStartCompletePayment
-        onProceedToPayment={onProceedToPayment} // antes handleStartNewPayment
+        onProceedToPayment={onProceedToPayment} // antes onProceedToPayment handleStartNewPayment
       />
       
       <NumberGridLegend highlightReserved={highlightReserved} />
