@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -78,18 +79,35 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
   // Only set form values for reserved numbers payment (Pagar Apartados)
   useEffect(() => {
     if (readOnlyData) {
-      console.log("🔵 PaymentFormFields: Setting form values with readOnlyData for reserved numbers:", readOnlyData);
+      console.log("🔵 PaymentFormFields: Setting form values with readOnlyData:", {
+        name: readOnlyData.name,
+        phone: readOnlyData.phone,
+        cedula: readOnlyData.cedula || 'No disponible'
+      });
+      
+      // Only set these values if we're in "Pagar Apartados" flow
       form.setValue("buyerName", readOnlyData.name);
       form.setValue("buyerPhone", readOnlyData.phone);
       form.setValue("buyerCedula", readOnlyData.cedula || '');
-      if (readOnlyData.direccion)
+      
+      // Set additional data if available
+      if (readOnlyData.direccion) {
         form.setValue("direccion", readOnlyData.direccion);
-      if (readOnlyData.sugerencia_producto)
+      }
+      if (readOnlyData.sugerencia_producto) {
         form.setValue("sugerenciaProducto", readOnlyData.sugerencia_producto);
+      }
+    } else {
+      console.log("🔵 PaymentFormFields: Direct purchase - no pre-existing data to show");
     }
   }, [readOnlyData, form]);
 
-  console.log("🔵 PaymentFormFields: Rendering with readOnlyData:", readOnlyData ? "present" : "absent");
+  // Clear validation errors for read-only fields in "Pagar Apartados" flow
+  useEffect(() => {
+    if (readOnlyData) {
+      form.clearErrors(["buyerName", "buyerPhone", "buyerCedula"]);
+    }
+  }, [readOnlyData, form]);
 
   return (
     <>
