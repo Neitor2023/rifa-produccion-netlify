@@ -310,6 +310,8 @@ export function usePaymentProcessor({
     handleCompletePayment,
     findOrCreateParticipant,
     getSoldNumbersCount,
-    allowVoucherPrint
+    allowVoucherPrint,
+    isReservationModalOpen,
+    setIsReservationModalOpen
   };
 }
