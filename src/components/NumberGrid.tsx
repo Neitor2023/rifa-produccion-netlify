@@ -175,6 +175,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       });
       setBuyerData(buyerInfo);
       setValidatedBuyerInfo(buyerInfo);
+    } else {
+      console.log("✅ NumberGrid <<NO>> recibió información validada del comprador:");      
     }
     
     setIsPhoneModalOpen(false);
