@@ -60,6 +60,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
       const isHighlighted = highlightReserved && status === 'reserved';
 
       rowItems.push(
+        // FIXME: onToggle ahora ejecuta toggleNumber
         <NumberGridItem
           key={paddedNum}
           number={paddedNum}
