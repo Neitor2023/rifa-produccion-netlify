@@ -48,6 +48,8 @@ const VentaBoletos: React.FC = () => {
     selectedNumbers,
     isPaymentModalOpen,
     setIsPaymentModalOpen,
+    isCompletePaymentOpen,
+    setIsCompletePaymentOpen,
     isVoucherOpen,
     setIsVoucherOpen,
     paymentData,
@@ -201,7 +203,8 @@ const VentaBoletos: React.FC = () => {
         prize={selectedPrize}
         prizeImages={prizeImages || []}
       />
-
+      
+      {/* Modal para compra directa */}
       <PaymentModal 
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
@@ -213,17 +216,18 @@ const VentaBoletos: React.FC = () => {
       />
       
       {/* Modal para finalizar compra de apartados */}
-      <PaymentModal
+      <PaymentModal 
         isOpen={isCompletePaymentOpen}
         onClose={() => setIsCompletePaymentOpen(false)}
         selectedNumbers={selectedNumbers}
-        price={raffle?.price || 0}            // raffle existe aquí
+        price={raffle?.price || 0}
         onComplete={handleCompletePayment}
-        buyerData={validatedBuyerData}         // ya precargado tras validar teléfono/ID
+        buyerData={validatedBuyerData}
         debugMode={debugMode}
         title="COMPLETA LOS SIGUIENTES DATOS PARA FINALIZAR LA COMPRA"
-      />     
+      />
       
+      {/* Comprobante digital */}
       <DigitalVoucher 
         isOpen={isVoucherOpen}
         onClose={() => setIsVoucherOpen(false)}
