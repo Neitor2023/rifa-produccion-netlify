@@ -90,9 +90,11 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   };
   
   const toggleNumber = (number: string, status: string) => {
+    // TODO: lógica de selección y reserva
     console.log(`🔄 NumberGrid toggleNumber called with`, { number, status, highlightReserved });
     
     if (highlightReserved && status === 'reserved') {
+      // FIXME: al pulsar uno, abrir validación
       const selectedNumber = numbers.find(n => n.number === number);
       if (selectedNumber) {
         const allReservedNumbers = numbers
@@ -234,6 +236,9 @@ const NumberGrid: React.FC<NumberGridProps> = ({
 
   return (
     <div className="mb-8">
+      {/* FIXME: alerta de reserva */}
+      {showReservedMessage && <div className="p-2 bg-yellow-200">Hay números apartados</div>}
+      
       <NumberGridHeader 
         soldNumbersCount={soldNumbersCount} 
         maxNumbers={raffleSeller.cant_max} 
@@ -261,8 +266,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         raffleSeller={raffleSeller}
         onClearSelection={clearSelection}
         onReserve={handleReserve}
-        onPayReserved={handleStartCompletePayment}  // antes onPayReserved
-        onProceedToPayment={handleStartNewPayment} // antes onProceedToPayment
+        onPayReserved={onPayReserved}           // antes onPayReserved handleStartCompletePayment
+        onProceedToPayment={onProceedToPayment} // antes handleStartNewPayment
       />
       
       <NumberGridLegend highlightReserved={highlightReserved} />
@@ -270,7 +275,12 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       <PhoneValidationModal 
         isOpen={isPhoneModalOpen}
         onClose={() => setIsPhoneModalOpen(false)}
-        onPhoneValidationSuccess={handleValidationSuccess}
+        onPhoneValidationSuccess={(phone, id, info) => {
+          setValidatedBuyerInfo(info!);
+          setIsPhoneModalOpen(false);
+          // TODO: llamar a pago de apartados
+          onPayReserved(selectedNumbers, info);
+        }}
         selectedNumber={selectedReservedNumber}
         raffleNumbers={numbers}
         raffleSellerId={raffleSeller.seller_id}
@@ -284,8 +294,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         onConfirm={handleConfirmReservation}
         selectedNumbers={selectedNumbers}
       />
-
-  
+      
     </div>
   );
 };
