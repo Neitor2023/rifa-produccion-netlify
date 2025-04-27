@@ -175,9 +175,13 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         </div>
 
         <ModalFooter
-          console.log('▶️ ModalFooter botón validar clickeado')
           onCancel={onClose}
-          onValidate={handleNumberSubmit}
+          // Antes
+          // onValidate={handleNumberSubmit}
+          onValidate={() => {
+            console.log('▶️ ModalFooter botón validar clickeado');
+            handleNumberSubmit();
+          }}          
           isValid={validation.isValid}
         />
       </DialogContent>
