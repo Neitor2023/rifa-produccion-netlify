@@ -135,7 +135,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   };
   
   const handleConfirmReservation = (data: { buyerName: string; buyerPhone: string; buyerCedula: string }) => {
-    if (debugMode) {
+    if (!debugMode) {
       console.log('NumberGrid.tsx: Datos de reserva:', data);
       console.log('NumberGrid.tsx: Números seleccionados:', selectedNumbers);
     }
