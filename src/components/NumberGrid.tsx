@@ -239,6 +239,11 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     toast.success('Validación exitosa');
     onProceedToPayment([validatedNumber]);
   };
+  // 1. Declara una función que abra el modal:
+  const openPhoneModal = () => {
+    console.log('▶️ NumberGrid: abriendo PhoneValidationModal');
+    setIsPhoneModalOpen(true);
+  };
   console.log('▶️ NumberGrid render, isPhoneModalOpen=', isPhoneModalOpen);
   return (
     <div className="mb-8">
@@ -257,7 +262,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           selectedNumbers={selectedNumbers}
           highlightReserved={highlightReserved}
           toggleNumber={toggleNumber}
-          onPayReserved={handlePayReserved} 
+          onPayReserved={handlePayReserved}
+          openPhoneModal={openPhoneModal}
         />
       </Card>
       
