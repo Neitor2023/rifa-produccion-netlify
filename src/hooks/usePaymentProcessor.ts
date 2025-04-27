@@ -36,7 +36,7 @@ export function usePaymentProcessor({
   allowVoucherPrint = true
 }: UsePaymentProcessorProps) {
   const { selectedNumbers, setSelectedNumbers } = useSelection();
-  const { isPaymentModalOpen, setIsPaymentModalOpen, isReservationModalOpen, setIsReservationModalOpen, isVoucherOpen, setIsVoucherOpen } = useModalState();
+  const { isPaymentModalOpen, setIsPaymentModalOpen, isReservationModalOpen, setIsReservationModalOpen, isCompletePaymentOpen, setIsCompletePaymentOpen, isVoucherOpen, setIsVoucherOpen } = useModalState();
   const { paymentData, setPaymentData, handleProofCheck } = usePayment();
   const { validatedBuyerData, setValidatedBuyerData } = useBuyerData();
   const { validateSellerMaxNumbers, getSoldNumbersCount } = useSellerValidation(raffleSeller, raffleNumbers, debugMode);
@@ -314,6 +314,6 @@ export function usePaymentProcessor({
     isReservationModalOpen,
     setIsReservationModalOpen,
     isCompletePaymentOpen,
-    setIsCompletePaymentOpen 
+    setIsCompletePaymentOpen
   };
 }
