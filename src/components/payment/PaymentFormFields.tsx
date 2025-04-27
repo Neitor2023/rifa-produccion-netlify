@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -41,9 +40,6 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
       console.log("🔵 PaymentFormFields: Direct purchase flow - no pre-existing data to show");
     }
   }, [readOnlyData]);
-
-  // For direct purchase flow, we don't pre-fill values
-  // For reserved numbers flow, we do nothing here since the BuyerInfoFields component will show read-only data
 
   return (
     <>

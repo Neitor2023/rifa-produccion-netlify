@@ -16,6 +16,7 @@ interface PaymentModalContentProps {
   buyerData?: ValidatedBuyerInfo;
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFileRemove: () => void;
+  reservedMode?: boolean;
 }
 
 const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
@@ -25,11 +26,17 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
   previewUrl,
   buyerData,
   onFileUpload,
-  onFileRemove
+  onFileRemove,
+  reservedMode = false
 }) => {
-  // We're not setting form values here anymore
-  // This ensures that for direct purchase flow, no data is pre-filled
-  // For reserved numbers flow, the BuyerInfoFields component will show read-only data
+  console.log("🔵 PaymentModalContent: Mode:", reservedMode ? "Reserved Purchase" : "Direct Purchase");
+  if (buyerData) {
+    console.log("🔵 PaymentModalContent: Buyer data present:", {
+      name: buyerData.name,
+      phone: buyerData.phone,
+      cedula: buyerData.cedula || 'No disponible'
+    });
+  }
   
   return (
     <ScrollArea className="flex-1 overflow-y-auto px-1">
@@ -42,7 +49,7 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
           <div className="space-y-6">
             <PaymentFormFields 
               form={form}
-              readOnlyData={buyerData}
+              readOnlyData={reservedMode ? buyerData : undefined}
               previewUrl={previewUrl}
               onFileUpload={onFileUpload}
               onFileRemove={onFileRemove}

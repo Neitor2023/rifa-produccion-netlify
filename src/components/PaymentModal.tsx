@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -23,6 +22,7 @@ interface PaymentModalProps {
   onComplete: (paymentData: PaymentFormData) => void;
   buyerData?: ValidatedBuyerInfo;
   debugMode?: boolean;
+  reservedMode?: boolean;
 }
 
 const paymentFormSchema = z.object({
@@ -49,7 +49,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   price,
   onComplete,
   buyerData,
-  debugMode = false
+  debugMode = false,
+  reservedMode = false
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
@@ -74,19 +75,16 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   useEffect(() => {
     if (!isOpen) {
       resetForm();
-    } else if (buyerData) {
+    } else if (buyerData && reservedMode) {
       console.log("🔵 PaymentModal: Reserved numbers payment flow - showing buyer data:", {
         name: buyerData.name,
         phone: buyerData.phone,
         cedula: buyerData.cedula || 'No disponible'
       });
-      
-      // We don't pre-fill form fields for reserved numbers here
-      // The read-only fields will be shown by BuyerInfoFields component
     } else {
       console.log("🔵 PaymentModal: Direct purchase flow - no buyer data to show");
     }
-  }, [isOpen, selectedNumbers, price, buyerData]);
+  }, [isOpen, selectedNumbers, price, buyerData, reservedMode]);
 
   const debugLog = (context: string, data: any) => {
     if (debugMode) {
@@ -114,7 +112,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       });
     }
     
-    // For "Pagar Apartados" flow, use buyer data from the database
     if (buyerData) {
       data.buyerName = buyerData.name;
       data.buyerPhone = buyerData.phone;
@@ -177,9 +174,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           selectedNumbers={selectedNumbers}
           price={price}
           previewUrl={previewUrl}
-          buyerData={buyerData}
+          buyerData={reservedMode ? buyerData : undefined}
           onFileUpload={handleImageUpload}
           onFileRemove={handleRemoveImage}
+          reservedMode={reservedMode}
         />
         
         <PaymentModalActions 
