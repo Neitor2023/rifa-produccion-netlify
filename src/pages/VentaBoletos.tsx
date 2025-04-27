@@ -212,6 +212,18 @@ const VentaBoletos: React.FC = () => {
         debugMode={debugMode}
       />
       
+      {/* Modal para finalizar compra de apartados */}
+      <PaymentModal
+        isOpen={isCompletePaymentOpen}
+        onClose={() => setIsCompletePaymentOpen(false)}
+        selectedNumbers={selectedNumbers}
+        price={raffle?.price || 0}            // raffle existe aquí
+        onComplete={handleCompletePayment}
+        buyerData={validatedBuyerData}         // ya precargado tras validar teléfono/ID
+        debugMode={debugMode}
+        title="COMPLETA LOS SIGUIENTES DATOS PARA FINALIZAR LA COMPRA"
+      />     
+      
       <DigitalVoucher 
         isOpen={isVoucherOpen}
         onClose={() => setIsVoucherOpen(false)}
