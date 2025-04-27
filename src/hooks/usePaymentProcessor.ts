@@ -122,8 +122,8 @@ export function usePaymentProcessor({
     paymentData,
     validatedBuyerData,
     handleReserveNumbers,
-    handleStartNewPayment,
-    handleStartCompletePayment,
+    handleStartNewPayment,       // Pagar
+    handleStartCompletePayment,  // Pagar Apartados
     handleCompletePayment,
     getSoldNumbersCount,
     allowVoucherPrint
