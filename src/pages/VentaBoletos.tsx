@@ -55,8 +55,8 @@ const VentaBoletos: React.FC = () => {
     paymentData,
     validatedBuyerData,
     handleReserveNumbers,
-    handleStartNewPayment,
-    handleStartCompletePayment,
+    handleStartNewPayment,        // FIXME: funcion para "Pagar"
+    handleStartCompletePayment,   // FIXME: funcion para "Pagar Apartados"
     handleCompletePayment,
     getSoldNumbersCount
   } = usePaymentProcessor({
@@ -158,8 +158,8 @@ const VentaBoletos: React.FC = () => {
                 cant_max: maxNumbersAllowed
               }}
               onReserve={handleReserveNumbers}
-              onProceedToPayment={handleStartNewPayment}
-              onPayReserved={handleStartCompletePayment}
+              onProceedToPayment={handleStartNewPayment}      // FIXME: compra directa
+              onPayReserved={handleStartCompletePayment}      // FIXME: compra de apartados
               debugMode={debugMode}
               soldNumbersCount={getSoldNumbersCount(seller?.id || '')}
             />
@@ -205,8 +205,9 @@ const VentaBoletos: React.FC = () => {
         prizeImages={prizeImages || []}
       />
 
+      {/* Este modal es para completar datos de los apartados */}
       <PaymentModal 
-        isOpen={isNewPaymentOpen}
+        isOpen={isCompletePaymentOpen}                 // TODO: usa el mismo PaymentModal, pero con isCompletePaymentOpen
         onClose={() => setIsNewPaymentOpen(false)}
         selectedNumbers={selectedNumbers}
         price={raffle?.price || 0}
