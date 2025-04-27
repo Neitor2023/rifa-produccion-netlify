@@ -256,6 +256,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     setIsPhoneModalOpen(true);
   };
   console.log('▶️ NumberGrid render, isPhoneModalOpen=', isPhoneModalOpen);
+  console.log("🔍 Antes de PaymentModal (completar apartados) — handleConfirmReservation:", handleConfirmReservation);
+
   return (
     <div className="mb-8">
       <NumberGridHeader 
