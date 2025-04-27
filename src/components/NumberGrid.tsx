@@ -165,10 +165,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     participantId: string,
     buyerInfo?: ValidatedBuyerInfo
   ) => {
-    console.log(
-      "🔍 handleValidationSuccess args:",
-      { validatedNumber, participantId, buyerInfo }
-    );    
     if (buyerInfo) {
       console.log("✅ NumberGrid recibió información validada del comprador:", {
         validatedNumber,
@@ -190,7 +186,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       setIsPhoneModalOpen(false);
     
       // 2) Abrimos el modal de completar datos de apartados
-      //setIsReservationModalOpen(true);
+      setIsReservationModalOpen(true);
     
     if (participantId && buyerInfo) {
       onProceedToPayment(selectedNumbers, buyerInfo);
