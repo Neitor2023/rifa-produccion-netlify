@@ -182,7 +182,11 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       console.log("✅ NumberGrid <<NO>> recibió información validada del comprador:");      
     }
     
-    setIsPhoneModalOpen(false);
+      // 1) Cerramos el modal de validación
+      setIsPhoneModalOpen(false);
+    
+      // 2) Abrimos el modal de completar datos de apartados
+      setIsReservationPaymentOpen(true);
     
     if (participantId && buyerInfo) {
       onProceedToPayment(selectedNumbers, buyerInfo);
