@@ -6,6 +6,7 @@ import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PhoneValidationModal from './PhoneValidationModal';
 import ReservationModal from './ReservationModal';
+import PaymentModal from './PaymentModal';
 import { supabase } from '@/integrations/supabase/client';
 import { NumberGridControls } from './NumberGridControls';
 import { NumberGridLegend } from './NumberGridLegend';
