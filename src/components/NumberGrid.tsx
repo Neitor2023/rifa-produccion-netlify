@@ -239,7 +239,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     toast.success('Validación exitosa');
     onProceedToPayment([validatedNumber]);
   };
-
+  console.log('▶️ NumberGrid render, isPhoneModalOpen=', isPhoneModalOpen);
   return (
     <div className="mb-8">
       <NumberGridHeader 
@@ -271,7 +271,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       />
       
       <NumberGridLegend highlightReserved={highlightReserved} />
-      console.log('▶️ NumberGrid render, isPhoneModalOpen=', isPhoneModalOpen);
+      
       <PhoneValidationModal 
         isOpen={isPhoneModalOpen}
         onClose={() => setIsPhoneModalOpen(false)}
