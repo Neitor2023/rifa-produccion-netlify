@@ -165,6 +165,10 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     participantId: string,
     buyerInfo?: ValidatedBuyerInfo
   ) => {
+    console.log(
+      "🔍 handleValidationSuccess args:",
+      { validatedNumber, participantId, buyerInfo }
+    );
     if (buyerInfo) {
       console.log("✅ NumberGrid recibió información validada del comprador:", {
         validatedNumber,
