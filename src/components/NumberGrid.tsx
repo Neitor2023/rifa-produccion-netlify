@@ -62,13 +62,10 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const [selectedReservedNumber, setSelectedReservedNumber] = useState<string | null>(null);
   const [buyerData, setBuyerData] = useState<ValidatedBuyerInfo | null>(null);
   const [validatedBuyerInfo, setValidatedBuyerInfo] = useState<ValidatedBuyerInfo | null>(null);
-  const [isReservationPaymentOpen, setIsReservationPaymentOpen] = useState(false);
 
   const handlePayReserved = () => {
     console.log('▶️ NumberGrid: handlePayReserved called');
     console.log('▶️ highlightReserved before setting:', highlightReserved);
-    
-    // FIXME: solo pinta y muestra mensaje inicial
     
     if (highlightReserved) {
       return;
@@ -90,11 +87,9 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   };
   
   const toggleNumber = (number: string, status: string) => {
-    // TODO: lógica de selección y reserva
     console.log(`🔄 NumberGrid toggleNumber called with`, { number, status, highlightReserved });
     
     if (highlightReserved && status === 'reserved') {
-      // FIXME: al pulsar uno, abrir validación
       const selectedNumber = numbers.find(n => n.number === number);
       if (selectedNumber) {
         const allReservedNumbers = numbers
@@ -167,20 +162,26 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     participantId: string,
     buyerInfo?: ValidatedBuyerInfo
   ) => {
-    if (!buyerInfo) {
-      toast.error("Error durante la validación. Por favor intente nuevamente");
-      return;
+    if (buyerInfo) {
+      console.log("✅ NumberGrid recibió información validada del comprador:", {
+        name: buyerInfo.name,
+        phone: buyerInfo.phone,
+        cedula: buyerInfo.cedula,
+        id: buyerInfo.id,
+        direccion: buyerInfo.direccion,
+        sugerencia_producto: buyerInfo.sugerencia_producto
+      });
+      setBuyerData(buyerInfo);
+      setValidatedBuyerInfo(buyerInfo);
     }
-  
-    console.log("✅ NumberGrid recibió info validada:", buyerInfo);
-    setBuyerData(buyerInfo);
-    setValidatedBuyerInfo(buyerInfo);
-  
-    // cerramos el modal de teléfono
+    
     setIsPhoneModalOpen(false);
-  
-    // abrimos el modal de completar datos de apartados
-    setIsReservationPaymentOpen(true);
+    
+    if (participantId && buyerInfo) {
+      onProceedToPayment(selectedNumbers, buyerInfo);
+    } else {
+      handleNumberValidation(validatedNumber);
+    }
   };
   
   const handleParticipantValidation = async (participantId: string) => {
@@ -236,9 +237,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
 
   return (
     <div className="mb-8">
-      {/* FIXME: alerta de reserva */}
-      {showReservedMessage && <div className="p-2 bg-yellow-200">Hay números apartados</div>}
-      
       <NumberGridHeader 
         soldNumbersCount={soldNumbersCount} 
         maxNumbers={raffleSeller.cant_max} 
@@ -255,9 +253,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           highlightReserved={highlightReserved}
           toggleNumber={toggleNumber}
           onPayReserved={handlePayReserved} 
-          openPhoneModal={() => setIsPhoneModalOpen(true)}
-          selectReservedNumber={num => setSelectedReservedNumber(num)}
-          selectMultipleReserved={setSelectedNumbers}
         />
       </Card>
       
@@ -266,8 +261,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         raffleSeller={raffleSeller}
         onClearSelection={clearSelection}
         onReserve={handleReserve}
-        onPayReserved={handleReserve}           // antes onPayReserved handleStartCompletePayment
-        onProceedToPayment={onProceedToPayment} // antes onProceedToPayment handleStartNewPayment
+        onPayReserved={handlePayReserved}
+        onProceedToPayment={handleProceedToPayment}
       />
       
       <NumberGridLegend highlightReserved={highlightReserved} />
@@ -275,12 +270,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       <PhoneValidationModal 
         isOpen={isPhoneModalOpen}
         onClose={() => setIsPhoneModalOpen(false)}
-        onPhoneValidationSuccess={(phone, id, info) => {
-          setValidatedBuyerInfo(info!);
-          setIsPhoneModalOpen(false);
-          // TODO: llamar a pago de apartados
-          onPayReserved(selectedNumbers, info);
-        }}
+        onPhoneValidationSuccess={handleValidationSuccess}
         selectedNumber={selectedReservedNumber}
         raffleNumbers={numbers}
         raffleSellerId={raffleSeller.seller_id}
@@ -294,7 +284,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         onConfirm={handleConfirmReservation}
         selectedNumbers={selectedNumbers}
       />
-      
     </div>
   );
 };

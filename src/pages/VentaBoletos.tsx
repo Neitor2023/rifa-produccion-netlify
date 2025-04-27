@@ -43,20 +43,18 @@ const VentaBoletos: React.FC = () => {
     sellerId: SELLER_ID 
   });
   
-  // Gancho del procesador de pagos con allowVoucherPrint aprobado
+  // Payment processor hook with allowVoucherPrint passed
   const {
     selectedNumbers,
-    isNewPaymentOpen,
-    setIsNewPaymentOpen,
-    isCompletePaymentOpen,
-    setIsCompletePaymentOpen,    
+    isPaymentModalOpen,
+    setIsPaymentModalOpen,
     isVoucherOpen,
     setIsVoucherOpen,
     paymentData,
     validatedBuyerData,
     handleReserveNumbers,
-    handleStartNewPayment,        // FIXME: funcion para "Pagar"
-    handleStartCompletePayment,   // FIXME: funcion para "Pagar Apartados"
+    handleProceedToPayment,
+    handlePayReservedNumbers,
     handleCompletePayment,
     getSoldNumbersCount
   } = usePaymentProcessor({
@@ -158,8 +156,7 @@ const VentaBoletos: React.FC = () => {
                 cant_max: maxNumbersAllowed
               }}
               onReserve={handleReserveNumbers}
-              onProceedToPayment={handleStartNewPayment}      // FIXME: compra directa
-              onPayReserved={handleStartCompletePayment}      // FIXME: compra de apartados
+              onProceedToPayment={handleProceedToPayment}
               debugMode={debugMode}
               soldNumbersCount={getSoldNumbersCount(seller?.id || '')}
             />
@@ -205,10 +202,9 @@ const VentaBoletos: React.FC = () => {
         prizeImages={prizeImages || []}
       />
 
-      {/* Este modal es para completar datos de los apartados */}
       <PaymentModal 
-        isOpen={isCompletePaymentOpen}                 // TODO: usa el mismo PaymentModal, pero con isCompletePaymentOpen
-        onClose={() => setIsNewPaymentOpen(false)}
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
         selectedNumbers={selectedNumbers}
         price={raffle?.price || 0}
         onComplete={handleCompletePayment}
@@ -234,5 +230,3 @@ const VentaBoletos: React.FC = () => {
 };
 
 export default VentaBoletos;
-
-

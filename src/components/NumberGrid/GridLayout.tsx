@@ -22,9 +22,6 @@ interface GridLayoutProps {
   highlightReserved: boolean;
   toggleNumber: (number: string, status: string) => void;
   onPayReserved: (number: string) => void;  
-  openPhoneModal: () => void;
-  selectReservedNumber: (number: string) => void;  
-  selectMultipleReserved: (nums: string[]) => void; 
 }
 
 const GridLayout: React.FC<GridLayoutProps> = ({
@@ -33,9 +30,6 @@ const GridLayout: React.FC<GridLayoutProps> = ({
   highlightReserved,
   toggleNumber,
   onPayReserved,
-  openPhoneModal,
-  selectReservedNumber,
-  selectMultipleReserved,
 }) => {
   // Al principio de GridLayout, justo tras los props:
   const numberMap = React.useMemo(
@@ -60,7 +54,6 @@ const GridLayout: React.FC<GridLayoutProps> = ({
       const isHighlighted = highlightReserved && status === 'reserved';
 
       rowItems.push(
-        // FIXME: onToggle ahora ejecuta toggleNumber
         <NumberGridItem
           key={paddedNum}
           number={paddedNum}
@@ -69,20 +62,14 @@ const GridLayout: React.FC<GridLayoutProps> = ({
           isHighlighted={isHighlighted}
           onToggle={() => {
             if (highlightReserved && status === 'reserved') {
-              const thisId = numberMap[paddedNum].participant_id!;
-              const allReserved = numbers
-                .filter(n => n.status === 'reserved' && n.participant_id === thisId)
-                .map(n => n.number);
-        
-              // Ahora estos dos deben existir en los accesorios:
-              selectReservedNumber(paddedNum);
-              selectMultipleReserved(allReserved);
-              
-              openPhoneModal();
+              // Directly call toggleNumber instead of onPayReserved
+              console.log("▶️ src/components/NumberGrid/GridLayout.tsx: pulsado reservado:", paddedNum);
+              toggleNumber(paddedNum, status);
             } else {
+              // Lógica normal de selección
               toggleNumber(paddedNum, status);
             }
-          }}
+          }}          
         />
       );
     }
