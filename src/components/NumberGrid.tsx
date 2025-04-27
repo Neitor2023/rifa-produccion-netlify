@@ -299,6 +299,17 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         debugMode={debugMode}
       />
       
+      {/* Modal para completar datos de reserva */}
+      <PaymentModal
+        isOpen={isReservationModalOpen}
+        onClose={() => isReservationModalOpen(false)}
+        selectedNumbers={selectedNumbers}
+        price={raffle?.price || 0}
+        onComplete={handleConfirmReservation}
+        buyerData={validatedBuyerInfo}        // nombre, teléfono y cédula ya cargados
+        debugMode={debugMode}
+      />
+      
       <ReservationModal
         isOpen={isReservationModalOpen}
         onClose={() => setIsReservationModalOpen(false)}
