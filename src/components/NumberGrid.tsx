@@ -68,6 +68,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     console.log('▶️ NumberGrid: handlePayReserved called');
     console.log('▶️ highlightReserved before setting:', highlightReserved);
     
+    // FIXME: solo pinta y muestra mensaje inicial
+    
     if (highlightReserved) {
       return;
     }
