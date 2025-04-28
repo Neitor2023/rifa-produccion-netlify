@@ -175,7 +175,7 @@ export function usePaymentProcessor({
   };
 
   const handlePayReservedNumbers = async (numbers: string[], participantData: ValidatedBuyerInfo) => {
-    console.log("💰 usePaymentProcessor: handlePayReservedNumbers llamado con:", {
+    console.log("💰 usePaymentProcessor: handlePayReservedNumbers recibió estos números:", {
       numbers,
       participantData
     });
