@@ -303,6 +303,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           // handlePayReservedNumbers(selectedNumbers, validatedBuyerData!);
         // }}     
         onPayReserved={() => handlePayReservedNumbers(selectedNumbers, validatedBuyerInfo!)}
+        //onPayReserved={handlePayReservedNumbers}
         onProceedToPayment={handleProceedToPayment}  // compra directa
       />
       
