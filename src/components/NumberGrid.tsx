@@ -301,14 +301,14 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         raffleId={raffleSeller.raffle_id}
         debugMode={debugMode}
       />
-      {/*      
+            
       <ReservationModal
         isOpen={isReservationModalOpen}
         onClose={() => setIsReservationModalOpen(false)}
-        onConfirm={handleConfirmReservation}
+        onConfirm={buyerData}
         selectedNumbers={selectedNumbers}
       />
-      */}
+      
     </div>
   );
 };
