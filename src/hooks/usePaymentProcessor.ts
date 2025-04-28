@@ -138,7 +138,7 @@ export function usePaymentProcessor({
       await refetchRaffleNumbers();
       setSelectedNumbers([]);
   
-      toast.success(`usePaymentProcessor: ${numbers.length} número(s) apartados exitosamente`);
+      toast.success(`${numbers.length} número(s) apartados exitosamente`);
     } catch (error: any) {
       console.error("usePaymentProcessor: ❌ Error al reservar números:", error);
       toast.error(`usePaymentProcessor: Error al apartar números${error.message ? ` — ${error.message}` : ""}`);
