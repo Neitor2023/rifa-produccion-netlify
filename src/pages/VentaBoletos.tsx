@@ -55,8 +55,8 @@ const VentaBoletos: React.FC = () => {
     paymentData,
     validatedBuyerData,
     handleReserveNumbers,
-    handleProceedToPayment,
-    handlePayReservedNumbers,
+    handleProceedToPayment,     // compra directa
+    handlePayReservedNumbers,   // compra de apartados
     handleCompletePayment,
     getSoldNumbersCount
   } = usePaymentProcessor({
@@ -158,7 +158,8 @@ const VentaBoletos: React.FC = () => {
                 cant_max: maxNumbersAllowed
               }}
               onReserve={handleReserveNumbers}
-              onProceedToPayment={handleProceedToPayment}
+              onProceedToPayment={handleProceedToPayment}    // botón “Pagar”
+              onPayReserved={handlePayReservedNumbers}       // botón “Pagar Apartados”
               debugMode={debugMode}
               soldNumbersCount={getSoldNumbersCount(seller?.id || '')}
             />
