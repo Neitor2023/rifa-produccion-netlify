@@ -306,7 +306,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       <ReservationModal
         isOpen={isReservationModalOpen}
         onClose={() => setIsReservationModalOpen(false)}
-        onConfirm={handleConfirmReservation}
+        onConfirm={handlePayReserved}
         selectedNumbers={selectedNumbers}
       />
       
