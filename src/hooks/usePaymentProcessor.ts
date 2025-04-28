@@ -304,10 +304,10 @@ export function usePaymentProcessor({
     validatedBuyerData,
     setValidatedBuyerData,
     debugMode,
-    handleReserveNumbers,
-    handleProceedToPayment,
-    handlePayReservedNumbers,
-    handleCompletePayment,
+    handleReserveNumbers,       // para “Apartar”
+    handleProceedToPayment,     // para “Pagar” (compra directa)
+    handlePayReservedNumbers,   // para iniciar el pago de apartados
+    handleCompletePayment,      // para finalizar cualquiera de los dos pagos
     findOrCreateParticipant,
     getSoldNumbersCount,
     allowVoucherPrint,
