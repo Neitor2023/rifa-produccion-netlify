@@ -20,7 +20,6 @@ interface NumberGridControlsProps {
 }
 
 export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
-  validatedBuyerData,
   selectedNumbers,
   raffleSeller,
   onClearSelection,

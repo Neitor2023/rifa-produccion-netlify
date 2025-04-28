@@ -39,6 +39,7 @@ interface RaffleSeller {
 }
 
 interface NumberGridProps {
+  validatedBuyerInfo: ValidatedBuyerInfo | null;
   numbers: RaffleNumber[];
   raffleSeller: RaffleSeller;
   onReserve: (selectedNumbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula?: string) => void;
