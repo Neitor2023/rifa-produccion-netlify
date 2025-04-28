@@ -52,7 +52,11 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       <Button 
         variant="secondary"
         className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
-        onClick={onPayReserved}
+        onClick={() => {
+          console.log("▶️ NumberGridControls: onPayReserved con:", selectedNumbers, validatedBuyerData);
+          onPayReserved();
+        }}        
+        // onClick={onPayReserved}
         // onClick={() => onPayReserved(selectedNumbers, validatedBuyerData!)}
         // onClick={() => onPayReserved()}
       >
