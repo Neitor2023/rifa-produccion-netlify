@@ -286,7 +286,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         raffleSeller={raffleSeller}
         onClearSelection={clearSelection}
         onReserve={handleReserve}                    // dispara SOLO ReservationModal
-        onPayReserved={onPayReserved}            // handlePayReserved marca, muestra leyenda y luego abre PhoneValidationModal
+        onPayReserved={handlePayReserved}            // handlePayReserved marca, muestra leyenda y luego abre PhoneValidationModal
         onProceedToPayment={onProceedToPayment}  // handleProceedToPayment compra directa
       />
       
