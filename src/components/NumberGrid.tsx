@@ -284,12 +284,17 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       </Card>
       
       <NumberGridControls 
+        validatedBuyerData={validatedBuyerInfo} 
         selectedNumbers={selectedNumbers}
         raffleSeller={raffleSeller}
         onClearSelection={clearSelection}
         onReserve={handleReserve}                    // dispara SOLO ReservationModal
         // onPayReserved={handlePayReserved}            // marca, muestra leyenda y luego abre PhoneValidationModal
-        onPayReserved={handlePayReserved}            // marca, muestra leyenda y luego abre PhoneValidationModal
+        // onPayReserved={handlePayReserved}            // marca, muestra leyenda y luego abre PhoneValidationModal
+        onPayReserved={() => {
+          /* aquí llamas a la función de tu hook que abre la modal de apartados */
+          handlePayReservedNumbers(selectedNumbers, validatedBuyerData!);
+        }}        
         onProceedToPayment={handleProceedToPayment}  // compra directa
       />
       

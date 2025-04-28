@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, CreditCard, Check } from 'lucide-react';
 
 interface NumberGridControlsProps {
+  validatedBuyerData: ValidatedBuyerInfo | null;
   selectedNumbers: string[];
   raffleSeller: {
     id: string;
@@ -49,7 +50,8 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       <Button 
         variant="secondary"
         className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
-        onClick={onPayReserved}
+        // onClick={onPayReserved}
+        onClick={() => onPayReserved(selectedNumbers, validatedBuyerData!)}
       >
         <CreditCard className="h-4 w-4" />
         <span>Pagar Apartados</span>
