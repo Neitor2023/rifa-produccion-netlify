@@ -47,13 +47,11 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
 }) => {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
-    {/*
     defaultValues: {
       buyerName: '',
       buyerPhone: '',
       buyerCedula: '',
     },
-    */}
   });
 
   const handleSubmit = (data: FormData) => {
