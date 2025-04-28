@@ -192,7 +192,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       setIsPhoneModalOpen(false);
     
       // 2) Abrimos el modal de completar datos de apartados
-      setIsReservationModalOpen(true);
+      //setIsReservationModalOpen(false);
     
     if (participantId && buyerInfo) {
       onProceedToPayment(selectedNumbers, buyerInfo);
@@ -285,9 +285,9 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         selectedNumbers={selectedNumbers}
         raffleSeller={raffleSeller}
         onClearSelection={clearSelection}
-        onReserve={handleReserve}
-        onPayReserved={handlePayReserved}
-        onProceedToPayment={handleProceedToPayment}
+        onReserve={handleReserve}                    // dispara SOLO ReservationModal
+        onPayReserved={handlePayReserved}            // marca, muestra leyenda y luego abre PhoneValidationModal
+        onProceedToPayment={handleProceedToPayment}  // compra directa
       />
       
       <NumberGridLegend highlightReserved={highlightReserved} />
