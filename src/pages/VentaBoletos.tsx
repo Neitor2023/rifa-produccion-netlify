@@ -205,6 +205,7 @@ const VentaBoletos: React.FC = () => {
       />
       
       {/* Modal para compra directa */}
+      console.log("▶️ VentaBoletos: modal direct:", isPaymentModalOpen, " buyerData:", null);
       <PaymentModal 
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
@@ -217,7 +218,7 @@ const VentaBoletos: React.FC = () => {
       />
       
       {/* Modal para finalizar compra de apartados */}
-      console.log("▶️ VentaBoletos: modal direct:", isPaymentModalOpen, " buyerData:", null);
+      console.log("▶️ VentaBoletos: modal apartados:", isCompletePaymentOpen, " buyerData:", validatedBuyerData);
       <PaymentModal 
         isOpen={isCompletePaymentOpen}
         onClose={() => setIsCompletePaymentOpen(false)}
