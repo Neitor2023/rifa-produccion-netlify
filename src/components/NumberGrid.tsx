@@ -196,12 +196,18 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     
       // 2) Abrimos el modal de completar datos de apartados
       //setIsReservationModalOpen(false);
-    
+      console.log('⚠️ Antes de handlePayReservedNumbers:', {
+        selectedNumbers,
+        buyerInfo
+      });    
     if (participantId && buyerInfo) {
-      onProceedToPayment(selectedNumbers, buyerInfo);
+      // onProceedToPayment(selectedNumbers, buyerInfo);
+      handlePayReservedNumbers(selectedNumbers, buyerInfo)
     } else {
       handleNumberValidation(validatedNumber);
     }
+    
+    handlePayReservedNumbers(selectedNumbers, buyerInfo);
   };
   
   const handleParticipantValidation = async (participantId: string) => {
@@ -296,7 +302,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           /* aquí llamas a la función de tu hook que abre la modal de apartados */
           // handlePayReservedNumbers(selectedNumbers, validatedBuyerData!);
         // }}     
-        onPayReserved={() => onPayReserved(selectedNumbers, validatedBuyerInfo!)}
+        onPayReserved={() => handlePayReservedNumbers(selectedNumbers, validatedBuyerInfo!)}
         onProceedToPayment={handleProceedToPayment}  // compra directa
       />
       
