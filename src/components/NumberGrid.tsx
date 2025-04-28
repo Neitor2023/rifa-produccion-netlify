@@ -43,6 +43,7 @@ interface NumberGridProps {
   raffleSeller: RaffleSeller;
   onReserve: (selectedNumbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula?: string) => void;
   onProceedToPayment: (selectedNumbers: string[], participantData?: ValidatedBuyerInfo) => void;
+  onPayReserved: (selectedNumbers: string[], participantData: ValidatedBuyerInfo) => void;
   debugMode?: boolean;
   soldNumbersCount?: number;
 }
@@ -52,6 +53,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   raffleSeller,
   onReserve,
   onProceedToPayment,
+  onPayReserved,
   debugMode = false,
   soldNumbersCount = 0
 }) => {
@@ -286,6 +288,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         raffleSeller={raffleSeller}
         onClearSelection={clearSelection}
         onReserve={handleReserve}                    // dispara SOLO ReservationModal
+        // onPayReserved={handlePayReserved}            // marca, muestra leyenda y luego abre PhoneValidationModal
         onPayReserved={handlePayReserved}            // marca, muestra leyenda y luego abre PhoneValidationModal
         onProceedToPayment={handleProceedToPayment}  // compra directa
       />
