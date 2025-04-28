@@ -44,7 +44,7 @@ interface NumberGridProps {
   raffleSeller: RaffleSeller;
   onReserve: (selectedNumbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula?: string) => void;
   onProceedToPayment: (selectedNumbers: string[], participantData?: ValidatedBuyerInfo) => void;
-  onPayReserved: (selectedNumbers: string[], participantData: ValidatedBuyerInfo) => void;
+  onPayReserved: (selectedNumbers: string[], buyerInfo?: ValidatedBuyerInfo) => void;
   debugMode?: boolean;
   soldNumbersCount?: number;
 }
@@ -292,10 +292,11 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         onReserve={handleReserve}                    // dispara SOLO ReservationModal
         // onPayReserved={handlePayReserved}            // marca, muestra leyenda y luego abre PhoneValidationModal
         // onPayReserved={handlePayReserved}            // marca, muestra leyenda y luego abre PhoneValidationModal
-        onPayReserved={() => {
+        // onPayReserved={() => {
           /* aquí llamas a la función de tu hook que abre la modal de apartados */
-          handlePayReservedNumbers(selectedNumbers, validatedBuyerData!);
-        }}        
+          // handlePayReservedNumbers(selectedNumbers, validatedBuyerData!);
+        // }}     
+        onPayReserved={() => onPayReserved(selectedNumbers, validatedBuyerInfo!)}
         onProceedToPayment={handleProceedToPayment}  // compra directa
       />
       
