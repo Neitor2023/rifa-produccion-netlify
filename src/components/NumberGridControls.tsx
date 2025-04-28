@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, CreditCard, Check } from 'lucide-react';
+import { ValidatedBuyerInfo } from '@/types/participant';
 
 interface NumberGridControlsProps {
   validatedBuyerData: ValidatedBuyerInfo | null; 
