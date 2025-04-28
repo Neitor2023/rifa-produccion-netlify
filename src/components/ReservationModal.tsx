@@ -54,13 +54,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     },
   });
 
-  const handleSubmit = (data: FormData) => {
-    console.log("src/components/ReservationModal.tsx: 📞 Envío de ReservationModal con:", {
-      name: data.buyerName,
-      phone: formattedPhone,
-      cedula: data.buyerCedula,
-      selectedNumbers
-    });    
+  const handleSubmit = (data: FormData) => {   
     if (selectedNumbers.length === 0) {
       toast.error('Debe seleccionar al menos un número para apartar');
       return;
