@@ -93,7 +93,6 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   const validation = usePhoneValidation(phone);
 
   const handleNumberSubmit = async () => {
-    console.log('▶️ PhoneValidationModal.handleNumberSubmit, phone=', phone, 'validation=', validation);
     if (validation.isValid) {
       const isNumericOnly = /^\d+$/.test(phone);
       const cleanedPhone = formatPhoneNumber(phone);
@@ -106,6 +105,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           .from('participants')
           .select('id, name, phone, cedula, direccion, sugerencia_producto')
           .eq('phone', cleanedPhone)
+          .eq('raffle_id', raffleId)
           .maybeSingle();
 
         if (byPhone) {
@@ -117,6 +117,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
             .from('participants')
             .select('id, name, phone, cedula, direccion, sugerencia_producto')
             .eq('cedula', phone)
+            .eq('raffle_id', raffleId)
             .maybeSingle();
 
           if (byCedula) {
@@ -151,9 +152,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   };
 
   return (
-    // Antes
-    // <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Validar número de ( teléfono o cédula )</DialogTitle>
@@ -176,12 +175,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 
         <ModalFooter
           onCancel={onClose}
-          // Antes
-          // onValidate={handleNumberSubmit}
-          onValidate={() => {
-            console.log('▶️ ModalFooter botón validar clickeado');
-            handleNumberSubmit();
-          }}          
+          onValidate={handleNumberSubmit}
           isValid={validation.isValid}
         />
       </DialogContent>

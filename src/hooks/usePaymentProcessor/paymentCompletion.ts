@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -50,36 +49,73 @@ export function usePaymentCompletion({
 
   const processParticipant = async (data: PaymentFormData): Promise<string | null> => {
     try {
-      console.log("🔵 Processing participant with data:", {
-        name: data.buyerName,
-        phone: data.buyerPhone,
-        cedula: data.buyerCedula
-      });
+      console.log("🔵 Processing participant with data:", data);
       
       const formattedPhone = formatPhoneNumber(data.buyerPhone);
       
-      const { data: newParticipant, error: participantError } = await supabase
+      const { data: existingParticipant, error: searchError } = await supabase
         .from('participants')
-        .insert({
-          name: data.buyerName,
-          phone: formattedPhone,
-          email: data.buyerEmail,
-          cedula: data.buyerCedula,
-          direccion: data.direccion || null,
-          sugerencia_producto: data.sugerenciaProducto || null,
-          nota: data.nota || null,
-          raffle_id: raffleId,
-          seller_id: raffleSeller.seller_id
-        })
-        .select('id')
-        .single();
+        .select('id, name, phone, cedula, direccion, sugerencia_producto, nota')
+        .eq('phone', formattedPhone)
+        .eq('raffle_id', raffleId)
+        .maybeSingle();
 
-      if (participantError) {
-        console.error("Error creating new participant:", participantError);
-        throw participantError;
+      if (searchError) {
+        console.error("Error searching for existing participant:", searchError);
       }
 
-      return newParticipant.id;
+      let participantId: string | null = null;
+
+      if (existingParticipant) {
+        participantId = existingParticipant.id;
+        console.log("✅ Found existing participant:", existingParticipant);
+
+        const updateData: any = {
+          name: data.buyerName,
+          phone: formattedPhone,
+          nota: data.nota,
+          cedula: data.buyerCedula || null,
+          direccion: data.direccion || null,
+          sugerencia_producto: data.sugerenciaProducto || null
+        };
+
+        const { error: updateError } = await supabase
+          .from('participants')
+          .update(updateData)
+          .eq('id', participantId);
+
+        if (updateError) {
+          console.error("Error updating participant:", updateError);
+          throw updateError;
+        }
+      } else {
+        console.log("🆕 Creating new participant");
+
+        const { data: newParticipant, error: participantError } = await supabase
+          .from('participants')
+          .insert({
+            name: data.buyerName,
+            phone: formattedPhone,
+            email: data.buyerEmail || '',
+            cedula: data.buyerCedula,
+            direccion: data.direccion || null,
+            sugerencia_producto: data.sugerenciaProducto || null,
+            nota: data.nota || null,
+            raffle_id: raffleId,
+            seller_id: raffleSeller.seller_id
+          })
+          .select('id')
+          .single();
+
+        if (participantError) {
+          console.error("Error creating new participant:", participantError);
+          throw participantError;
+        }
+
+        participantId = newParticipant.id;
+      }
+
+      return participantId;
     } catch (error) {
       console.error('Error processing participant:', error);
       throw error;
@@ -92,13 +128,13 @@ export function usePaymentCompletion({
     paymentProofUrl: string | null,
     raffleNumbers: any[]
   ) => {
-    console.log("🔵 updateNumbersToSold called with:", {
+    console.log("🔵 hooks/usePaymentProcessor/paymentCompletion.ts: Actualización de números a vendidos:", {
       numbers,
       participantId,
       paymentProofUrl
     });
   
-    // Get participant data for filling the fields
+    // Trae los datos del participante para rellenar los campos
     const { data: participantData } = await supabase
       .from('participants')
       .select('name, phone, cedula, direccion')
@@ -110,7 +146,7 @@ export function usePaymentCompletion({
     }
   
     const updatePromises = numbers.map(async (numStr) => {
-      const existingNumber = raffleNumbers.find(n => n.number === parseInt(numStr, 10));
+      const existingNumber = raffleNumbers.find(n => n.number === numStr);
   
       const commonData = {
         status: 'sold' as const,
@@ -121,39 +157,41 @@ export function usePaymentCompletion({
         reservation_expires_at: null,
         participant_name: participantData.name,
         participant_phone: participantData.phone,
-        participant_cedula: participantData.cedula || null
+        participant_cedula: participantData.cedula
       };
   
       if (existingNumber) {
-        console.log(`🔄 Updating number ${numStr}:`, commonData);
+        // **Actualizar** registro existente
+        console.log(`🔄 Actualizando número ${numStr}:`, commonData);
         const { error } = await supabase
           .from('raffle_numbers')
           .update(commonData)
           .eq('id', existingNumber.id);
         if (error) {
-          console.error(`Error updating number ${numStr}:`, error);
+          console.error(`Error actualizando número ${numStr}:`, error);
           throw error;
         }
   
       } else {
+        // **Insertar** nuevo registro si no existía
         const insertData = {
           ...commonData,
           raffle_id: raffleId,
           number: parseInt(numStr, 10),
         };
-        console.log(`🆕 Inserting new number ${numStr}:`, insertData);
+        console.log(`🆕 Insertando nuevo número ${numStr}:`, insertData);
         const { error } = await supabase
           .from('raffle_numbers')
           .insert(insertData);
         if (error) {
-          console.error(`Error inserting number ${numStr}:`, error);
+          console.error(`Error insertando número ${numStr}:`, error);
           throw error;
         }
       }
     });
   
     await Promise.all(updatePromises);
-    console.log("✅ All numbers updated/inserted to sold status");
+    console.log("✅ Todos los números actualizados/insertados al estado vendido");
   };
 
   return {

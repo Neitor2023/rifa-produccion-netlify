@@ -6,7 +6,6 @@ import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PhoneValidationModal from './PhoneValidationModal';
 import ReservationModal from './ReservationModal';
-import PaymentModal from './PaymentModal';
 import { supabase } from '@/integrations/supabase/client';
 import { NumberGridControls } from './NumberGridControls';
 import { NumberGridLegend } from './NumberGridLegend';
@@ -39,12 +38,10 @@ interface RaffleSeller {
 }
 
 interface NumberGridProps {
-  validatedBuyerInfo: ValidatedBuyerInfo | null;
   numbers: RaffleNumber[];
   raffleSeller: RaffleSeller;
   onReserve: (selectedNumbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula?: string) => void;
   onProceedToPayment: (selectedNumbers: string[], participantData?: ValidatedBuyerInfo) => void;
-  onPayReserved: (selectedNumbers: string[], buyerInfo?: ValidatedBuyerInfo) => void;
   debugMode?: boolean;
   soldNumbersCount?: number;
 }
@@ -54,7 +51,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   raffleSeller,
   onReserve,
   onProceedToPayment,
-  onPayReserved,
   debugMode = false,
   soldNumbersCount = 0
 }) => {
@@ -94,7 +90,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     console.log(`🔄 NumberGrid toggleNumber called with`, { number, status, highlightReserved });
     
     if (highlightReserved && status === 'reserved') {
-      console.log('▶️ NumberGrid.toggleNumber → abriendo PhoneValidationModal');
       const selectedNumber = numbers.find(n => n.number === number);
       if (selectedNumber) {
         const allReservedNumbers = numbers
@@ -107,7 +102,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         setSelectedNumbers(allReservedNumbers);
         setSelectedReservedNumber(number);
         setIsPhoneModalOpen(true);
-        setIsReservationModalOpen(false);
       }
       return;
     }
@@ -140,8 +134,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   };
   
   const handleConfirmReservation = (data: { buyerName: string; buyerPhone: string; buyerCedula: string }) => {
-      console.log('NumberGrid.tsx: Datos de reserva:', data);
-      console.log('NumberGrid.tsx: Números seleccionados:', selectedNumbers);    
     if (debugMode) {
       console.log('NumberGrid.tsx: Datos de reserva:', data);
       console.log('NumberGrid.tsx: Números seleccionados:', selectedNumbers);
@@ -170,14 +162,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     participantId: string,
     buyerInfo?: ValidatedBuyerInfo
   ) => {
-    console.log(
-      "🔍 handleValidationSuccess args:",
-      { validatedNumber, participantId, buyerInfo }
-    );
     if (buyerInfo) {
       console.log("✅ NumberGrid recibió información validada del comprador:", {
-        validatedNumber,
-        participantId,
         name: buyerInfo.name,
         phone: buyerInfo.phone,
         cedula: buyerInfo.cedula,
@@ -187,27 +173,15 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       });
       setBuyerData(buyerInfo);
       setValidatedBuyerInfo(buyerInfo);
-    } else {
-      console.log("✅ NumberGrid <<NO>> recibió información validada del comprador:");      
     }
     
-      // 1) Cerramos el modal de validación
-      setIsPhoneModalOpen(false);
+    setIsPhoneModalOpen(false);
     
-      // 2) Abrimos el modal de completar datos de apartados
-      //setIsReservationModalOpen(false);
-      console.log('⚠️ Antes de handlePayReservedNumbers:', {
-        selectedNumbers,
-        buyerInfo
-      });    
     if (participantId && buyerInfo) {
-      // onProceedToPayment(selectedNumbers, buyerInfo);
-      handlePayReservedNumbers(selectedNumbers, buyerInfo)
+      onProceedToPayment(selectedNumbers, buyerInfo);
     } else {
       handleNumberValidation(validatedNumber);
     }
-    
-    handlePayReservedNumbers(selectedNumbers, buyerInfo);
   };
   
   const handleParticipantValidation = async (participantId: string) => {
@@ -260,13 +234,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     toast.success('Validación exitosa');
     onProceedToPayment([validatedNumber]);
   };
-  // 1. Declara una función que abra el modal:
-  const openPhoneModal = () => {
-    console.log('▶️ NumberGrid: abriendo PhoneValidationModal');
-    setIsPhoneModalOpen(true);
-  };
-  console.log('▶️ NumberGrid render, isPhoneModalOpen=', isPhoneModalOpen);
-  console.log("🔍 Antes de PaymentModal (completar apartados) — buyerData:", buyerData);
 
   return (
     <div className="mb-8">
@@ -285,26 +252,17 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           selectedNumbers={selectedNumbers}
           highlightReserved={highlightReserved}
           toggleNumber={toggleNumber}
-          // onPayReserved={handlePayReserved}
-          // openPhoneModal={openPhoneModal}
+          onPayReserved={handlePayReserved} 
         />
       </Card>
       
       <NumberGridControls 
-        validatedBuyerData={validatedBuyerInfo} 
         selectedNumbers={selectedNumbers}
         raffleSeller={raffleSeller}
         onClearSelection={clearSelection}
-        onReserve={handleReserve}                    // dispara SOLO ReservationModal
-        // onPayReserved={handlePayReserved}            // marca, muestra leyenda y luego abre PhoneValidationModal
-        // onPayReserved={handlePayReserved}            // marca, muestra leyenda y luego abre PhoneValidationModal
-        // onPayReserved={() => {
-          /* aquí llamas a la función de tu hook que abre la modal de apartados */
-          // handlePayReservedNumbers(selectedNumbers, validatedBuyerData!);
-        // }}     
-        onPayReserved={() => handlePayReservedNumbers(selectedNumbers, validatedBuyerInfo!)}
-        //onPayReserved={handlePayReservedNumbers}
-        onProceedToPayment={handleProceedToPayment}  // compra directa
+        onReserve={handleReserve}
+        onPayReserved={handlePayReserved}
+        onProceedToPayment={handleProceedToPayment}
       />
       
       <NumberGridLegend highlightReserved={highlightReserved} />
@@ -319,27 +277,13 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         raffleId={raffleSeller.raffle_id}
         debugMode={debugMode}
       />
-      {/* Modal para finalizar compra de apartados */}
-      {/*
-      <PaymentModal 
-        isOpen={isCompletePaymentOpen}
-        onClose={() => setIsCompletePaymentOpen(false)}
-        selectedNumbers={selectedNumbers}
-        price={raffle?.price || 0}
-        onComplete={handleCompletePayment}
-        buyerData={validatedBuyerData}
-        debugMode={debugMode}
-        title="COMPLETA LOS SIGUIENTES DATOS PARA FINALIZAR LA COMPRA"
-      />
-      */}   
-
+      
       <ReservationModal
         isOpen={isReservationModalOpen}
         onClose={() => setIsReservationModalOpen(false)}
         onConfirm={handleConfirmReservation}
         selectedNumbers={selectedNumbers}
       />
-      
     </div>
   );
 };

@@ -48,15 +48,13 @@ const VentaBoletos: React.FC = () => {
     selectedNumbers,
     isPaymentModalOpen,
     setIsPaymentModalOpen,
-    isCompletePaymentOpen,
-    setIsCompletePaymentOpen,
     isVoucherOpen,
     setIsVoucherOpen,
     paymentData,
     validatedBuyerData,
     handleReserveNumbers,
-    handleProceedToPayment,     // compra directa
-    handlePayReservedNumbers,   // compra de apartados
+    handleProceedToPayment,
+    handlePayReservedNumbers,
     handleCompletePayment,
     getSoldNumbersCount
   } = usePaymentProcessor({
@@ -158,8 +156,7 @@ const VentaBoletos: React.FC = () => {
                 cant_max: maxNumbersAllowed
               }}
               onReserve={handleReserveNumbers}
-              onProceedToPayment={handleProceedToPayment}    // botón “Pagar”
-              onPayReserved={handlePayReservedNumbers}       // botón “Pagar Apartados”
+              onProceedToPayment={handleProceedToPayment}
               debugMode={debugMode}
               soldNumbersCount={getSoldNumbersCount(seller?.id || '')}
             />
@@ -204,34 +201,17 @@ const VentaBoletos: React.FC = () => {
         prize={selectedPrize}
         prizeImages={prizeImages || []}
       />
-      
-      {/* Modal para compra directa */}
-      console.log("▶️ VentaBoletos: modal direct:", isPaymentModalOpen, " buyerData:", null);
+
       <PaymentModal 
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
         selectedNumbers={selectedNumbers}
         price={raffle?.price || 0}
         onComplete={handleCompletePayment}
-        buyerData={null}        // flujo directo no muestra datos
+        buyerData={validatedBuyerData}
         debugMode={debugMode}
-        title="PAGAR"
       />
       
-      {/* Modal para finalizar compra de apartados */}
-      console.log("▶️ VentaBoletos: modal apartados:", isCompletePaymentOpen, " buyerData:", validatedBuyerData);
-      <PaymentModal 
-        isOpen={isCompletePaymentOpen}
-        onClose={() => setIsCompletePaymentOpen(false)}
-        selectedNumbers={selectedNumbers}
-        price={raffle?.price || 0}
-        onComplete={handleCompletePayment}
-        buyerData={validatedBuyerData}      // aquí pasas los datos validados
-        debugMode={debugMode}
-        title="COMPLETA LOS SIGUIENTES DATOS PARA FINALIZAR LA COMPRA"
-      />
-      console.log("▶️ VentaBoletos: modal apartados:", isCompletePaymentOpen, " buyerData:", validatedBuyerData);
-      {/* Comprobante digital */}
       <DigitalVoucher 
         isOpen={isVoucherOpen}
         onClose={() => setIsVoucherOpen(false)}

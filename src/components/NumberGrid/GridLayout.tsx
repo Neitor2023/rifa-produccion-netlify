@@ -22,7 +22,6 @@ interface GridLayoutProps {
   highlightReserved: boolean;
   toggleNumber: (number: string, status: string) => void;
   onPayReserved: (number: string) => void;  
-  openPhoneModal: () => void;
 }
 
 const GridLayout: React.FC<GridLayoutProps> = ({
@@ -31,7 +30,6 @@ const GridLayout: React.FC<GridLayoutProps> = ({
   highlightReserved,
   toggleNumber,
   onPayReserved,
-  openPhoneModal,
 }) => {
   // Al principio de GridLayout, justo tras los props:
   const numberMap = React.useMemo(
@@ -67,7 +65,6 @@ const GridLayout: React.FC<GridLayoutProps> = ({
               // Directly call toggleNumber instead of onPayReserved
               console.log("▶️ src/components/NumberGrid/GridLayout.tsx: pulsado reservado:", paddedNum);
               toggleNumber(paddedNum, status);
-              openPhoneModal();
             } else {
               // Lógica normal de selección
               toggleNumber(paddedNum, status);

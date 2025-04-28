@@ -9,12 +9,52 @@ interface EditableBuyerFieldsProps {
 }
 
 const EditableBuyerFields: React.FC<EditableBuyerFieldsProps> = ({ form }) => {
-  console.log("🔵 EditableBuyerFields: Rendering editable fields for complementary data");
-
   return (
     <div>
-      <h3 className="font-medium mb-3">Información Complementaria</h3>
+      <h3 className="font-medium mb-3">Información del Comprador</h3>
       <div className="grid grid-cols-1 gap-4">
+        <FormField
+          control={form.control}
+          name="buyerName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nombre</FormLabel>
+              <FormControl>
+                <Input placeholder="Ingrese su nombre" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="buyerPhone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Teléfono</FormLabel>
+              <FormControl>
+                <Input placeholder="Ingrese su teléfono" type="tel" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="buyerCedula"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Cédula</FormLabel>
+              <FormControl>
+                <Input placeholder="Ingrese su cédula" {...field} value={field.value || ''} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="buyerEmail"
@@ -22,46 +62,7 @@ const EditableBuyerFields: React.FC<EditableBuyerFieldsProps> = ({ form }) => {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input 
-                  placeholder="Ingrese su email" 
-                  type="email" 
-                  {...field} 
-                  value={field.value || ''}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="direccion"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Dirección</FormLabel>
-              <FormControl>
-                <Input 
-                  placeholder="Ingrese su dirección" 
-                  {...field} 
-                  value={field.value || ''}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="sugerenciaProducto"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Sugerencia de Producto</FormLabel>
-              <FormControl>
-                <Input 
-                  placeholder="¿Qué productos le gustaría ver?" 
-                  {...field} 
-                  value={field.value || ''}
-                />
+                <Input placeholder="Ingrese su email" type="email" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

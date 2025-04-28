@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Form } from "@/components/ui/form";
 import { UseFormReturn } from 'react-hook-form';
@@ -16,7 +16,6 @@ interface PaymentModalContentProps {
   buyerData?: ValidatedBuyerInfo;
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFileRemove: () => void;
-  reservedMode?: boolean;
 }
 
 const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
@@ -26,17 +25,21 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
   previewUrl,
   buyerData,
   onFileUpload,
-  onFileRemove,
-  reservedMode = false
+  onFileRemove
 }) => {
-  console.log("🔵 PaymentModalContent: Mode:", reservedMode ? "Reserved Purchase" : "Direct Purchase");
-  if (buyerData) {
-    console.log("🔵 PaymentModalContent: Buyer data present:", {
-      name: buyerData.name,
-      phone: buyerData.phone,
-      cedula: buyerData.cedula || 'No disponible'
-    });
-  }
+  useEffect(() => {
+    if (buyerData) {
+      form.setValue('buyerName', buyerData.name || '');
+      form.setValue('buyerPhone', buyerData.phone || '');
+      form.setValue('buyerCedula', buyerData.cedula || '');
+      if (buyerData.direccion) {
+        form.setValue("direccion", buyerData.direccion);
+      }
+      if (buyerData.sugerencia_producto) {
+        form.setValue("sugerenciaProducto", buyerData.sugerencia_producto);
+      }
+    }
+  }, [buyerData, form]);
   
   return (
     <ScrollArea className="flex-1 overflow-y-auto px-1">
@@ -49,7 +52,7 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
           <div className="space-y-6">
             <PaymentFormFields 
               form={form}
-              readOnlyData={reservedMode ? buyerData : undefined}
+              readOnlyData={buyerData}
               previewUrl={previewUrl}
               onFileUpload={onFileUpload}
               onFileRemove={onFileRemove}

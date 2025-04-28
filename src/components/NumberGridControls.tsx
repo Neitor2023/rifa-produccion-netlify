@@ -2,10 +2,8 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, CreditCard, Check } from 'lucide-react';
-import { ValidatedBuyerInfo } from '@/types/participant';
 
 interface NumberGridControlsProps {
-  validatedBuyerData: ValidatedBuyerInfo | null; 
   selectedNumbers: string[];
   raffleSeller: {
     id: string;
@@ -16,12 +14,11 @@ interface NumberGridControlsProps {
   };
   onClearSelection: () => void;
   onReserve: () => void;
-  onPayReserved: (numbers: string[], buyerInfo: ValidatedBuyerInfo) => void;
-  onProceedToPayment: (numbers: string[]) => void;
+  onPayReserved: () => void;
+  onProceedToPayment: () => void;
 }
 
 export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
-  validatedBuyerData,
   selectedNumbers,
   raffleSeller,
   onClearSelection,
@@ -52,16 +49,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       <Button 
         variant="secondary"
         className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
-
-        onClick={() => {
-          console.log("▶️ NumberGridControls: onPayReserved con:", selectedNumbers, validatedBuyerData);
-          onPayReserved(selectedNumbers, validatedBuyerData!);
-        }}   
-
-      
-        // onClick={onPayReserved}
-        // onClick={() => onPayReserved(selectedNumbers, validatedBuyerData!)}
-        // onClick={() => onPayReserved()}
+        onClick={onPayReserved}
       >
         <CreditCard className="h-4 w-4" />
         <span>Pagar Apartados</span>

@@ -36,7 +36,7 @@ export function usePaymentProcessor({
   allowVoucherPrint = true
 }: UsePaymentProcessorProps) {
   const { selectedNumbers, setSelectedNumbers } = useSelection();
-  const { isPaymentModalOpen, setIsPaymentModalOpen, isReservationModalOpen, setIsReservationModalOpen, isCompletePaymentOpen, setIsCompletePaymentOpen, isVoucherOpen, setIsVoucherOpen } = useModalState();
+  const { isPaymentModalOpen, setIsPaymentModalOpen, isVoucherOpen, setIsVoucherOpen } = useModalState();
   const { paymentData, setPaymentData, handleProofCheck } = usePayment();
   const { validatedBuyerData, setValidatedBuyerData } = useBuyerData();
   const { validateSellerMaxNumbers, getSoldNumbersCount } = useSellerValidation(raffleSeller, raffleNumbers, debugMode);
@@ -138,7 +138,7 @@ export function usePaymentProcessor({
       await refetchRaffleNumbers();
       setSelectedNumbers([]);
   
-      toast.success(`${numbers.length} número(s) apartados exitosamente`);
+      toast.success(`usePaymentProcessor: ${numbers.length} número(s) apartados exitosamente`);
     } catch (error: any) {
       console.error("usePaymentProcessor: ❌ Error al reservar números:", error);
       toast.error(`usePaymentProcessor: Error al apartar números${error.message ? ` — ${error.message}` : ""}`);
@@ -175,7 +175,7 @@ export function usePaymentProcessor({
   };
 
   const handlePayReservedNumbers = async (numbers: string[], participantData: ValidatedBuyerInfo) => {
-    console.log("💰 usePaymentProcessor: handlePayReservedNumbers recibió estos números:", {
+    console.log("💰 usePaymentProcessor: handlePayReservedNumbers llamado con:", {
       numbers,
       participantData
     });
@@ -304,16 +304,12 @@ export function usePaymentProcessor({
     validatedBuyerData,
     setValidatedBuyerData,
     debugMode,
-    handleReserveNumbers,       // para “Apartar”
-    handleProceedToPayment,     // para “Pagar” (compra directa)
-    handlePayReservedNumbers,   // para iniciar el pago de apartados
-    handleCompletePayment,      // para finalizar cualquiera de los dos pagos
+    handleReserveNumbers,
+    handleProceedToPayment,
+    handlePayReservedNumbers,
+    handleCompletePayment,
     findOrCreateParticipant,
     getSoldNumbersCount,
-    allowVoucherPrint,
-    isReservationModalOpen,
-    setIsReservationModalOpen,
-    isCompletePaymentOpen,
-    setIsCompletePaymentOpen
+    allowVoucherPrint
   };
 }
