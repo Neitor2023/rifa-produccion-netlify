@@ -76,13 +76,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     if (!isOpen) {
       resetForm();
     } else if (buyerData && reservedMode) {
-      console.log("🔵 PaymentModal: Reserved numbers payment flow - showing buyer data:", {
+      console.log("🔵 PaymentModal: Flujo de pago de números reservados: visualización de los datos del comprador:", {
         name: buyerData.name,
         phone: buyerData.phone,
         cedula: buyerData.cedula || 'No disponible'
       });
     } else {
-      console.log("🔵 PaymentModal: Direct purchase flow - no buyer data to show");
+      console.log("🔵 PaymentModal: Flujo de compra directa: no hay datos del comprador para mostrar");
     }
   }, [isOpen, selectedNumbers, price, buyerData, reservedMode]);
 
@@ -98,7 +98,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     
     if (data.paymentMethod === "transfer" && !uploadedImage) {
       toast.error("Por favor suba un comprobante de pago");
-      debugLog('Validation error', 'Missing payment proof for transfer');
+      debugLog('Validation error', 'Falta comprobante de pago de la transferencia');
       setIsSubmitting(false);
       return;
     }
@@ -119,7 +119,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     }
     
     debugLog('Sending payment data to parent component', data);
-    console.log("🔄 Submitting payment with data:", {
+    console.log("🔄 Envío de pago con datos:", {
       buyerName: data.buyerName,
       buyerPhone: data.buyerPhone,
       buyerCedula: data.buyerCedula,
