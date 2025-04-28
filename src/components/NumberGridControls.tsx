@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, CreditCard, Check } from 'lucide-react';
 
 interface NumberGridControlsProps {
-  validatedBuyerData: ValidatedBuyerInfo | null;
   selectedNumbers: string[];
   raffleSeller: {
     id: string;
