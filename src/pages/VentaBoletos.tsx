@@ -211,23 +211,24 @@ const VentaBoletos: React.FC = () => {
         selectedNumbers={selectedNumbers}
         price={raffle?.price || 0}
         onComplete={handleCompletePayment}
-        buyerData={validatedBuyerData}
+        buyerData={null}        // flujo directo no muestra datos
         debugMode={debugMode}
+        title="PAGAR"
       />
       
       {/* Modal para finalizar compra de apartados */}
-      
+      console.log("▶️ VentaBoletos: modal direct:", isPaymentModalOpen, " buyerData:", null);
       <PaymentModal 
         isOpen={isCompletePaymentOpen}
         onClose={() => setIsCompletePaymentOpen(false)}
         selectedNumbers={selectedNumbers}
         price={raffle?.price || 0}
         onComplete={handleCompletePayment}
-        buyerData={validatedBuyerData}
+        buyerData={validatedBuyerData!}      // aquí pasas los datos validados
         debugMode={debugMode}
         title="COMPLETA LOS SIGUIENTES DATOS PARA FINALIZAR LA COMPRA"
       />
-      
+      console.log("▶️ VentaBoletos: modal apartados:", isCompletePaymentOpen, " buyerData:", validatedBuyerData);
       {/* Comprobante digital */}
       <DigitalVoucher 
         isOpen={isVoucherOpen}

@@ -302,6 +302,19 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         raffleId={raffleSeller.raffle_id}
         debugMode={debugMode}
       />
+      {/* Modal para finalizar compra de apartados */}
+      {/*
+      <PaymentModal 
+        isOpen={isCompletePaymentOpen}
+        onClose={() => setIsCompletePaymentOpen(false)}
+        selectedNumbers={selectedNumbers}
+        price={raffle?.price || 0}
+        onComplete={handleCompletePayment}
+        buyerData={validatedBuyerData}
+        debugMode={debugMode}
+        title="COMPLETA LOS SIGUIENTES DATOS PARA FINALIZAR LA COMPRA"
+      />
+      */}   
 
       <ReservationModal
         isOpen={isReservationModalOpen}
