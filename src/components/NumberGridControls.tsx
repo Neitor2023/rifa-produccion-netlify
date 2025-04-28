@@ -52,19 +52,13 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       <Button 
         variant="secondary"
         className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
-        {/*
+
         onClick={() => {
           console.log("▶️ NumberGridControls: onPayReserved con:", selectedNumbers, validatedBuyerData);
           onPayReserved(selectedNumbers, validatedBuyerData!);
         }}   
-        */}
-        onClick={() => {
-          if (!validatedBuyerData) {
-            toast.error("No hay datos del participante para pago de apartados");
-            return;
-          }
-          onPayReserved(selectedNumbers, validatedBuyerData);
-        }}        
+
+      
         // onClick={onPayReserved}
         // onClick={() => onPayReserved(selectedNumbers, validatedBuyerData!)}
         // onClick={() => onPayReserved()}
