@@ -225,7 +225,7 @@ const VentaBoletos: React.FC = () => {
         selectedNumbers={selectedNumbers}
         price={raffle?.price || 0}
         onComplete={handleCompletePayment}
-        buyerData={validatedBuyerData!}      // aquí pasas los datos validados
+        buyerData={validatedBuyerData}      // aquí pasas los datos validados
         debugMode={debugMode}
         title="COMPLETA LOS SIGUIENTES DATOS PARA FINALIZAR LA COMPRA"
       />
