@@ -113,7 +113,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
 
   return (
     <>
-      {/* Always render buyer info as read-only fields when coming from reserved numbers flow */}
+      {/* Always render buyer info as read-only fields */}
       <BuyerInfoFields buyerData={readOnlyData} />
       <HiddenBuyerFields form={form} readOnlyData={readOnlyData} />
 

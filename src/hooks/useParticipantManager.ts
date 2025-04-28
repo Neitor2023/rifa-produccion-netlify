@@ -73,10 +73,16 @@ export function useParticipantManager() {
     
     try {
       console.log(`useParticipantManager.ts: Creando nuevo participante:`, participantData);
+      
+      // Ensure email is always present, even if it's an empty string
+      const dataToInsert = {
+        ...participantData,
+        email: participantData.email || ''
+      };
 
       const { data, error } = await supabase
         .from('participants')
-        .insert([participantData])
+        .insert([dataToInsert]) // Make sure we're passing an array with the single object
         .select()
         .maybeSingle();
 
@@ -232,12 +238,41 @@ export function useParticipantManager() {
     }
   };
 
+  /**
+   * Finds or creates a participant by phone number
+   */
+  const findOrCreateParticipant = async (
+    phone: string,
+    name: string,
+    cedula?: string
+  ): Promise<string | null> => {
+    try {
+      // First, try to find the participant by phone
+      const participant = await findParticipant(phone);
+      
+      if (participant && participant.id) {
+        console.log(`useParticipantManager.ts: Participante encontrado con ID ${participant.id}`);
+        return participant.id;
+      }
+      
+      // If not found, create a new participant
+      // Note: This is a placeholder implementation as the complete implementation
+      // would require raffleId and sellerId which we don't have in this context
+      console.log(`useParticipantManager.ts: No se implementa la creación de participantes en este contexto`);
+      return null;
+    } catch (err) {
+      console.error(`useParticipantManager.ts: Error en findOrCreateParticipant:`, err);
+      return null;
+    }
+  };
+
   return {
     isLoading,
     error,
     findParticipant,
     createParticipant,
     updateParticipant,
-    markNumbersAsSold
+    markNumbersAsSold,
+    findOrCreateParticipant
   };
 }

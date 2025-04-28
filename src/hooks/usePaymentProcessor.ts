@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -60,12 +61,7 @@ export function usePaymentProcessor({
     debugMode 
   });
   
-  const { findOrCreateParticipant } = useParticipantManager({ 
-    raffleId, 
-    debugMode, 
-    raffleSeller, 
-    setValidatedBuyerData 
-  });
+  const participantManager = useParticipantManager();
 
   const debugLog = (context: string, data: any) => {
     if (debugMode) {
@@ -112,10 +108,33 @@ export function usePaymentProcessor({
         buyerName,
         buyerCedula
       });
-  
-      // 2. Crear o encontrar participante
-      const participantId = await findOrCreateParticipant(buyerPhone, buyerName, buyerCedula);
-      console.log("👤 usePaymentProcessor: Participante creado / encontrado:", participantId);
+      
+      // 2. Buscar o crear participante
+      let participantId = null;
+      
+      // Check if participant exists
+      const existingParticipant = await participantManager.findParticipant(buyerPhone, raffleId, true);
+      
+      if (existingParticipant && existingParticipant.id) {
+        participantId = existingParticipant.id;
+        console.log("👤 usePaymentProcessor: Participante encontrado:", participantId);
+      } else {
+        // Create new participant
+        const newParticipant = await participantManager.createParticipant({
+          name: buyerName,
+          phone: buyerPhone,
+          cedula: buyerCedula,
+          email: '',
+          raffle_id: raffleId,
+          seller_id: raffleSeller.seller_id
+        });
+        
+        if (newParticipant && newParticipant.id) {
+          participantId = newParticipant.id;
+          console.log("👤 usePaymentProcessor: Nuevo participante creado:", participantId);
+        }
+      }
+      
       if (!participantId) {
         toast.error("usePaymentProcessor: No se pudo crear o encontrar al participante");
         return;
@@ -308,7 +327,6 @@ export function usePaymentProcessor({
     handleProceedToPayment,
     handlePayReservedNumbers,
     handleCompletePayment,
-    findOrCreateParticipant,
     getSoldNumbersCount,
     allowVoucherPrint
   };
