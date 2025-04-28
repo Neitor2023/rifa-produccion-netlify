@@ -55,6 +55,12 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   });
 
   const handleSubmit = (data: FormData) => {
+    console.log("src/components/ReservationModal.tsx: 📞 Envío de ReservationModal con:", {
+      name: data.buyerName,
+      phone: formattedPhone,
+      cedula: data.buyerCedula,
+      selectedNumbers
+    });    
     if (selectedNumbers.length === 0) {
       toast.error('Debe seleccionar al menos un número para apartar');
       return;
@@ -68,14 +74,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     
     // Format phone number for Ecuador
     const formattedPhone = formatPhoneNumber(data.buyerPhone);
-    
-    console.log("src/components/ReservationModal.tsx: 📞 Envío de ReservationModal con:", {
-      name: data.buyerName,
-      phone: formattedPhone,
-      cedula: data.buyerCedula,
-      selectedNumbers
-    });
-    
+        
     onConfirm({
       buyerName: data.buyerName,
       buyerPhone: formattedPhone,
