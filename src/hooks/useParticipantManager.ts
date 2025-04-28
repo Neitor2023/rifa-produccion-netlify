@@ -82,7 +82,7 @@ export function useParticipantManager() {
 
       const { data, error } = await supabase
         .from('participants')
-        .insert([dataToInsert]) // Make sure we're passing an array with the single object
+        .insert(dataToInsert)
         .select()
         .maybeSingle();
 
@@ -181,53 +181,68 @@ export function useParticipantManager() {
         participantId
       });
 
-      // First, check if these numbers exist and get their current status
-      const { data: existingNumbers, error: fetchError } = await supabase
-        .from('raffle_numbers')
-        .select('id, number, status')
-        .eq('raffle_id', raffleId)
-        .eq('seller_id', sellerId)
-        .in('number', numbers.map(n => parseInt(n)))
-        .in('status', ['available', 'reserved']);
-
-      if (fetchError) {
-        console.error(`useParticipantManager.ts: Error al verificar números existentes:`, fetchError);
-        setError(fetchError.message);
-        return false;
-      }
-
-      console.log(`useParticipantManager.ts: Números existentes encontrados:`, existingNumbers);
-
-      if (!existingNumbers || existingNumbers.length === 0) {
-        console.log(`useParticipantManager.ts: No se encontraron números disponibles o reservados`);
-        return false;
-      }
-
-      const updates = existingNumbers.map(num => ({
-        id: num.id,
-        raffle_id: raffleId,
-        seller_id: sellerId,
-        participant_id: participantId,
-        number: num.number,
-        status: 'sold',
-        payment_proof: paymentProof,
-        payment_approved: true,
-        participant_name: participantData.name,
-        participant_phone: participantData.phone,
-        participant_cedula: participantData.cedula || ''
-      }));
-
-      const { error: updateError } = await supabase
-        .from('raffle_numbers')
-        .upsert(updates);
-
-      if (updateError) {
-        console.error(`useParticipantManager.ts: Error al actualizar números:`, updateError);
-        setError(updateError.message);
-        return false;
-      }
-
-      console.log(`useParticipantManager.ts: Números actualizados exitosamente a estado "sold"`);
+      // Process each number individually to handle the update or insert logic
+      const promises = numbers.map(async (num) => {
+        // First check if the number exists for this raffle
+        const { data: existingNumber, error: checkError } = await supabase
+          .from('raffle_numbers')
+          .select('id, status')
+          .eq('raffle_id', raffleId)
+          .eq('number', parseInt(num))
+          .maybeSingle();
+        
+        if (checkError) {
+          console.error(`useParticipantManager.ts: Error al verificar número ${num}:`, checkError);
+          throw checkError;
+        }
+        
+        const updateData = {
+          status: 'sold',
+          participant_id: participantId,
+          seller_id: sellerId,
+          payment_approved: true,
+          payment_proof: paymentProof || null,
+          participant_name: participantData.name,
+          participant_phone: participantData.phone,
+          participant_cedula: participantData.cedula || null,
+          reservation_expires_at: null
+        };
+        
+        if (existingNumber) {
+          console.log(`useParticipantManager.ts: Actualizando número existente ${num}`);
+          
+          const { error: updateError } = await supabase
+            .from('raffle_numbers')
+            .update(updateData)
+            .eq('id', existingNumber.id);
+          
+          if (updateError) {
+            console.error(`useParticipantManager.ts: Error al actualizar número ${num}:`, updateError);
+            throw updateError;
+          }
+        } else {
+          console.log(`useParticipantManager.ts: Insertando nuevo número ${num}`);
+          
+          const { error: insertError } = await supabase
+            .from('raffle_numbers')
+            .insert({
+              raffle_id: raffleId,
+              number: parseInt(num),
+              ...updateData
+            });
+          
+          if (insertError) {
+            console.error(`useParticipantManager.ts: Error al insertar número ${num}:`, insertError);
+            throw insertError;
+          }
+        }
+        
+        return true;
+      });
+      
+      await Promise.all(promises);
+      
+      console.log(`useParticipantManager.ts: Todos los números marcados como vendidos exitosamente`);
       return true;
     } catch (err) {
       console.error(`useParticipantManager.ts: Error inesperado:`, err);
@@ -238,41 +253,12 @@ export function useParticipantManager() {
     }
   };
 
-  /**
-   * Finds or creates a participant by phone number
-   */
-  const findOrCreateParticipant = async (
-    phone: string,
-    name: string,
-    cedula?: string
-  ): Promise<string | null> => {
-    try {
-      // First, try to find the participant by phone
-      const participant = await findParticipant(phone);
-      
-      if (participant && participant.id) {
-        console.log(`useParticipantManager.ts: Participante encontrado con ID ${participant.id}`);
-        return participant.id;
-      }
-      
-      // If not found, create a new participant
-      // Note: This is a placeholder implementation as the complete implementation
-      // would require raffleId and sellerId which we don't have in this context
-      console.log(`useParticipantManager.ts: No se implementa la creación de participantes en este contexto`);
-      return null;
-    } catch (err) {
-      console.error(`useParticipantManager.ts: Error en findOrCreateParticipant:`, err);
-      return null;
-    }
-  };
-
   return {
     isLoading,
     error,
     findParticipant,
     createParticipant,
     updateParticipant,
-    markNumbersAsSold,
-    findOrCreateParticipant
+    markNumbersAsSold
   };
 }

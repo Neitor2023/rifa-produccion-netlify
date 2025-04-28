@@ -155,6 +155,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     debugLog('Form submit - data', data);
     
     try {
+      console.log("PaymentModal.tsx: Iniciando proceso de pago con datos:", data);
+      
       if (data.paymentMethod === "transfer" && !uploadedImage) {
         toast.error("Por favor suba un comprobante de pago");
         debugLog('Validation error', 'Missing payment proof for transfer');
@@ -165,6 +167,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       // Upload payment proof if provided
       let paymentProofUrl = null;
       if (uploadedImage) {
+        console.log("PaymentModal.tsx: Subiendo comprobante de pago");
         paymentProofUrl = await uploadPaymentProof(uploadedImage);
         debugLog('Payment proof uploaded', paymentProofUrl);
       }
@@ -203,6 +206,58 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         throw new Error("Error al marcar los números como vendidos");
       }
       
+      // Step 3: Process fraud report if provided
+      if (data.reporteSospechoso && data.reporteSospechoso.trim() !== '') {
+        console.log("PaymentModal.tsx: Procesando reporte de actividad sospechosa");
+        
+        // Check if a report already exists
+        const { data: existingReport } = await supabase
+          .from('fraud_reports')
+          .select('id')
+          .match({
+            participant_id: buyerData.id,
+            raffle_id: raffleId,
+            seller_id: sellerId
+          })
+          .maybeSingle();
+        
+        if (existingReport) {
+          console.log("PaymentModal.tsx: Actualizando reporte existente:", existingReport.id);
+          
+          // Update existing report
+          const { error: updateError } = await supabase
+            .from('fraud_reports')
+            .update({
+              mensaje: data.reporteSospechoso,
+              estado: 'pendiente'
+            })
+            .eq('id', existingReport.id);
+          
+          if (updateError) {
+            console.error("PaymentModal.tsx: Error al actualizar reporte de fraude:", updateError);
+            // Continue execution even if this fails
+          }
+        } else {
+          console.log("PaymentModal.tsx: Creando nuevo reporte de fraude");
+          
+          // Create new fraud report
+          const { error: fraudError } = await supabase
+            .from('fraud_reports')
+            .insert({
+              raffle_id: raffleId,
+              seller_id: sellerId,
+              participant_id: buyerData.id,
+              mensaje: data.reporteSospechoso,
+              estado: 'pendiente'
+            });
+
+          if (fraudError) {
+            console.error('PaymentModal.tsx: Error al guardar reporte de fraude:', fraudError);
+            // Continue execution even if this fails
+          }
+        }
+      }
+      
       // If all steps completed successfully, finish process
       console.log("PaymentModal.tsx: Proceso de pago completado exitosamente");
       
@@ -219,9 +274,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       onComplete(data);
       resetForm();
       
-    } catch (error) {
+    } catch (error: any) {
       console.error("PaymentModal.tsx: Error al procesar el pago:", error);
-      toast.error("Error al completar el pago.");
+      toast.error(`Error al completar el pago: ${error.message || "Error desconocido"}`);
     } finally {
       setIsSubmitting(false);
     }

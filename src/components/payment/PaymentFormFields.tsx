@@ -58,6 +58,7 @@ function AdditionalInfoSection({ form }: { form: UseFormReturn<PaymentFormData> 
   );
 }
 
+// Hidden fields component to store the buyer data in the form
 function HiddenBuyerFields({ form, readOnlyData }: { form: UseFormReturn<PaymentFormData>; readOnlyData?: ValidatedBuyerInfo | null }) {
   useEffect(() => {
     if (readOnlyData) {
@@ -94,22 +95,6 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
   onFileRemove
 }) => {
   const watchedPaymentMethod = form.watch('paymentMethod');
-
-  useEffect(() => {
-    if (readOnlyData && form) {
-      console.log("PaymentFormFields.tsx: Sincronizando valores del formulario con datos del comprador:", readOnlyData);
-      if (readOnlyData.name)
-        form.setValue("buyerName", readOnlyData.name);
-      if (readOnlyData.phone)
-        form.setValue("buyerPhone", readOnlyData.phone);
-      if (readOnlyData.cedula)
-        form.setValue("buyerCedula", readOnlyData.cedula);
-      if (readOnlyData.direccion)
-        form.setValue("direccion", readOnlyData.direccion);
-      if (readOnlyData.sugerencia_producto)
-        form.setValue("sugerenciaProducto", readOnlyData.sugerencia_producto);
-    }
-  }, [readOnlyData, form]);
 
   return (
     <>
