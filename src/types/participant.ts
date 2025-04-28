@@ -1,6 +1,6 @@
 
 export interface ValidatedBuyerInfo {
-  id?: string;
+  id: string;
   name: string;
   phone: string;
   cedula?: string;
