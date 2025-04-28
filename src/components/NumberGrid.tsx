@@ -278,8 +278,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           selectedNumbers={selectedNumbers}
           highlightReserved={highlightReserved}
           toggleNumber={toggleNumber}
-          onPayReserved={handlePayReserved}
-          openPhoneModal={openPhoneModal}
+          // onPayReserved={handlePayReserved}
+          // openPhoneModal={openPhoneModal}
         />
       </Card>
       
