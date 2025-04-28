@@ -216,7 +216,7 @@ const VentaBoletos: React.FC = () => {
       />
       
       {/* Modal para finalizar compra de apartados */}
-      {/*
+      
       <PaymentModal 
         isOpen={isCompletePaymentOpen}
         onClose={() => setIsCompletePaymentOpen(false)}
@@ -227,7 +227,7 @@ const VentaBoletos: React.FC = () => {
         debugMode={debugMode}
         title="COMPLETA LOS SIGUIENTES DATOS PARA FINALIZAR LA COMPRA"
       />
-      */}
+      
       {/* Comprobante digital */}
       <DigitalVoucher 
         isOpen={isVoucherOpen}
