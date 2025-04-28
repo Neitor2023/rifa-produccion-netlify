@@ -139,7 +139,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const handleConfirmReservation = (data: { buyerName: string; buyerPhone: string; buyerCedula: string }) => {
       console.log('NumberGrid.tsx: Datos de reserva:', data);
       console.log('NumberGrid.tsx: Números seleccionados:', selectedNumbers);    
-    if (!debugMode) {
+    if (debugMode) {
       console.log('NumberGrid.tsx: Datos de reserva:', data);
       console.log('NumberGrid.tsx: Números seleccionados:', selectedNumbers);
     }
@@ -306,7 +306,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       <ReservationModal
         isOpen={isReservationModalOpen}
         onClose={() => setIsReservationModalOpen(false)}
-        onConfirm={handlePayReserved}
+        onConfirm={handleConfirmReservation}
         selectedNumbers={selectedNumbers}
       />
       
