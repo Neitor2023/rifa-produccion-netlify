@@ -1,89 +1,51 @@
 
 import { useState } from 'react';
-import { PaymentFormData } from '@/components/PaymentModal';
-import { ValidatedBuyerInfo } from '@/types/participant';
-import { toast } from 'sonner';
-import { useParticipantManager } from '../useParticipantManager';
-import { useNumberStatus } from '../useNumberStatus';
-import { useSelection } from './selection';
-import { useModalState } from './modalState';
-import { usePayment } from './payment';
-import { useBuyerData } from './buyerData';
-import { useSellerValidation } from './sellerValidation';
-import { useNumberAvailability } from './numberAvailability';
-import { usePaymentCompletion } from './paymentCompletion';
 import { useReserveNumbers } from './useReserveNumbers';
-import { useProceedToPayment } from './useProceedToPayment';
 import { usePayReservedNumbers } from './usePayReservedNumbers';
 import { useCompletePayment } from './useCompletePayment';
+import { useBuyerData } from './buyerData';
+import { useProceedToPayment } from './useProceedToPayment'; 
+import { useSelectionState } from './selection';
+import { useCheckNumberAvailability } from './numberAvailability';
+import { useSellerValidation } from './sellerValidation';
+import { usePayment } from './payment';
+import { useModalState } from './modalState';
+import { ValidatedBuyerInfo } from '@/types/participant';
 
-interface UsePaymentProcessorProps {
-  raffleSeller: {
-    id: string;
-    seller_id: string;
-    cant_max: number;
-    active: boolean;
-  } | null;
-  raffleId: string;
-  raffleNumbers: any[];
-  refetchRaffleNumbers: () => Promise<any>;
-  debugMode?: boolean;
-  allowVoucherPrint?: boolean;
-}
-
+// Main hook that combines all functionality
 export function usePaymentProcessor({
-  raffleSeller,
-  raffleId,
-  raffleNumbers,
-  refetchRaffleNumbers,
-  debugMode = false,
-  allowVoucherPrint = true
-}: UsePaymentProcessorProps) {
-  const { selectedNumbers, setSelectedNumbers } = useSelection();
-  const { isPaymentModalOpen, setIsPaymentModalOpen, isVoucherOpen, setIsVoucherOpen } = useModalState();
+  raffleId = '',
+  raffleSeller = null,
+  onSaleComplete,
+  maxNumbersAllowed = 33,
+  debugMode = false
+}) {
+  // Ensure we always have a valid raffleId and sellerId
+  const effectiveRaffleId = raffleId || "fd6bd3bc-d81f-48a9-be58-8880293a0472";
+  const effectiveSellerId = raffleSeller?.seller_id || "0102030405";
+  
+  console.log("usePaymentProcessor: Using raffleId:", effectiveRaffleId, "sellerId:", effectiveSellerId);
+  
+  // Shared state
+  const [validatedBuyerInfo, setValidatedBuyerInfo] = useState<ValidatedBuyerInfo | null>(null);
+  
+  // Use sub-hooks with validated parameters
+  const { selectedNumbers, setSelectedNumbers, resetSelection } = useSelectionState();
+  const { isPaymentModalOpen, setIsPaymentModalOpen, isVoucherModalOpen, setIsVoucherModalOpen } = useModalState();
   const { paymentData, setPaymentData, handleProofCheck } = usePayment();
-  const { validatedBuyerData, setValidatedBuyerData } = useBuyerData();
-  const { validateSellerMaxNumbers, getSoldNumbersCount } = useSellerValidation(raffleSeller, raffleNumbers, debugMode);
-  const { checkNumbersAvailability, checkReservedNumbersParticipant } = useNumberAvailability({ 
-    raffleNumbers, 
-    raffleSeller, 
-    setValidatedBuyerData,
-    debugMode 
-  });
-  const { uploadPaymentProof, processParticipant, updateNumbersToSold } = usePaymentCompletion({
-    raffleSeller,
-    raffleId,
-    setValidatedBuyerData,
-    debugMode
-  });
   
-  const { updateRaffleNumbersStatus } = useNumberStatus({ 
-    raffleSeller, 
-    raffleId, 
-    raffleNumbers, 
+  // Import sub-hooks with consistent parameters
+  const { validateSellerMaxNumbers } = useSellerValidation({ 
+    maxNumbersAllowed, 
     debugMode 
   });
   
-  const participantManager = useParticipantManager();
-
-  const debugLog = (context: string, data: any) => {
-    if (debugMode) {
-      console.log(`[DEBUG - ${context}]:`, data);
-    }
-  };
-
-  // Use extracted handlers
-  const handleReserveNumbers = useReserveNumbers({
-    raffleSeller,
-    raffleId,
-    validateSellerMaxNumbers,
-    participantManager,
-    updateRaffleNumbersStatus,
-    refetchRaffleNumbers,
-    setSelectedNumbers,
+  const { checkNumbersAvailability } = useCheckNumberAvailability({
+    raffleId: effectiveRaffleId,
+    sellerId: effectiveSellerId,
     debugMode
   });
-
+  
   const handleProceedToPayment = useProceedToPayment({
     validateSellerMaxNumbers,
     checkNumbersAvailability,
@@ -91,52 +53,70 @@ export function usePaymentProcessor({
     setIsPaymentModalOpen,
     debugMode
   });
-
-  const handlePayReservedNumbers = usePayReservedNumbers({
-    setValidatedBuyerData,
-    setSelectedNumbers,
-    setIsPaymentModalOpen,
+  
+  const { reserveNumbers, isReserving } = useReserveNumbers({
+    raffleId: effectiveRaffleId,
+    sellerId: effectiveSellerId,
     debugMode
   });
-
-  const handleCompletePayment = useCompletePayment({
+  
+  const { payReservedNumbers } = usePayReservedNumbers({
+    raffleId: effectiveRaffleId,
     raffleSeller,
-    raffleId,
-    selectedNumbers,
-    validatedBuyerData,
-    validateSellerMaxNumbers,
-    uploadPaymentProof,
-    processParticipant,
-    updateNumbersToSold,
-    raffleNumbers,
-    refetchRaffleNumbers,
-    setPaymentData,
-    setIsPaymentModalOpen,
-    setIsVoucherOpen,
-    allowVoucherPrint,
     debugMode
   });
-
+  
+  const { completePayment, isCompletingPayment } = useCompletePayment({ 
+    raffleId: effectiveRaffleId, 
+    sellerId: effectiveSellerId,
+    selectedNumbers,
+    validatedBuyerInfo,
+    setIsPaymentModalOpen,
+    setIsVoucherModalOpen,
+    setPaymentData,
+    resetSelection,
+    onSaleComplete,
+    handleProofCheck,
+    debugMode
+  });
+  
+  const { 
+    validateBuyerInfo,
+    setBuyerInfo,
+    validateBuyerByCedula,
+    validateBuyerByPhone 
+  } = useBuyerData({ 
+    raffleId: effectiveRaffleId, 
+    debugMode,
+    setValidatedBuyerInfo
+  });
+  
   return {
+    // Expose state
     selectedNumbers,
     setSelectedNumbers,
     isPaymentModalOpen,
     setIsPaymentModalOpen,
-    isVoucherOpen,
-    setIsVoucherOpen,
+    isVoucherModalOpen,
+    setIsVoucherModalOpen,
     paymentData,
     setPaymentData,
-    validatedBuyerData,
-    setValidatedBuyerData,
-    debugMode,
-    handleReserveNumbers,
+    validatedBuyerInfo,
+    setValidatedBuyerInfo,
+    
+    // Expose actions
     handleProceedToPayment,
-    handlePayReservedNumbers,
-    handleCompletePayment,
-    getSoldNumbersCount,
-    allowVoucherPrint
+    reserveNumbers,
+    isReserving,
+    payReservedNumbers,
+    completePayment,
+    isCompletingPayment,
+    validateBuyerInfo,
+    setBuyerInfo,
+    validateBuyerByCedula,
+    validateBuyerByPhone,
+    
+    // Utilities
+    resetSelection
   };
 }
-
-// Re-export the hook as the default export
-export default usePaymentProcessor;

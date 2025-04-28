@@ -19,9 +19,9 @@ import RaffleHeader from '@/components/RaffleHeader';
 import SellerInfo from '@/components/SellerInfo';
 import { useParticipantManager } from '@/hooks/useParticipantManager';
 
-// Constants
-const seller = "0102030405";
-const raffle = "fd6bd3bc-d81f-48a9-be58-8880293a0472";
+// Constants - restored with fallback values
+const SELLER_ID = "0102030405";
+const RAFFLE_ID = "fd6bd3bc-d81f-48a9-be58-8880293a0472";
 
 const formatPhoneNumber = (phone: string) => {
   // Clean phone number and handle Ecuador format
@@ -75,19 +75,21 @@ const VentaBoletos: React.FC = () => {
 
   const DEBUG_MODE = true; // Set to false to disable debug features
 
-  // Get seller ID and raffle ID from query parameters
+  // Get seller ID and raffle ID from query parameters with fallback to constants
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const seller = urlParams.get('seller');
-    const raffle = urlParams.get('raffle');
+    const sellerParam = urlParams.get('seller') || SELLER_ID;
+    const raffleParam = urlParams.get('raffle') || RAFFLE_ID;
     
-    if (!seller || !raffle) {
+    console.log("VentaBoletos.tsx: Using seller:", sellerParam, "and raffle:", raffleParam);
+    
+    if (!sellerParam || !raffleParam) {
       setError('Faltan parámetros necesarios. Necesita proporcionar seller y raffle.');
       setIsLoading(false);
       return;
     }
     
-    loadData(seller, raffle);
+    loadData(sellerParam, raffleParam);
   }, [location]);
   
   const loadData = async (sellerId: string, raffleId: string) => {

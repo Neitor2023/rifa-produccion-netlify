@@ -11,7 +11,7 @@ export function useProceedToPayment({
   return async (numbers: string[]) => {
     console.log("💰 usePaymentProcessor: handleProceedToPayment llamado con números:", numbers);
 
-    if (numbers.length === 0) {
+    if (!numbers || numbers.length === 0) {
       toast.error('Seleccione al menos un número para comprar');
       return;
     }
