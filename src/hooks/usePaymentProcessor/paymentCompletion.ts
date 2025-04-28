@@ -147,32 +147,32 @@ export function usePaymentCompletion({
     }
   
     const updatePromises = numbers.map(async (numStr) => {
-      // Primero verificamos si ya existe un registro para este número en la rifa actual
-      const { data: existingNumbers, error: checkError } = await supabase
-        .from('raffle_numbers')
-        .select('id, status')
-        .eq('raffle_id', raffleId)
-        .eq('number', parseInt(numStr, 10))
-        .maybeSingle();
-      
-      if (checkError) {
-        console.error(`Error verificando número ${numStr}:`, checkError);
-        throw checkError;
-      }
-  
-      const commonData = {
-        status: 'sold' as const,
-        seller_id: raffleSeller.seller_id,
-        participant_id: participantId,
-        payment_proof: paymentProofUrl || (existingNumbers?.payment_proof || null),
-        payment_approved: true,
-        reservation_expires_at: null,
-        participant_name: participantData.name,
-        participant_phone: participantData.phone,
-        participant_cedula: participantData.cedula
-      };
-  
       try {
+        // Primero verificamos si ya existe un registro para este número en la rifa actual
+        const { data: existingNumbers, error: checkError } = await supabase
+          .from('raffle_numbers')
+          .select('id, status')
+          .eq('raffle_id', raffleId)
+          .eq('number', parseInt(numStr, 10))
+          .maybeSingle();
+        
+        if (checkError) {
+          console.error(`Error verificando número ${numStr}:`, checkError);
+          throw checkError;
+        }
+      
+        const commonData = {
+          status: 'sold' as const,
+          seller_id: raffleSeller.seller_id,
+          participant_id: participantId,
+          payment_proof: paymentProofUrl,  // Ensure this is correctly passed
+          payment_approved: true,
+          reservation_expires_at: null,
+          participant_name: participantData.name,
+          participant_phone: participantData.phone,
+          participant_cedula: participantData.cedula
+        };
+      
         if (existingNumbers) {
           console.log(`🔄 Actualizando número existente ${numStr}:`, { id: existingNumbers.id, ...commonData });
           
