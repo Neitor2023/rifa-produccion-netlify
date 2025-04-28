@@ -20,8 +20,8 @@ import SellerInfo from '@/components/SellerInfo';
 import { useParticipantManager } from '@/hooks/useParticipantManager';
 
 // Constants
-const SELLER_ID = "0102030405";
-const RAFFLE_ID = "fd6bd3bc-d81f-48a9-be58-8880293a0472";
+const seller = "0102030405";
+const raffle = "fd6bd3bc-d81f-48a9-be58-8880293a0472";
 
 const formatPhoneNumber = (phone: string) => {
   // Clean phone number and handle Ecuador format
