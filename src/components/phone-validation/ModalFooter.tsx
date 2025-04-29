@@ -20,7 +20,7 @@ const ModalFooter: React.FC<ModalFooterProps> = ({ onCancel, onValidate, isValid
         onClick={onValidate}
         disabled={!isValid}
       >
-        Validar WMWMWMWMW
+        Validar
       </Button>
     </DialogFooter>
   );
