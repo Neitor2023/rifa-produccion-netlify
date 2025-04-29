@@ -89,7 +89,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     },
   });
 
-  // Update form values when buyerData changes
+  // Actualizar los valores del formulario cuando cambian los datos del comprador
   useEffect(() => {
     console.log("▶️ PaymentModal.tsx: Modal abierto:", isOpen, "datos del comprador:", buyerData);
     

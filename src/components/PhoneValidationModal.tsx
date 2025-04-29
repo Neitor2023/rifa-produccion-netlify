@@ -118,7 +118,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         if (byPhone) {
           participant = byPhone;
           foundBy = 'phone';
-          console.log("▶️ PhoneValidationModal.tsx: Found participant by phone:", participant);
+          console.log("▶️ PhoneValidationModal.tsx: Participante encontrado por teléfono:", participant);
         } else if (isNumericOnly) {
           // BUSCA por cédula (y la rifa!)
           const { data: byCedula } = await supabase
@@ -130,7 +130,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           if (byCedula) {
             participant = byCedula;
             foundBy = 'cedula';
-            console.log("▶️ PhoneValidationModal.tsx: Found participant by cedula:", participant);
+            console.log("▶️ PhoneValidationModal.tsx: Participante encontrado por cedula:", participant);
           }
         }
 
@@ -139,7 +139,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           return;
         }
 
-        console.log("▶️ PhoneValidationModal.tsx: Validation success! Participant data:", {
+        console.log("▶️ PhoneValidationModal.tsx: ¡Validación exitosa! Participante data:", {
           id: participant.id,
           name: participant.name,
           phone: participant.phone,
@@ -161,7 +161,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         );
         onClose();
       } catch (error) {
-        console.error("▶️ PhoneValidationModal.tsx: Error during validation:", error);
+        console.error("▶️ PhoneValidationModal.tsx: Error durante la validación:", error);
         toast.error("Error durante la validación. Por favor intente nuevamente.");
       }
     }
