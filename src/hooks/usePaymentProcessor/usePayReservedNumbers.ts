@@ -15,7 +15,7 @@ export function usePayReservedNumbers({
   };
 
   return async (numbers: string[], participantData: ValidatedBuyerInfo) => {
-    console.log("💰 usePaymentProcessor: handlePayReservedNumbers llamado con:", {
+    console.log("💰 usePayReservedNumbers.ts: handlePayReservedNumbers called with:", {
       numbers,
       participantData
     });
@@ -26,14 +26,15 @@ export function usePayReservedNumbers({
     }
 
     try {
+      console.log("💰 usePayReservedNumbers.ts: Setting validated buyer data:", participantData);
       setValidatedBuyerData(participantData);
       setSelectedNumbers(numbers);
       
       setIsPaymentModalOpen(true);
       
-      debugLog("usePaymentProcessor: Modal de pago abierto con datos validados:", participantData);
+      debugLog("Payment modal opened with validated data:", participantData);
     } catch (error) {
-      console.error('usePaymentProcessor: ❌ Error al proceder al pago de números reservados:', error);
+      console.error('usePayReservedNumbers.ts: ❌ Error al proceder al pago de números reservados:', error);
       toast.error('Error al procesar el pago de números reservados');
     }
   };

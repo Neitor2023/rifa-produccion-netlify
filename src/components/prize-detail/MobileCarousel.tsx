@@ -34,6 +34,8 @@ const MobileCarousel: React.FC<MobileCarouselProps> = ({
   const [isDebugModalOpen, setIsDebugModalOpen] = useState(false);
   const [debugData, setDebugData] = useState<any>(null);
   
+  console.log("▶️ MobileCarousel.tsx: Rendering with", images.length, "images");
+  
   // Check for debug mode
   useEffect(() => {
     const checkDebugMode = async () => {
@@ -55,12 +57,14 @@ const MobileCarousel: React.FC<MobileCarouselProps> = ({
   
   // Function to handle API setup
   const handleApiChange = (api: any) => {
+    console.log("▶️ MobileCarousel.tsx: Carousel API initialized");
     carouselApiRef.current = api;
     
     // Add event listener for slide changes
     if (api && onSlideChange) {
       api.on('select', () => {
         const index = api.selectedScrollSnap();
+        console.log("▶️ MobileCarousel.tsx: Slide changed to index:", index);
         onSlideChange(index);
         
         if (debugMode) {
@@ -83,33 +87,22 @@ const MobileCarousel: React.FC<MobileCarouselProps> = ({
   // Function to programmatically scroll to a specific index
   useEffect(() => {
     if (carouselApiRef.current && typeof currentIndex === 'number') {
-      // Force scroll even if the index is the same as before
       const api = carouselApiRef.current;
       
-      if (debugMode) {
-        setDebugData({
-          event: 'index-change-effect',
-          currentIndex,
-          lastIndex: lastIndexRef.current,
-          hasApi: !!api,
-          hasScrollTo: !!(api && api.scrollTo),
-          images: images.length
+      console.log("▶️ MobileCarousel.tsx: Trying to scroll to index:", currentIndex, 
+        "totalImages:", images.length, 
+        "hasApi:", !!api);
+      
+      if (api && api.scrollTo) {
+        // Use requestAnimationFrame to ensure the carousel API is fully initialized
+        requestAnimationFrame(() => {
+          api.scrollTo(currentIndex, false);
+          lastIndexRef.current = currentIndex;
+          console.log("▶️ MobileCarousel.tsx: Scrolled to index", currentIndex);
         });
       }
-      
-      // Use setTimeout to ensure the carousel API is fully initialized
-      setTimeout(() => {
-        if (api && api.scrollTo) {
-          api.scrollTo(currentIndex);
-          lastIndexRef.current = currentIndex;
-          
-          if (debugMode) {
-            console.log(`Carousel scrolled to index ${currentIndex}`);
-          }
-        }
-      }, 0);
     }
-  }, [currentIndex, debugMode, images.length]);
+  }, [currentIndex, images.length]);
 
   // Debug handler for image click
   const handleImageClick = (index: number) => {
@@ -124,16 +117,34 @@ const MobileCarousel: React.FC<MobileCarouselProps> = ({
           selectedScrollSnap: carouselApiRef.current.selectedScrollSnap(),
           slidesInView: carouselApiRef.current.slidesInView(),
         } : 'API not initialized',
-        totalImages: images.length
+        totalImages: images.length,
+        hasCarouselApi: !!carouselApiRef.current
       });
     }
   };
+  
+  // Log all image URLs in the carousel
+  useEffect(() => {
+    if (images.length > 0) {
+      console.log("▶️ MobileCarousel.tsx: Image URLs in carousel:", 
+        images.map((img, idx) => ({ 
+          index: idx, 
+          url: img.displayUrl 
+        })));
+    } else if (fallbackImage) {
+      console.log("▶️ MobileCarousel.tsx: Using fallback image:", fallbackImage);
+    }
+  }, [images, fallbackImage]);
   
   return (
     <div className="md:hidden mb-4 relative">
       <Carousel 
         className="w-full mx-auto" 
-        opts={{ loop: true, dragFree: true, align: "start" }}
+        opts={{ 
+          loop: true, 
+          align: "center",
+          startIndex: currentIndex
+        }}
         setApi={handleApiChange}
       >
         <CarouselContent className="-ml-0 md:-ml-0">

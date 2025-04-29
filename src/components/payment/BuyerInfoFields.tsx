@@ -9,11 +9,11 @@ interface BuyerInfoFieldsProps {
 const BuyerInfoFields: React.FC<BuyerInfoFieldsProps> = ({ buyerData }) => {
   if (!buyerData) return null;
 
-  console.log("BuyerInfoFields.tsx: Renderizando datos del comprador en modo solo lectura:", buyerData);
+  console.log("▶️ BuyerInfoFields.tsx: Rendering buyer data in read-only mode:", buyerData);
 
   return (
     <div className="p-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 dark:bg-blue-900/40 dark:border-blue-700 dark:text-blue-50 text-sm mb-4">
-      <h3 className="font-medium mb-2">Información del Comprador (Validada)</h3>
+      <h3 className="font-medium mb-2 text-blue-900 dark:text-blue-50">Información del Comprador (Validada)</h3>
       <div className="grid grid-cols-1 gap-1">
         <div>
           <span className="font-semibold">Nombre:</span> {buyerData.name || 'No disponible'}

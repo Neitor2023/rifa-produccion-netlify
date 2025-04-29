@@ -26,7 +26,7 @@ export function useCompletePayment({
   };
 
   return async (data: PaymentFormData) => {
-    console.log("🔄 useCompletePayment: handleCompletePayment llamado con datos:", {
+    console.log("▶️ useCompletePayment.ts: handleCompletePayment called with data:", {
       buyerName: data.buyerName,
       buyerPhone: data.buyerPhone,
       buyerCedula: data.buyerCedula,
@@ -50,15 +50,16 @@ export function useCompletePayment({
       }
       
       const paymentProofUrl = await uploadPaymentProof(data.paymentProof);
+      console.log("▶️ useCompletePayment.ts: Payment proof URL:", paymentProofUrl);
       
       let participantId: string | null;
       
       if (validatedBuyerData?.id) {
         participantId = validatedBuyerData.id;
-        console.log("✅ useCompletePayment: Using existing participant ID:", participantId);
+        console.log("▶️ useCompletePayment.ts: Using existing participant ID:", participantId);
       } else {
         participantId = await processParticipant(data);
-        console.log("🆕 useCompletePayment: Created new participant with ID:", participantId);
+        console.log("▶️ useCompletePayment.ts: Created new participant with ID:", participantId);
       }
       
       if (!participantId) {
@@ -67,6 +68,7 @@ export function useCompletePayment({
       }
       
       await updateNumbersToSold(selectedNumbers, participantId, paymentProofUrl);
+      console.log("▶️ useCompletePayment.ts: Numbers updated to sold status");
       
       setPaymentData({
         ...data,
@@ -85,7 +87,7 @@ export function useCompletePayment({
           .maybeSingle();
         
         if (!existingReport) {
-          console.log("📝 useCompletePayment: Creando nuevo reporte de fraude");
+          console.log("▶️ useCompletePayment.ts: Creating new fraud report");
           const { error: fraudError } = await supabase
             .from('fraud_reports')
             .insert({
@@ -97,10 +99,10 @@ export function useCompletePayment({
             });
 
           if (fraudError) {
-            console.error('❌ Error saving fraud report:', fraudError);
+            console.error('▶️ useCompletePayment.ts: Error saving fraud report:', fraudError);
           }
         } else {
-          console.log("📝 useCompletePayment: Actualizando reporte de fraude existente");
+          console.log("▶️ useCompletePayment.ts: Updating existing fraud report");
           const { error: updateError } = await supabase
             .from('fraud_reports')
             .update({ 
@@ -110,7 +112,7 @@ export function useCompletePayment({
             .eq('id', existingReport.id);
             
           if (updateError) {
-            console.error('❌ Error updating fraud report:', updateError);
+            console.error('▶️ useCompletePayment.ts: Error updating fraud report:', updateError);
           }
         }
       }
@@ -119,10 +121,11 @@ export function useCompletePayment({
       setIsVoucherOpen(true);
       resetSelection();
       
+      console.log("▶️ useCompletePayment.ts: Payment process completed successfully");
       toast.success('Pago completado exitosamente');
       return true;
     } catch (error) {
-      console.error('❌ Error al completar el pago:', error);
+      console.error('▶️ useCompletePayment.ts: Error completing payment:', error);
       toast.error('Error al completar el pago');
       throw error;
     }

@@ -29,7 +29,7 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
 }) => {
   useEffect(() => {
     // Logging buyer data for debugging
-    console.log("📦 PaymentModalContent: Received buyerData:", buyerData);
+    console.log("▶️ PaymentModalContent.tsx: Received buyerData:", buyerData);
     
     if (buyerData) {
       // Ensure the form gets updated with the buyer data
@@ -42,6 +42,9 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
       if (buyerData.sugerencia_producto) {
         form.setValue("sugerenciaProducto", buyerData.sugerencia_producto);
       }
+      
+      // For validation
+      form.setValue('buyerEmail', 'default@example.com');
     }
   }, [buyerData, form]);
   

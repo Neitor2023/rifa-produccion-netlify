@@ -19,14 +19,30 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
   onNext,
   imageTitle
 }) => {
-  if (!images || images.length === 0) return null;
+  console.log("▶️ ImageCarousel.tsx: Rendering desktop carousel with", images.length, "images at index", currentIndex);
+  
+  if (!images || images.length === 0) {
+    console.log("▶️ ImageCarousel.tsx: No images to display");
+    return null;
+  }
+
+  // Make sure currentIndex is within bounds
+  const safeIndex = Math.max(0, Math.min(currentIndex, images.length - 1));
+  const currentImage = images[safeIndex];
+  
+  if (!currentImage || !currentImage.displayUrl) {
+    console.log("▶️ ImageCarousel.tsx: Current image or URL is null at index", safeIndex);
+    return null;
+  }
+  
+  console.log("▶️ ImageCarousel.tsx: Displaying image:", currentImage.displayUrl);
 
   return (
     <div className="relative mb-6 hidden md:block">
       <div className="w-full h-[500px] overflow-hidden rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
         <PrizeImage 
-          src={images[currentIndex]?.displayUrl} 
-          alt={`${imageTitle} - ${currentIndex + 1}`}
+          src={currentImage.displayUrl} 
+          alt={`${imageTitle} - ${safeIndex + 1}`}
           className="h-[500px] object-contain"
         />
       </div>
@@ -57,7 +73,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
             {images.map((_, index) => (
               <div 
                 key={index}
-                className={`h-2 w-2 rounded-full cursor-pointer ${index === currentIndex ? 'bg-white' : 'bg-white/50'}`}
+                className={`h-2 w-2 rounded-full cursor-pointer ${index === safeIndex ? 'bg-white' : 'bg-white/50'}`}
                 onClick={() => onNext()}
               />
             ))}

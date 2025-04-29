@@ -11,6 +11,7 @@ import PaymentUploadZone from './PaymentUploadZone';
 import PaymentNotes from './PaymentNotes';
 import SuspiciousActivityReport from './SuspiciousActivityReport';
 import BuyerInfoFields from './BuyerInfoFields';
+import EditableBuyerFields from './EditableBuyerFields';
 
 function AdditionalInfoSection({ form }: { form: UseFormReturn<PaymentFormData> }) {
   return (
@@ -104,8 +105,12 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
 
   return (
     <>
-      {/* Always display buyer information as read-only fields when available */}
-      {readOnlyData && <BuyerInfoFields buyerData={readOnlyData} />}
+      {/* Display buyer info as read-only fields when available, otherwise show editable fields */}
+      {readOnlyData ? (
+        <BuyerInfoFields buyerData={readOnlyData} />
+      ) : (
+        <EditableBuyerFields form={form} />
+      )}
       
       {/* Store buyer data in hidden fields to ensure it's included in form submission */}
       <HiddenBuyerFields form={form} readOnlyData={readOnlyData} />

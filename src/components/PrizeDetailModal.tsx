@@ -27,34 +27,58 @@ interface PrizeDetailModalProps {
 const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, prize, prizeImages }) => {
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
   
+  console.log("▶️ PrizeDetailModal.tsx: Opened with prize:", prize?.name, "and", prizeImages.length, "images");
+  
+  // Reset current image index when prize changes
+  React.useEffect(() => {
+    setCurrentImageIndex(0);
+    console.log("▶️ PrizeDetailModal.tsx: Reset image index for new prize:", prize?.name);
+  }, [prize]);
+  
   // Use either url_image or image_url depending on what's available
   const relevantImages = React.useMemo(() => {
-    if (!prize || !prizeImages.length) return [];
+    if (!prize) return [];
     
+    // Filter images for the current prize
     const filteredImages = prizeImages
-      .filter(img => prize && img.prize_id === prize.id)
+      .filter(img => img.prize_id === prize.id)
       .map(img => ({
         ...img,
         displayUrl: img.url_image || img.image_url
       }));
       
-    console.log(`Found ${filteredImages.length} images for prize ${prize?.name}:`, 
+    console.log(`▶️ PrizeDetailModal.tsx: Found ${filteredImages.length} images for prize ${prize?.name}:`, 
       filteredImages.map(img => img.displayUrl));
+    
+    // If no prize-specific images are found but prize has its own image, create an entry for it
+    if (filteredImages.length === 0 && prize.url_image) {
+      console.log("▶️ PrizeDetailModal.tsx: Using prize's own image:", prize.url_image);
+      return [{
+        id: 'default',
+        prize_id: prize.id,
+        image_url: prize.url_image,
+        url_image: prize.url_image,
+        displayUrl: prize.url_image
+      }];
+    }
     
     return filteredImages;
   }, [prize, prizeImages]);
 
-  // Reset current image index when prize changes
-  React.useEffect(() => {
-    setCurrentImageIndex(0);
-  }, [prize]);
-
   const handlePrevImage = () => {
-    setCurrentImageIndex(prev => (prev > 0 ? prev - 1 : relevantImages.length - 1));
+    setCurrentImageIndex(prev => {
+      const newIndex = prev > 0 ? prev - 1 : relevantImages.length - 1;
+      console.log("▶️ PrizeDetailModal.tsx: Moving to previous image, index:", newIndex);
+      return newIndex;
+    });
   };
 
   const handleNextImage = () => {
-    setCurrentImageIndex(prev => (prev < relevantImages.length - 1 ? prev + 1 : 0));
+    setCurrentImageIndex(prev => {
+      const newIndex = prev < relevantImages.length - 1 ? prev + 1 : 0;
+      console.log("▶️ PrizeDetailModal.tsx: Moving to next image, index:", newIndex);
+      return newIndex;
+    });
   };
 
   // Main image to display (from prize images or prize.url_image)
@@ -62,8 +86,8 @@ const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, pr
     ? relevantImages[currentImageIndex]?.displayUrl 
     : prize?.url_image;
 
-  console.log("Prize Detail Modal - Main image URL:", mainImageUrl);
-  console.log("Relevant images count:", relevantImages.length);
+  console.log("▶️ PrizeDetailModal.tsx: Main image URL:", mainImageUrl);
+  console.log("▶️ PrizeDetailModal.tsx: Current image index:", currentImageIndex, "of", relevantImages.length);
 
   if (!prize) return null;
 
@@ -99,6 +123,8 @@ const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, pr
               images={relevantImages}
               fallbackImage={prize.url_image}
               imageTitle={prize.name}
+              currentIndex={currentImageIndex}
+              onSlideChange={setCurrentImageIndex}
             />
             
             {/* Thumbnail gallery for multiple images - visible on both mobile and desktop */}

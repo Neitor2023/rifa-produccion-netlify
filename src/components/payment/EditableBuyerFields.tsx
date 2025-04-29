@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { UseFormReturn } from "react-hook-form";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -9,9 +10,11 @@ interface EditableBuyerFieldsProps {
 }
 
 const EditableBuyerFields: React.FC<EditableBuyerFieldsProps> = ({ form }) => {
+  console.log("▶️ EditableBuyerFields.tsx: Rendering editable buyer fields");
+  
   return (
     <div>
-      <h3 className="font-medium mb-3">Información del Comprador</h3>
+      <h3 className="font-medium mb-3 text-gray-900 dark:text-gray-100">Información del Comprador</h3>
       <div className="grid grid-cols-1 gap-4">
         <FormField
           control={form.control}

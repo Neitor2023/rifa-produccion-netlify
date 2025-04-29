@@ -57,7 +57,7 @@ export function usePaymentProcessor({
   
   // Use sub-hooks with validated parameters
   const selectionHook = useSelection();
-  const { selectedNumbers, setSelectedNumbers } = selectionHook;
+  const { selectedNumbers, setSelectedNumbers, resetSelection } = selectionHook;
   
   const { isPaymentModalOpen, setIsPaymentModalOpen, isVoucherOpen, setIsVoucherOpen } = useModalState();
   const { paymentData, setPaymentData, handleProofCheck } = usePayment();
@@ -132,7 +132,7 @@ export function usePaymentProcessor({
     setIsPaymentModalOpen,
     setIsVoucherOpen,
     setPaymentData,
-    resetSelection: selectionHook.resetSelection,
+    resetSelection,
     handleProofCheck,
     uploadPaymentProof,
     processParticipant,
@@ -168,6 +168,6 @@ export function usePaymentProcessor({
     validateBuyerByPhone: buyerDataHook.validateBuyerByPhone,
     
     // Utilities
-    resetSelection: selectionHook.resetSelection
+    resetSelection
   };
 }

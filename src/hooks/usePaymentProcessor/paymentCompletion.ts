@@ -47,6 +47,9 @@ export function usePaymentCompletion({
   );
 
   const uploadPaymentProof = async (paymentProof: File | string | null): Promise<string | null> => {
+    console.log("▶️ paymentCompletion.ts: uploadPaymentProof called with:", 
+      paymentProof instanceof File ? `File: ${paymentProof.name}` : paymentProof);
+      
     if (!paymentProof || !(paymentProof instanceof File)) {
       return typeof paymentProof === 'string' ? paymentProof : null;
     }
@@ -63,20 +66,21 @@ export function usePaymentCompletion({
       const { data: urlData } = supabase.storage
         .from('payment_proofs')
         .getPublicUrl(fileName);
-        
+      
+      console.log("▶️ paymentCompletion.ts: Payment proof uploaded successfully:", urlData.publicUrl);
       return urlData.publicUrl;
     } catch (error) {
-      console.error('❌ Error uploading payment proof:', error);
+      console.error('▶️ paymentCompletion.ts: Error uploading payment proof:', error);
       throw error;
     }
   };
 
   const processParticipant = async (data: PaymentFormData): Promise<string | null> => {
     try {
-      console.log("🔵 Processing participant with data:", data);
+      console.log("▶️ paymentCompletion.ts: Processing participant with data:", data);
       
       const formattedPhone = formatPhoneNumber(data.buyerPhone);
-      console.log("🔄 Phone formatted from processParticipant: ", formattedPhone);
+      console.log("▶️ paymentCompletion.ts: Phone formatted:", formattedPhone);
       
       const { data: existingParticipant, error: searchError } = await supabase
         .from('participants')
@@ -85,14 +89,14 @@ export function usePaymentCompletion({
         .maybeSingle();
 
       if (searchError) {
-        console.error("❌ Error searching for existing participant:", searchError);
+        console.error("▶️ paymentCompletion.ts: Error searching for existing participant:", searchError);
       }
 
       let participantId: string | null = null;
 
       if (existingParticipant) {
         participantId = existingParticipant.id;
-        console.log("✅ Found existing participant:", existingParticipant);
+        console.log("▶️ paymentCompletion.ts: Found existing participant:", existingParticipant);
 
         const updateData: any = {
           name: data.buyerName,
@@ -109,11 +113,13 @@ export function usePaymentCompletion({
           .eq('id', participantId);
 
         if (updateError) {
-          console.error("❌ Error updating participant:", updateError);
+          console.error("▶️ paymentCompletion.ts: Error updating participant:", updateError);
           throw updateError;
         }
+        
+        console.log("▶️ paymentCompletion.ts: Successfully updated participant:", participantId);
       } else {
-        console.log("🆕 Creating new participant");
+        console.log("▶️ paymentCompletion.ts: Creating new participant");
 
         const { data: newParticipant, error: participantError } = await supabase
           .from('participants')
@@ -132,16 +138,17 @@ export function usePaymentCompletion({
           .single();
 
         if (participantError) {
-          console.error("❌ Error creating new participant:", participantError);
+          console.error("▶️ paymentCompletion.ts: Error creating new participant:", participantError);
           throw participantError;
         }
 
         participantId = newParticipant.id;
+        console.log("▶️ paymentCompletion.ts: Created new participant:", participantId);
       }
 
       return participantId;
     } catch (error) {
-      console.error('❌ Error processing participant:', error);
+      console.error('▶️ paymentCompletion.ts: Error processing participant:', error);
       throw error;
     }
   };
@@ -151,7 +158,7 @@ export function usePaymentCompletion({
     participantId: string,
     paymentProofUrl: string | null
   ) => {
-    console.log("🔵 hooks/usePaymentProcessor/paymentCompletion.ts: Actualización de números a vendidos:", {
+    console.log("▶️ paymentCompletion.ts: Updating numbers to sold:", {
       numbers,
       participantId,
       paymentProofUrl,
@@ -167,14 +174,17 @@ export function usePaymentCompletion({
       .single();
   
     if (!participantData) {
-      console.error("❌ No se encontraron datos del participante con ID:", participantId);
+      console.error("▶️ paymentCompletion.ts: No participant data found with ID:", participantId);
       throw new Error('No se encontraron datos del participante');
     }
+    
+    console.log("▶️ paymentCompletion.ts: Found participant data:", participantData);
     
     // Using a transaction to update all numbers to avoid partial updates
     for (const numStr of numbers) {
       try {
         const numInt = parseInt(numStr, 10);
+        console.log(`▶️ paymentCompletion.ts: Processing number ${numStr}`);
         
         // First check if the number already exists
         const { data: existingNumber, error: checkError } = await supabase
@@ -185,12 +195,12 @@ export function usePaymentCompletion({
           .maybeSingle();
 
         if (checkError) {
-          console.error(`❌ Error checking existing number ${numStr}:`, checkError);
+          console.error(`▶️ paymentCompletion.ts: Error checking existing number ${numStr}:`, checkError);
           continue;
         }
           
         if (existingNumber) {
-          console.log(`🔄 Updating existing number ${numStr} with status: ${existingNumber.status} to sold`);
+          console.log(`▶️ paymentCompletion.ts: Updating existing number ${numStr} with status: ${existingNumber.status} to sold`);
           
           // Update existing number
           const { error: updateError } = await supabase
@@ -210,24 +220,12 @@ export function usePaymentCompletion({
             .eq('number', numInt);
             
           if (updateError) {
-            console.error(`❌ Error updating number ${numStr}:`, updateError);
+            console.error(`▶️ paymentCompletion.ts: Error updating number ${numStr}:`, updateError);
           } else {
-            console.log(`✅ Successfully updated number ${numStr} to sold`);
+            console.log(`▶️ paymentCompletion.ts: Successfully updated number ${numStr} to sold`);
           }
         } else {
-          console.log(`🆕 Insertando nuevo número ${numStr}:`, {
-            raffle_id: effectiveRaffleId,
-            number: numInt,
-            status: 'sold',
-            seller_id: effectiveSellerId,
-            participant_id: participantId,
-            payment_proof: paymentProofUrl,
-            payment_approved: true,
-            reservation_expires_at: null,
-            participant_name: participantData.name,
-            participant_phone: participantData.phone,
-            participant_cedula: participantData.cedula
-          });
+          console.log(`▶️ paymentCompletion.ts: Inserting new number ${numStr}`);
           
           // Insert new number
           const { error: insertError } = await supabase
@@ -247,17 +245,17 @@ export function usePaymentCompletion({
             });
             
           if (insertError) {
-            console.error(`❌ Error insertando número ${numStr}:`, insertError);
+            console.error(`▶️ paymentCompletion.ts: Error inserting number ${numStr}:`, insertError);
           } else {
-            console.log(`✅ Successfully inserted new number ${numStr}`);
+            console.log(`▶️ paymentCompletion.ts: Successfully inserted new number ${numStr}`);
           }
         }
       } catch (error) {
-        console.error(`❌ Error processing number ${numStr}:`, error);
+        console.error(`▶️ paymentCompletion.ts: Error processing number ${numStr}:`, error);
       }
     }
   
-    console.log("✅ All numbers processed");
+    console.log("▶️ paymentCompletion.ts: All numbers processed successfully");
   };
 
   return {
