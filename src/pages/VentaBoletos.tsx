@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import NumberGrid from '@/components/NumberGrid';
 import RaffleInfo from '@/components/RaffleInfo';
@@ -19,12 +18,17 @@ import RaffleHeader from '@/components/RaffleHeader';
 import SellerInfo from '@/components/SellerInfo';
 import { useParticipantManager } from '@/hooks/useParticipantManager';
 
-// Constants - restored with fallback values
-const SELLER_ID = "0102030405";
-const RAFFLE_ID = "fd6bd3bc-d81f-48a9-be58-8880293a0472";
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const isValidUUID = (id: string | null): boolean => {
+  if (!id) return false;
+  return UUID_PATTERN.test(id);
+};
+
+const FALLBACK_SELLER_ID = "76c5b100-1530-458b-84d6-29fae68cd5d2";
+const FALLBACK_RAFFLE_ID = "fd6bd3bc-d81f-48a9-be58-8880293a0472";
 
 const formatPhoneNumber = (phone: string) => {
-  // Clean phone number and handle Ecuador format
   let cleanPhone = phone.replace(/\D/g, '');
   if (cleanPhone.startsWith('0')) {
     cleanPhone = '+593' + cleanPhone.substring(1);
@@ -34,69 +38,75 @@ const formatPhoneNumber = (phone: string) => {
   return cleanPhone;
 };
 
+const getSellerIdFromUrl = (): string => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const sellerParam = urlParams.get('seller');
+  
+  if (sellerParam && isValidUUID(sellerParam)) {
+    return sellerParam;
+  }
+  
+  if (sellerParam) {
+    console.log("Non-UUID seller ID provided:", sellerParam, "- Using fallback for now, will attempt to lookup by alternate identifier");
+  }
+  
+  return FALLBACK_SELLER_ID;
+};
+
+const getRaffleIdFromUrl = (): string => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const raffleParam = urlParams.get('raffle');
+  
+  return (raffleParam && isValidUUID(raffleParam)) ? raffleParam : FALLBACK_RAFFLE_ID;
+};
+
 const VentaBoletos: React.FC = () => {
-  // State for raffles, sellers, and numbers
   const [raffleDetails, setRaffleDetails] = useState<any | null>(null);
   const [sellerDetails, setSellerDetails] = useState<any | null>(null);
   const [raffleNumbers, setRaffleNumbers] = useState<any[]>([]);
   const [raffleSeller, setRaffleSeller] = useState<any | null>(null);
   
-  // State for prizes and prize images
   const [prizes, setPrizes] = useState<Prize[]>([]);
   const [prizeImages, setPrizeImages] = useState<PrizeImage[]>([]);
   
-  // State for modals
   const [selectedPrize, setSelectedPrize] = useState<Prize | null>(null);
   const [isPrizeModalOpen, setIsPrizeModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
   const [isDebugModalOpen, setIsDebugModalOpen] = useState(false);
   
-  // State for payment data
   const [selectedNumbers, setSelectedNumbers] = useState<string[]>([]);
   const [paymentData, setPaymentData] = useState<PaymentFormData | null>(null);
   
-  // State for organization data
   const [organizationData, setOrganizationData] = useState<Organization | null>(null);
   
-  // Global state variables
   const [isLoading, setIsLoading] = useState(true);
   const [loadingMessage, setLoadingMessage] = useState('Cargando datos de la rifa...');
   const [error, setError] = useState<string | null>(null);
   const [soldNumbersCount, setSoldNumbersCount] = useState(0);
   const [debugData, setDebugData] = useState<any>(null);
   
-  // State for validated buyer info
   const [validatedBuyerInfo, setValidatedBuyerInfo] = useState<ValidatedBuyerInfo | null>(null);
 
   const location = useLocation();
   const navigate = useNavigate();
   const { createParticipant } = useParticipantManager();
 
-  const DEBUG_MODE = true; // Set to false to disable debug features
+  const DEBUG_MODE = true;
 
-  // Get seller ID and raffle ID from query parameters with fallback to constants
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const sellerParam = urlParams.get('seller') || SELLER_ID;
-    const raffleParam = urlParams.get('raffle') || RAFFLE_ID;
+    const sellerId = getSellerIdFromUrl();
+    const raffleId = getRaffleIdFromUrl();
     
-    console.log("VentaBoletos.tsx: Using seller:", sellerParam, "and raffle:", raffleParam);
+    console.log("VentaBoletos.tsx: Using seller:", sellerId, "and raffle:", raffleId, "(with UUID validation)");
     
-    if (!sellerParam || !raffleParam) {
-      setError('Faltan parámetros necesarios. Necesita proporcionar seller y raffle.');
-      setIsLoading(false);
-      return;
-    }
-    
-    loadData(sellerParam, raffleParam);
+    loadData(sellerId, raffleId);
   }, [location]);
   
   const loadData = async (sellerId: string, raffleId: string) => {
     try {
       setIsLoading(true);
       
-      // 1. Fetch raffle details
       setLoadingMessage('Cargando detalles de la rifa...');
       const { data: raffleData, error: raffleError } = await supabase
         .from('raffles')
@@ -110,26 +120,47 @@ const VentaBoletos: React.FC = () => {
       
       setRaffleDetails(raffleData);
       
-      // 2. Fetch seller details
       setLoadingMessage('Cargando información del vendedor...');
-      const { data: sellerData, error: sellerError } = await supabase
+      let sellerData = null;
+
+      const { data: sellerByUuid, error: sellerUuidError } = await supabase
         .from('sellers')
         .select('*')
         .eq('id', sellerId)
-        .single();
+        .maybeSingle();
       
-      if (sellerError) {
-        throw new Error('Error al cargar la información del vendedor: ' + sellerError.message);
+      if (sellerByUuid) {
+        sellerData = sellerByUuid;
+        console.log("Found seller by UUID:", sellerData.id);
+      } else {
+        const urlParams = new URLSearchParams(window.location.search);
+        const sellerParam = urlParams.get('seller');
+        
+        if (sellerParam && sellerParam !== sellerId) {
+          const { data: sellerByCedula, error: sellerCedulaError } = await supabase
+            .from('sellers')
+            .select('*')
+            .eq('cedula', sellerParam)
+            .maybeSingle();
+            
+          if (sellerByCedula) {
+            sellerData = sellerByCedula;
+            console.log("Found seller by cedula:", sellerData.id);
+          }
+        }
+      }
+      
+      if (!sellerData) {
+        throw new Error('No se pudo encontrar información del vendedor');
       }
       
       setSellerDetails(sellerData);
       
-      // 3. Fetch raffle-seller relationship
       const { data: raffleSellerData, error: raffleSellerError } = await supabase
         .from('raffle_sellers')
         .select('*')
         .eq('raffle_id', raffleId)
-        .eq('seller_id', sellerId)
+        .eq('seller_id', sellerData.id)
         .single();
       
       if (raffleSellerError || !raffleSellerData) {
@@ -139,7 +170,6 @@ const VentaBoletos: React.FC = () => {
       
       setRaffleSeller(raffleSellerData);
       
-      // 4. Fetch organization data
       const { data: orgData, error: orgError } = await supabase
         .from('organization')
         .select('*')
@@ -158,7 +188,6 @@ const VentaBoletos: React.FC = () => {
         });
       }
       
-      // 5. Fetch prizes
       setLoadingMessage('Cargando premios...');
       const { data: prizesData, error: prizesError } = await supabase
         .from('prizes')
@@ -172,7 +201,6 @@ const VentaBoletos: React.FC = () => {
         console.error('Error al cargar los premios:', prizesError);
       }
 
-      // 6. Fetch prize images
       const { data: prizeImagesData, error: prizeImagesError } = await supabase
         .from('raffle_prize_images')
         .select('*')
@@ -184,13 +212,12 @@ const VentaBoletos: React.FC = () => {
         console.error('Error al cargar las imágenes de los premios:', prizeImagesError);
       }
       
-      // 7. Fetch numbers for this seller
       setLoadingMessage('Cargando números disponibles...');
       const { data: numbersData, error: numbersError } = await supabase
         .from('raffle_numbers')
         .select('*')
         .eq('raffle_id', raffleId)
-        .eq('seller_id', sellerId);
+        .eq('seller_id', sellerData.id);
       
       if (numbersError) {
         throw new Error('Error al cargar los números: ' + numbersError.message);
@@ -198,11 +225,9 @@ const VentaBoletos: React.FC = () => {
       
       setRaffleNumbers(numbersData || []);
       
-      // Count sold numbers
       const soldCount = numbersData?.filter(n => n.status === 'sold').length || 0;
       setSoldNumbersCount(soldCount);
       
-      // Set debug data for development
       if (DEBUG_MODE) {
         setDebugData({
           raffleDetails: raffleData,
@@ -252,15 +277,13 @@ const VentaBoletos: React.FC = () => {
         buyerCedula
       });
       
-      // 1. Create or get participant
       const formattedPhone = formatPhoneNumber(buyerPhone);
       
-      // 2. Create participant record
       const participantData = {
         name: buyerName,
         phone: formattedPhone,
         cedula: buyerCedula,
-        email: '', // Will be filled later
+        email: '',
         raffle_id: raffleDetails.id,
         seller_id: sellerDetails.id
       };
@@ -271,7 +294,6 @@ const VentaBoletos: React.FC = () => {
         throw new Error('No se pudo crear el participante');
       }
       
-      // 3. Update numbers status to "reserved"
       const numberUpdates = selectedNumbers.map(number => {
         const paddedNumber = parseInt(number);
         return {
@@ -283,7 +305,7 @@ const VentaBoletos: React.FC = () => {
           participant_name: buyerName,
           participant_phone: formattedPhone,
           participant_cedula: buyerCedula || '',
-          reservation_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24h from now
+          reservation_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
         };
       });
       
@@ -297,7 +319,6 @@ const VentaBoletos: React.FC = () => {
         throw new Error('Error al actualizar los números: ' + updateError.message);
       }
       
-      // 4. Refresh numbers data
       const { data: refreshedNumbers, error: refreshError } = await supabase
         .from('raffle_numbers')
         .select('*')
@@ -372,7 +393,6 @@ const VentaBoletos: React.FC = () => {
   
   return (
     <div className="container mx-auto px-4 py-6 max-w-5xl">
-      {/* Dev tool button for debugging */}
       {DEBUG_MODE && (
         <button 
           className="fixed bottom-4 right-4 bg-amber-500 text-white p-2 rounded z-50"
@@ -382,10 +402,8 @@ const VentaBoletos: React.FC = () => {
         </button>
       )}
       
-      {/* Header Section */}
       {organizationData && <RaffleHeader organization={organizationData} />}
       
-      {/* Seller Info */}
       <SellerInfo 
         name={sellerDetails.name} 
         phone={sellerDetails.phone || 'No disponible'}
@@ -393,7 +411,6 @@ const VentaBoletos: React.FC = () => {
         id={sellerDetails.id}
       />
       
-      {/* Prize Carousel */}
       {prizes.length > 0 && (
         <section className="mb-8">
           <h2 className="text-xl font-bold mb-4 text-center text-gray-800 dark:text-gray-100">
@@ -403,7 +420,6 @@ const VentaBoletos: React.FC = () => {
         </section>
       )}
       
-      {/* Raffle Info */}
       <RaffleInfo
         description={raffleDetails.description}
         lottery={raffleDetails.lottery || 'No especificado'}
@@ -413,7 +429,6 @@ const VentaBoletos: React.FC = () => {
         currency={raffleDetails.currency || 'USD'}
       />
       
-      {/* Number Grid */}
       <NumberGrid
         numbers={raffleNumbers}
         raffleSeller={raffleSeller}
@@ -423,10 +438,8 @@ const VentaBoletos: React.FC = () => {
         soldNumbersCount={soldNumbersCount}
       />
       
-      {/* Organizer Info */}
       {organizationData && <OrganizerInfo organization={organizationData} />}
       
-      {/* Modals */}
       <PrizeDetailModal 
         isOpen={isPrizeModalOpen} 
         onClose={() => setIsPrizeModalOpen(false)} 
@@ -462,7 +475,6 @@ const VentaBoletos: React.FC = () => {
         }}
       />
       
-      {/* Debug Modal */}
       {DEBUG_MODE && (
         <DebugModal
           isOpen={isDebugModalOpen}
@@ -472,7 +484,6 @@ const VentaBoletos: React.FC = () => {
         />
       )}
       
-      {/* Toast notifications */}
       <Toaster
         position="top-right"
         visibleToasts={10}

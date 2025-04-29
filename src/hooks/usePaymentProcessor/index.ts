@@ -56,7 +56,9 @@ export function usePaymentProcessor({
   const [validatedBuyerInfo, setValidatedBuyerInfo] = useState<ValidatedBuyerInfo | null>(null);
   
   // Use sub-hooks with validated parameters
-  const { selectedNumbers, setSelectedNumbers, resetSelection } = useSelection();
+  const selectionHook = useSelection();
+  const { selectedNumbers, setSelectedNumbers } = selectionHook;
+  
   const { isPaymentModalOpen, setIsPaymentModalOpen, isVoucherOpen, setIsVoucherOpen } = useModalState();
   const { paymentData, setPaymentData, handleProofCheck } = usePayment();
   
@@ -85,13 +87,13 @@ export function usePaymentProcessor({
     debugMode
   });
   
-  const reserveNumbersHook = useReserveNumbers({
+  const reserveNumbersHandler = useReserveNumbers({
     raffleId: effectiveRaffleId,
     sellerId: effectiveSellerId,
     debugMode
   });
   
-  const payReservedNumbersHook = usePayReservedNumbers({
+  const payReservedNumbersHandler = usePayReservedNumbers({
     setValidatedBuyerData: setValidatedBuyerInfo,
     setSelectedNumbers,
     setIsPaymentModalOpen,
@@ -130,7 +132,7 @@ export function usePaymentProcessor({
     setIsPaymentModalOpen,
     setIsVoucherOpen,
     setPaymentData,
-    resetSelection,
+    resetSelection: selectionHook.resetSelection,
     handleProofCheck,
     uploadPaymentProof,
     processParticipant,
@@ -153,9 +155,9 @@ export function usePaymentProcessor({
     
     // Expose actions
     handleProceedToPayment,
-    reserveNumbers: reserveNumbersHook.reserveNumbers,
-    isReserving: reserveNumbersHook.isReserving,
-    payReservedNumbers: payReservedNumbersHook,
+    reserveNumbers: reserveNumbersHandler.reserveNumbers,
+    isReserving: reserveNumbersHandler.isReserving,
+    payReservedNumbers: payReservedNumbersHandler,
     completePayment: completePaymentHandler,
     isCompletingPayment: false,
     
@@ -166,6 +168,6 @@ export function usePaymentProcessor({
     validateBuyerByPhone: buyerDataHook.validateBuyerByPhone,
     
     // Utilities
-    resetSelection
+    resetSelection: selectionHook.resetSelection
   };
 }

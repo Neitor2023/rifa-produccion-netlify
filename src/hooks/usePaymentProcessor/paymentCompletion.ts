@@ -151,7 +151,7 @@ export function usePaymentCompletion({
     participantId: string,
     paymentProofUrl: string | null
   ) => {
-    console.log("🔵 Actualización de números a vendidos:", {
+    console.log("🔵 hooks/usePaymentProcessor/paymentCompletion.ts: Actualización de números a vendidos:", {
       numbers,
       participantId,
       paymentProofUrl,
@@ -170,15 +170,52 @@ export function usePaymentCompletion({
       console.error("❌ No se encontraron datos del participante con ID:", participantId);
       throw new Error('No se encontraron datos del participante');
     }
-  
+    
+    // Using a transaction to update all numbers to avoid partial updates
     for (const numStr of numbers) {
       try {
         const numInt = parseInt(numStr, 10);
         
-        // Using upsert with onConflict to handle potential duplicates
-        const { error } = await supabase
+        // First check if the number already exists
+        const { data: existingNumber, error: checkError } = await supabase
           .from('raffle_numbers')
-          .upsert([{
+          .select('id, status')
+          .eq('raffle_id', effectiveRaffleId)
+          .eq('number', numInt)
+          .maybeSingle();
+
+        if (checkError) {
+          console.error(`❌ Error checking existing number ${numStr}:`, checkError);
+          continue;
+        }
+          
+        if (existingNumber) {
+          console.log(`🔄 Updating existing number ${numStr} with status: ${existingNumber.status} to sold`);
+          
+          // Update existing number
+          const { error: updateError } = await supabase
+            .from('raffle_numbers')
+            .update({
+              status: 'sold',
+              seller_id: effectiveSellerId,
+              participant_id: participantId,
+              payment_proof: paymentProofUrl,
+              payment_approved: true,
+              reservation_expires_at: null,
+              participant_name: participantData.name,
+              participant_phone: participantData.phone,
+              participant_cedula: participantData.cedula
+            })
+            .eq('raffle_id', effectiveRaffleId)
+            .eq('number', numInt);
+            
+          if (updateError) {
+            console.error(`❌ Error updating number ${numStr}:`, updateError);
+          } else {
+            console.log(`✅ Successfully updated number ${numStr} to sold`);
+          }
+        } else {
+          console.log(`🆕 Insertando nuevo número ${numStr}:`, {
             raffle_id: effectiveRaffleId,
             number: numInt,
             status: 'sold',
@@ -190,14 +227,30 @@ export function usePaymentCompletion({
             participant_name: participantData.name,
             participant_phone: participantData.phone,
             participant_cedula: participantData.cedula
-          }], {
-            onConflict: 'raffle_id,number'
           });
           
-        if (error) {
-          console.error(`❌ Error processing number ${numStr}:`, error);
-        } else {
-          console.log(`✅ Successfully processed number ${numStr}`);
+          // Insert new number
+          const { error: insertError } = await supabase
+            .from('raffle_numbers')
+            .insert({
+              raffle_id: effectiveRaffleId,
+              number: numInt,
+              status: 'sold',
+              seller_id: effectiveSellerId,
+              participant_id: participantId,
+              payment_proof: paymentProofUrl,
+              payment_approved: true,
+              reservation_expires_at: null,
+              participant_name: participantData.name,
+              participant_phone: participantData.phone,
+              participant_cedula: participantData.cedula
+            });
+            
+          if (insertError) {
+            console.error(`❌ Error insertando número ${numStr}:`, insertError);
+          } else {
+            console.log(`✅ Successfully inserted new number ${numStr}`);
+          }
         }
       } catch (error) {
         console.error(`❌ Error processing number ${numStr}:`, error);
