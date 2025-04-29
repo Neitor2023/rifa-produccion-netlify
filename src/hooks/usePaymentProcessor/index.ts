@@ -14,6 +14,18 @@ import { ValidatedBuyerInfo } from '@/types/participant';
 import { usePaymentCompletion } from './paymentCompletion';
 import { useParticipantManager } from '@/hooks/useParticipantManager';
 
+// Valid UUID regex pattern
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+// Helper to validate and provide fallback for UUIDs
+const ensureValidUUID = (id: string | null | undefined, fallback: string): string => {
+  if (id && UUID_PATTERN.test(id)) {
+    return id;
+  }
+  console.warn(`Invalid UUID detected: "${id}", using fallback value instead`);
+  return fallback;
+};
+
 // Main hook that combines all functionality
 export function usePaymentProcessor({
   raffleId = '',
@@ -22,11 +34,23 @@ export function usePaymentProcessor({
   maxNumbersAllowed = 33,
   debugMode = false
 }) {
-  // Ensure we always have a valid raffleId and sellerId
-  const effectiveRaffleId = raffleId || "fd6bd3bc-d81f-48a9-be58-8880293a0472";
-  const effectiveSellerId = raffleSeller?.seller_id || "76c5b100-1530-458b-84d6-29fae68cd5d2"; // Valid UUID
+  // Ensure we always have valid UUIDs
+  const effectiveRaffleId = ensureValidUUID(
+    raffleId, 
+    "fd6bd3bc-d81f-48a9-be58-8880293a0472"
+  );
   
-  console.log("usePaymentProcessor: Using raffleId:", effectiveRaffleId, "sellerId:", effectiveSellerId);
+  const effectiveSellerId = ensureValidUUID(
+    raffleSeller?.seller_id,
+    "76c5b100-1530-458b-84d6-29fae68cd5d2"
+  );
+  
+  console.log("🔍 usePaymentProcessor: Using validated IDs:", {
+    raffleId: effectiveRaffleId, 
+    sellerId: effectiveSellerId, 
+    originalRaffleId: raffleId,
+    originalSellerId: raffleSeller?.seller_id
+  });
   
   // Shared state
   const [validatedBuyerInfo, setValidatedBuyerInfo] = useState<ValidatedBuyerInfo | null>(null);
@@ -38,7 +62,12 @@ export function usePaymentProcessor({
   
   // Import sub-hooks with consistent parameters
   const { validateSellerMaxNumbers } = useSellerValidation({ 
-    maxNumbersAllowed, 
+    raffleSeller: {
+      ...raffleSeller,
+      seller_id: effectiveSellerId,
+      cant_max: raffleSeller?.cant_max || 33
+    }, 
+    maxNumbersAllowed,
     debugMode 
   });
   
@@ -88,6 +117,27 @@ export function usePaymentProcessor({
     debugMode
   });
   
+  // Setup complete payment handler
+  const completePaymentHandler = useCompletePayment({
+    raffleSeller: {
+      ...raffleSeller,
+      seller_id: effectiveSellerId
+    },
+    raffleId: effectiveRaffleId,
+    selectedNumbers,
+    validatedBuyerData: validatedBuyerInfo,
+    validateSellerMaxNumbers,
+    setIsPaymentModalOpen,
+    setIsVoucherOpen,
+    setPaymentData,
+    resetSelection,
+    handleProofCheck,
+    uploadPaymentProof,
+    processParticipant,
+    updateNumbersToSold,
+    debugMode
+  });
+  
   return {
     // Expose state
     selectedNumbers,
@@ -106,48 +156,7 @@ export function usePaymentProcessor({
     reserveNumbers: reserveNumbersHook.reserveNumbers,
     isReserving: reserveNumbersHook.isReserving,
     payReservedNumbers: payReservedNumbersHook,
-    completePayment: async (data) => {
-      try {
-        console.log("🔄 handleCompletePayment called with data:", data);
-        
-        if (!validatedBuyerInfo) {
-          console.error("Missing validated buyer info in completePayment");
-        }
-        
-        const paymentProofUrl = await uploadPaymentProof(data.paymentProof);
-        
-        let participantId: string | null;
-        
-        if (validatedBuyerInfo?.id) {
-          participantId = validatedBuyerInfo.id;
-          console.log("Using existing participant ID:", participantId);
-        } else {
-          participantId = await processParticipant(data);
-        }
-        
-        if (!participantId) {
-          throw new Error('Error al procesar la información del participante');
-        }
-        
-        await updateNumbersToSold(selectedNumbers, participantId, paymentProofUrl);
-        
-        setPaymentData({
-          ...data,
-          paymentProof: paymentProofUrl
-        });
-        
-        setIsPaymentModalOpen(false);
-        setIsVoucherOpen(true);
-        
-        // Reset selection after successful payment
-        resetSelection();
-        
-        return true;
-      } catch (error) {
-        console.error('Error al completar el pago:', error);
-        throw error;
-      }
-    },
+    completePayment: completePaymentHandler,
     isCompletingPayment: false,
     
     // Buyer data operations

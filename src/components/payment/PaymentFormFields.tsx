@@ -62,13 +62,17 @@ function AdditionalInfoSection({ form }: { form: UseFormReturn<PaymentFormData> 
 function HiddenBuyerFields({ form, readOnlyData }: { form: UseFormReturn<PaymentFormData>; readOnlyData?: ValidatedBuyerInfo | null }) {
   useEffect(() => {
     if (readOnlyData) {
-      console.log("PaymentFormFields.tsx: Estableciendo datos del comprador en campos ocultos:", readOnlyData);
+      console.log("🔄 PaymentFormFields.tsx: Setting buyer data in hidden fields:", readOnlyData);
+      
+      // Always set these fields from the validated data
       if (readOnlyData.name)
         form.setValue("buyerName", readOnlyData.name);
       if (readOnlyData.phone)
         form.setValue("buyerPhone", readOnlyData.phone);
       if (readOnlyData.cedula)
         form.setValue("buyerCedula", readOnlyData.cedula);
+        
+      // Optional fields - only set if they exist
       if (readOnlyData.direccion)
         form.setValue("direccion", readOnlyData.direccion);
       if (readOnlyData.sugerencia_producto)
@@ -100,10 +104,10 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
 
   return (
     <>
-      {/* Display buyer information as read-only fields */}
+      {/* Always display buyer information as read-only fields when available */}
       {readOnlyData && <BuyerInfoFields buyerData={readOnlyData} />}
       
-      {/* Store buyer data in hidden fields */}
+      {/* Store buyer data in hidden fields to ensure it's included in form submission */}
       <HiddenBuyerFields form={form} readOnlyData={readOnlyData} />
 
       <AdditionalInfoSection form={form} />

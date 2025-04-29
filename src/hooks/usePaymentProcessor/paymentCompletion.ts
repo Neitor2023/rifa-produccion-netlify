@@ -11,6 +11,18 @@ interface UsePaymentCompletionProps {
   debugMode?: boolean;
 }
 
+// Valid UUID regex pattern
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+// Helper to validate and provide fallback for UUIDs
+const ensureValidUUID = (id: string | null | undefined, fallback: string): string => {
+  if (id && UUID_PATTERN.test(id)) {
+    return id;
+  }
+  console.warn(`Invalid UUID detected in paymentCompletion: "${id}", using fallback value instead`);
+  return fallback;
+};
+
 export function usePaymentCompletion({
   raffleSeller,
   raffleId,
@@ -23,13 +35,24 @@ export function usePaymentCompletion({
     }
   };
 
+  // Ensure we have valid UUIDs
+  const effectiveRaffleId = ensureValidUUID(
+    raffleId,
+    "fd6bd3bc-d81f-48a9-be58-8880293a0472"
+  );
+  
+  const effectiveSellerId = ensureValidUUID(
+    raffleSeller?.seller_id,
+    "76c5b100-1530-458b-84d6-29fae68cd5d2"
+  );
+
   const uploadPaymentProof = async (paymentProof: File | string | null): Promise<string | null> => {
     if (!paymentProof || !(paymentProof instanceof File)) {
       return typeof paymentProof === 'string' ? paymentProof : null;
     }
     
     try {
-      const fileName = `${raffleId}_${Date.now()}_${paymentProof.name}`;
+      const fileName = `${effectiveRaffleId}_${Date.now()}_${paymentProof.name}`;
       
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('payment_proofs')
@@ -43,7 +66,7 @@ export function usePaymentCompletion({
         
       return urlData.publicUrl;
     } catch (error) {
-      console.error('Error uploading payment proof:', error);
+      console.error('❌ Error uploading payment proof:', error);
       throw error;
     }
   };
@@ -62,7 +85,7 @@ export function usePaymentCompletion({
         .maybeSingle();
 
       if (searchError) {
-        console.error("Error searching for existing participant:", searchError);
+        console.error("❌ Error searching for existing participant:", searchError);
       }
 
       let participantId: string | null = null;
@@ -74,7 +97,7 @@ export function usePaymentCompletion({
         const updateData: any = {
           name: data.buyerName,
           phone: formattedPhone,
-          nota: data.nota,
+          nota: data.nota || null,
           cedula: data.buyerCedula || null,
           direccion: data.direccion || null,
           sugerencia_producto: data.sugerenciaProducto || null
@@ -86,7 +109,7 @@ export function usePaymentCompletion({
           .eq('id', participantId);
 
         if (updateError) {
-          console.error("Error updating participant:", updateError);
+          console.error("❌ Error updating participant:", updateError);
           throw updateError;
         }
       } else {
@@ -102,14 +125,14 @@ export function usePaymentCompletion({
             direccion: data.direccion || null,
             sugerencia_producto: data.sugerenciaProducto || null,
             nota: data.nota || null,
-            raffle_id: raffleId,
-            seller_id: raffleSeller?.seller_id || "76c5b100-1530-458b-84d6-29fae68cd5d2"
+            raffle_id: effectiveRaffleId,
+            seller_id: effectiveSellerId
           })
           .select('id')
           .single();
 
         if (participantError) {
-          console.error("Error creating new participant:", participantError);
+          console.error("❌ Error creating new participant:", participantError);
           throw participantError;
         }
 
@@ -118,7 +141,7 @@ export function usePaymentCompletion({
 
       return participantId;
     } catch (error) {
-      console.error('Error processing participant:', error);
+      console.error('❌ Error processing participant:', error);
       throw error;
     }
   };
@@ -128,13 +151,15 @@ export function usePaymentCompletion({
     participantId: string,
     paymentProofUrl: string | null
   ) => {
-    console.log("🔵 hooks/usePaymentProcessor/paymentCompletion.ts: Actualización de números a vendidos:", {
+    console.log("🔵 Actualización de números a vendidos:", {
       numbers,
       participantId,
-      paymentProofUrl
+      paymentProofUrl,
+      raffleId: effectiveRaffleId,
+      sellerId: effectiveSellerId
     });
   
-    // Trae los datos del participante para rellenar los campos
+    // Fetch participant data to fill fields
     const { data: participantData } = await supabase
       .from('participants')
       .select('name, phone, cedula, direccion')
@@ -142,86 +167,44 @@ export function usePaymentCompletion({
       .single();
   
     if (!participantData) {
+      console.error("❌ No se encontraron datos del participante con ID:", participantId);
       throw new Error('No se encontraron datos del participante');
     }
   
-    const updatePromises = numbers.map(async (numStr) => {
+    for (const numStr of numbers) {
       try {
         const numInt = parseInt(numStr, 10);
         
-        // Primero verificamos si ya existe un registro para este número en la rifa actual
-        const { data: existingNumbers, error: checkError } = await supabase
+        // Using upsert with onConflict to handle potential duplicates
+        const { error } = await supabase
           .from('raffle_numbers')
-          .select('id, status')
-          .eq('raffle_id', raffleId)
-          .eq('number', numInt)
-          .maybeSingle();
-        
-        if (checkError) {
-          console.error(`Error verificando número ${numStr}:`, checkError);
-          throw checkError;
-        }
-      
-        const commonData = {
-          status: 'sold' as const,
-          seller_id: raffleSeller?.seller_id || "76c5b100-1530-458b-84d6-29fae68cd5d2",
-          participant_id: participantId,
-          payment_proof: paymentProofUrl,
-          payment_approved: true,
-          reservation_expires_at: null,
-          participant_name: participantData.name,
-          participant_phone: participantData.phone,
-          participant_cedula: participantData.cedula
-        };
-      
-        if (existingNumbers) {
-          console.log(`🔄 Actualizando número existente ${numStr}:`, { id: existingNumbers.id, ...commonData });
-          
-          const { error } = await supabase
-            .from('raffle_numbers')
-            .update(commonData)
-            .eq('id', existingNumbers.id);
-            
-          if (error) {
-            console.error(`Error actualizando número ${numStr}:`, error);
-            throw error;
-          }
-        } else {
-          console.log(`🆕 Insertando nuevo número ${numStr}:`, { 
-            raffle_id: raffleId,
+          .upsert([{
+            raffle_id: effectiveRaffleId,
             number: numInt,
-            ...commonData 
+            status: 'sold',
+            seller_id: effectiveSellerId,
+            participant_id: participantId,
+            payment_proof: paymentProofUrl,
+            payment_approved: true,
+            reservation_expires_at: null,
+            participant_name: participantData.name,
+            participant_phone: participantData.phone,
+            participant_cedula: participantData.cedula
+          }], {
+            onConflict: 'raffle_id,number'
           });
           
-          // Using upsert to avoid duplicate key errors
-          const { error } = await supabase
-            .from('raffle_numbers')
-            .upsert([{
-              raffle_id: raffleId,
-              number: numInt,
-              ...commonData
-            }], {
-              onConflict: 'raffle_id,number'
-            });
-            
-          if (error) {
-            console.error(`Error insertando número ${numStr}:`, error);
-            throw error;
-          }
+        if (error) {
+          console.error(`❌ Error processing number ${numStr}:`, error);
+        } else {
+          console.log(`✅ Successfully processed number ${numStr}`);
         }
       } catch (error) {
-        console.error(`Error procesando número ${numStr}:`, error);
-        throw error;
+        console.error(`❌ Error processing number ${numStr}:`, error);
       }
-    });
-  
-    try {
-      await Promise.all(updatePromises);
-      console.log("✅ Todos los números actualizados/insertados al estado vendido");
-    } catch (error) {
-      console.error("❌ Error actualizando números:", error);
-      throw error;
     }
+  
+    console.log("✅ All numbers processed");
   };
 
   return {

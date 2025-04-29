@@ -14,6 +14,9 @@ export function useCompletePayment({
   setPaymentData,
   resetSelection,
   handleProofCheck,
+  uploadPaymentProof,
+  processParticipant,
+  updateNumbersToSold,
   debugMode = false
 }) {
   const debugLog = (context: string, data: any) => {
@@ -46,24 +49,16 @@ export function useCompletePayment({
         return;
       }
       
-      // Import these functions from paymentCompletion (they were originally here)
-      const { uploadPaymentProof, processParticipant, updateNumbersToSold } = await import('./paymentCompletion').then(
-        module => module.usePaymentCompletion({
-          raffleSeller,
-          raffleId,
-          debugMode
-        })
-      );
-      
       const paymentProofUrl = await uploadPaymentProof(data.paymentProof);
       
       let participantId: string | null;
       
       if (validatedBuyerData?.id) {
         participantId = validatedBuyerData.id;
-        console.log("Using existing participant ID:", participantId);
+        console.log("✅ useCompletePayment: Using existing participant ID:", participantId);
       } else {
         participantId = await processParticipant(data);
+        console.log("🆕 useCompletePayment: Created new participant with ID:", participantId);
       }
       
       if (!participantId) {
@@ -102,7 +97,7 @@ export function useCompletePayment({
             });
 
           if (fraudError) {
-            console.error('Error saving fraud report:', fraudError);
+            console.error('❌ Error saving fraud report:', fraudError);
           }
         } else {
           console.log("📝 useCompletePayment: Actualizando reporte de fraude existente");
@@ -115,7 +110,7 @@ export function useCompletePayment({
             .eq('id', existingReport.id);
             
           if (updateError) {
-            console.error('Error updating fraud report:', updateError);
+            console.error('❌ Error updating fraud report:', updateError);
           }
         }
       }
@@ -125,9 +120,11 @@ export function useCompletePayment({
       resetSelection();
       
       toast.success('Pago completado exitosamente');
+      return true;
     } catch (error) {
-      console.error('Error al completar el pago:', error);
+      console.error('❌ Error al completar el pago:', error);
       toast.error('Error al completar el pago');
+      throw error;
     }
   };
 }
