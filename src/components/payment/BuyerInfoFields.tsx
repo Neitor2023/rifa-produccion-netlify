@@ -7,9 +7,12 @@ interface BuyerInfoFieldsProps {
 }
 
 const BuyerInfoFields: React.FC<BuyerInfoFieldsProps> = ({ buyerData }) => {
-  if (!buyerData) return null;
+  if (!buyerData) {
+    console.log("▶️ BuyerInfoFields.tsx: No hay datos del comprador para mostrar");
+    return null;
+  }
 
-  console.log("▶️ BuyerInfoFields.tsx: Rendering buyer data in read-only mode:", buyerData);
+  console.log("▶️ BuyerInfoFields.tsx: Mostrando datos del comprador en modo de solo lectura:", buyerData);
 
   return (
     <div className="p-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 dark:bg-blue-900/40 dark:border-blue-700 dark:text-blue-50 text-sm mb-4">

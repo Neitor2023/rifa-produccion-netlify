@@ -60,9 +60,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
   
-  console.log("▶️ PaymentModal.tsx: Modal initializing with:", { 
+  console.log("▶️ PaymentModal.tsx: Modal inicializando con:", { 
     isOpen, 
     buyerData, 
     selectedNumbers: selectedNumbers?.length || 0 

@@ -15,7 +15,7 @@ export function usePayReservedNumbers({
   };
 
   return async (numbers: string[], participantData: ValidatedBuyerInfo) => {
-    console.log("💰 usePayReservedNumbers.ts: handlePayReservedNumbers called with:", {
+    console.log("▶️ usePayReservedNumbers.ts: handlePayReservedNumbers llamado con:", {
       numbers,
       participantData
     });
@@ -26,9 +26,15 @@ export function usePayReservedNumbers({
     }
 
     try {
-      console.log("💰 usePayReservedNumbers.ts: Setting validated buyer data:", participantData);
-      setValidatedBuyerData(participantData);
-      setSelectedNumbers(numbers);
+      console.log("▶️ usePayReservedNumbers.ts: Estableciendo datos validados del comprador:", participantData);
+      
+      if (setValidatedBuyerData) {
+        setValidatedBuyerData(participantData);
+      }
+      
+      if (setSelectedNumbers) {
+        setSelectedNumbers(numbers);
+      }
       
       setIsPaymentModalOpen(true);
       

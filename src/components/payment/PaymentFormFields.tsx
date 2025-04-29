@@ -16,7 +16,7 @@ import EditableBuyerFields from './EditableBuyerFields';
 function AdditionalInfoSection({ form }: { form: UseFormReturn<PaymentFormData> }) {
   return (
     <div>
-      <h3 className="font-medium mb-3">Información Adicional</h3>
+      <h3 className="font-medium mb-3 text-gray-800 dark:text-gray-200">Información Adicional</h3>
       <div className="grid grid-cols-1 gap-4">
         <FormField
           control={form.control}
@@ -101,7 +101,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
 }) => {
   const watchedPaymentMethod = form.watch('paymentMethod');
   
-  console.log("▶️ PaymentFormFields.tsx: Rendering with buyer data:", readOnlyData);
+  console.log("▶️ PaymentFormFields.tsx: Renderizando con datos del comprador:", readOnlyData);
 
   return (
     <>

@@ -65,6 +65,7 @@ export function useParticipantManager() {
       seller_id: string;
       direccion?: string;
       sugerencia_producto?: string;
+      nota?: string;
     }
   ): Promise<ValidatedBuyerInfo | null> => {
     setIsLoading(true);
@@ -97,6 +98,7 @@ export function useParticipantManager() {
             cedula: participantData.cedula,
             direccion: participantData.direccion,
             sugerencia_producto: participantData.sugerencia_producto,
+            nota: participantData.nota,
             email: participantData.email || '',
             raffle_id: participantData.raffle_id,
             seller_id: participantData.seller_id
@@ -216,7 +218,8 @@ export function useParticipantManager() {
         numbers,
         raffleId,
         sellerId,
-        participantId
+        participantId,
+        participantData
       });
 
       // Process each number individually to handle the update or insert logic
