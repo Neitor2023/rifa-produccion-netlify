@@ -16,10 +16,10 @@ const BuyerInfoFields: React.FC<BuyerInfoFieldsProps> = ({ buyerData }) => {
       <h3 className="font-medium mb-2">Información del Comprador (Validada)</h3>
       <div className="grid grid-cols-1 gap-1">
         <div>
-          <span className="font-semibold">Nombre:</span> {buyerData.name || ''}
+          <span className="font-semibold">Nombre:</span> {buyerData.name || 'No disponible'}
         </div>
         <div>
-          <span className="font-semibold">Teléfono:</span> {buyerData.phone || ''}
+          <span className="font-semibold">Teléfono:</span> {buyerData.phone || 'No disponible'}
         </div>
         <div>
           <span className="font-semibold">Cédula:</span> {buyerData.cedula || 'No disponible'}

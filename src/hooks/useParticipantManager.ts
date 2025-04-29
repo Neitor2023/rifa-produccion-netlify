@@ -20,7 +20,7 @@ export function useParticipantManager() {
     setError(null);
     
     try {
-      console.log(`useParticipantManager.ts: Buscando participante por ${isPhone ? 'teléfono' : 'cédula'} ${searchValue} en la rifa ${raffleId}`);
+      console.log(`▶️ useParticipantManager.ts: Buscando participante por ${isPhone ? 'teléfono' : 'cédula'} ${searchValue} en la rifa ${raffleId}`);
       
       const field = isPhone ? 'phone' : 'cedula';
       
@@ -28,24 +28,23 @@ export function useParticipantManager() {
         .from('participants')
         .select('id, name, phone, cedula, direccion, sugerencia_producto')
         .eq(field, searchValue)
-        .eq('raffle_id', raffleId)
         .maybeSingle();
 
       if (error) {
-        console.error(`useParticipantManager.ts: Error al buscar participante:`, error);
+        console.error(`▶️ useParticipantManager.ts: Error al buscar participante:`, error);
         setError(error.message);
         return null;
       }
 
       if (data) {
-        console.log(`useParticipantManager.ts: Participante encontrado:`, data);
+        console.log(`▶️ useParticipantManager.ts: Participante encontrado:`, data);
         return data as ValidatedBuyerInfo;
       } else {
-        console.log(`useParticipantManager.ts: No se encontró participante con ${field} ${searchValue}`);
+        console.log(`▶️ useParticipantManager.ts: No se encontró participante con ${field} ${searchValue}`);
         return null;
       }
     } catch (err) {
-      console.error(`useParticipantManager.ts: Error inesperado:`, err);
+      console.error(`▶️ useParticipantManager.ts: Error inesperado:`, err);
       setError(err instanceof Error ? err.message : 'Error desconocido');
       return null;
     } finally {
@@ -72,7 +71,7 @@ export function useParticipantManager() {
     setError(null);
     
     try {
-      console.log(`useParticipantManager.ts: Creando nuevo participante:`, participantData);
+      console.log(`▶️ useParticipantManager.ts: Creando nuevo participante:`, participantData);
       
       // Ensure email is always present, even if it's an empty string
       const dataToInsert = {
@@ -80,6 +79,45 @@ export function useParticipantManager() {
         email: participantData.email || ''
       };
 
+      // Check if participant already exists with this phone
+      const { data: existingParticipant } = await supabase
+        .from('participants')
+        .select('id, name, phone, cedula, direccion, sugerencia_producto')
+        .eq('phone', participantData.phone)
+        .maybeSingle();
+        
+      if (existingParticipant) {
+        console.log(`▶️ useParticipantManager.ts: Participante ya existe, actualizando datos:`, existingParticipant);
+        
+        // Update the existing participant
+        const { error: updateError } = await supabase
+          .from('participants')
+          .update({
+            name: participantData.name,
+            cedula: participantData.cedula,
+            direccion: participantData.direccion,
+            sugerencia_producto: participantData.sugerencia_producto,
+            email: participantData.email || '',
+            raffle_id: participantData.raffle_id,
+            seller_id: participantData.seller_id
+          })
+          .eq('id', existingParticipant.id);
+          
+        if (updateError) {
+          console.error(`▶️ useParticipantManager.ts: Error al actualizar participante:`, updateError);
+          throw updateError;
+        }
+        
+        return {
+          ...existingParticipant,
+          name: participantData.name,
+          cedula: participantData.cedula || existingParticipant.cedula,
+          direccion: participantData.direccion || existingParticipant.direccion,
+          sugerencia_producto: participantData.sugerencia_producto || existingParticipant.sugerencia_producto
+        };
+      }
+
+      // Create new participant if doesn't exist
       const { data, error } = await supabase
         .from('participants')
         .insert(dataToInsert)
@@ -87,15 +125,15 @@ export function useParticipantManager() {
         .maybeSingle();
 
       if (error) {
-        console.error(`useParticipantManager.ts: Error al crear participante:`, error);
+        console.error(`▶️ useParticipantManager.ts: Error al crear participante:`, error);
         setError(error.message);
         return null;
       }
 
-      console.log(`useParticipantManager.ts: Participante creado exitosamente:`, data);
+      console.log(`▶️ useParticipantManager.ts: Participante creado exitosamente:`, data);
       return data as ValidatedBuyerInfo;
     } catch (err) {
-      console.error(`useParticipantManager.ts: Error inesperado:`, err);
+      console.error(`▶️ useParticipantManager.ts: Error inesperado:`, err);
       setError(err instanceof Error ? err.message : 'Error desconocido');
       return null;
     } finally {
@@ -121,7 +159,7 @@ export function useParticipantManager() {
     setError(null);
     
     try {
-      console.log(`useParticipantManager.ts: Actualizando participante ${participantId}:`, updateData);
+      console.log(`▶️ useParticipantManager.ts: Actualizando participante ${participantId}:`, updateData);
       
       // Clean undefined values
       const cleanData = Object.fromEntries(
@@ -129,7 +167,7 @@ export function useParticipantManager() {
       );
       
       if (Object.keys(cleanData).length === 0) {
-        console.log(`useParticipantManager.ts: No hay datos para actualizar`);
+        console.log(`▶️ useParticipantManager.ts: No hay datos para actualizar`);
         return true;
       }
 
@@ -139,15 +177,15 @@ export function useParticipantManager() {
         .eq('id', participantId);
 
       if (error) {
-        console.error(`useParticipantManager.ts: Error al actualizar participante:`, error);
+        console.error(`▶️ useParticipantManager.ts: Error al actualizar participante:`, error);
         setError(error.message);
         return false;
       }
 
-      console.log(`useParticipantManager.ts: Participante actualizado exitosamente`);
+      console.log(`▶️ useParticipantManager.ts: Participante actualizado exitosamente`);
       return true;
     } catch (err) {
-      console.error(`useParticipantManager.ts: Error inesperado:`, err);
+      console.error(`▶️ useParticipantManager.ts: Error inesperado:`, err);
       setError(err instanceof Error ? err.message : 'Error desconocido');
       return false;
     } finally {
@@ -174,7 +212,7 @@ export function useParticipantManager() {
     setError(null);
     
     try {
-      console.log(`useParticipantManager.ts: Marcando números como vendidos:`, {
+      console.log(`▶️ useParticipantManager.ts: Marcando números como vendidos:`, {
         numbers,
         raffleId,
         sellerId,
@@ -183,16 +221,18 @@ export function useParticipantManager() {
 
       // Process each number individually to handle the update or insert logic
       const promises = numbers.map(async (num) => {
+        const numInt = parseInt(num);
+        
         // First check if the number exists for this raffle
         const { data: existingNumber, error: checkError } = await supabase
           .from('raffle_numbers')
           .select('id, status')
           .eq('raffle_id', raffleId)
-          .eq('number', parseInt(num))
+          .eq('number', numInt)
           .maybeSingle();
         
         if (checkError) {
-          console.error(`useParticipantManager.ts: Error al verificar número ${num}:`, checkError);
+          console.error(`▶️ useParticipantManager.ts: Error al verificar número ${num}:`, checkError);
           throw checkError;
         }
         
@@ -209,7 +249,7 @@ export function useParticipantManager() {
         };
         
         if (existingNumber) {
-          console.log(`useParticipantManager.ts: Actualizando número existente ${num}`);
+          console.log(`▶️ useParticipantManager.ts: Actualizando número existente ${num}`, existingNumber);
           
           const { error: updateError } = await supabase
             .from('raffle_numbers')
@@ -217,22 +257,25 @@ export function useParticipantManager() {
             .eq('id', existingNumber.id);
           
           if (updateError) {
-            console.error(`useParticipantManager.ts: Error al actualizar número ${num}:`, updateError);
+            console.error(`▶️ useParticipantManager.ts: Error al actualizar número ${num}:`, updateError);
             throw updateError;
           }
         } else {
-          console.log(`useParticipantManager.ts: Insertando nuevo número ${num}`);
+          console.log(`▶️ useParticipantManager.ts: Insertando nuevo número ${num} con upsert`);
           
+          // Using upsert to avoid duplicate key errors
           const { error: insertError } = await supabase
             .from('raffle_numbers')
-            .insert({
+            .upsert([{
               raffle_id: raffleId,
-              number: parseInt(num),
+              number: numInt,
               ...updateData
+            }], { 
+              onConflict: 'raffle_id,number'  // This is crucial for handling conflicts
             });
           
           if (insertError) {
-            console.error(`useParticipantManager.ts: Error al insertar número ${num}:`, insertError);
+            console.error(`▶️ useParticipantManager.ts: Error al insertar número ${num}:`, insertError);
             throw insertError;
           }
         }
@@ -242,10 +285,10 @@ export function useParticipantManager() {
       
       await Promise.all(promises);
       
-      console.log(`useParticipantManager.ts: Todos los números marcados como vendidos exitosamente`);
+      console.log(`▶️ useParticipantManager.ts: Todos los números marcados como vendidos exitosamente`);
       return true;
     } catch (err) {
-      console.error(`useParticipantManager.ts: Error inesperado:`, err);
+      console.error(`▶️ useParticipantManager.ts: Error inesperado:`, err);
       setError(err instanceof Error ? err.message : 'Error desconocido');
       return false;
     } finally {

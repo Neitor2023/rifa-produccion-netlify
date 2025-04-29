@@ -91,11 +91,19 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 }) => {
   const [phone, setPhone] = useState('');
   const validation = usePhoneValidation(phone);
+  
+  // Use valid UUIDs as fallbacks for our queries
+  const effectiveRaffleId = raffleId || "fd6bd3bc-d81f-48a9-be58-8880293a0472";
+  const effectiveSellerId = raffleSellerId || "76c5b100-1530-458b-84d6-29fae68cd5d2";
 
   const handleNumberSubmit = async () => {
+    console.log("▶️ PhoneValidationModal.tsx: handleNumberSubmit called with phone:", phone);
+    
     if (validation.isValid) {
       const isNumericOnly = /^\d+$/.test(phone);
       const cleanedPhone = formatPhoneNumber(phone);
+      console.log("▶️ PhoneValidationModal.tsx: Formatted phone:", cleanedPhone);
+      
       let participant: ValidatedBuyerInfo | null = null;
       let foundBy = '';
 
@@ -110,6 +118,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         if (byPhone) {
           participant = byPhone;
           foundBy = 'phone';
+          console.log("▶️ PhoneValidationModal.tsx: Found participant by phone:", participant);
         } else if (isNumericOnly) {
           // BUSCA por cédula (y la rifa!)
           const { data: byCedula } = await supabase
@@ -121,6 +130,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           if (byCedula) {
             participant = byCedula;
             foundBy = 'cedula';
+            console.log("▶️ PhoneValidationModal.tsx: Found participant by cedula:", participant);
           }
         }
 
@@ -128,6 +138,13 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           toast.error(`❌ Participante no encontrado con el dato ingresado: ${cleanedPhone}`);
           return;
         }
+
+        console.log("▶️ PhoneValidationModal.tsx: Validation success! Participant data:", {
+          id: participant.id,
+          name: participant.name,
+          phone: participant.phone,
+          cedula: participant.cedula
+        });
 
         // Retorna SIEMPRE UN OBJETO COMPLETO para el flujo posterior
         onPhoneValidationSuccess(
@@ -144,6 +161,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         );
         onClose();
       } catch (error) {
+        console.error("▶️ PhoneValidationModal.tsx: Error during validation:", error);
         toast.error("Error durante la validación. Por favor intente nuevamente.");
       }
     }

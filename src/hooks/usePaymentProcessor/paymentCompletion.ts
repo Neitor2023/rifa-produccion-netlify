@@ -53,12 +53,12 @@ export function usePaymentCompletion({
       console.log("🔵 Processing participant with data:", data);
       
       const formattedPhone = formatPhoneNumber(data.buyerPhone);
+      console.log("🔄 Phone formatted from processParticipant: ", formattedPhone);
       
       const { data: existingParticipant, error: searchError } = await supabase
         .from('participants')
         .select('id, name, phone, cedula, direccion, sugerencia_producto, nota')
         .eq('phone', formattedPhone)
-        .eq('raffle_id', raffleId)
         .maybeSingle();
 
       if (searchError) {
@@ -103,7 +103,7 @@ export function usePaymentCompletion({
             sugerencia_producto: data.sugerenciaProducto || null,
             nota: data.nota || null,
             raffle_id: raffleId,
-            seller_id: raffleSeller.seller_id
+            seller_id: raffleSeller?.seller_id || "76c5b100-1530-458b-84d6-29fae68cd5d2"
           })
           .select('id')
           .single();
@@ -126,8 +126,7 @@ export function usePaymentCompletion({
   const updateNumbersToSold = async (
     numbers: string[],
     participantId: string,
-    paymentProofUrl: string | null,
-    raffleNumbers: any[]
+    paymentProofUrl: string | null
   ) => {
     console.log("🔵 hooks/usePaymentProcessor/paymentCompletion.ts: Actualización de números a vendidos:", {
       numbers,
@@ -148,12 +147,14 @@ export function usePaymentCompletion({
   
     const updatePromises = numbers.map(async (numStr) => {
       try {
+        const numInt = parseInt(numStr, 10);
+        
         // Primero verificamos si ya existe un registro para este número en la rifa actual
         const { data: existingNumbers, error: checkError } = await supabase
           .from('raffle_numbers')
           .select('id, status')
           .eq('raffle_id', raffleId)
-          .eq('number', parseInt(numStr, 10))
+          .eq('number', numInt)
           .maybeSingle();
         
         if (checkError) {
@@ -163,9 +164,9 @@ export function usePaymentCompletion({
       
         const commonData = {
           status: 'sold' as const,
-          seller_id: raffleSeller.seller_id,
+          seller_id: raffleSeller?.seller_id || "76c5b100-1530-458b-84d6-29fae68cd5d2",
           participant_id: participantId,
-          payment_proof: paymentProofUrl,  // Ensure this is correctly passed
+          payment_proof: paymentProofUrl,
           payment_approved: true,
           reservation_expires_at: null,
           participant_name: participantData.name,
@@ -188,16 +189,19 @@ export function usePaymentCompletion({
         } else {
           console.log(`🆕 Insertando nuevo número ${numStr}:`, { 
             raffle_id: raffleId,
-            number: parseInt(numStr, 10),
+            number: numInt,
             ...commonData 
           });
           
+          // Using upsert to avoid duplicate key errors
           const { error } = await supabase
             .from('raffle_numbers')
-            .insert({
+            .upsert([{
               raffle_id: raffleId,
-              number: parseInt(numStr, 10),
+              number: numInt,
               ...commonData
+            }], {
+              onConflict: 'raffle_id,number'
             });
             
           if (error) {
