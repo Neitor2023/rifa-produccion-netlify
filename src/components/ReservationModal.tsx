@@ -90,7 +90,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
         <DialogHeader>
           <DialogTitle>Apartar números</DialogTitle>
           <DialogDescription>
-            Ingrese los datos de la persona que apartará los númerosXXXXXX: {selectedNumbers.join(', ')}
+            Ingrese los datos de la persona que apartará los números: {selectedNumbers.join(', ')}
           </DialogDescription>
         </DialogHeader>
         

@@ -147,7 +147,7 @@ const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, pr
             className="w-full bg-rifa-purple hover:bg-rifa-darkPurple text-white" 
             onClick={onClose}
           >
-            Volver
+            Volver XXX
           </Button>
         </DialogFooter>
       </DialogContent>
