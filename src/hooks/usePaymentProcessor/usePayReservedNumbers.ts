@@ -6,7 +6,7 @@ export function usePayReservedNumbers({
   setValidatedBuyerData,
   setSelectedNumbers,
   setIsPaymentModalOpen,
-  debugMode
+  debugMode = false
 }) {
   const debugLog = (context: string, data: any) => {
     if (debugMode) {

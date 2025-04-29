@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { ValidatedBuyerInfo } from '@/types/participant';
 
-export function useBuyerData() {
+export function useBuyerData({ raffleId, debugMode = false }) {
   const [validatedBuyerData, setValidatedBuyerData] = useState<ValidatedBuyerInfo | null>(null);
   
   // Log whenever the buyer data changes
@@ -20,6 +20,30 @@ export function useBuyerData() {
       console.log("🔵 useBuyerData - No buyer data available");
     }
   }, [validatedBuyerData]);
+
+  // These functions are placeholders for the actual implementation
+  const validateBuyerInfo = () => {
+    console.log("validateBuyerInfo called");
+  };
   
-  return { validatedBuyerData, setValidatedBuyerData };
+  const setBuyerInfo = () => {
+    console.log("setBuyerInfo called");
+  };
+  
+  const validateBuyerByCedula = () => {
+    console.log("validateBuyerByCedula called");
+  };
+  
+  const validateBuyerByPhone = () => {
+    console.log("validateBuyerByPhone called");
+  };
+  
+  return { 
+    validatedBuyerData, 
+    setValidatedBuyerData,
+    validateBuyerInfo,
+    setBuyerInfo,
+    validateBuyerByCedula,
+    validateBuyerByPhone
+  };
 }

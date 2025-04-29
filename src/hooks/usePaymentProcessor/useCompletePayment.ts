@@ -9,16 +9,12 @@ export function useCompletePayment({
   selectedNumbers,
   validatedBuyerData,
   validateSellerMaxNumbers,
-  uploadPaymentProof,
-  processParticipant,
-  updateNumbersToSold,
-  raffleNumbers,
-  refetchRaffleNumbers,
-  setPaymentData,
   setIsPaymentModalOpen,
   setIsVoucherOpen,
-  allowVoucherPrint,
-  debugMode
+  setPaymentData,
+  resetSelection,
+  handleProofCheck,
+  debugMode = false
 }) {
   const debugLog = (context: string, data: any) => {
     if (debugMode) {
@@ -50,6 +46,15 @@ export function useCompletePayment({
         return;
       }
       
+      // Import these functions from paymentCompletion (they were originally here)
+      const { uploadPaymentProof, processParticipant, updateNumbersToSold } = await import('./paymentCompletion').then(
+        module => module.usePaymentCompletion({
+          raffleSeller,
+          raffleId,
+          debugMode
+        })
+      );
+      
       const paymentProofUrl = await uploadPaymentProof(data.paymentProof);
       
       let participantId: string | null;
@@ -66,8 +71,7 @@ export function useCompletePayment({
         return;
       }
       
-      await updateNumbersToSold(selectedNumbers, participantId, paymentProofUrl, raffleNumbers);
-      await refetchRaffleNumbers();
+      await updateNumbersToSold(selectedNumbers, participantId, paymentProofUrl);
       
       setPaymentData({
         ...data,
@@ -117,13 +121,8 @@ export function useCompletePayment({
       }
       
       setIsPaymentModalOpen(false);
-      
-      if (allowVoucherPrint) {
-        setIsVoucherOpen(true);
-      } else {
-        toast.success('Pago completado exitosamente. El comprobante de pago está en revisión.');
-        toast.info('Es importante que le exija su comprobante de pago a su vendedor, este es su constancia de reclamo de premios.');
-      }
+      setIsVoucherOpen(true);
+      resetSelection();
       
       toast.success('Pago completado exitosamente');
     } catch (error) {

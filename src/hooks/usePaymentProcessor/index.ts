@@ -11,6 +11,8 @@ import { useSellerValidation } from './sellerValidation';
 import { usePayment } from './payment';
 import { useModalState } from './modalState';
 import { ValidatedBuyerInfo } from '@/types/participant';
+import { usePaymentCompletion } from './paymentCompletion';
+import { useParticipantManager } from '@/hooks/useParticipantManager';
 
 // Main hook that combines all functionality
 export function usePaymentProcessor({
@@ -67,22 +69,19 @@ export function usePaymentProcessor({
     debugMode
   });
   
-  const { uploadPaymentProof, processParticipant, updateNumbersToSold } = useCompletePayment({ 
+  const participantManager = useParticipantManager();
+  
+  // Get payment completion utilities
+  const paymentCompletion = usePaymentCompletion({
     raffleSeller: {
       ...raffleSeller,
       seller_id: effectiveSellerId
     },
     raffleId: effectiveRaffleId,
-    selectedNumbers,
-    validatedBuyerData: validatedBuyerInfo,
-    validateSellerMaxNumbers,
-    setIsPaymentModalOpen,
-    setIsVoucherOpen,
-    setPaymentData,
-    resetSelection,
-    handleProofCheck,
     debugMode
   });
+  
+  const { uploadPaymentProof, processParticipant, updateNumbersToSold } = paymentCompletion;
   
   const buyerDataHook = useBuyerData({ 
     raffleId: effectiveRaffleId, 
@@ -139,6 +138,9 @@ export function usePaymentProcessor({
         
         setIsPaymentModalOpen(false);
         setIsVoucherOpen(true);
+        
+        // Reset selection after successful payment
+        resetSelection();
         
         return true;
       } catch (error) {

@@ -6,8 +6,14 @@ export function useProceedToPayment({
   checkNumbersAvailability,
   setSelectedNumbers,
   setIsPaymentModalOpen,
-  debugMode
+  debugMode = false
 }) {
+  const debugLog = (context: string, data: any) => {
+    if (debugMode) {
+      console.log(`[DEBUG - ProceedToPayment - ${context}]:`, data);
+    }
+  };
+
   return async (numbers: string[]) => {
     console.log("💰 usePaymentProcessor: handleProceedToPayment llamado con números:", numbers);
 
@@ -29,6 +35,8 @@ export function useProceedToPayment({
       
       setSelectedNumbers(numbers);
       setIsPaymentModalOpen(true);
+      
+      debugLog("ProceedToPayment - Payment modal opened", { numbers });
       
     } catch (error) {
       console.error('usePaymentProcessor: ❌ Error al proceder al pago:', error);

@@ -1,114 +1,162 @@
 
+import { useState } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export function useReserveNumbers({
-  raffleSeller,
   raffleId,
-  validateSellerMaxNumbers,
-  participantManager,
-  updateRaffleNumbersStatus,
-  refetchRaffleNumbers,
-  setSelectedNumbers,
-  debugMode
+  sellerId,
+  debugMode = false
 }) {
+  const [isReserving, setIsReserving] = useState(false);
+  
   const debugLog = (context: string, data: any) => {
     if (debugMode) {
       console.log(`[DEBUG - ReserveNumbers - ${context}]:`, data);
     }
   };
 
-  return async (
-    numbers: string[],
-    buyerPhone?: string,
-    buyerName?: string,
-    buyerCedula?: string
-  ) => {
-    console.log("🎯 usePaymentProcessor: handleReserveNumbers llamado con:", {
-      numbers,
-      buyerPhone,
-      buyerName,
-      buyerCedula
-    });
-  
-    // 1. Validaciones iniciales
-    if (!raffleSeller?.seller_id) {
-      toast.error("usePaymentProcessor: Información del vendedor no disponible");
+  const reserveNumbers = async (numbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula?: string) => {
+    if (!numbers || numbers.length === 0) {
+      toast.error('Seleccione al menos un número para apartar');
       return;
     }
+    
     if (!buyerPhone || !buyerName) {
-      toast.error("usePaymentProcessor: Nombre y teléfono son obligatorios para apartar números");
+      toast.error('Ingrese nombre y teléfono del comprador');
       return;
     }
-    // Validar cédula mínima
-    if (buyerCedula && buyerCedula.length < 5) {
-      toast.error("usePaymentProcessor: Cédula debe tener al menos 5 caracteres");
-      return;
-    }
-    // Máximo de ventas
-    if (!(await validateSellerMaxNumbers(numbers.length))) {
-      return;
-    }
-  
+    
+    setIsReserving(true);
+    
     try {
-      debugLog("usePaymentProcessor: Números de reserva llamados con", {
-        numbers,
-        buyerPhone,
-        buyerName,
-        buyerCedula
-      });
+      debugLog('Reserving numbers', { numbers, buyerPhone, buyerName, buyerCedula });
       
-      // 2. Buscar o crear participante
-      let participantId = null;
+      // Find or create participant
+      let participantId: string | null = null;
       
-      // Check if participant exists
-      const existingParticipant = await participantManager.findParticipant(buyerPhone, raffleId, true);
+      const { data: existingParticipant, error: participantError } = await supabase
+        .from('participants')
+        .select('id')
+        .eq('phone', buyerPhone)
+        .maybeSingle();
       
-      if (existingParticipant && existingParticipant.id) {
+      if (participantError) {
+        console.error('Error checking for existing participant:', participantError);
+      }
+      
+      if (existingParticipant) {
         participantId = existingParticipant.id;
-        console.log("👤 usePaymentProcessor: Participante encontrado:", participantId);
+        
+        // Update participant info
+        const { error: updateError } = await supabase
+          .from('participants')
+          .update({
+            name: buyerName,
+            cedula: buyerCedula,
+            raffle_id: raffleId
+          })
+          .eq('id', participantId);
+        
+        if (updateError) {
+          console.error('Error updating participant:', updateError);
+        }
       } else {
         // Create new participant
-        const newParticipant = await participantManager.createParticipant({
-          name: buyerName,
-          phone: buyerPhone,
-          cedula: buyerCedula,
-          email: '',
-          raffle_id: raffleId,
-          seller_id: raffleSeller.seller_id
-        });
+        const { data: newParticipant, error: createError } = await supabase
+          .from('participants')
+          .insert({
+            name: buyerName,
+            phone: buyerPhone,
+            cedula: buyerCedula,
+            raffle_id: raffleId,
+            seller_id: sellerId,
+            email: 'default@example.com' // Required field
+          })
+          .select('id')
+          .single();
         
-        if (newParticipant && newParticipant.id) {
-          participantId = newParticipant.id;
-          console.log("👤 usePaymentProcessor: Nuevo participante creado:", participantId);
+        if (createError) {
+          console.error('Error creating participant:', createError);
+          throw createError;
         }
+        
+        participantId = newParticipant.id;
       }
       
-      if (!participantId) {
-        toast.error("usePaymentProcessor: No se pudo crear o encontrar al participante");
-        return;
-      }
-  
-      // 3. Reservar números y guardar datos
-      await updateRaffleNumbersStatus(
-        numbers,
-        "reserved",
-        participantId,
-        {
-          // Usamos llaves idénticas a las columnas de la tabla
+      // Update numbers to reserved status
+      const expirationDate = new Date();
+      expirationDate.setDate(expirationDate.getDate() + 1); // Expire in 24 hours
+      
+      const updatePromises = numbers.map(async (numStr) => {
+        const num = parseInt(numStr, 10);
+        
+        // Check if number already exists
+        const { data: existingNumbers, error: checkError } = await supabase
+          .from('raffle_numbers')
+          .select('id')
+          .eq('raffle_id', raffleId)
+          .eq('number', num)
+          .maybeSingle();
+        
+        if (checkError) {
+          console.error(`Error checking number ${num}:`, checkError);
+          throw checkError;
+        }
+        
+        const reservationData = {
+          status: 'reserved',
+          seller_id: sellerId,
+          participant_id: participantId,
+          reservation_expires_at: expirationDate.toISOString(),
           participant_name: buyerName,
           participant_phone: buyerPhone,
-          participant_cedula: buyerCedula ?? null
+          participant_cedula: buyerCedula
+        };
+        
+        if (existingNumbers) {
+          // Update existing number
+          const { error: updateError } = await supabase
+            .from('raffle_numbers')
+            .update(reservationData)
+            .eq('id', existingNumbers.id);
+          
+          if (updateError) {
+            console.error(`Error updating number ${num}:`, updateError);
+            throw updateError;
+          }
+        } else {
+          // Insert new number
+          const { error: insertError } = await supabase
+            .from('raffle_numbers')
+            .insert({
+              raffle_id: raffleId,
+              number: num,
+              ...reservationData
+            });
+          
+          if (insertError) {
+            console.error(`Error inserting number ${num}:`, insertError);
+            throw insertError;
+          }
         }
-      );
-  
-      // 4. Refrescar y limpiar
-      await refetchRaffleNumbers();
-      setSelectedNumbers([]);
-  
-      toast.success(`usePaymentProcessor: ${numbers.length} número(s) apartados exitosamente`);
-    } catch (error: any) {
-      console.error("usePaymentProcessor: ❌ Error al reservar números:", error);
-      toast.error(`usePaymentProcessor: Error al apartar números${error.message ? ` — ${error.message}` : ""}`);
+      });
+      
+      await Promise.all(updatePromises);
+      
+      toast.success(`${numbers.length} número(s) apartados exitosamente`);
+      return true;
+    } catch (error) {
+      console.error('Error reserving numbers:', error);
+      toast.error('Error al apartar los números');
+      return false;
+    } finally {
+      setIsReserving(false);
     }
+  };
+  
+  return {
+    reserveNumbers,
+    isReserving
   };
 }
