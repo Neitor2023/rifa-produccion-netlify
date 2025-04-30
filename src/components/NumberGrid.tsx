@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'sonner';
 import { Card } from '@/components/ui/card';
@@ -78,11 +77,9 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     console.log('▶️ NumberGrid.tsx: handlePayReserved llamado');
     
     if (highlightReserved) {
-      // If already in reserved mode, we should exit it
-      setHighlightReserved(false);
-      setShowReservedMessage(false);
-      setSelectedNumbers([]);
-      console.log('▶️ NumberGrid.tsx: Desactivando modo de números reservados');
+      // If already in reserved mode, we show the toast but don't exit the mode
+      toast.info("Seleccione su número apartado para seguir el proceso de pago");
+      setShowReservedMessage(true);
       return;
     }
     
@@ -108,8 +105,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     console.log(`▶️ NumberGrid.tsx: toggleNumber llamado con:`, { number, status, highlightReserved });
     
     if (status === 'sold') {
-      console.log(`▶️ NumberGrid.tsx: ⚠️ Intento de seleccionar número vendido '${number}'`);
-      console.log(`▶️ NumberGrid.tsx: ✅ Selección de número vendido bloqueada`);
+      console.log(`NumberGrid.tsx: ⚠️ Intento de seleccionar número vendido:`, number);
+      console.log(`NumberGrid.tsx: ✅ Selección de número vendido bloqueada:`, number);
       return;
     }
     
@@ -279,7 +276,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     onProceedToPayment([validatedNumber]);
   };
   
-  // Import formatPhoneNumber from utils
+  // Format phone number utility
   const formatPhoneNumber = (phone: string): string => {
     if (!phone) return "";
     
@@ -337,6 +334,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         onReserve={handleReserve}
         onPayReserved={handlePayReserved}
         onProceedToPayment={handleProceedToPayment}
+        highlightReserved={highlightReserved}
       />
       
       <NumberGridLegend highlightReserved={highlightReserved} />

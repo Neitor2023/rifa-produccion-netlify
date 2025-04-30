@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, CreditCard, Check } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface NumberGridControlsProps {
   selectedNumbers: string[];
@@ -16,6 +17,7 @@ interface NumberGridControlsProps {
   onReserve: () => void;
   onPayReserved: () => void;
   onProceedToPayment: () => void;
+  highlightReserved: boolean;
 }
 
 export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
@@ -25,10 +27,22 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
   onReserve,
   onPayReserved,
   onProceedToPayment,
+  highlightReserved,
 }) => {
   const handleClearSelection = () => {
     console.log("[NumberGridControls.tsx] Clear pressed");
     onClearSelection();
+  };
+
+  const handlePayReserved = () => {
+    console.log("[NumberGridControls.tsx] Pagar Apartados pressed, current highlight mode:", highlightReserved);
+    
+    if (highlightReserved) {
+      // If already in reserved mode, show toast message
+      toast.info("Seleccione su número apartado para seguir el proceso de pago");
+    }
+    
+    onPayReserved();
   };
 
   return (
@@ -54,7 +68,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       <Button 
         variant="secondary"
         className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
-        onClick={onPayReserved}
+        onClick={handlePayReserved}
       >
         <CreditCard className="h-4 w-4" />
         <span>Pagar Apartados</span>

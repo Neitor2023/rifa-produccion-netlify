@@ -38,10 +38,8 @@ const GridLayout: React.FC<GridLayoutProps> = ({
     [numbers]
   );  
 
-  // Log when highlightReserved changes
-  React.useEffect(() => {
-    console.log("▶️ GridLayout.tsx: Estado de highlightReserved cambiado:", highlightReserved);
-  }, [highlightReserved]);
+  // Log render information with required debug info
+  console.log('GridLayout render:', { numbers: numbers.length, highlightReserved });
   
   // Check if there are any reserved numbers
   const hasReservedNumbers = React.useMemo(() => {
@@ -75,6 +73,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
 
       const handleNumberClick = () => {
         console.log("[GridLayout.tsx] number clicked:", paddedNum, "status:", status);
+        console.log('toggleNumber called:', { number: paddedNum, status, selectedNumbers: selectedNumbers.length });
         
         // Block selection of sold numbers
         if (status === 'sold') {
