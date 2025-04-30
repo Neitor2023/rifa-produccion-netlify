@@ -26,12 +26,17 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
   onPayReserved,
   onProceedToPayment,
 }) => {
+  const handleClearSelection = () => {
+    console.log("[NumberGridControls.tsx] Clear pressed");
+    onClearSelection();
+  };
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
       <Button 
         variant="outline" 
         className="flex items-center gap-2" 
-        onClick={onClearSelection}
+        onClick={handleClearSelection}
       >
         <Check className="h-4 w-4" />
         <span>Limpiar</span>

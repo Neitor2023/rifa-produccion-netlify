@@ -57,6 +57,11 @@ const GridLayout: React.FC<GridLayoutProps> = ({
     }
   }, [highlightReserved, hasReservedNumbers]);
 
+  // Log selectedNumbers changes
+  React.useEffect(() => {
+    console.log("[GridLayout.tsx] selectedNumbers:", selectedNumbers);
+  }, [selectedNumbers]);
+
   const grid = [];
   for (let row = 0; row < 10; row++) {
     const rowItems = [];
@@ -68,6 +73,25 @@ const GridLayout: React.FC<GridLayoutProps> = ({
       const isSelected = selectedNumbers.includes(paddedNum);
       const isHighlighted = highlightReserved && status === 'reserved';
 
+      const handleNumberClick = () => {
+        console.log("[GridLayout.tsx] number clicked:", paddedNum, "status:", status);
+        
+        // Block selection of sold numbers
+        if (status === 'sold') {
+          console.log(`NumberGrid.tsx: ⚠️ Intento de seleccionar número vendido:`, paddedNum);
+          console.log(`NumberGrid.tsx: ✅ Selección de número vendido bloqueada:`, paddedNum);
+          return; 
+        }
+        
+        if (highlightReserved && status === 'reserved') {
+          console.log("▶️ GridLayout.tsx: Número reservado seleccionado:", paddedNum);
+          toggleNumber(paddedNum, status);
+        } else if (!highlightReserved && status === 'available') {
+          // Normal selection logic - only allow available numbers when not in highlight mode
+          toggleNumber(paddedNum, status);
+        }
+      };
+
       rowItems.push(
         <NumberGridItem
           key={paddedNum}
@@ -75,22 +99,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
           status={status}
           isSelected={isSelected}
           isHighlighted={isHighlighted}
-          onToggle={() => {
-            // Log attempt to select sold numbers
-            if (status === 'sold') {
-              console.log(`▶️ GridLayout.tsx: ⚠️ Intento de seleccionar número vendido '${paddedNum}'`);
-              console.log("▶️ GridLayout.tsx: ✅ Selección de número vendido bloqueada");
-              return; // Block selection of sold numbers
-            }
-            
-            if (highlightReserved && status === 'reserved') {
-              console.log("▶️ GridLayout.tsx: Número reservado seleccionado:", paddedNum);
-              toggleNumber(paddedNum, status);
-            } else if (status === 'available') {
-              // Normal selection logic
-              toggleNumber(paddedNum, status);
-            }
-          }}          
+          onToggle={handleNumberClick}
         />
       );
     }
