@@ -25,9 +25,18 @@ interface PrizeDetailModalProps {
   prizeImages: PrizeImage[];
 }
 
+// Helper interface to handle the displayUrl property
+interface DisplayablePrizeImage {
+  id: string;
+  prize_id: string;
+  image_url: string;
+  url_image?: string;
+  displayUrl: string;
+}
+
 const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, prize, prizeImages }) => {
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
-  const [filteredImages, setFilteredImages] = React.useState<PrizeImage[]>([]);
+  const [filteredImages, setFilteredImages] = React.useState<DisplayablePrizeImage[]>([]);
   
   console.log("▶️ PrizeDetailModal.tsx: Abriendo modal con premio:", prize?.name, "y", prizeImages.length, "imágenes");
   
