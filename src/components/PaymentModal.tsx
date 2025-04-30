@@ -89,7 +89,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         form.setValue("sugerenciaProducto", buyerData.sugerencia_producto);
       }
       
-      console.log("PaymentModal.tsx: Valores del formulario después de la actualización:", form.getValues());
+      console.log("PaymentModal.tsx:Valores del formulario después de la actualización:", form.getValues());
     } else {
       console.log("Either modal is closed or no buyerData:", { isOpen, buyerData });
     }
