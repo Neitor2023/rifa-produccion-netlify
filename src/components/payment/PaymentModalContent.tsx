@@ -28,11 +28,7 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
   onFileRemove
 }) => {
   useEffect(() => {
-    // Logging buyer data for debugging
-    console.log("▶️ PaymentModalContent.tsx: Received buyerData:", buyerData);
-    
     if (buyerData) {
-      // Ensure the form gets updated with the buyer data
       form.setValue('buyerName', buyerData.name || '');
       form.setValue('buyerPhone', buyerData.phone || '');
       form.setValue('buyerCedula', buyerData.cedula || '');
@@ -42,9 +38,6 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
       if (buyerData.sugerencia_producto) {
         form.setValue("sugerenciaProducto", buyerData.sugerencia_producto);
       }
-      
-      // For validation
-      form.setValue('buyerEmail', 'default@example.com');
     }
   }, [buyerData, form]);
   

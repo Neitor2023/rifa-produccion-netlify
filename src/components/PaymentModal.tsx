@@ -14,9 +14,6 @@ import { ValidatedBuyerInfo } from '@/types/participant';
 import { PaymentModalHeader } from './payment/PaymentModalHeader';
 import { PaymentModalActions } from './payment/PaymentModalActions';
 import PaymentModalContent from './payment/PaymentModalContent';
-import { supabase } from '@/integrations/supabase/client';
-import { useParticipantManager } from '@/hooks/useParticipantManager';
-import { formatPhoneNumber } from '@/utils/phoneUtils';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -26,8 +23,6 @@ interface PaymentModalProps {
   onComplete: (paymentData: PaymentFormData) => void;
   buyerData?: ValidatedBuyerInfo;
   debugMode?: boolean;
-  raffleId?: string;
-  sellerId?: string;
 }
 
 const paymentFormSchema = z.object({
@@ -54,25 +49,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   price,
   onComplete,
   buyerData,
-  debugMode = false,
-  raffleId,
-  sellerId
+  debugMode = false
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  
-  console.log("▶️ PaymentModal.tsx: Modal inicializando con:", { 
-    isOpen, 
-    buyerData, 
-    selectedNumbers: selectedNumbers?.length || 0 
-  });
-  
-  // Use valid UUIDs
-  const effectiveRaffleId = raffleId || "fd6bd3bc-d81f-48a9-be58-8880293a0472";
-  const effectiveSellerId = sellerId || "76c5b100-1530-458b-84d6-29fae68cd5d2";
-  
-  const { updateParticipant, createParticipant, markNumbersAsSold } = useParticipantManager();
   
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentFormSchema),
@@ -90,44 +71,27 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     },
   });
 
-  // Actualizar los valores del formulario cuando cambian los datos del comprador
+  // Update form values when buyerData changes
   useEffect(() => {
-    console.log("▶️ PaymentModal.tsx: Modal abierto:", isOpen, "datos del comprador:", buyerData);
+    console.log("📦 Modal is open:", isOpen, "buyerData:", buyerData);
     
-    if (isOpen) {
-      if (buyerData) {
-        console.log("▶️ PaymentModal.tsx: Actualizando formulario con datos del comprador:", buyerData);
-        form.setValue('buyerName', buyerData.name || "");
-        form.setValue('buyerPhone', buyerData.phone || "");
-        form.setValue('buyerCedula', buyerData.cedula || "");
-        
-        if (buyerData.direccion) {
-          form.setValue("direccion", buyerData.direccion);
-        }
-        
-        if (buyerData.sugerencia_producto) {
-          form.setValue("sugerenciaProducto", buyerData.sugerencia_producto);
-        }
-        
-        // Add email field with default value for validation to pass
-        form.setValue("buyerEmail", "default@example.com");
-        
-        console.log("▶️ PaymentModal.tsx: Valores del formulario actualizados:", form.getValues());
-      } else {
-        console.log("▶️ PaymentModal.tsx: No hay datos previos del comprador, formulario vacío");
-        form.reset({
-          buyerName: "",
-          buyerPhone: "",
-          buyerCedula: "",
-          buyerEmail: "",
-          paymentMethod: undefined,
-          paymentProof: undefined,
-          nota: "",
-          direccion: "",
-          sugerenciaProducto: "",
-          reporteSospechoso: "",
-        });
+    if (buyerData && isOpen) {
+      console.log("📦 Modal is open, updating form with buyer data:", buyerData);
+      form.setValue('buyerName', buyerData.name || "");
+      form.setValue('buyerPhone', buyerData.phone || "");
+      form.setValue('buyerCedula', buyerData.cedula || "");
+      
+      if (buyerData.direccion) {
+        form.setValue("direccion", buyerData.direccion);
       }
+      
+      if (buyerData.sugerencia_producto) {
+        form.setValue("sugerenciaProducto", buyerData.sugerencia_producto);
+      }
+      
+      console.log("Form values after update:", form.getValues());
+    } else {
+      console.log("Either modal is closed or no buyerData:", { isOpen, buyerData });
     }
   }, [buyerData, form, isOpen]);
 
@@ -137,214 +101,44 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     }
   };
   
-  const uploadPaymentProof = async (file: File): Promise<string | null> => {
-    if (!file) return null;
-    
-    try {
-      console.log("▶️ PaymentModal.tsx: Subiendo comprobante de pago...");
-      const fileExt = file.name.split('.').pop();
-      const filePath = `payment_proofs/${Math.random().toString(36).substring(2)}${Date.now().toString()}.${fileExt}`;
-      
-      const { data, error } = await supabase.storage
-        .from('payment_proofs')
-        .upload(filePath, file);
-      
-      if (error) {
-        console.error("▶️ PaymentModal.tsx: Error al subir comprobante:", error);
-        throw error;
-      }
-      
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('payment_proofs')
-        .getPublicUrl(filePath);
-        
-      console.log("▶️ PaymentModal.tsx: Comprobante subido exitosamente:", urlData.publicUrl);
-      return urlData.publicUrl;
-    } catch (error) {
-      console.error("▶️ PaymentModal.tsx: Error al subir comprobante:", error);
-      throw error;
-    }
-  };
-  
-  const onSubmit = async (data: PaymentFormData) => {
-    console.log("▶️ PaymentModal.tsx: Iniciando proceso de pago con datos:", data);
-    console.log("▶️ PaymentModal.tsx: buyerData:", buyerData);
-    
+  const onSubmit = (data: PaymentFormData) => {
     setIsSubmitting(true);
     debugLog('Form submit - data', data);
     
-    try {
-      if (data.paymentMethod === "transfer" && !uploadedImage) {
-        toast.error("Por favor suba un comprobante de pago");
-        debugLog('Validation error', 'Missing payment proof for transfer');
-        setIsSubmitting(false);
-        return;
-      }
-      
-      // Upload payment proof if provided
-      let paymentProofUrl = null;
-      if (uploadedImage) {
-        console.log("▶️ PaymentModal.tsx: Subiendo comprobante de pago");
-        paymentProofUrl = await uploadPaymentProof(uploadedImage);
-        debugLog('Payment proof uploaded', paymentProofUrl);
-      }
-      
-      let participantId: string | null;
-      
-      // Step 1: Handle participant data - create or update
-      if (buyerData && buyerData.id) {
-        console.log("▶️ PaymentModal.tsx: Actualizando información del participante existente:", buyerData.id);
-        
-        // Update existing participant
-        const updateResult = await updateParticipant(buyerData.id, {
-          email: data.buyerEmail,
-          direccion: data.direccion,
-          raffle_id: effectiveRaffleId,
-          seller_id: effectiveSellerId,
-          nota: data.nota,
-          sugerencia_producto: data.sugerenciaProducto
-        });
-        
-        participantId = buyerData.id;
-        
-        if (!updateResult) {
-          console.error("▶️ PaymentModal.tsx: Error al actualizar participante");
-          throw new Error("Error al actualizar la información del participante");
-        }
-      } else {
-        console.log("▶️ PaymentModal.tsx: Creando nuevo participante con datos:", {
-          name: data.buyerName,
-          phone: data.buyerPhone,
-          cedula: data.buyerCedula
-        });
-        
-        // Format phone number to international format before saving
-        const formattedPhone = formatPhoneNumber(data.buyerPhone);
-        console.log("▶️ PaymentModal.tsx: Teléfono formateado:", formattedPhone);
-        
-        // Create new participant
-        const newParticipant = await createParticipant({
-          name: data.buyerName,
-          phone: formattedPhone,
-          cedula: data.buyerCedula,
-          email: data.buyerEmail,
-          raffle_id: effectiveRaffleId,
-          seller_id: effectiveSellerId,
-          direccion: data.direccion,
-          sugerencia_producto: data.sugerenciaProducto,
-          nota: data.nota
-        });
-        
-        if (!newParticipant || !newParticipant.id) {
-          console.error("▶️ PaymentModal.tsx: Error al crear nuevo participante");
-          throw new Error("Error al crear nuevo participante");
-        }
-        
-        participantId = newParticipant.id;
-        console.log("▶️ PaymentModal.tsx: Nuevo participante creado con ID:", participantId);
-      }
-      
-      if (!participantId) {
-        throw new Error("No se pudo obtener o crear el ID del participante");
-      }
-      
-      // Step 2: Mark numbers as sold
-      console.log("▶️ PaymentModal.tsx: Marcando números como vendidos:", selectedNumbers);
-      const markResult = await markNumbersAsSold(
-        selectedNumbers, 
-        effectiveRaffleId, 
-        effectiveSellerId, 
-        participantId, 
-        {
-          name: buyerData?.name || data.buyerName,
-          phone: buyerData?.phone || formatPhoneNumber(data.buyerPhone),
-          cedula: buyerData?.cedula || data.buyerCedula
-        },
-        paymentProofUrl || undefined
-      );
-      
-      if (!markResult) {
-        console.error("▶️ PaymentModal.tsx: Error al marcar números como vendidos");
-        throw new Error("Error al marcar los números como vendidos");
-      }
-      
-      // Step 3: Process fraud report if provided
-      if (data.reporteSospechoso && data.reporteSospechoso.trim() !== '') {
-        console.log("▶️ PaymentModal.tsx: Procesando reporte de actividad sospechosa");
-        
-        // Check if a report already exists
-        const { data: existingReport } = await supabase
-          .from('fraud_reports')
-          .select('id')
-          .match({
-            participant_id: participantId,
-            raffle_id: effectiveRaffleId,
-            seller_id: effectiveSellerId
-          })
-          .maybeSingle();
-        
-        if (existingReport) {
-          console.log("▶️ PaymentModal.tsx: Actualizando reporte existente:", existingReport.id);
-          
-          // Update existing report
-          const { error: updateError } = await supabase
-            .from('fraud_reports')
-            .update({
-              mensaje: data.reporteSospechoso,
-              estado: 'pendiente'
-            })
-            .eq('id', existingReport.id);
-          
-          if (updateError) {
-            console.error("▶️ PaymentModal.tsx: Error al actualizar reporte de fraude:", updateError);
-            // Continue execution even if this fails
-          }
-        } else {
-          console.log("▶️ PaymentModal.tsx: Creando nuevo reporte de fraude");
-          
-          // Create new fraud report
-          const { error: fraudError } = await supabase
-            .from('fraud_reports')
-            .insert({
-              raffle_id: effectiveRaffleId,
-              seller_id: effectiveSellerId,
-              participant_id: participantId,
-              mensaje: data.reporteSospechoso,
-              estado: 'pendiente'
-            });
-
-          if (fraudError) {
-            console.error('▶️ PaymentModal.tsx: Error al guardar reporte de fraude:', fraudError);
-            // Continue execution even if this fails
-          }
-        }
-      }
-      
-      // If all steps completed successfully, finish process
-      console.log("▶️ PaymentModal.tsx: Proceso de pago completado exitosamente");
-      
-      if (uploadedImage) {
-        data.paymentProof = paymentProofUrl;
-      }
-      
-      // Ensure the data includes the buyer values
-      if (buyerData) {
-        data.buyerName = buyerData.name;
-        data.buyerPhone = buyerData.phone;
-        data.buyerCedula = buyerData.cedula || "";
-      }
-      
-      toast.success("Pago completado exitosamente");
-      onComplete(data);
-      resetForm();
-      
-    } catch (error: any) {
-      console.error("▶️ PaymentModal.tsx: Error al procesar el pago:", error);
-      toast.error(`Error al completar el pago: ${error.message || "Error desconocido"}`);
-    } finally {
+    if (data.paymentMethod === "transfer" && !uploadedImage) {
+      toast.error("Por favor suba un comprobante de pago");
+      debugLog('Validation error', 'Missing payment proof for transfer');
       setIsSubmitting(false);
+      return;
     }
+    
+    if (uploadedImage) {
+      data.paymentProof = uploadedImage;
+      debugLog('Payment proof attached', {
+        name: uploadedImage.name,
+        size: uploadedImage.size,
+        type: uploadedImage.type
+      });
+    }
+    
+    // Ensure the data includes the buyerData values
+    if (buyerData) {
+      data.buyerName = buyerData.name;
+      data.buyerPhone = buyerData.phone;
+      data.buyerCedula = buyerData.cedula || "";
+    }
+    
+    debugLog('Sending payment data to parent component', data);
+    console.log("🔄 Submitting payment with data:", {
+      buyerName: data.buyerName,
+      buyerPhone: data.buyerPhone,
+      buyerCedula: data.buyerCedula,
+      paymentMethod: data.paymentMethod
+    });
+    
+    onComplete(data);
+    setIsSubmitting(false);
+    resetForm();
   };
   
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -377,7 +171,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
   useEffect(() => {
     if (!isOpen) {
-      console.log("▶️ PaymentModal.tsx: Modal cerrado, reseteando formulario");
       resetForm();
     } else {
       debugLog('Modal opened', {
@@ -385,8 +178,26 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         price,
         buyerData
       });
+      
+      // When modal opens, update form with buyerData
+      if (buyerData) {
+        console.log("📦 Modal opened, updating form with buyer data:", buyerData);
+        form.setValue('buyerName', buyerData.name || "");
+        form.setValue('buyerPhone', buyerData.phone || "");
+        form.setValue('buyerCedula', buyerData.cedula || "");
+        
+        if (buyerData.direccion) {
+          form.setValue("direccion", buyerData.direccion);
+        }
+        
+        if (buyerData.sugerencia_producto) {
+          form.setValue("sugerenciaProducto", buyerData.sugerencia_producto);
+        }
+        
+        console.log("Form values after modal open:", form.getValues());
+      }
     }
-  }, [isOpen, selectedNumbers, price, form]);
+  }, [isOpen, selectedNumbers, price, buyerData, form]);
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>

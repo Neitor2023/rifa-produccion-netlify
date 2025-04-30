@@ -1,7 +1,9 @@
 
 /**
- * Formats a phone number to include international dialing code
- * with Ecuador's country code (+593) as default
+ * Formats a phone number to Ecuador's international format:
+ * - If starts with "0", removes it and adds "+593"
+ * - If starts with "+5930", replaces it with "+593"
+ * - If doesn't have a prefix, adds "+593"
  */
 export const formatPhoneNumber = (phone: string): string => {
   if (!phone) return "";
@@ -28,23 +30,4 @@ export const formatPhoneNumber = (phone: string): string => {
   }
   
   return cleanedPhone;
-};
-
-/**
- * Validates if a phone number appears to be in a valid format
- */
-export const isValidPhoneFormat = (phone: string): boolean => {
-  const formattedPhone = formatPhoneNumber(phone);
-  
-  // Check if the phone number has a reasonable length after formatting
-  if (formattedPhone.length < 8 || formattedPhone.length > 15) {
-    return false;
-  }
-  
-  // For Ecuador numbers specifically
-  if (formattedPhone.startsWith('+593') && formattedPhone.length !== 13) {
-    return false;
-  }
-  
-  return true;
 };

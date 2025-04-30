@@ -1,310 +1,218 @@
 
-import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ValidatedBuyerInfo } from '@/types/participant';
+import { formatPhoneNumber } from '@/utils/phoneUtils';
 
-export function useParticipantManager() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  /**
-   * Finds a participant by phone or cedula in a specific raffle
-   */
-  const findParticipant = async (
-    searchValue: string, 
-    raffleId?: string,
-    isPhone: boolean = true
-  ): Promise<ValidatedBuyerInfo | null> => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      console.log(`▶️ useParticipantManager.ts: Buscando participante por ${isPhone ? 'teléfono' : 'cédula'} ${searchValue} en la rifa ${raffleId}`);
-      
-      const field = isPhone ? 'phone' : 'cedula';
-      
-      const { data, error } = await supabase
-        .from('participants')
-        .select('id, name, phone, cedula, direccion, sugerencia_producto')
-        .eq(field, searchValue)
-        .maybeSingle();
-
-      if (error) {
-        console.error(`▶️ useParticipantManager.ts: Error al buscar participante:`, error);
-        setError(error.message);
-        return null;
-      }
-
-      if (data) {
-        console.log(`▶️ useParticipantManager.ts: Participante encontrado:`, data);
-        return data as ValidatedBuyerInfo;
-      } else {
-        console.log(`▶️ useParticipantManager.ts: No se encontró participante con ${field} ${searchValue}`);
-        return null;
-      }
-    } catch (err) {
-      console.error(`▶️ useParticipantManager.ts: Error inesperado:`, err);
-      setError(err instanceof Error ? err.message : 'Error desconocido');
-      return null;
-    } finally {
-      setIsLoading(false);
+export const useParticipantManager = ({ 
+  raffleId, 
+  debugMode = false, 
+  raffleSeller, 
+  setValidatedBuyerData 
+}: { 
+  raffleId: string;
+  debugMode?: boolean;
+  raffleSeller: any;
+  setValidatedBuyerData?: (data: ValidatedBuyerInfo) => void;
+}) => {
+  const debugLog = (context: string, data: any) => {
+    if (debugMode) {
+      console.log(`[DEBUG - ParticipantManager - ${context}]:`, data);
     }
   };
 
-  /**
-   * Creates a new participant
-   */
-  const createParticipant = async (
-    participantData: {
-      name: string;
-      phone: string;
-      cedula?: string;
-      email?: string;
-      raffle_id: string;
-      seller_id: string;
-      direccion?: string;
-      sugerencia_producto?: string;
-      nota?: string;
-    }
-  ): Promise<ValidatedBuyerInfo | null> => {
-    setIsLoading(true);
-    setError(null);
+  const findExistingParticipant = async (phone: string): Promise<ValidatedBuyerInfo & { id: string } | null> => {
+    const formattedPhone = formatPhoneNumber(phone);
+    debugLog('Finding participant with formatted phone', formattedPhone);
+    console.log("🔍 Looking for participant with formatted phone:", formattedPhone);
     
-    try {
-      console.log(`▶️ useParticipantManager.ts: Creando nuevo participante:`, participantData);
+    const { data, error } = await supabase
+      .from('participants')
+      .select('id, name, phone, cedula, direccion, sugerencia_producto')
+      .eq('phone', formattedPhone)
+      .eq('raffle_id', raffleId)
+      .maybeSingle();
       
-      // Ensure email is always present, even if it's an empty string
-      const dataToInsert = {
-        ...participantData,
-        email: participantData.email || ''
-      };
-
-      // Check if participant already exists with this phone
-      const { data: existingParticipant } = await supabase
-        .from('participants')
-        .select('id, name, phone, cedula, direccion, sugerencia_producto')
-        .eq('phone', participantData.phone)
-        .maybeSingle();
-        
-      if (existingParticipant) {
-        console.log(`▶️ useParticipantManager.ts: Participante ya existe, actualizando datos:`, existingParticipant);
-        
-        // Update the existing participant
-        const { error: updateError } = await supabase
-          .from('participants')
-          .update({
-            name: participantData.name,
-            cedula: participantData.cedula,
-            direccion: participantData.direccion,
-            sugerencia_producto: participantData.sugerencia_producto,
-            nota: participantData.nota,
-            email: participantData.email || '',
-            raffle_id: participantData.raffle_id,
-            seller_id: participantData.seller_id
-          })
-          .eq('id', existingParticipant.id);
-          
-        if (updateError) {
-          console.error(`▶️ useParticipantManager.ts: Error al actualizar participante:`, updateError);
-          throw updateError;
-        }
-        
-        return {
-          ...existingParticipant,
-          name: participantData.name,
-          cedula: participantData.cedula || existingParticipant.cedula,
-          direccion: participantData.direccion || existingParticipant.direccion,
-          sugerencia_producto: participantData.sugerencia_producto || existingParticipant.sugerencia_producto
+    if (error) {
+      console.error('Error searching for participant:', error);
+      return null;
+    }
+    
+    if (data) {
+      debugLog('Found existing participant', data);
+      console.log("✅ Found existing participant:", data);
+      
+      // Update the global validatedBuyerData state if the setter is provided
+      if (setValidatedBuyerData) {
+        const buyerInfo: ValidatedBuyerInfo = {
+          id: data.id,
+          name: data.name,
+          phone: data.phone,
+          cedula: data.cedula,
+          direccion: data.direccion,
+          sugerencia_producto: data.sugerencia_producto
         };
+        
+        console.log("🔄 Setting validatedBuyerData in findExistingParticipant:", buyerInfo);
+        setValidatedBuyerData(buyerInfo);
       }
-
-      // Create new participant if doesn't exist
-      const { data, error } = await supabase
-        .from('participants')
-        .insert(dataToInsert)
-        .select()
-        .maybeSingle();
-
-      if (error) {
-        console.error(`▶️ useParticipantManager.ts: Error al crear participante:`, error);
-        setError(error.message);
-        return null;
-      }
-
-      console.log(`▶️ useParticipantManager.ts: Participante creado exitosamente:`, data);
-      return data as ValidatedBuyerInfo;
-    } catch (err) {
-      console.error(`▶️ useParticipantManager.ts: Error inesperado:`, err);
-      setError(err instanceof Error ? err.message : 'Error desconocido');
-      return null;
-    } finally {
-      setIsLoading(false);
+      
+      return data as ValidatedBuyerInfo & { id: string };
     }
+    
+    console.log("❌ No participant found with phone:", formattedPhone);
+    return null;
   };
 
-  /**
-   * Updates an existing participant's information
-   */
-  const updateParticipant = async (
-    participantId: string,
-    updateData: {
-      email?: string;
+  const handleExistingParticipant = async (
+    participant: { 
+      id: string; 
+      name: string; 
+      phone?: string;
+      cedula?: string;
       direccion?: string;
-      raffle_id?: string;
-      seller_id?: string;
-      nota?: string;
       sugerencia_producto?: string;
-    }
-  ): Promise<boolean> => {
-    setIsLoading(true);
-    setError(null);
+    }, 
+    newName?: string, 
+    newCedula?: string,
+    newPhone?: string
+  ): Promise<string> => {
+    const updateData: any = {};
     
-    try {
-      console.log(`▶️ useParticipantManager.ts: Actualizando participante ${participantId}:`, updateData);
-      
-      // Clean undefined values
-      const cleanData = Object.fromEntries(
-        Object.entries(updateData).filter(([_, v]) => v !== undefined)
-      );
-      
-      if (Object.keys(cleanData).length === 0) {
-        console.log(`▶️ useParticipantManager.ts: No hay datos para actualizar`);
-        return true;
-      }
+    if (newName && newName !== participant.name) {
+      updateData.name = newName;
+    }
+    
+    if (newCedula && newCedula !== participant.cedula) {
+      updateData.cedula = newCedula;
+    }
 
+    if (newPhone) {
+      const formattedPhone = formatPhoneNumber(newPhone);
+      if (formattedPhone !== participant.phone) {
+        updateData.phone = formattedPhone;
+      }
+    }
+    
+    if (Object.keys(updateData).length > 0) {
+      console.log("📝 Updating participant data:", updateData);
       const { error } = await supabase
         .from('participants')
-        .update(cleanData)
-        .eq('id', participantId);
-
+        .update(updateData)
+        .eq('id', participant.id);
       if (error) {
-        console.error(`▶️ useParticipantManager.ts: Error al actualizar participante:`, error);
-        setError(error.message);
-        return false;
+        console.error('Error updating participant:', error);
+      } else {
+        console.log("✅ Participant updated successfully");
+        
+        // Update the global validatedBuyerData state with the updated participant info
+        if (setValidatedBuyerData) {
+          const buyerInfo: ValidatedBuyerInfo = {
+            id: participant.id,
+            name: newName || participant.name,
+            phone: newPhone ? formatPhoneNumber(newPhone) : participant.phone,
+            cedula: newCedula || participant.cedula,
+            direccion: participant.direccion,
+            sugerencia_producto: participant.sugerencia_producto
+          };
+          
+          console.log("🔄 Setting validatedBuyerData in handleExistingParticipant:", buyerInfo);
+          setValidatedBuyerData(buyerInfo);
+        }
       }
-
-      console.log(`▶️ useParticipantManager.ts: Participante actualizado exitosamente`);
-      return true;
-    } catch (err) {
-      console.error(`▶️ useParticipantManager.ts: Error inesperado:`, err);
-      setError(err instanceof Error ? err.message : 'Error desconocido');
-      return false;
-    } finally {
-      setIsLoading(false);
     }
-  };
-
-  /**
-   * Updates raffle numbers to sold status
-   */
-  const markNumbersAsSold = async (
-    numbers: string[],
-    raffleId: string, 
-    sellerId: string,
-    participantId: string,
-    participantData: {
-      name: string;
-      phone: string;
-      cedula?: string;
-    },
-    paymentProof?: string
-  ): Promise<boolean> => {
-    setIsLoading(true);
-    setError(null);
     
-    try {
-      console.log(`▶️ useParticipantManager.ts: Marcando números como vendidos:`, {
-        numbers,
-        raffleId,
-        sellerId,
-        participantId,
-        participantData
-      });
+    return participant.id;
+  };
 
-      // Process each number individually to handle the update or insert logic
-      const promises = numbers.map(async (num) => {
-        const numInt = parseInt(num);
-        
-        // First check if the number exists for this raffle
-        const { data: existingNumber, error: checkError } = await supabase
-          .from('raffle_numbers')
-          .select('id, status')
-          .eq('raffle_id', raffleId)
-          .eq('number', numInt)
-          .maybeSingle();
-        
-        if (checkError) {
-          console.error(`▶️ useParticipantManager.ts: Error al verificar número ${num}:`, checkError);
-          throw checkError;
-        }
-        
-        const updateData = {
-          status: 'sold',
-          participant_id: participantId,
-          seller_id: sellerId,
-          payment_approved: true,
-          payment_proof: paymentProof || null,
-          participant_name: participantData.name,
-          participant_phone: participantData.phone,
-          participant_cedula: participantData.cedula || null,
-          reservation_expires_at: null
-        };
-        
-        if (existingNumber) {
-          console.log(`▶️ useParticipantManager.ts: Actualizando número existente ${num}`, existingNumber);
-          
-          const { error: updateError } = await supabase
-            .from('raffle_numbers')
-            .update(updateData)
-            .eq('id', existingNumber.id);
-          
-          if (updateError) {
-            console.error(`▶️ useParticipantManager.ts: Error al actualizar número ${num}:`, updateError);
-            throw updateError;
-          }
-        } else {
-          console.log(`▶️ useParticipantManager.ts: Insertando nuevo número ${num} con upsert`);
-          
-          // Using upsert to avoid duplicate key errors
-          const { error: insertError } = await supabase
-            .from('raffle_numbers')
-            .upsert([{
-              raffle_id: raffleId,
-              number: numInt,
-              ...updateData
-            }], { 
-              onConflict: 'raffle_id,number'  // This is crucial for handling conflicts
-            });
-          
-          if (insertError) {
-            console.error(`▶️ useParticipantManager.ts: Error al insertar número ${num}:`, insertError);
-            throw insertError;
-          }
-        }
-        
-        return true;
-      });
+  const createNewParticipant = async (phone: string, name?: string, cedula?: string): Promise<string | null> => {
+    if (!name) return null;
+    
+    const formattedPhone = formatPhoneNumber(phone);
+    debugLog('Creating new participant', { 
+      name, 
+      formattedPhone, 
+      cedula, 
+      raffle_id: raffleId, 
+      seller_id: raffleSeller?.seller_id 
+    });
+    
+    console.log("🆕 Creating new participant:", { 
+      name, 
+      formattedPhone, 
+      cedula, 
+      raffle_id: raffleId
+    });
+    
+    const { data, error } = await supabase
+      .from('participants')
+      .insert({
+        name,
+        phone: formattedPhone,
+        email: '',
+        cedula: cedula || null,
+        raffle_id: raffleId,
+        seller_id: raffleSeller?.seller_id
+        // nota field is removed as per requirements
+      })
+      .select('id, name, phone, cedula')
+      .single();
       
-      await Promise.all(promises);
+    if (error) {
+      toast.error('Error al crear participante: ' + error.message);
+      console.error("❌ Error creating participant:", error);
+      return null;
+    }
+    
+    debugLog('New participant created with ID', data?.id);
+    console.log("✅ New participant created with ID:", data?.id);
+    
+    // Update the global validatedBuyerData state with the new participant
+    if (data && setValidatedBuyerData) {
+      const buyerInfo: ValidatedBuyerInfo = {
+        id: data.id,
+        name: data.name,
+        phone: data.phone,
+        cedula: data.cedula
+      };
       
-      console.log(`▶️ useParticipantManager.ts: Todos los números marcados como vendidos exitosamente`);
-      return true;
-    } catch (err) {
-      console.error(`▶️ useParticipantManager.ts: Error inesperado:`, err);
-      setError(err instanceof Error ? err.message : 'Error desconocido');
-      return false;
-    } finally {
-      setIsLoading(false);
+      console.log("🔄 Setting validatedBuyerData in createNewParticipant:", buyerInfo);
+      setValidatedBuyerData(buyerInfo);
+    }
+    
+    return data?.id || null;
+  };
+
+  const findOrCreateParticipant = async (phone: string, name?: string, cedula?: string) => {
+    try {
+      debugLog('findOrCreateParticipant input', { phone, name, cedula, raffle_id: raffleId });
+      console.log("🔄 findOrCreateParticipant called with:", { phone, name, cedula });
+      
+      const existingParticipant = await findExistingParticipant(phone);
+      
+      if (existingParticipant) {
+        console.log("🔄 Using existing participant:", existingParticipant);
+        return handleExistingParticipant(
+          existingParticipant, 
+          name, 
+          cedula, 
+          phone
+        );
+      }
+      
+      console.log("🔄 No existing participant found, creating new one");
+      return createNewParticipant(phone, name, cedula);
+    } catch (error) {
+      console.error('Error in findOrCreateParticipant:', error);
+      toast.error('Error al buscar o crear participante: ' + (error.message || 'Error desconocido'));
+      return null;
     }
   };
 
-  return {
-    isLoading,
-    error,
-    findParticipant,
-    createParticipant,
-    updateParticipant,
-    markNumbersAsSold
+  return { 
+    findOrCreateParticipant, 
+    findExistingParticipant, 
+    createNewParticipant,
+    formatPhoneNumber 
   };
-}
+};
