@@ -414,7 +414,7 @@ const VentaBoletos: React.FC = () => {
       {prizes.length > 0 && (
         <section className="mb-8">
           <h2 className="text-xl font-bold mb-4 text-center text-gray-800 dark:text-gray-100">
-            Premios XXX
+            Premios
           </h2>
           <PrizeCarousel prizes={prizes} onViewDetails={handlePrizeClick} />
         </section>
