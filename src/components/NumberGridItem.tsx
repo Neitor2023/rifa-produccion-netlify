@@ -45,7 +45,7 @@ const NumberGridItem: React.FC<NumberGridItemProps> = ({
   };
 
   // Determine if the number is clickable - sold numbers should never be clickable
-  const isClickable = status === 'available' || isHighlighted || (status === 'reserved' && isHighlighted);
+  const isClickable = status !== 'sold' && (status === 'available' || isHighlighted || (status === 'reserved' && isHighlighted));
 
   // Logging for sold numbers
   React.useEffect(() => {
@@ -54,10 +54,19 @@ const NumberGridItem: React.FC<NumberGridItemProps> = ({
     }
   }, [status, number]);
 
+  const handleClick = () => {
+    if (status === 'sold') {
+      console.log(`NumberGrid.tsx: ⚠️ Intento de seleccionar número vendido:`, number);
+      console.log(`NumberGrid.tsx: ✅ Selección de número vendido bloqueada:`, number);
+      return;
+    }
+    onToggle();
+  };
+
   return (
     <div 
       className={getClassNames()} 
-      onClick={isClickable ? onToggle : undefined}
+      onClick={isClickable ? handleClick : undefined}
       role="button"
       tabIndex={isClickable ? 0 : -1}
       aria-disabled={!isClickable}

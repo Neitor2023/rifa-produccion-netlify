@@ -41,10 +41,9 @@ const GridRenderer: React.FC<GridRendererProps> = ({
             isSelected={isSelected}
             isHighlighted={isHighlighted}
             onToggle={() => {
-              // Block selection of sold numbers
               if (status === 'sold') {
-                console.log(`▶️ GridRenderer.tsx: ⚠️ Intento de seleccionar número vendido '${paddedNum}'`);
-                console.log("▶️ GridRenderer.tsx: ✅ Selección de número vendido bloqueada");
+                console.log(`NumberGrid.tsx: ⚠️ Intento de seleccionar número vendido:`, paddedNum);
+                console.log(`NumberGrid.tsx: ✅ Selección de número vendido bloqueada:`, paddedNum);
                 return;
               }
               onToggle(paddedNum, status);
