@@ -76,6 +76,13 @@ const GridLayout: React.FC<GridLayoutProps> = ({
           isSelected={isSelected}
           isHighlighted={isHighlighted}
           onToggle={() => {
+            // Log attempt to select sold numbers
+            if (status === 'sold') {
+              console.log(`▶️ GridLayout.tsx: ⚠️ Intento de seleccionar número vendido '${paddedNum}'`);
+              console.log("▶️ GridLayout.tsx: ✅ Selección de número vendido bloqueada");
+              return; // Block selection of sold numbers
+            }
+            
             if (highlightReserved && status === 'reserved') {
               console.log("▶️ GridLayout.tsx: Número reservado seleccionado:", paddedNum);
               toggleNumber(paddedNum, status);

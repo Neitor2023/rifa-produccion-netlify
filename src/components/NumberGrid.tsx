@@ -108,7 +108,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     console.log(`▶️ NumberGrid.tsx: toggleNumber llamado con:`, { number, status, highlightReserved });
     
     if (status === 'sold') {
-      console.log(`▶️ NumberGrid.tsx: Intento de seleccionar número vendido ${number}, operación ignorada`);
+      console.log(`▶️ NumberGrid.tsx: ⚠️ Intento de seleccionar número vendido '${number}'`);
+      console.log(`▶️ NumberGrid.tsx: ✅ Selección de número vendido bloqueada`);
       return;
     }
     

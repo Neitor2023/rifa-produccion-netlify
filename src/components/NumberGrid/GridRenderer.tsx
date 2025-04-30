@@ -32,6 +32,7 @@ const GridRenderer: React.FC<GridRendererProps> = ({
         const status = n ? n.status : 'available';
         const isSelected = selectedNumbers.includes(paddedNum);
         const isHighlighted = highlightReserved && status === 'reserved';
+        
         rowItems.push(
           <NumberGridItem
             key={paddedNum}
@@ -39,7 +40,15 @@ const GridRenderer: React.FC<GridRendererProps> = ({
             status={status}
             isSelected={isSelected}
             isHighlighted={isHighlighted}
-            onToggle={() => onToggle(paddedNum, status)}
+            onToggle={() => {
+              // Block selection of sold numbers
+              if (status === 'sold') {
+                console.log(`▶️ GridRenderer.tsx: ⚠️ Intento de seleccionar número vendido '${paddedNum}'`);
+                console.log("▶️ GridRenderer.tsx: ✅ Selección de número vendido bloqueada");
+                return;
+              }
+              onToggle(paddedNum, status);
+            }}
           />
         );
       }

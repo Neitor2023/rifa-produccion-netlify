@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 interface NumberGridItemProps {
@@ -43,7 +44,15 @@ const NumberGridItem: React.FC<NumberGridItemProps> = ({
     return `${baseClasses} cursor-pointer`;
   };
 
+  // Determine if the number is clickable - sold numbers should never be clickable
   const isClickable = status === 'available' || isHighlighted || (status === 'reserved' && isHighlighted);
+
+  // Logging for sold numbers
+  React.useEffect(() => {
+    if (status === 'sold') {
+      console.log(`▶️ NumberGridItem.tsx: Número ${number} está vendido y no seleccionable`);
+    }
+  }, [status, number]);
 
   return (
     <div 
