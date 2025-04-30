@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface NumberGridItemProps {
@@ -17,31 +16,42 @@ const NumberGridItem: React.FC<NumberGridItemProps> = ({
   onToggle 
 }) => {
   const getClassNames = () => {
-    const baseClasses = 'number-grid-item flex items-center justify-center border rounded-md h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 cursor-pointer text-sm font-medium transition-colors duration-150';
+    const baseClasses = 'number-grid-item flex items-center justify-center border rounded-md h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 text-sm font-medium transition-colors duration-150';
     
-    if (status !== 'available' && !isHighlighted) {
+    // Sold numbers should be disabled and styled differently
+    if (status === 'sold') {
+      return `${baseClasses} bg-gray-200 dark:bg-gray-700 cursor-not-allowed text-gray-500 dark:text-gray-400 opacity-60`;
+    }
+    
+    // Other unavailable numbers
+    if (status !== 'available' && status !== 'reserved' && !isHighlighted) {
       return `${baseClasses} bg-gray-100 dark:bg-gray-700 cursor-not-allowed text-gray-500 dark:text-gray-400`;
     }
     
     if (isSelected) {
-      return `${baseClasses} bg-rifa-purple text-white dark:bg-purple-700 dark:text-white border-rifa-purple dark:border-purple-600`;
+      return `${baseClasses} bg-rifa-purple text-white dark:bg-purple-700 dark:text-white border-rifa-purple dark:border-purple-600 cursor-pointer`;
     }
     
     if (isHighlighted) {
-      return `${baseClasses} bg-amber-300 text-amber-950 border-amber-500 hover:bg-amber-400`;
+      return `${baseClasses} bg-amber-300 text-amber-950 border-amber-500 hover:bg-amber-400 cursor-pointer`;
     }
     
     if (status === 'available') {
-      return `${baseClasses} bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200`;
+      return `${baseClasses} bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 cursor-pointer`;
     }
     
-    return baseClasses;
+    return `${baseClasses} cursor-pointer`;
   };
+
+  const isClickable = status === 'available' || isHighlighted || (status === 'reserved' && isHighlighted);
 
   return (
     <div 
       className={getClassNames()} 
-      onClick={status === 'available' || isHighlighted ? onToggle : undefined}
+      onClick={isClickable ? onToggle : undefined}
+      role="button"
+      tabIndex={isClickable ? 0 : -1}
+      aria-disabled={!isClickable}
     >
       {number}
     </div>

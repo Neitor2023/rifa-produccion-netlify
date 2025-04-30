@@ -34,7 +34,7 @@ const MobileCarousel: React.FC<MobileCarouselProps> = ({
   const [isDebugModalOpen, setIsDebugModalOpen] = useState(false);
   const [debugData, setDebugData] = useState<any>(null);
   
-  console.log("▶️ MobileCarousel.tsx: Rendering with", images.length, "images");
+  console.log("▶️ MobileCarousel.tsx: Renderizando con", images.length, "imágenes");
   
   // Check for debug mode
   useEffect(() => {
@@ -48,7 +48,7 @@ const MobileCarousel: React.FC<MobileCarouselProps> = ({
         
         setDebugMode(data?.modal === 'programador');
       } catch (error) {
-        console.error('Error checking debug mode:', error);
+        console.error('▶️ MobileCarousel.tsx: Error al verificar modo debug:', error);
       }
     };
     
@@ -57,153 +57,135 @@ const MobileCarousel: React.FC<MobileCarouselProps> = ({
   
   // Function to handle API setup
   const handleApiChange = (api: any) => {
-    console.log("▶️ MobileCarousel.tsx: Carousel API initialized");
+    console.log("▶️ MobileCarousel.tsx: API de carrusel inicializada");
     carouselApiRef.current = api;
     
     // Add event listener for slide changes
     if (api && onSlideChange) {
       api.on('select', () => {
         const index = api.selectedScrollSnap();
-        console.log("▶️ MobileCarousel.tsx: Slide changed to index:", index);
-        onSlideChange(index);
+        console.log("▶️ MobileCarousel.tsx: Cambio de slide a índice:", index);
         
-        if (debugMode) {
-          setDebugData({
-            event: 'carousel-select',
-            selectedIndex: index,
-            carouselApi: {
-              selectedScrollSnap: api.selectedScrollSnap(),
-              containScroll: api.options.containScroll,
-              slidesInView: api.slidesInView(),
-              canScrollNext: api.canScrollNext(),
-              canScrollPrev: api.canScrollPrev()
-            }
-          });
+        if (index !== lastIndexRef.current) {
+          lastIndexRef.current = index;
+          onSlideChange(index);
         }
       });
     }
   };
   
-  // Function to programmatically scroll to a specific index
+  // Update carousel position when currentIndex changes externally
   useEffect(() => {
-    if (carouselApiRef.current && typeof currentIndex === 'number') {
-      const api = carouselApiRef.current;
-      
-      console.log("▶️ MobileCarousel.tsx: Trying to scroll to index:", currentIndex, 
-        "totalImages:", images.length, 
-        "hasApi:", !!api);
-      
-      if (api && api.scrollTo) {
-        // Use requestAnimationFrame to ensure the carousel API is fully initialized
-        requestAnimationFrame(() => {
-          api.scrollTo(currentIndex, false);
-          lastIndexRef.current = currentIndex;
-          console.log("▶️ MobileCarousel.tsx: Scrolled to index", currentIndex);
-        });
-      }
+    if (carouselApiRef.current && lastIndexRef.current !== currentIndex) {
+      console.log("▶️ MobileCarousel.tsx: Actualizando posición a índice:", currentIndex);
+      carouselApiRef.current.scrollTo(currentIndex);
+      lastIndexRef.current = currentIndex;
     }
-  }, [currentIndex, images.length]);
-
-  // Debug handler for image click
-  const handleImageClick = (index: number) => {
+  }, [currentIndex]);
+  
+  // If no images, display fallback or nothing
+  if ((!images || images.length === 0) && !fallbackImage) {
+    console.log("▶️ MobileCarousel.tsx: No hay imágenes para mostrar");
+    return null;
+  }
+  
+  // Prepare array with fallback if needed
+  const displayImages = images.length > 0 
+    ? images 
+    : fallbackImage 
+      ? [{ displayUrl: fallbackImage }] 
+      : [];
+      
+  console.log("▶️ MobileCarousel.tsx: Mostrando carrusel con", displayImages.length, "imágenes");
+  
+  if (displayImages.length === 0) {
+    return null;
+  }
+  
+  // Create debug button and modal if in debug mode
+  const renderDebugButton = () => {
     if (debugMode) {
-      setIsDebugModalOpen(true);
-      setDebugData({
-        event: 'image-click',
-        clickedIndex: index,
-        currentPropIndex: currentIndex,
-        lastTrackedIndex: lastIndexRef.current,
-        carouselState: carouselApiRef.current ? {
-          selectedScrollSnap: carouselApiRef.current.selectedScrollSnap(),
-          slidesInView: carouselApiRef.current.slidesInView(),
-        } : 'API not initialized',
-        totalImages: images.length,
-        hasCarouselApi: !!carouselApiRef.current
-      });
+      return (
+        <>
+          <button 
+            className="absolute bottom-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded z-20"
+            onClick={() => {
+              setDebugData({
+                images: displayImages,
+                currentIndex,
+                fallbackImage,
+                isMobileView: isMobile
+              });
+              setIsDebugModalOpen(true);
+            }}
+          >
+            Debug
+          </button>
+          
+          <DebugModal
+            isOpen={isDebugModalOpen}
+            onClose={() => setIsDebugModalOpen(false)}
+            data={debugData}
+            title="Datos del Carrusel Móvil"
+          />
+        </>
+      );
     }
+    return null;
   };
-  
-  // Log all image URLs in the carousel
-  useEffect(() => {
-    if (images.length > 0) {
-      console.log("▶️ MobileCarousel.tsx: Image URLs in carousel:", 
-        images.map((img, idx) => ({ 
-          index: idx, 
-          url: img.displayUrl 
-        })));
-    } else if (fallbackImage) {
-      console.log("▶️ MobileCarousel.tsx: Using fallback image:", fallbackImage);
-    }
-  }, [images, fallbackImage]);
-  
+
   return (
-    <div className="md:hidden mb-4 relative">
+    <div className="relative mb-6 block md:hidden">
+      {renderDebugButton()}
+      
       <Carousel 
-        className="w-full mx-auto" 
-        opts={{ 
-          loop: true, 
-          align: "center",
-          startIndex: currentIndex
-        }}
         setApi={handleApiChange}
+        opts={{
+          align: "center",
+          loop: displayImages.length > 1
+        }}
+        className="w-full"
       >
-        <CarouselContent className="-ml-0 md:-ml-0">
-          {images.length > 0 ? 
-            images.map((image, index) => (
-              <CarouselItem key={index} className="pl-0 basis-[85%] ml-0">
-                <div className="p-1">
-                  <div 
-                    className="h-[400px] overflow-hidden rounded-lg"
-                    onClick={() => handleImageClick(index)}
-                  >
-                    <PrizeImage
-                      src={image.displayUrl}
-                      alt={`${imageTitle} - Image ${index + 1}`}
-                      className="h-[400px] object-contain mx-auto"
-                    />
-                  </div>
-                </div>
-              </CarouselItem>
-            )) : 
-            fallbackImage && (
-              <CarouselItem className="pl-0 basis-full ml-0">
-                <div className="p-1">
-                  <div className="h-[400px] overflow-hidden rounded-lg">
-                    <PrizeImage 
-                      src={fallbackImage} 
-                      alt={imageTitle}
-                      className="h-[400px] object-contain mx-auto"
-                    />
-                  </div>
-                </div>
-              </CarouselItem>
-            )
-          }
+        <CarouselContent>
+          {displayImages.map((image, index) => (
+            <CarouselItem key={index} className="flex justify-center">
+              <div className="w-full h-[300px] overflow-hidden bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+                <PrizeImage
+                  src={image.displayUrl}
+                  alt={`${imageTitle} - ${index + 1}`}
+                  className="h-full object-contain"
+                />
+              </div>
+            </CarouselItem>
+          ))}
         </CarouselContent>
-        {images.length > 1 && (
+        
+        {displayImages.length > 1 && (
           <>
-            <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 dark:bg-gray-800/80 opacity-70 hover:opacity-100 shadow-md" />
-            <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 dark:bg-gray-800/80 opacity-70 hover:opacity-100 shadow-md" />
+            <CarouselPrevious className="left-1" />
+            <CarouselNext className="right-1" />
           </>
         )}
+        
+        {/* Pagination indicators */}
+        {displayImages.length > 1 && (
+          <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
+            {displayImages.map((_, index) => (
+              <div 
+                key={index}
+                className={`h-2 w-2 rounded-full cursor-pointer ${
+                  index === currentIndex ? 'bg-white' : 'bg-white/50'
+                }`}
+                onClick={() => {
+                  if (carouselApiRef.current) {
+                    carouselApiRef.current.scrollTo(index);
+                  }
+                }}
+              />
+            ))}
+          </div>
+        )}
       </Carousel>
-      
-      {/* Instructional text for mobile users */}
-      {images.length > 1 && (
-        <p className="text-sm text-left text-muted-foreground mt-2 mb-4 px-0">
-          🧭 Deslice hacia los lados para ver más
-        </p>
-      )}
-      
-      {/* Debug modal */}
-      {debugMode && (
-        <DebugModal
-          isOpen={isDebugModalOpen}
-          onClose={() => setIsDebugModalOpen(false)}
-          data={debugData}
-          title="🛠️ Mobile Carousel Debug"
-        />
-      )}
     </div>
   );
 };

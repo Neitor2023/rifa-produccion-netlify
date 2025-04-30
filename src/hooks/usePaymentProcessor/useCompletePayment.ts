@@ -1,7 +1,7 @@
 
-import { PaymentFormData } from '@/components/PaymentModal';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { handleError } from './errorHandling';
+import { supabase } from '@/integrations/supabase/client';
 
 export function useCompletePayment({
   raffleSeller,
@@ -25,109 +25,132 @@ export function useCompletePayment({
     }
   };
 
-  return async (data: PaymentFormData) => {
-    console.log("▶️ useCompletePayment.ts: handleCompletePayment llamado con datos:", {
-      buyerName: data.buyerName,
-      buyerPhone: data.buyerPhone,
-      buyerCedula: data.buyerCedula,
-      paymentMethod: data.paymentMethod
-    });
-    
-    if (!raffleSeller?.seller_id) {
-      toast.error('Información del vendedor no disponible');
-      return;
-    }
-    
+  return async (formData) => {
+    console.log("▶️ useCompletePayment.ts: handleCompletePayment llamado con datos:", formData);
+
     try {
-      debugLog('Complete Payment - starting', {
-        selectedNumbers,
-        data,
-        sellerId: raffleSeller.seller_id
-      });
-      
+      // First validate max numbers allowed
       if (!(await validateSellerMaxNumbers(selectedNumbers.length))) {
         return;
       }
-      
-      const paymentProofUrl = await uploadPaymentProof(data.paymentProof);
-      console.log("▶️ useCompletePayment.ts: URL del comprobante de pago:", paymentProofUrl);
-      
-      let participantId: string | null;
-      
-      if (validatedBuyerData?.id) {
-        participantId = validatedBuyerData.id;
-        console.log("▶️ useCompletePayment.ts: Usando ID de participante existente:", participantId);
-      } else {
-        participantId = await processParticipant(data);
-        console.log("▶️ useCompletePayment.ts: Creado nuevo participante con ID:", participantId);
+
+      // Upload payment proof if provided
+      let paymentProofUrl = null;
+      if (formData.paymentMethod === 'transfer' && formData.paymentProof) {
+        paymentProofUrl = await uploadPaymentProof(formData.paymentProof);
+        debugLog('Payment proof uploaded', paymentProofUrl);
       }
-      
+
+      // Handle participant data
+      const participantId = await processParticipant({
+        validatedBuyerData,
+        formData,
+        raffleId,
+        sellerId: raffleSeller.seller_id
+      });
+
       if (!participantId) {
-        toast.error('Error al procesar la información del participante');
-        return;
+        throw new Error("No se pudo procesar el participante");
       }
-      
-      await updateNumbersToSold(selectedNumbers, participantId, paymentProofUrl);
-      console.log("▶️ useCompletePayment.ts: Números actualizados a estado vendido");
-      
-      setPaymentData({
-        ...data,
-        paymentProof: paymentProofUrl
+
+      // Update numbers to sold status
+      await updateNumbersToSold({
+        numbers: selectedNumbers,
+        raffleId,
+        sellerId: raffleSeller.seller_id,
+        participantId,
+        formData,
+        buyerData: validatedBuyerData,
+        paymentProofUrl
       });
       
-      if (data.reporteSospechoso) {
-        const { data: existingReport } = await supabase
-          .from('fraud_reports')
-          .select('id')
-          .match({
-            participant_id: participantId,
-            raffle_id: raffleId,
-            seller_id: raffleSeller.seller_id
-          })
-          .maybeSingle();
-        
-        if (!existingReport) {
-          console.log("▶️ useCompletePayment.ts: Creando nuevo reporte de fraude");
-          const { error: fraudError } = await supabase
-            .from('fraud_reports')
-            .insert({
-              raffle_id: raffleId,
-              seller_id: raffleSeller.seller_id,
-              participant_id: participantId,
-              mensaje: data.reporteSospechoso,
-              estado: 'pendiente'
-            });
-
-          if (fraudError) {
-            console.error('▶️ useCompletePayment.ts: Error al guardar reporte de fraude:', fraudError);
-          }
-        } else {
-          console.log("▶️ useCompletePayment.ts: Actualizando reporte de fraude existente:", existingReport.id);
-          const { error: updateError } = await supabase
-            .from('fraud_reports')
-            .update({ 
-              mensaje: data.reporteSospechoso,
-              estado: 'pendiente'
-            })
-            .eq('id', existingReport.id);
-            
-          if (updateError) {
-            console.error('▶️ useCompletePayment.ts: Error al actualizar reporte de fraude:', updateError);
-          }
-        }
+      // Process fraud report if provided
+      if (formData.reporteSospechoso && formData.reporteSospechoso.trim() !== '') {
+        await processFraudReport({
+          participantId,
+          raffleId,
+          sellerId: raffleSeller.seller_id,
+          mensaje: formData.reporteSospechoso
+        });
       }
+
+      // Success - complete payment flow
+      console.log("▶️ useCompletePayment.ts: Pago completado exitosamente");
+      toast.success("Pago completado exitosamente");
       
+      // Set payment data
+      if (paymentProofUrl) {
+        formData.paymentProof = paymentProofUrl;
+      }
+
+      // Set payment data for voucher
+      setPaymentData(formData);
+      
+      // Close payment modal and open voucher
       setIsPaymentModalOpen(false);
       setIsVoucherOpen(true);
+      
+      // Reset selected numbers in the grid
       resetSelection();
       
-      console.log("▶️ useCompletePayment.ts: Proceso de pago completado exitosamente");
-      toast.success('Pago completado exitosamente');
       return true;
-    } catch (error) {
-      console.error('▶️ useCompletePayment.ts: Error al completar el pago:', error);
-      toast.error('Error al completar el pago');
-      throw error;
+    } catch (error: any) {
+      handleError('Error al completar el pago:', error);
+      return false;
     }
   };
+  
+  async function processFraudReport({ participantId, raffleId, sellerId, mensaje }) {
+    try {
+      console.log("▶️ useCompletePayment.ts: Procesando reporte de actividad sospechosa");
+        
+      // Check if a report already exists
+      const { data: existingReport } = await supabase
+        .from('fraud_reports')
+        .select('id')
+        .match({
+          participant_id: participantId,
+          raffle_id: raffleId,
+          seller_id: sellerId,
+          estado: 'pendiente'
+        })
+        .maybeSingle();
+      
+      if (existingReport) {
+        console.log("▶️ useCompletePayment.ts: Actualizando reporte existente:", existingReport.id);
+        
+        // Update existing report
+        const { error: updateError } = await supabase
+          .from('fraud_reports')
+          .update({
+            mensaje: mensaje,
+            estado: 'pendiente'
+          })
+          .eq('id', existingReport.id);
+        
+        if (updateError) {
+          console.error("▶️ useCompletePayment.ts: Error al actualizar reporte de fraude:", updateError);
+        }
+      } else {
+        console.log("▶️ useCompletePayment.ts: Creando nuevo reporte de fraude");
+        
+        // Create new fraud report
+        const { error: fraudError } = await supabase
+          .from('fraud_reports')
+          .insert({
+            raffle_id: raffleId,
+            seller_id: sellerId,
+            participant_id: participantId,
+            mensaje: mensaje,
+            estado: 'pendiente'
+          });
+
+        if (fraudError) {
+          console.error('▶️ useCompletePayment.ts: Error al guardar reporte de fraude:', fraudError);
+        }
+      }
+    } catch (error) {
+      console.error("▶️ useCompletePayment.ts: Error en procesamiento de reporte:", error);
+    }
+  }
 }

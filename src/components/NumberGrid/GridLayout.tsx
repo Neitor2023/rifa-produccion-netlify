@@ -1,6 +1,7 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import NumberGridItem from '../NumberGridItem';
+import { toast } from 'sonner';
 
 interface RaffleNumber {
   id: string;
@@ -21,7 +22,7 @@ interface GridLayoutProps {
   selectedNumbers: string[];
   highlightReserved: boolean;
   toggleNumber: (number: string, status: string) => void;
-  onPayReserved: (number: string) => void;  
+  onPayReserved: () => void;  
 }
 
 const GridLayout: React.FC<GridLayoutProps> = ({
@@ -31,7 +32,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
   toggleNumber,
   onPayReserved,
 }) => {
-  // Al principio de GridLayout, justo tras los props:
+  // Create a map of number to raffle number object for easy lookup
   const numberMap = React.useMemo(
     () => Object.fromEntries(numbers.map(n => [n.number, n])),
     [numbers]
@@ -39,8 +40,22 @@ const GridLayout: React.FC<GridLayoutProps> = ({
 
   // Log when highlightReserved changes
   React.useEffect(() => {
-    console.log("📊 GridLayout - highlightReserved changed:", highlightReserved);
+    console.log("▶️ GridLayout.tsx: Estado de highlightReserved cambiado:", highlightReserved);
   }, [highlightReserved]);
+  
+  // Check if there are any reserved numbers
+  const hasReservedNumbers = React.useMemo(() => {
+    const reserved = numbers.filter(n => n.status === 'reserved');
+    console.log(`▶️ GridLayout.tsx: Hay ${reserved.length} números reservados`);
+    return reserved.length > 0;
+  }, [numbers]);
+  
+  // Show instructional toast when highlight mode is active
+  React.useEffect(() => {
+    if (highlightReserved && hasReservedNumbers) {
+      toast.info("Seleccione su número apartado para seguir el proceso de pago");
+    }
+  }, [highlightReserved, hasReservedNumbers]);
 
   const grid = [];
   for (let row = 0; row < 10; row++) {
@@ -62,11 +77,10 @@ const GridLayout: React.FC<GridLayoutProps> = ({
           isHighlighted={isHighlighted}
           onToggle={() => {
             if (highlightReserved && status === 'reserved') {
-              // Directly call toggleNumber instead of onPayReserved
-              console.log("▶️ src/components/NumberGrid/GridLayout.tsx: pulsado reservado:", paddedNum);
+              console.log("▶️ GridLayout.tsx: Número reservado seleccionado:", paddedNum);
               toggleNumber(paddedNum, status);
-            } else {
-              // Lógica normal de selección
+            } else if (status === 'available') {
+              // Normal selection logic
               toggleNumber(paddedNum, status);
             }
           }}          
@@ -81,7 +95,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
     );
   }
   
-  console.log('📊 GridLayout - highlightReserved:', highlightReserved);
+  console.log('▶️ GridLayout.tsx: Estado de resaltado de reservados:', highlightReserved);
   return (
     <div className="flex flex-col gap-1 sm:gap-2 min-w-fit">
       {grid}

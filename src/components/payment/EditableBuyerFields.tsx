@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { UseFormReturn } from "react-hook-form";
+import { UseFormReturn } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PaymentFormData } from '../PaymentModal';
@@ -9,12 +9,13 @@ interface EditableBuyerFieldsProps {
   form: UseFormReturn<PaymentFormData>;
 }
 
+// This component shows editable buyer data fields when we don't have validated information
 const EditableBuyerFields: React.FC<EditableBuyerFieldsProps> = ({ form }) => {
-  console.log("▶️ EditableBuyerFields.tsx: Rendering editable buyer fields");
-  
+  console.log("▶️ EditableBuyerFields.tsx: Mostrando campos editables para el comprador");
+
   return (
-    <div>
-      <h3 className="font-medium mb-3 text-gray-900 dark:text-gray-100">Información del Comprador</h3>
+    <div className="mb-6">
+      <h3 className="font-medium mb-3 text-gray-800 dark:text-gray-200">Información del Comprador</h3>
       <div className="grid grid-cols-1 gap-4">
         <FormField
           control={form.control}
@@ -23,13 +24,16 @@ const EditableBuyerFields: React.FC<EditableBuyerFieldsProps> = ({ form }) => {
             <FormItem>
               <FormLabel>Nombre</FormLabel>
               <FormControl>
-                <Input placeholder="Ingrese su nombre" {...field} />
+                <Input
+                  placeholder="Nombre completo"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="buyerPhone"
@@ -37,7 +41,11 @@ const EditableBuyerFields: React.FC<EditableBuyerFieldsProps> = ({ form }) => {
             <FormItem>
               <FormLabel>Teléfono</FormLabel>
               <FormControl>
-                <Input placeholder="Ingrese su teléfono" type="tel" {...field} />
+                <Input
+                  type="tel"
+                  placeholder="Ej: 0991234567"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -49,15 +57,18 @@ const EditableBuyerFields: React.FC<EditableBuyerFieldsProps> = ({ form }) => {
           name="buyerCedula"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Cédula</FormLabel>
+              <FormLabel>Cédula/DNI</FormLabel>
               <FormControl>
-                <Input placeholder="Ingrese su cédula" {...field} value={field.value || ''} />
+                <Input
+                  placeholder="Número de documento"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-
+        
         <FormField
           control={form.control}
           name="buyerEmail"
@@ -65,7 +76,11 @@ const EditableBuyerFields: React.FC<EditableBuyerFieldsProps> = ({ form }) => {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="Ingrese su email" type="email" {...field} />
+                <Input
+                  type="email"
+                  placeholder="correo@ejemplo.com"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

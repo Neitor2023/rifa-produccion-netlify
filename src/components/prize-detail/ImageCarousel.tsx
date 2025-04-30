@@ -19,10 +19,10 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
   onNext,
   imageTitle
 }) => {
-  console.log("▶️ ImageCarousel.tsx: Rendering desktop carousel with", images.length, "images at index", currentIndex);
+  console.log("▶️ ImageCarousel.tsx: Renderizando carrusel desktop con", images.length, "imágenes en índice", currentIndex);
   
   if (!images || images.length === 0) {
-    console.log("▶️ ImageCarousel.tsx: No images to display");
+    console.log("▶️ ImageCarousel.tsx: No hay imágenes para mostrar");
     return null;
   }
 
@@ -31,11 +31,11 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
   const currentImage = images[safeIndex];
   
   if (!currentImage || !currentImage.displayUrl) {
-    console.log("▶️ ImageCarousel.tsx: Current image or URL is null at index", safeIndex);
+    console.log("▶️ ImageCarousel.tsx: Imagen actual o URL es null en índice", safeIndex);
     return null;
   }
   
-  console.log("▶️ ImageCarousel.tsx: Displaying image:", currentImage.displayUrl);
+  console.log("▶️ ImageCarousel.tsx: Mostrando imagen:", currentImage.displayUrl);
 
   return (
     <div className="relative mb-6 hidden md:block">

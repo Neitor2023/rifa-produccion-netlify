@@ -63,12 +63,19 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const [selectedReservedNumber, setSelectedReservedNumber] = useState<string | null>(null);
   const [buyerData, setBuyerData] = useState<ValidatedBuyerInfo | null>(null);
   const [validatedBuyerInfo, setValidatedBuyerInfo] = useState<ValidatedBuyerInfo | null>(null);
+  const [hasReservedNumbers, setHasReservedNumbers] = useState(false);
 
-  console.log('▶️ NumberGrid.tsx: Renderizado el componente NumberGrid con highlightReserved:', highlightReserved);
+  console.log('▶️ NumberGrid.tsx: Renderizando el componente NumberGrid con highlightReserved:', highlightReserved);
+  
+  // Check if there are any reserved numbers
+  useEffect(() => {
+    const reservedCount = numbers.filter(n => n.status === 'reserved').length;
+    setHasReservedNumbers(reservedCount > 0);
+    console.log(`▶️ NumberGrid.tsx: Hay ${reservedCount} números reservados`);
+  }, [numbers]);
   
   const handlePayReserved = () => {
     console.log('▶️ NumberGrid.tsx: handlePayReserved llamado');
-    console.log('▶️ NumberGrid.tsx: highlightReserved antes de establecer:', highlightReserved);
     
     if (highlightReserved) {
       // If already in reserved mode, we should exit it
@@ -89,7 +96,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     setShowReservedMessage(true);
     setSelectedNumbers([]);
     console.log('▶️ NumberGrid.tsx: Activando modo de números reservados, hay', reservedNumbers.length, 'números reservados');
-    toast.info(`Hay ${reservedNumbers.length} número(s) apartados. Seleccione uno para proceder al pago.`);
+    toast.info(`Seleccione su número apartado para seguir el proceso de pago`);
   };
   
   const handleCloseReservedMessage = () => {
@@ -121,6 +128,11 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       return;
     }
     
+    if (status === 'sold') {
+      console.log(`▶️ NumberGrid.tsx: Intento de seleccionar número vendido ${number}, operación ignorada`);
+      return;
+    }
+    
     if (status !== 'available') return;
     
     setSelectedNumbers(prev => {
@@ -144,7 +156,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     
     // Si estamos en modo "Pagar Apartados", también lo desactivamos
     if (highlightReserved) {
-      console.log('▶️ NumberGrid.tsx: Desactivando modo de números reservados');
+      console.log('▶️ NumberGrid.tsx: Desactivando modo de números reservados al limpiar selección');
       setHighlightReserved(false);
       setShowReservedMessage(false);
     }
@@ -171,7 +183,9 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     }
     
     console.log('▶️ NumberGrid.tsx: Procesando reserva con datos:', data);
-    onReserve(selectedNumbers, data.buyerPhone, data.buyerName, data.buyerCedula);
+    // Format phone number before passing to onReserve
+    const formattedPhone = formatPhoneNumber(data.buyerPhone);
+    onReserve(selectedNumbers, formattedPhone, data.buyerName, data.buyerCedula);
     setIsReservationModalOpen(false);
     setSelectedNumbers([]);
   };
@@ -262,6 +276,34 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     
     toast.success('Validación exitosa');
     onProceedToPayment([validatedNumber]);
+  };
+  
+  // Import formatPhoneNumber from utils
+  const formatPhoneNumber = (phone: string): string => {
+    if (!phone) return "";
+    
+    let cleanedPhone = phone.trim();
+    
+    // First, remove any non-numeric characters except for the + sign
+    cleanedPhone = cleanedPhone.replace(/[^\d+]/g, '');
+    
+    // If it starts with "+5930", replace with "+593"
+    if (cleanedPhone.startsWith('+5930')) {
+      cleanedPhone = '+593' + cleanedPhone.substring(5);
+      console.log("🔄 Phone formatted from +5930: ", cleanedPhone);
+    }
+    // If it starts with "0", remove it and add "+593"
+    else if (cleanedPhone.startsWith('0')) {
+      cleanedPhone = '+593' + cleanedPhone.substring(1);
+      console.log("🔄 Phone formatted from 0: ", cleanedPhone);
+    }
+    // If it doesn't have any prefix, add "+593"
+    else if (!cleanedPhone.startsWith('+')) {
+      cleanedPhone = '+593' + cleanedPhone;
+      console.log("🔄 Phone formatted with +593 prefix: ", cleanedPhone);
+    }
+    
+    return cleanedPhone;
   };
 
   return (
