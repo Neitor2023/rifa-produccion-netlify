@@ -75,75 +75,114 @@ export function usePaymentCompletion({
     }
   };
 
-  const processParticipant = async (data: PaymentFormData): Promise<string | null> => {
+  const processParticipant = async ({ 
+    validatedBuyerData,
+    formData,
+    raffleId,
+    sellerId 
+  }): Promise<string | null> => {
     try {
-      console.log("▶️ paymentCompletion.ts: Procesando participante con datos:", data);
+      console.log("▶️ paymentCompletion.ts: Procesando participante con datos:", {
+        validatedBuyerData,
+        formData
+      });
       
-      const formattedPhone = formatPhoneNumber(data.buyerPhone);
+      const formattedPhone = formatPhoneNumber(
+        validatedBuyerData?.phone || formData.buyerPhone
+      );
       console.log("▶️ paymentCompletion.ts: Teléfono formateado:", formattedPhone);
       
-      const { data: existingParticipant, error: searchError } = await supabase
-        .from('participants')
-        .select('id, name, phone, cedula, direccion, sugerencia_producto, nota')
-        .eq('phone', formattedPhone)
-        .maybeSingle();
-
-      if (searchError) {
-        console.error("▶️ paymentCompletion.ts: Error buscando participante existente:", searchError);
-      }
-
-      let participantId: string | null = null;
-
-      if (existingParticipant) {
-        participantId = existingParticipant.id;
-        console.log("▶️ paymentCompletion.ts: Se encontró participante existente:", existingParticipant);
-
-        const updateData: any = {
-          name: data.buyerName,
-          phone: formattedPhone,
-          nota: data.nota || null,
-          cedula: data.buyerCedula || null,
-          direccion: data.direccion || null,
-          sugerencia_producto: data.sugerenciaProducto || null
+      let participantId = null;
+      
+      if (validatedBuyerData && validatedBuyerData.id) {
+        // Use existing participant ID
+        participantId = validatedBuyerData.id;
+        console.log("▶️ paymentCompletion.ts: Usando ID de participante existente:", participantId);
+        
+        // Update participant information with form data
+        const updateData = {
+          email: formData.buyerEmail || '',
+          direccion: formData.direccion || null,
+          sugerencia_producto: formData.sugerenciaProducto || null,
+          nota: formData.nota || null,
+          raffle_id: raffleId,
+          seller_id: sellerId
         };
-
+        
+        console.log("▶️ paymentCompletion.ts: Actualizando participante con datos:", updateData);
+        
         const { error: updateError } = await supabase
           .from('participants')
           .update(updateData)
           .eq('id', participantId);
-
+          
         if (updateError) {
           console.error("▶️ paymentCompletion.ts: Error actualizando participante:", updateError);
           throw updateError;
         }
-        
-        console.log("▶️ paymentCompletion.ts: Participante actualizado exitosamente:", participantId);
       } else {
-        console.log("▶️ paymentCompletion.ts: Creando nuevo participante");
-
-        const { data: newParticipant, error: participantError } = await supabase
+        // Search for existing participant by phone number
+        const { data: existingParticipant, error: searchError } = await supabase
           .from('participants')
-          .insert({
-            name: data.buyerName,
-            phone: formattedPhone,
-            email: data.buyerEmail || '',
-            cedula: data.buyerCedula,
-            direccion: data.direccion || null,
-            sugerencia_producto: data.sugerenciaProducto || null,
-            nota: data.nota || null,
-            raffle_id: effectiveRaffleId,
-            seller_id: effectiveSellerId
-          })
-          .select('id')
-          .single();
-
-        if (participantError) {
-          console.error("▶️ paymentCompletion.ts: Error creando nuevo participante:", participantError);
-          throw participantError;
+          .select('id, name, phone, cedula, direccion, sugerencia_producto, nota')
+          .eq('phone', formattedPhone)
+          .maybeSingle();
+  
+        if (searchError) {
+          console.error("▶️ paymentCompletion.ts: Error buscando participante existente:", searchError);
         }
-
-        participantId = newParticipant.id;
-        console.log("▶️ paymentCompletion.ts: Participante nuevo creado:", participantId);
+  
+        if (existingParticipant) {
+          participantId = existingParticipant.id;
+          console.log("▶️ paymentCompletion.ts: Se encontró participante existente:", existingParticipant);
+  
+          const updateData: any = {
+            name: formData.buyerName,
+            phone: formattedPhone,
+            nota: formData.nota || null,
+            cedula: formData.buyerCedula || null,
+            direccion: formData.direccion || null,
+            sugerencia_producto: formData.sugerenciaProducto || null
+          };
+  
+          const { error: updateError } = await supabase
+            .from('participants')
+            .update(updateData)
+            .eq('id', participantId);
+  
+          if (updateError) {
+            console.error("▶️ paymentCompletion.ts: Error actualizando participante:", updateError);
+            throw updateError;
+          }
+          
+          console.log("▶️ paymentCompletion.ts: Participante actualizado exitosamente:", participantId);
+        } else {
+          console.log("▶️ paymentCompletion.ts: Creando nuevo participante");
+  
+          const { data: newParticipant, error: participantError } = await supabase
+            .from('participants')
+            .insert({
+              name: formData.buyerName,
+              phone: formattedPhone,
+              email: formData.buyerEmail || '',
+              cedula: formData.buyerCedula,
+              direccion: formData.direccion || null,
+              sugerencia_producto: formData.sugerenciaProducto || null,
+              nota: formData.nota || null,
+              raffle_id: effectiveRaffleId,
+              seller_id: effectiveSellerId
+            })
+            .select('id')
+            .single();
+  
+          if (participantError) {
+            console.error("▶️ paymentCompletion.ts: Error creando nuevo participante:", participantError);
+            throw participantError;
+          }
+  
+          participantId = newParticipant.id;
+          console.log("▶️ paymentCompletion.ts: Participante nuevo creado:", participantId);
+        }
       }
 
       return participantId;
@@ -153,11 +192,15 @@ export function usePaymentCompletion({
     }
   };
 
-  const updateNumbersToSold = async (
-    numbers: string[],
-    participantId: string,
-    paymentProofUrl: string | null
-  ) => {
+  const updateNumbersToSold = async ({
+    numbers,
+    raffleId,
+    sellerId,
+    participantId,
+    formData,
+    buyerData,
+    paymentProofUrl
+  }) => {
     console.log("▶️ paymentCompletion.ts: Actualizando números a vendidos:", {
       numbers,
       participantId,

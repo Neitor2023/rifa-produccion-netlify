@@ -107,6 +107,11 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const toggleNumber = (number: string, status: string) => {
     console.log(`▶️ NumberGrid.tsx: toggleNumber llamado con:`, { number, status, highlightReserved });
     
+    if (status === 'sold') {
+      console.log(`▶️ NumberGrid.tsx: Intento de seleccionar número vendido ${number}, operación ignorada`);
+      return;
+    }
+    
     if (highlightReserved) {
       if (status === 'reserved') {
         console.log(`▶️ NumberGrid.tsx: Seleccionando número reservado ${number}`);
@@ -125,11 +130,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           console.log(`▶️ NumberGrid.tsx: Números reservados seleccionados:`, allReservedNumbers);
         }
       }
-      return;
-    }
-    
-    if (status === 'sold') {
-      console.log(`▶️ NumberGrid.tsx: Intento de seleccionar número vendido ${number}, operación ignorada`);
       return;
     }
     
@@ -305,6 +305,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     
     return cleanedPhone;
   };
+
+  console.log("▶️ NumberGrid render, isPhoneModalOpen=", isPhoneModalOpen);
 
   return (
     <div className="mb-8">

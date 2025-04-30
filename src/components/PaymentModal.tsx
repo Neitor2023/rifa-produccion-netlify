@@ -16,6 +16,7 @@ import { PaymentModalActions } from './payment/PaymentModalActions';
 import PaymentModalContent from './payment/PaymentModalContent';
 import { supabase } from '@/integrations/supabase/client';
 import { useParticipantManager } from '@/hooks/useParticipantManager';
+import { formatPhoneNumber } from '@/utils/phoneUtils';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -218,10 +219,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           cedula: data.buyerCedula
         });
         
+        // Format phone number to international format before saving
+        const formattedPhone = formatPhoneNumber(data.buyerPhone);
+        console.log("▶️ PaymentModal.tsx: Teléfono formateado:", formattedPhone);
+        
         // Create new participant
         const newParticipant = await createParticipant({
           name: data.buyerName,
-          phone: data.buyerPhone,
+          phone: formattedPhone,
           cedula: data.buyerCedula,
           email: data.buyerEmail,
           raffle_id: effectiveRaffleId,
@@ -253,7 +258,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         participantId, 
         {
           name: buyerData?.name || data.buyerName,
-          phone: buyerData?.phone || data.buyerPhone,
+          phone: buyerData?.phone || formatPhoneNumber(data.buyerPhone),
           cedula: buyerData?.cedula || data.buyerCedula
         },
         paymentProofUrl || undefined
