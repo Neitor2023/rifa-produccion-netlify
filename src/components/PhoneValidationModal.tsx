@@ -91,7 +91,6 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 }) => {
   const [phone, setPhone] = useState('');
   const validation = usePhoneValidation(phone);
-toast.success(`❌❌❌ 590 Aqui estoy`);
   const handleNumberSubmit = async () => {
     if (validation.isValid) {
       const isNumericOnly = /^\d+$/.test(phone);
