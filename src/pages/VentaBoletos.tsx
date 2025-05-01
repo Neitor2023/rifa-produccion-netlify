@@ -76,6 +76,7 @@ const VentaBoletos: React.FC = () => {
     console.log("📦 VentaBoletos - validatedBuyerData:", validatedBuyerData ? {
       id: validatedBuyerData.id || 'N/A',
       name: validatedBuyerData.name,
+      flow: validatedBuyerData.flow,
       phone: validatedBuyerData.phone,
       cedula: validatedBuyerData.cedula,
       direccion: validatedBuyerData.direccion,
