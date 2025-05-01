@@ -180,7 +180,9 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     
     if (participantId && buyerInfo) {
       console.log("✅ NumberGrid participantId && buyerInfo => onProceedToPayment:");
-      onProceedToPayment(selectedNumbers, buyerInfo);
+      // 590
+      props.onPayReserved(selectedNumbers, buyerInfo);
+      //onProceedToPayment(selectedNumbers, buyerInfo);
     } else {
       console.log("✅ NumberGrid participantId && buyerInfo => handleNumberValidation:");
       handleNumberValidation(validatedNumber);
