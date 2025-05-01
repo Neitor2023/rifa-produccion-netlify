@@ -119,6 +119,7 @@ const VentaBoletos: React.FC = () => {
   }
 
   console.log("📦 Datos validados en VentaBoletos antes de pasarlos a PaymentModal:", validatedBuyerData);
+  console.log("📦 Datos validados en VentaBoletos antes de pasarlos a PaymentModal handleProceedToPayment:", handleProceedToPayment);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
