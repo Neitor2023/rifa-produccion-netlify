@@ -91,7 +91,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 }) => {
   const [phone, setPhone] = useState('');
   const validation = usePhoneValidation(phone);
-
+toast.success(`❌❌❌ 590 Aqui estoy`);
   const handleNumberSubmit = async () => {
     if (validation.isValid) {
       const isNumericOnly = /^\d+$/.test(phone);
@@ -101,7 +101,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 
       try {
         // BUSCA por teléfono (y la rifa!)
-        toast.success(`❌❌❌ Busca Participante por telefono: ${cleanedPhone}`);
+        toast.success(`❌❌❌ 590 Busca Participante por telefono: ${cleanedPhone}`);
         const { data: byPhone } = await supabase
           .from('participants')
           .select('id, name, phone, cedula, direccion, sugerencia_producto')
