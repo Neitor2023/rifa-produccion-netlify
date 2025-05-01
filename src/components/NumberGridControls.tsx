@@ -49,7 +49,9 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       <Button 
         variant="secondary"
         className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
-        onClick={onPayReserved}
+        //onClick={onPayReserved}
+        // 590
+        onClick={() => onPayReserved(selectedNumbers, validatedBuyerInfo!)}
       >
         <CreditCard className="h-4 w-4" />
         <span>Pagar Apartados</span>
