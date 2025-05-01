@@ -209,7 +209,8 @@ const VentaBoletos: React.FC = () => {
         selectedNumbers={selectedNumbers}
         price={raffle?.price || 0}
         onComplete={handleCompletePayment}
-        buyerData={validatedBuyerData}
+        //buyerData={validatedBuyerData}
+        buyerData={handleProceedToPayment}
         debugMode={debugMode}
       />
       
