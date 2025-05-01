@@ -171,6 +171,7 @@ const VentaBoletos: React.FC = () => {
               soldNumbersCount={getSoldNumbersCount(seller?.id || '')}
               // 590
               buyerData={buyerInfoForPayment}          // aquí recibe el objeto
+              validatedBuyerData={validatedBuyerData}
             />
           </div>
         )}

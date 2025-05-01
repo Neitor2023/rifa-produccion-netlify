@@ -44,6 +44,9 @@ interface NumberGridProps {
   onProceedToPayment: (selectedNumbers: string[], participantData?: ValidatedBuyerInfo) => void;
   debugMode?: boolean;
   soldNumbersCount?: number;
+  // 590
+  validatedBuyerData: ValidatedBuyerInfo | null;
+  onPayReserved: (numbers: string[], buyerInfo: ValidatedBuyerInfo) => void;  
 }
 
 const NumberGrid: React.FC<NumberGridProps> = ({ 
