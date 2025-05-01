@@ -201,7 +201,7 @@ const VentaBoletos: React.FC = () => {
         prize={selectedPrize}
         prizeImages={prizeImages || []}
       />
-
+{console.log("👉 VentaBoletos - Datos de validatedBuyerData antes de PaymentModal:", validatedBuyerData)}
       <PaymentModal 
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
