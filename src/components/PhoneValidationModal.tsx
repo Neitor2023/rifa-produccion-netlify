@@ -101,6 +101,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 
       try {
         // BUSCA por teléfono (y la rifa!)
+        toast.success(`❌❌❌ Busca Participante por telefono: ${cleanedPhone}`);
         const { data: byPhone } = await supabase
           .from('participants')
           .select('id, name, phone, cedula, direccion, sugerencia_producto')
