@@ -59,6 +59,10 @@ const VentaBoletos: React.FC = () => {
     handleCompletePayment,
     getSoldNumbersCount
   } = usePaymentProcessor({
+    const handlePayReservedClick = () => {
+      // aquí invocas tu flujo de pago de apartados con los datos ya validados
+      handlePayReservedNumbers(selectedNumbers, validatedBuyerData!);
+    };    
     raffleSeller: seller ? { 
       id: raffleSeller?.id || 'default', 
       seller_id: seller.id,
@@ -166,7 +170,8 @@ const VentaBoletos: React.FC = () => {
                 cant_max: maxNumbersAllowed
               }}
               onReserve={handleReserveNumbers}
-              onProceedToPayment={handleProceedToPayment}
+              onProceedToPayment={handleProceedToPayment}        // “Pagar”
+              onPayReserved={handlePayReservedClick}              // “Pagar Apartados” ahora sí definido
               debugMode={debugMode}
               soldNumbersCount={getSoldNumbersCount(seller?.id || '')}
               // 590

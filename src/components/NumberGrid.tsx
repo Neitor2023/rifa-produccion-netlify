@@ -41,12 +41,15 @@ interface NumberGridProps {
   numbers: RaffleNumber[];
   raffleSeller: RaffleSeller;
   onReserve: (selectedNumbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula?: string) => void;
-  onProceedToPayment: (selectedNumbers: string[], participantData?: ValidatedBuyerInfo) => void;
+  //onProceedToPayment: (selectedNumbers: string[], participantData?: ValidatedBuyerInfo) => void;
   debugMode?: boolean;
   soldNumbersCount?: number;
   // 590
   validatedBuyerData: ValidatedBuyerInfo | null;
-  onPayReserved: (numbers: string[], buyerInfo: ValidatedBuyerInfo) => void;  
+  //onPayReserved: (numbers: string[], buyerInfo: ValidatedBuyerInfo) => void;  
+  onPayReserved: () => void;           // ya sin args aquí
+  onProceedToPayment: (nums: string[]) => void;
+  
 }
 
 const NumberGrid: React.FC<NumberGridProps> = ({ 
