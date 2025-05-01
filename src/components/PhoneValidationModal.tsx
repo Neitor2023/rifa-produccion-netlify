@@ -91,6 +91,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 }) => {
   const [phone, setPhone] = useState('');
   const validation = usePhoneValidation(phone);
+
   const handleNumberSubmit = async () => {
     if (validation.isValid) {
       const isNumericOnly = /^\d+$/.test(phone);
@@ -104,6 +105,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           .from('participants')
           .select('id, name, phone, cedula, direccion, sugerencia_producto')
           .eq('phone', cleanedPhone)
+          .eq('raffle_id', raffleId)
           .maybeSingle();
 
         if (byPhone) {
@@ -115,6 +117,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
             .from('participants')
             .select('id, name, phone, cedula, direccion, sugerencia_producto')
             .eq('cedula', phone)
+            .eq('raffle_id', raffleId)
             .maybeSingle();
 
           if (byCedula) {
@@ -134,7 +137,6 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           participant.id,
           {
             id: participant.id,
-            flow: "validated",
             name: participant.name,
             phone: participant.phone || cleanedPhone,
             cedula: participant.cedula,

@@ -22,8 +22,7 @@ const VentaBoletos: React.FC = () => {
   // UI state management
   const [selectedPrize, setSelectedPrize] = useState<Prize | null>(null);
   const [isPrizeModalOpen, setIsPrizeModalOpen] = useState(false);
-  // 590
-  const [buyerInfoForPayment, setBuyerInfoForPayment] = useState<ValidatedBuyerInfo | null>(null);
+  
   // Fetch raffle data
   const { 
     seller,
@@ -71,22 +70,12 @@ const VentaBoletos: React.FC = () => {
     debugMode,
     allowVoucherPrint
   });
-  
-  // 2) **Después** de esa desestructuración, declara tu función manejadora:
-  const handlePayReservedClick = () => {
-    if (!validatedBuyerData) {
-      console.warn("No hay datos de participante validados al llamar a Pagar Apartados");
-      return;
-    }
-    handlePayReservedNumbers(selectedNumbers, validatedBuyerData);
-  };
-  
+
   // Log validatedBuyerData whenever it changes
   useEffect(() => {
     console.log("📦 VentaBoletos - validatedBuyerData:", validatedBuyerData ? {
       id: validatedBuyerData.id || 'N/A',
       name: validatedBuyerData.name,
-      flow: validatedBuyerData.flow,
       phone: validatedBuyerData.phone,
       cedula: validatedBuyerData.cedula,
       direccion: validatedBuyerData.direccion,
@@ -127,16 +116,8 @@ const VentaBoletos: React.FC = () => {
   if (isLoading) {
     return <LoadingSpinner />;
   }
-  // 590
-  // Callback que le pasas a NumberGrid:
-  const handlePayReserved = (numbers: string[], buyerInfo: ValidatedBuyerInfo) => {
-    setBuyerInfoForPayment(buyerInfo);
-    setIsPaymentModalOpen(true);
-    // también puedes almacenar `numbers` si el modal los necesita
-  };
-  
+
   console.log("📦 Datos validados en VentaBoletos antes de pasarlos a PaymentModal:", validatedBuyerData);
-  console.log("📦 Datos validados en VentaBoletos antes de pasarlos a PaymentModal handleProceedToPayment:", handleProceedToPayment);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
@@ -175,13 +156,9 @@ const VentaBoletos: React.FC = () => {
                 cant_max: maxNumbersAllowed
               }}
               onReserve={handleReserveNumbers}
-              onProceedToPayment={handleProceedToPayment}        // “Pagar”
-              onPayReserved={handlePayReservedClick}              // “Pagar Apartados” ahora sí definido
+              onProceedToPayment={handleProceedToPayment}
               debugMode={debugMode}
               soldNumbersCount={getSoldNumbersCount(seller?.id || '')}
-              // 590
-              buyerData={buyerInfoForPayment}          // aquí recibe el objeto
-              validatedBuyerData={validatedBuyerData}
             />
           </div>
         )}
@@ -231,8 +208,7 @@ const VentaBoletos: React.FC = () => {
         selectedNumbers={selectedNumbers}
         price={raffle?.price || 0}
         onComplete={handleCompletePayment}
-        //buyerData={validatedBuyerData}
-        buyerData={handleProceedToPayment}
+        buyerData={validatedBuyerData}
         debugMode={debugMode}
       />
       

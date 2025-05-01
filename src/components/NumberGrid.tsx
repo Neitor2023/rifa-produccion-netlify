@@ -41,15 +41,9 @@ interface NumberGridProps {
   numbers: RaffleNumber[];
   raffleSeller: RaffleSeller;
   onReserve: (selectedNumbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula?: string) => void;
-  //onProceedToPayment: (selectedNumbers: string[], participantData?: ValidatedBuyerInfo) => void;
+  onProceedToPayment: (selectedNumbers: string[], participantData?: ValidatedBuyerInfo) => void;
   debugMode?: boolean;
   soldNumbersCount?: number;
-  // 590
-  validatedBuyerData: ValidatedBuyerInfo | null;
-  //onPayReserved: (numbers: string[], buyerInfo: ValidatedBuyerInfo) => void;  
-  onPayReserved: () => void;           // ya sin args aquí
-  onProceedToPayment: (nums: string[]) => void;
-  
 }
 
 const NumberGrid: React.FC<NumberGridProps> = ({ 
@@ -70,8 +64,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const [validatedBuyerInfo, setValidatedBuyerInfo] = useState<ValidatedBuyerInfo | null>(null);
 
   const handlePayReserved = () => {
-    console.log('▶️ NumberGrid: handlePayReserved llamado');
-    console.log('▶️ highlightReserved antes de configurar:', highlightReserved);
+    console.log('▶️ NumberGrid: handlePayReserved called');
+    console.log('▶️ highlightReserved before setting:', highlightReserved);
     
     if (highlightReserved) {
       return;
@@ -93,7 +87,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   };
   
   const toggleNumber = (number: string, status: string) => {
-    console.log(`🔄 NumberGrid toggleNumber llamado con`, { number, status, highlightReserved });
+    console.log(`🔄 NumberGrid toggleNumber called with`, { number, status, highlightReserved });
     
     if (highlightReserved && status === 'reserved') {
       const selectedNumber = numbers.find(n => n.number === number);
@@ -171,7 +165,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     if (buyerInfo) {
       console.log("✅ NumberGrid recibió información validada del comprador:", {
         name: buyerInfo.name,
-        flow: buyerInfo.flow,
         phone: buyerInfo.phone,
         cedula: buyerInfo.cedula,
         id: buyerInfo.id,
@@ -185,12 +178,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     setIsPhoneModalOpen(false);
     
     if (participantId && buyerInfo) {
-      console.log("✅ NumberGrid participantId && buyerInfo => onProceedToPayment:");
-      // 590
-      props.onPayReserved(selectedNumbers, buyerInfo);
-      //onProceedToPayment(selectedNumbers, buyerInfo);
+      onProceedToPayment(selectedNumbers, buyerInfo);
     } else {
-      console.log("✅ NumberGrid participantId && buyerInfo => handleNumberValidation:");
       handleNumberValidation(validatedNumber);
     }
   };
@@ -272,7 +261,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         raffleSeller={raffleSeller}
         onClearSelection={clearSelection}
         onReserve={handleReserve}
-        onPayReserved={handlePayReservedClick}
+        onPayReserved={handlePayReserved}
         onProceedToPayment={handleProceedToPayment}
       />
       

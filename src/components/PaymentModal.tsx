@@ -73,10 +73,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
   // Update form values when buyerData changes
   useEffect(() => {
-    console.log("📦 PaymentModal.tsx: Modal is open:", isOpen, "buyerData:", buyerData);
+    console.log("📦 Modal is open:", isOpen, "buyerData:", buyerData);
     
     if (buyerData && isOpen) {
-      console.log("📦 PaymentModal.tsx: Modal is open, updating form with buyer data:", buyerData);
+      console.log("📦 Modal is open, updating form with buyer data:", buyerData);
       form.setValue('buyerName', buyerData.name || "");
       form.setValue('buyerPhone', buyerData.phone || "");
       form.setValue('buyerCedula', buyerData.cedula || "");
@@ -89,7 +89,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         form.setValue("sugerenciaProducto", buyerData.sugerencia_producto);
       }
       
-      console.log("PaymentModal.tsx:Valores del formulario después de la actualización:", form.getValues());
+      console.log("Form values after update:", form.getValues());
     } else {
       console.log("Either modal is closed or no buyerData:", { isOpen, buyerData });
     }
