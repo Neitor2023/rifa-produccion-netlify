@@ -22,7 +22,8 @@ const VentaBoletos: React.FC = () => {
   // UI state management
   const [selectedPrize, setSelectedPrize] = useState<Prize | null>(null);
   const [isPrizeModalOpen, setIsPrizeModalOpen] = useState(false);
-  
+  // 590
+  const [buyerInfoForPayment, setBuyerInfoForPayment] = useState<ValidatedBuyerInfo | null>(null);
   // Fetch raffle data
   const { 
     seller,
@@ -117,7 +118,14 @@ const VentaBoletos: React.FC = () => {
   if (isLoading) {
     return <LoadingSpinner />;
   }
-
+  // 590
+  // Callback que le pasas a NumberGrid:
+  const handlePayReserved = (numbers: string[], buyerInfo: ValidatedBuyerInfo) => {
+    setBuyerInfoForPayment(buyerInfo);
+    setIsPaymentModalOpen(true);
+    // también puedes almacenar `numbers` si el modal los necesita
+  };
+  
   console.log("📦 Datos validados en VentaBoletos antes de pasarlos a PaymentModal:", validatedBuyerData);
   console.log("📦 Datos validados en VentaBoletos antes de pasarlos a PaymentModal handleProceedToPayment:", handleProceedToPayment);
 
@@ -161,6 +169,8 @@ const VentaBoletos: React.FC = () => {
               onProceedToPayment={handleProceedToPayment}
               debugMode={debugMode}
               soldNumbersCount={getSoldNumbersCount(seller?.id || '')}
+              // 590
+              buyerData={buyerInfoForPayment}          // aquí recibe el objeto
             />
           </div>
         )}
