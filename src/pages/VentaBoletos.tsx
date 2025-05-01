@@ -159,7 +159,6 @@ const VentaBoletos: React.FC = () => {
               onProceedToPayment={handleProceedToPayment}
               debugMode={debugMode}
               soldNumbersCount={getSoldNumbersCount(seller?.id || '')}
-              validatedBuyerData={validatedBuyerData}
             />
           </div>
         )}
