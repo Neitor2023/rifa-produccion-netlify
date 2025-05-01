@@ -135,6 +135,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           participant.id,
           {
             id: participant.id,
+            flow: "validated",
             name: participant.name,
             phone: participant.phone || cleanedPhone,
             cedula: participant.cedula,
