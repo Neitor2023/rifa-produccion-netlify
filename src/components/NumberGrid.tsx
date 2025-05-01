@@ -44,6 +44,7 @@ interface NumberGridProps {
   onProceedToPayment: (selectedNumbers: string[], participantData?: ValidatedBuyerInfo) => void;
   debugMode?: boolean;
   soldNumbersCount?: number;
+  validatedBuyerInfo: ValidatedBuyerInfo;
 }
 
 const NumberGrid: React.FC<NumberGridProps> = ({ 
@@ -52,7 +53,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   onReserve,
   onProceedToPayment,
   debugMode = false,
-  soldNumbersCount = 0
+  soldNumbersCount = 0,
+  validatedBuyerInfo
 }) => {
   const [selectedNumbers, setSelectedNumbers] = useState<string[]>([]);
   const [highlightReserved, setHighlightReserved] = useState(false);
