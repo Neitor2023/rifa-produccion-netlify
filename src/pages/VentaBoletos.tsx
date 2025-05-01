@@ -59,10 +59,6 @@ const VentaBoletos: React.FC = () => {
     handleCompletePayment,
     getSoldNumbersCount
   } = usePaymentProcessor({
-    const handlePayReservedClick = () => {
-      // aquí invocas tu flujo de pago de apartados con los datos ya validados
-      handlePayReservedNumbers(selectedNumbers, validatedBuyerData!);
-    };    
     raffleSeller: seller ? { 
       id: raffleSeller?.id || 'default', 
       seller_id: seller.id,
@@ -75,7 +71,16 @@ const VentaBoletos: React.FC = () => {
     debugMode,
     allowVoucherPrint
   });
-
+  
+  // 2) **Después** de esa desestructuración, declara tu función manejadora:
+  const handlePayReservedClick = () => {
+    if (!validatedBuyerData) {
+      console.warn("No hay datos de participante validados al llamar a Pagar Apartados");
+      return;
+    }
+    handlePayReservedNumbers(selectedNumbers, validatedBuyerData);
+  };
+  
   // Log validatedBuyerData whenever it changes
   useEffect(() => {
     console.log("📦 VentaBoletos - validatedBuyerData:", validatedBuyerData ? {
