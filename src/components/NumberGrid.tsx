@@ -179,8 +179,10 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     setIsPhoneModalOpen(false);
     
     if (participantId && buyerInfo) {
+      console.log("✅ NumberGrid participantId && buyerInfo => onProceedToPayment:"
       onProceedToPayment(selectedNumbers, buyerInfo);
     } else {
+      console.log("✅ NumberGrid participantId && buyerInfo => handleNumberValidation:"
       handleNumberValidation(validatedNumber);
     }
   };
