@@ -9,12 +9,11 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Printer, X } from 'lucide-react';
+import { Printer, X, AlertTriangle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
 import { PaymentFormData } from './PaymentModal';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertDialog, AlertDialogContent, AlertDialogTitle, AlertDialogDescription } from '@/components/ui/alert-dialog';
 
 interface DigitalVoucherProps {
   isOpen: boolean;
@@ -72,27 +71,33 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     timestamp: formattedDate
   }) : '';
   
-  // If voucher printing is not allowed, show only the alert dialog
+  // If voucher printing is not allowed, show the alert message
   if (!allowVoucherPrint) {
     return (
-      <AlertDialog open={isOpen} onOpenChange={onClose}>
-        <AlertDialogContent className="max-w-md">
-          <AlertDialogTitle className="text-xl font-bold text-red-600 mb-2">
-            Importante: Comprobante No Disponible
-          </AlertDialogTitle>
-          <AlertDialogDescription className="text-base leading-relaxed">
-            <p className="mb-4 text-gray-800 dark:text-gray-200">
-              Su comprobante de pago está en revisión, es importante que le exija su comprobante de pago a su vendedor, este es su constancia de reclamo de premios; cualquier novedad comuníquese a los teléfonos de los organizadores que se encuentran al final de la página web.
-            </p>
-            <Button 
-              onClick={onClose} 
-              className="w-full bg-red-600 hover:bg-red-700 text-white"
-            >
-              Entendido
-            </Button>
-          </AlertDialogDescription>
-        </AlertDialogContent>
-      </AlertDialog>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-xl font-bold text-center text-red-600">
+              Importante: Comprobante No Disponible
+            </DialogTitle>
+          </DialogHeader>
+          
+          <Alert variant="destructive" className="my-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription className="text-base leading-relaxed">
+              <p className="mb-4">
+                Su comprobante de pago está en revisión, es importante que le exija su comprobante de pago a su vendedor, este es su constancia de reclamo de premios; cualquier novedad comuníquese a los teléfonos de los organizadores que se encuentran al final de la página web.
+              </p>
+              <Button 
+                onClick={onClose} 
+                className="w-full bg-red-600 hover:bg-red-700 text-white"
+              >
+                Entendido
+              </Button>
+            </AlertDescription>
+          </Alert>
+        </DialogContent>
+      </Dialog>
     );
   }
 
