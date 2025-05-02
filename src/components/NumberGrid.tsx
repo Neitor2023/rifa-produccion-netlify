@@ -259,6 +259,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         />
       </Card>
       {console.log("👉 Después de GridLayout")}
+      {console.log("👉 Antes de NumberGridControls ")}
       <NumberGridControls 
         selectedNumbers={selectedNumbers}
         raffleSeller={raffleSeller}
@@ -267,7 +268,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         onPayReserved={handlePayReserved}
         onProceedToPayment={handleProceedToPayment}
       />
-      
+      {console.log("👉 Después de NumberGridControls")}
       <NumberGridLegend highlightReserved={highlightReserved} />
       
       <PhoneValidationModal 
