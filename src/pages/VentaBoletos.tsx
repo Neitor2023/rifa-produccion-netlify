@@ -5,22 +5,22 @@ import { usePaymentProcessor } from '@/hooks/usePaymentProcessor';
 import { useRaffleData } from '@/hooks/useRaffleData';
 import { BuyerInfoProvider, useBuyerInfo } from '@/contexts/BuyerInfoContext';
 
-// Components
+// Componentes
 import RaffleHeaderSection from '@/components/raffle/RaffleHeaderSection';
 import RafflePrizesSection from '@/components/raffle/RafflePrizesSection';
 import RaffleNumberGridSection from '@/components/raffle/RaffleNumberGridSection';
 import RaffleInfoSection from '@/components/raffle/RaffleInfoSection';
 import RaffleModals from '@/components/raffle/RaffleModals';
 
-// Constants
+// Constantes
 const SELLER_ID = "0102030405";
 const RAFFLE_ID = "fd6bd3bc-d81f-48a9-be58-8880293a0472";
 
 const VentaBoletosContent: React.FC = () => {
-  // Access buyer info from context
+  // Acceda a la información del comprador desde el contexto
   const { buyerInfo } = useBuyerInfo();
   
-  // Fetch raffle data
+  // Obtener datos del sorteo
   const { 
     seller,
     raffle,
@@ -40,7 +40,7 @@ const VentaBoletosContent: React.FC = () => {
     sellerId: SELLER_ID 
   });
   
-  // Payment processor hook with allowVoucherPrint passed
+  // Gancho del procesador de pagos con allowVoucherPrint aprobado
   const {
     selectedNumbers,
     isPaymentModalOpen,
@@ -67,7 +67,7 @@ const VentaBoletosContent: React.FC = () => {
     allowVoucherPrint
   });
 
-  // Log buyerInfo whenever it changes
+  // Registrar la información del comprador cada vez que cambia
   useEffect(() => {
     console.log("📦 VentaBoletos - buyerInfo:", buyerInfo ? {
       id: buyerInfo.id || 'N/A',
@@ -79,7 +79,7 @@ const VentaBoletosContent: React.FC = () => {
     } : 'null');
   }, [buyerInfo]);
 
-  // Log before rendering PaymentModal
+  // Registrar antes de renderizar PaymentModal
   console.log("📦 VentaBoletos - Rendering PaymentModal with buyerInfo:", 
     buyerInfo ? {
       id: buyerInfo.id || 'N/A',
@@ -98,13 +98,13 @@ const VentaBoletosContent: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       <div className="container px-4 py-6 max-w-3xl mx-auto">
-        {/* Header section */}
+        {/* Sección de encabezado */}
         <RaffleHeaderSection 
           organization={organization} 
           title={raffle?.title || 'Cargando...'}
         />
         
-        {/* Prize carousel and modal */}
+        {/* Carrusel de premios y modal */}
         {prizes && prizeImages && (
           <RafflePrizesSection 
             prizes={prizes} 
@@ -112,7 +112,7 @@ const VentaBoletosContent: React.FC = () => {
           />
         )}
         
-        {/* Number grid */}
+        {/* Cuadrícula numérica */}
         <RaffleNumberGridSection 
           raffleNumbers={raffleNumbers}
           formatNumbersForGrid={formatNumbersForGrid}
@@ -125,7 +125,7 @@ const VentaBoletosContent: React.FC = () => {
           getSoldNumbersCount={getSoldNumbersCount}
         />
         
-        {/* Raffle information */}
+        {/* Información del sorteo */}
         <RaffleInfoSection 
           raffle={raffle} 
           seller={seller} 
@@ -133,7 +133,7 @@ const VentaBoletosContent: React.FC = () => {
         />
       </div>
       
-      {/* Modals */}
+      {/* Modales */}
       <RaffleModals 
         isPaymentModalOpen={isPaymentModalOpen}
         setIsPaymentModalOpen={setIsPaymentModalOpen}
