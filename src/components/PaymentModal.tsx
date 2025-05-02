@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -15,6 +14,7 @@ import { PaymentModalHeader } from './payment/PaymentModalHeader';
 import { PaymentModalActions } from './payment/PaymentModalActions';
 import PaymentModalContent from './payment/PaymentModalContent';
 import { NumberSelectionProvider } from '@/contexts/NumberSelectionContext';
+import { useBuyerInfo } from '@/contexts/BuyerInfoContext';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -57,6 +57,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const { buyerInfo } = useBuyerInfo(); // Get buyerInfo from context
   
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentFormSchema),
@@ -105,8 +106,43 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   };
   
   const onSubmit = (data: PaymentFormData) => {
+    // Add the requested console.log for debugging
+    console.log('PaymentModal - Botón Completar pago pulsado');
+    
     setIsSubmitting(true);
     debugLog('Form submit - data', data);
+    
+    // Check buyerData and complete with buyerInfo if needed
+    let completeData = { ...data };
+    
+    if (buyerData) {
+      const { name, phone, cedula } = buyerData;
+      
+      if (!name || !phone || !cedula) {
+        console.log('PaymentModal - buyerData incompleta (name, phone, cedula), intentando completar con buyerInfo:', 
+          buyerInfo, 'buyerData:', buyerData);
+        
+        if (buyerInfo) {
+          // Create an updated version of buyerData with missing fields from buyerInfo
+          const updatedFields = {
+            buyerName: completeData.buyerName || buyerInfo.name,
+            buyerPhone: completeData.buyerPhone || buyerInfo.phone,
+            buyerCedula: completeData.buyerCedula || buyerInfo.cedula || "",
+          };
+          
+          completeData = { ...completeData, ...updatedFields };
+          
+          console.log('PaymentModal - buyerData completada (name, phone, cedula):', 
+            updatedFields, 'formulario actualizado:', completeData);
+        } else {
+          console.log('PaymentModal - buyerInfo también está vacío.');
+        }
+      } else {
+        console.log('PaymentModal - buyerData (name, phone, cedula) está completa:', buyerData);
+      }
+    } else {
+      console.log('PaymentModal - buyerData es null o undefined.');
+    }
     
     if (data.paymentMethod === "transfer" && !uploadedImage) {
       toast.error("Por favor suba un comprobante de pago");
@@ -116,7 +152,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     }
     
     if (uploadedImage) {
-      data.paymentProof = uploadedImage;
+      completeData.paymentProof = uploadedImage;
       debugLog('Payment proof attached', {
         name: uploadedImage.name,
         size: uploadedImage.size,
@@ -124,22 +160,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       });
     }
     
-    // Ensure the data includes the buyerData values
-    if (buyerData) {
-      data.buyerName = buyerData.name;
-      data.buyerPhone = buyerData.phone;
-      data.buyerCedula = buyerData.cedula || "";
-    }
-    
-    debugLog('Sending payment data to parent component', data);
+    debugLog('Sending payment data to parent component', completeData);
     console.log("🔄 Submitting payment with data:", {
-      buyerName: data.buyerName,
-      buyerPhone: data.buyerPhone,
-      buyerCedula: data.buyerCedula,
-      paymentMethod: data.paymentMethod
+      buyerName: completeData.buyerName,
+      buyerPhone: completeData.buyerPhone,
+      buyerCedula: completeData.buyerCedula,
+      paymentMethod: completeData.paymentMethod
     });
     
-    onComplete(data);
+    onComplete(completeData);
     setIsSubmitting(false);
     resetForm();
   };
