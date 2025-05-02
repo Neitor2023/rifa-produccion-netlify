@@ -46,7 +46,7 @@ const VentaBoletos: React.FC = () => {
     raffleId: RAFFLE_ID, 
     sellerId: SELLER_ID 
   });
-  
+  console.log("🔄 VentaBoletos Bandera");
   // Payment processor hook with allowVoucherPrint passed
   const {
     selectedNumbers,
