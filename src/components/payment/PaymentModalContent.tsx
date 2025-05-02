@@ -16,7 +16,7 @@ interface PaymentModalContentProps {
   buyerData?: ValidatedBuyerInfo;
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFileRemove: () => void;
-  clickedButton?: string; // New prop for tracking which button was clicked
+  clickedButton?: string;
 }
 
 const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
@@ -27,7 +27,7 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
   buyerData,
   onFileUpload,
   onFileRemove,
-  clickedButton // Add the new prop
+  clickedButton
 }) => {
   useEffect(() => {
     if (buyerData) {
@@ -47,10 +47,11 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
     <ScrollArea className="flex-1 overflow-y-auto px-1">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(() => {})} className="space-y-6 py-4">
+          {/* PaymentSummary is still included but renders an empty div now */}
           <PaymentSummary 
             selectedNumbers={selectedNumbers}
             price={price}
-            clickedButton={clickedButton} // Pass the clicked button to PaymentSummary
+            clickedButton={clickedButton}
           />
           <div className="space-y-6">
             <PaymentFormFields 
