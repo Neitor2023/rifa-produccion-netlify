@@ -184,7 +184,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       
       // When modal opens, update form with buyerData
       if (buyerData) {
-        console.log("📦 Modal opened, updating form with buyer data:", buyerData);
+        console.log("📦 Modal PaymentModal abierto, actualizando formulario con buyer data:", buyerData);
         form.setValue('buyerName', buyerData.name || "");
         form.setValue('buyerPhone', buyerData.phone || "");
         form.setValue('buyerCedula', buyerData.cedula || "");
