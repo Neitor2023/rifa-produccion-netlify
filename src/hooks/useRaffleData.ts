@@ -1,7 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Organization } from '@/lib/constants';
+import { RaffleNumber } from '@/types/raffle';
 
 interface UseRaffleDataProps {
   raffleId: string;
@@ -60,7 +62,12 @@ export function useRaffleData({ raffleId, sellerId }: UseRaffleDataProps) {
         .order('created_at');
       
       if (error) throw error;
-      return data || [];
+      
+      // Add default order property if not exists
+      return (data || []).map((prize, index) => ({
+        ...prize,
+        order: prize.order ?? index // Provide default order based on array index
+      }));
     }
   });
   
@@ -228,7 +235,7 @@ export function useRaffleData({ raffleId, sellerId }: UseRaffleDataProps) {
   }, [organization, adminUser, organizerUser]);
 
   const formatNumbersForGrid = () => {
-    const formattedNumbers = [];
+    const formattedNumbers: RaffleNumber[] = [];
     
     for (let i = 0; i < 100; i++) {
       const paddedNumber = i.toString().padStart(2, '0');
@@ -244,7 +251,12 @@ export function useRaffleData({ raffleId, sellerId }: UseRaffleDataProps) {
         buyer_phone: null,
         payment_method: null,
         payment_proof: existingNumber?.payment_proof || null,
-        payment_date: null
+        payment_date: null,
+        participant_id: existingNumber?.participant_id,
+        participant_name: existingNumber?.participant_name,
+        participant_phone: existingNumber?.participant_phone,
+        participant_cedula: existingNumber?.participant_cedula,
+        payment_approved: existingNumber?.payment_approved
       });
     }
     

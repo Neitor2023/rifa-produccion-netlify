@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Toaster, toast } from 'sonner';
@@ -20,6 +21,7 @@ import { PaymentFormData } from '@/components/PaymentModal';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { useBuyerInfo, BuyerInfoProvider } from '@/contexts/BuyerInfoContext';
 import { useRaffleData } from '@/hooks/useRaffleData';
+import { RaffleNumber } from '@/types/raffle';
 
 // Constants
 const SELLER_ID = "e2a43af3-5ec5-4f17-bca7-7b61ea5e52b2"; // Valid UUID format
@@ -178,20 +180,8 @@ const VentaBoletosContent: React.FC = () => {
         return;
       }
       
-      // Refresh raffle numbers
-      const { data: refreshedNumbers, error: refreshError } = await supabase
-        .from('raffle_numbers')
-        .select('*')
-        .eq('raffle_id', raffleSeller.raffle_id)
-        .eq('seller_id', raffleSeller.seller_id);
-      
-      if (!refreshError && refreshedNumbers) {
-        const formattedRefreshed = refreshedNumbers.map(n => ({
-          ...n,
-          number: n.number.toString().padStart(2, '0')
-        }));
-        setRaffleNumbers(formattedRefreshed);
-      }
+      // Refresh raffle numbers via refetch instead of setting state directly
+      await refetchRaffleNumbers();
       
       toast.success(`${selectedNums.length} número(s) reservados por 24 horas`);
     } catch (error: any) {
@@ -300,20 +290,8 @@ const VentaBoletosContent: React.FC = () => {
         return;
       }
       
-      // Refresh raffle numbers
-      const { data: refreshedNumbers, error: refreshError } = await supabase
-        .from('raffle_numbers')
-        .select('*')
-        .eq('raffle_id', raffleSeller.raffle_id)
-        .eq('seller_id', raffleSeller.seller_id);
-      
-      if (!refreshError && refreshedNumbers) {
-        const formattedRefreshed = refreshedNumbers.map(n => ({
-          ...n,
-          number: n.number.toString().padStart(2, '0')
-        }));
-        setRaffleNumbers(formattedRefreshed);
-      }
+      // Refresh raffle numbers via refetch instead of setting state directly
+      await refetchRaffleNumbers();
       
       // Close payment modal and open voucher
       setIsPaymentModalOpen(false);
@@ -379,9 +357,9 @@ const VentaBoletosContent: React.FC = () => {
       )}
       
       {/* Prize Carousel */}
-      {prizes.length > 0 && (
+      {prizes && prizes.length > 0 && (
         <PrizeCarousel 
-          prizes={prizes} 
+          prizes={prizes as Prize[]} 
           onViewDetails={handleViewPrizeDetails} 
         />
       )}
@@ -406,12 +384,12 @@ const VentaBoletosContent: React.FC = () => {
       
       {/* Number Grid */}
       <NumberGrid
-        numbers={raffleNumbers}
+        numbers={formatNumbersForGrid()}
         raffleSeller={raffleSeller}
         onReserve={handleReserveNumbers}
         onProceedToPayment={handleProceedToPayment}
         debugMode={debugMode}
-        soldNumbersCount={formatNumbersForGrid(raffleNumbers).filter(n => n.status === 'sold').length}
+        soldNumbersCount={(formatNumbersForGrid().filter(n => n.status === 'sold')).length}
       />
       
       {/* Organizer Info */}
