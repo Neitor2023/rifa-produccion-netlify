@@ -21,7 +21,7 @@ interface PaymentModalProps {
   selectedNumbers: string[];
   price: number;
   onComplete: (paymentData: PaymentFormData) => void;
-  buyerData?: ValidatedBuyerInfo;
+  buyerData: ValidatedBuyerInfo | null; // Asegúrate de que esta prop exista
   debugMode?: boolean;
 }
 
@@ -51,6 +51,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   buyerData,
   debugMode = false
 }) => {
+  useEffect(() => {
+    console.log("📦 PaymentModal - buyerData recibido:", buyerData);
+  }, [buyerData]);  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
