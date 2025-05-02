@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'sonner';
 import { Card } from '@/components/ui/card';
@@ -102,7 +101,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   };
   
   const toggleNumber = (number: string, status: string) => {
-    console.log(`🔄 NumberGrid toggleNumber called with`, { number, status, highlightReserved });
+    console.log(`NumberGrid.tsx: Toggle number called with number=${number}, status=${status}`);
     
     if (highlightReserved && status === 'reserved') {
       const selectedNumber = numbers.find(n => n.number === number);
@@ -137,7 +136,11 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   };
   
   // Use the shared clearSelection function from context
-  const clearSelection = clearSelectionState;
+  const clearSelection = () => {
+    console.log("NumberGrid.tsx: Clear selection function called");
+    clearSelectionState();
+    // Note: Toast notification moved to NumberGridControls component
+  };
   
   const handleReserve = () => {
     if (selectedNumbers.length === 0) {

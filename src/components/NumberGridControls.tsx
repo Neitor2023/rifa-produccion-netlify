@@ -2,6 +2,8 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, CreditCard, Check } from 'lucide-react';
+import { toast } from 'sonner';
+import { useNumberSelection } from '@/contexts/NumberSelectionContext';
 
 interface NumberGridControlsProps {
   selectedNumbers: string[];
@@ -26,12 +28,19 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
   onPayReserved,
   onProceedToPayment,
 }) => {
+  const handleClearSelection = () => {
+    console.log("NumberGridControls.tsx: Clear button clicked");
+    onClearSelection();
+    // Show toast notification here consistently
+    toast.success('Selección limpiada');
+  };
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
       <Button 
         variant="outline" 
         className="flex items-center gap-2" 
-        onClick={onClearSelection}
+        onClick={handleClearSelection}
       >
         <Check className="h-4 w-4" />
         <span>Limpiar</span>

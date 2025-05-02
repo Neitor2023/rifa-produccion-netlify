@@ -40,9 +40,10 @@ const RaffleModals: React.FC<RaffleModalsProps> = ({
   allowVoucherPrint,
   raffleDetails
 }) => {
+  console.log("RaffleModals.tsx: Rendering with isPaymentModalOpen=", isPaymentModalOpen);
   
   return (
-    <NumberSelectionProvider>
+    <>
       <PaymentModal 
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
@@ -61,7 +62,7 @@ const RaffleModals: React.FC<RaffleModalsProps> = ({
         allowVoucherPrint={allowVoucherPrint}
         raffleDetails={raffleDetails}
       />
-    </NumberSelectionProvider>
+    </>
   );
 };
 

@@ -1,6 +1,5 @@
 
 import React, { createContext, useContext, useState } from 'react';
-import { toast } from 'sonner';
 
 interface NumberSelectionContextType {
   selectedNumbers: string[];
@@ -23,11 +22,12 @@ export const NumberSelectionProvider: React.FC<{ children: React.ReactNode }> = 
   const [selectedReservedNumber, setSelectedReservedNumber] = useState<string | null>(null);
 
   const clearSelectionState = () => {
+    console.log("NumberSelectionContext.tsx: Clearing selection state");
     setSelectedNumbers([]);
     setHighlightReserved(false);
     setShowReservedMessage(false);
     setSelectedReservedNumber(null);
-    toast.success('Selección limpiada');
+    // Removed the toast notification from here to avoid duplication
   };
 
   return (
