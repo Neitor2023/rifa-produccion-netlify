@@ -144,7 +144,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         );
         onClose();
       } catch (error) {
-        toast.error("Error durante la validación. Por favor intente nuevamente.");
+        toast.error("Error durante la validación. Por favor intente nuevamente.", validation);
       }
     }
   };
