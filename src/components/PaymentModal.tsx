@@ -21,7 +21,7 @@ interface PaymentModalProps {
   selectedNumbers: string[];
   price: number;
   onComplete: (paymentData: PaymentFormData) => void;
-  buyerData?: ValidatedBuyerInfo;
+  buyerData?: ValidatedBuyerInfo | null;
   debugMode?: boolean;
 }
 
