@@ -1,3 +1,4 @@
+
 export interface Prize {
   id: string;
   raffle_id: string;
@@ -6,6 +7,11 @@ export interface Prize {
   order: number;
   created_at: string;
   updated_at: string;
+  url_image?: string; // Add this for backward compatibility
+  detail?: string;    // Add this for backward compatibility
+  value?: number;     // Add this for backward compatibility
+  private_note?: string; // Add this for backward compatibility
+  deleted_at?: string | null; // Add this for backward compatibility
 }
 
 export interface PrizeImage {
@@ -31,4 +37,16 @@ export interface Organization {
   twitter: string | null;
   created_at: string;
   updated_at: string;
+  // Additional fields used in OrganizerInfo and RaffleHeader components
+  organization_name?: string;
+  organization_logo_url?: string;
+  org_name?: string;
+  org_photo?: string;
+  org_phone_number?: string;
+  admin_name?: string;
+  admin_photo?: string;
+  admin_phone_number?: string;
+  background_color?: string;
+  select_language?: string;
+  modal?: string;
 }

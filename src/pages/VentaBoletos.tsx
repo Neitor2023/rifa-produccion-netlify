@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Toaster, toast } from 'sonner';
@@ -20,6 +19,10 @@ import { Prize, PrizeImage, Organization } from '@/lib/constants';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { useBuyerInfo, BuyerInfoProvider } from '@/contexts/BuyerInfoContext';
+
+// Constants
+const SELLER_ID = "0102030405";
+const RAFFLE_ID = "fd6bd3bc-d81f-48a9-be58-8880293a0472";
 
 // Define interface for URL search parameters
 interface QueryParams {
@@ -70,7 +73,7 @@ const VentaBoletosContent: React.FC = () => {
   // Parse query parameters from URL
   const queryParams: QueryParams = {};
   const searchParams = new URLSearchParams(location.search);
-  queryParams.sellerID = searchParams.get('sellerID') || undefined;
+  queryParams.sellerID = searchParams.get('sellerID') || SELLER_ID;  // Use constant as fallback
   queryParams.debug = searchParams.get('debug') || undefined;
 
   // Set debug mode based on URL parameter
@@ -118,7 +121,7 @@ const VentaBoletosContent: React.FC = () => {
         const { data: raffleData, error: raffleError } = await supabase
           .from('raffles')
           .select('*')
-          .eq('id', raffleSellerData.raffle_id)
+          .eq('id', raffleSellerData.raffle_id || RAFFLE_ID)
           .single();
 
         if (raffleError) throw new Error(`Error al cargar detalles de la rifa: ${raffleError.message}`);
@@ -131,13 +134,13 @@ const VentaBoletosContent: React.FC = () => {
           .select('*')
           .single();
 
-        if (!orgError && orgData) setOrganization(orgData);
+        if (!orgError && orgData) setOrganization(orgData as Organization);
 
         // Load raffle numbers
         const { data: numbersData, error: numbersError } = await supabase
           .from('raffle_numbers')
           .select('*')
-          .eq('raffle_id', raffleSellerData.raffle_id)
+          .eq('raffle_id', raffleSellerData.raffle_id || RAFFLE_ID)
           .eq('seller_id', queryParams.sellerID);
 
         if (numbersError) throw new Error(`Error al cargar números de la rifa: ${numbersError.message}`);
@@ -154,9 +157,9 @@ const VentaBoletosContent: React.FC = () => {
         const { data: prizesData, error: prizesError } = await supabase
           .from('prizes')
           .select('*')
-          .eq('raffle_id', raffleSellerData.raffle_id);
+          .eq('raffle_id', raffleSellerData.raffle_id || RAFFLE_ID);
 
-        if (!prizesError && prizesData) setPrizes(prizesData);
+        if (!prizesError && prizesData) setPrizes(prizesData as Prize[]);
 
         // Load prize images
         if (prizesData && prizesData.length > 0) {
