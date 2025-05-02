@@ -19,9 +19,10 @@ import { Prize, PrizeImage, Organization } from '@/lib/constants';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { useBuyerInfo, BuyerInfoProvider } from '@/contexts/BuyerInfoContext';
+import { useRaffleData } from '@/hooks/useRaffleData';
 
 // Constants
-const SELLER_ID = "0102030405";
+const SELLER_ID = "e2a43af3-5ec5-4f17-bca7-7b61ea5e52b2"; // Valid UUID format
 const RAFFLE_ID = "fd6bd3bc-d81f-48a9-be58-8880293a0472";
 
 // Define interface for URL search parameters
