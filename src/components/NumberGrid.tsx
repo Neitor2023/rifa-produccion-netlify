@@ -248,7 +248,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       {showReservedMessage && (
         <ReservedMessageAlert onClose={handleCloseReservedMessage} />
       )}
-      
+      {console.log("👉 Antes de GridLayout")}
       <Card className="p-2 sm:p-4 mb-4 bg-white dark:bg-gray-800 overflow-x-auto">
         <GridLayout
           numbers={numbers}
