@@ -166,7 +166,14 @@ const VentaBoletosContent: React.FC = () => {
             .select('*')
             .in('prize_id', prizeIds);
 
-          if (!imagesError && imagesData) setPrizeImages(imagesData);
+          if (!imagesError && imagesData) {
+            // Map received data to match PrizeImage interface
+            const formattedImages: PrizeImage[] = imagesData.map(img => ({
+              ...img,
+              url_image: img.image_url // Ensure backward compatibility
+            }));
+            setPrizeImages(formattedImages);
+          }
         }
 
         setIsLoading(false);
@@ -216,12 +223,13 @@ const VentaBoletosContent: React.FC = () => {
         participantId = existingParticipant.id;
         console.log(`Participante existente encontrado: ${existingParticipant.name} (ID: ${participantId})`);
       } else {
-        // Create new participant
+        // Create new participant - use a placeholder email if needed since it's required
         const { data: newParticipant, error: createError } = await supabase
           .from('participants')
           .insert({
             name: buyerName,
             phone: buyerPhone,
+            email: `${buyerPhone}@placeholder.com`, // Add placeholder email since it's required
             cedula: buyerCedula || null,
             raffle_id: raffleSeller.raffle_id,
             seller_id: raffleSeller.seller_id
@@ -343,7 +351,7 @@ const VentaBoletosContent: React.FC = () => {
             .insert({
               name: paymentData.buyerName,
               phone: paymentData.buyerPhone,
-              email: paymentData.buyerEmail || null,
+              email: paymentData.buyerEmail || `${paymentData.buyerPhone}@placeholder.com`, // Add email with fallback
               cedula: paymentData.buyerCedula || null,
               raffle_id: raffleSeller.raffle_id,
               seller_id: raffleSeller.seller_id,
