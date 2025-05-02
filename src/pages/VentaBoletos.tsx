@@ -1,29 +1,23 @@
 
-import React, { useState, useEffect } from 'react';
-import RaffleHeader from '@/components/RaffleHeader';
-import PrizeCarousel from '@/components/PrizeCarousel';
-import PrizeDetailModal from '@/components/PrizeDetailModal';
-import OrganizerInfo from '@/components/OrganizerInfo';
-import NumberGrid from '@/components/NumberGrid';
-import PaymentModal from '@/components/PaymentModal';
-import DigitalVoucher from '@/components/DigitalVoucher';
-import DarkModeToggle from '@/components/DarkModeToggle';
-import RaffleInfo from '@/components/RaffleInfo';
-import SellerInfo from '@/components/SellerInfo';
+import React, { useEffect } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { usePaymentProcessor } from '@/hooks/usePaymentProcessor';
 import { useRaffleData } from '@/hooks/useRaffleData';
-import { Prize } from '@/lib/constants';
 import { BuyerInfoProvider, useBuyerInfo } from '@/contexts/BuyerInfoContext';
+
+// Components
+import RaffleHeaderSection from '@/components/raffle/RaffleHeaderSection';
+import RafflePrizesSection from '@/components/raffle/RafflePrizesSection';
+import RaffleNumberGridSection from '@/components/raffle/RaffleNumberGridSection';
+import RaffleInfoSection from '@/components/raffle/RaffleInfoSection';
+import RaffleModals from '@/components/raffle/RaffleModals';
 
 // Constants
 const SELLER_ID = "0102030405";
 const RAFFLE_ID = "fd6bd3bc-d81f-48a9-be58-8880293a0472";
 
 const VentaBoletosContent: React.FC = () => {
-  // UI state management
-  const [selectedPrize, setSelectedPrize] = useState<Prize | null>(null);
-  const [isPrizeModalOpen, setIsPrizeModalOpen] = useState(false);
+  // Access buyer info from context
   const { buyerInfo } = useBuyerInfo();
   
   // Fetch raffle data
@@ -95,12 +89,6 @@ const VentaBoletosContent: React.FC = () => {
     } : 'null'
   );
 
-  // Event handlers
-  const handleViewPrizeDetails = (prize: Prize) => {
-    setSelectedPrize(prize);
-    setIsPrizeModalOpen(true);
-  };
-
   if (isLoading) {
     return <LoadingSpinner />;
   }
@@ -111,100 +99,52 @@ const VentaBoletosContent: React.FC = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       <div className="container px-4 py-6 max-w-3xl mx-auto">
         {/* Header section */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex-1">
-            {organization && <RaffleHeader organization={organization} />}
-          </div>
-          <DarkModeToggle />
-        </div>
+        <RaffleHeaderSection 
+          organization={organization} 
+          title={raffle?.title || 'Cargando...'}
+        />
         
-        {/* Title */}
-        <h1 className="text-2xl font-bold text-center mb-6 text-gray-800 dark:text-gray-100">
-          {raffle?.title || 'Cargando...'}
-        </h1>
-        
-        {/* Prize carousel */}
-        {prizes && (
-          <PrizeCarousel 
+        {/* Prize carousel and modal */}
+        {prizes && prizeImages && (
+          <RafflePrizesSection 
             prizes={prizes} 
-            onViewDetails={handleViewPrizeDetails}
+            prizeImages={prizeImages} 
           />
         )}
         
         {/* Number grid */}
-        {raffleNumbers && (
-          <div className="mb-8">
-            <NumberGrid 
-              numbers={formatNumbersForGrid()}
-              raffleSeller={{
-                id: raffleSeller?.id || 'default',
-                raffle_id: RAFFLE_ID,
-                seller_id: seller?.id || SELLER_ID,
-                active: raffleSeller?.active || true,
-                cant_max: maxNumbersAllowed
-              }}
-              onReserve={handleReserveNumbers}
-              onProceedToPayment={handleProceedToPayment}
-              debugMode={debugMode}
-              soldNumbersCount={getSoldNumbersCount(seller?.id || '')}
-            />
-          </div>
-        )}
+        <RaffleNumberGridSection 
+          raffleNumbers={raffleNumbers}
+          formatNumbersForGrid={formatNumbersForGrid}
+          raffleSeller={raffleSeller}
+          raffleId={RAFFLE_ID}
+          sellerId={seller?.id || SELLER_ID}
+          debugMode={debugMode}
+          onReserve={handleReserveNumbers}
+          onProceedToPayment={handleProceedToPayment}
+          getSoldNumbersCount={getSoldNumbersCount}
+        />
         
         {/* Raffle information */}
-        {raffle && (
-          <RaffleInfo
-            description={raffle.description}
-            lottery={raffle.lottery}
-            dateLottery={raffle.date_lottery}
-            paymentInstructions={raffle.payment_instructions}
-            price={raffle.price}
-            currency={raffle.currency}
-          />
-        )}
-        
-        {/* Seller information */}
-        {seller && (
-          <SellerInfo
-            name={seller.name}
-            phone={seller.phone}
-            avatar={seller.avatar}
-            id={seller.id}
-          />
-        )}
-        
-        {/* Organization information */}
-        {organization && <OrganizerInfo organization={organization} />}
-        
-        {/* Disclaimer */}
-        <div className="text-center text-xs text-gray-500 dark:text-gray-400 italic mb-8">
-          Las plataformas de redes sociales no están asociadas a esta rifa.
-        </div>
+        <RaffleInfoSection 
+          raffle={raffle} 
+          seller={seller} 
+          organization={organization} 
+        />
       </div>
       
       {/* Modals */}
-      <PrizeDetailModal 
-        isOpen={isPrizeModalOpen}
-        onClose={() => setIsPrizeModalOpen(false)}
-        prize={selectedPrize}
-        prizeImages={prizeImages || []}
-      />
-
-      <PaymentModal 
-        isOpen={isPaymentModalOpen}
-        onClose={() => setIsPaymentModalOpen(false)}
+      <RaffleModals 
+        isPaymentModalOpen={isPaymentModalOpen}
+        setIsPaymentModalOpen={setIsPaymentModalOpen}
+        isVoucherOpen={isVoucherOpen}
+        setIsVoucherOpen={setIsVoucherOpen}
         selectedNumbers={selectedNumbers}
-        price={raffle?.price || 0}
-        onComplete={handleCompletePayment}
-        buyerData={buyerInfo}
-        debugMode={debugMode}
-      />
-      
-      <DigitalVoucher 
-        isOpen={isVoucherOpen}
-        onClose={() => setIsVoucherOpen(false)}
+        rafflePrice={raffle?.price || 0}
         paymentData={paymentData}
-        selectedNumbers={selectedNumbers}
+        onCompletePayment={handleCompletePayment}
+        buyerInfo={buyerInfo}
+        debugMode={debugMode}
         allowVoucherPrint={allowVoucherPrint}
         raffleDetails={raffle ? {
           title: raffle.title,
