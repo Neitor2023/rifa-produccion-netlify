@@ -105,6 +105,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           .from('participants')
           .select('id, name, phone, cedula, direccion, sugerencia_producto')
           .eq('phone', cleanedPhone)
+          .eq('raffle_id', raffleId)
           .maybeSingle();
 
         if (byPhone) {
@@ -116,6 +117,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
             .from('participants')
             .select('id, name, phone, cedula, direccion, sugerencia_producto')
             .eq('cedula', phone)
+            .eq('raffle_id', raffleId)
             .maybeSingle();
 
           if (byCedula) {
@@ -124,13 +126,6 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           }
         }
 
-        // Verifica si hubo un error en la consulta a Supabase
-        if (supabaseError) {
-          console.error("👉 Error de Supabase durante la búsqueda por teléfono:", supabaseError);
-          // Puedes lanzar el error nuevamente o manejarlo de otra manera
-          // throw supabaseError;
-        }
-        
         if (!participant) {
           toast.error(`❌ Participante no encontrado con el dato ingresado: ${cleanedPhone}`);
           return;
@@ -152,7 +147,6 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         onClose();
       } catch (error) {
         toast.error("Error durante la validación. Por favor intente nuevamente.");
-        console.log("👉 Error durante la validación.",validation);
       }
     }
   };

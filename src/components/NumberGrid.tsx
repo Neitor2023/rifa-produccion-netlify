@@ -42,7 +42,6 @@ interface NumberGridProps {
   raffleSeller: RaffleSeller;
   onReserve: (selectedNumbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula?: string) => void;
   onProceedToPayment: (selectedNumbers: string[], participantData?: ValidatedBuyerInfo) => void;
-  onBuyerInfoValidated: (buyerInfo: ValidatedBuyerInfo) => void; // Nueva prop
   debugMode?: boolean;
   soldNumbersCount?: number;
 }
@@ -52,7 +51,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   raffleSeller,
   onReserve,
   onProceedToPayment,
-  onBuyerInfoValidated, // Recibe la nueva prop
   debugMode = false,
   soldNumbersCount = 0
 }) => {
@@ -175,7 +173,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       });
       setBuyerData(buyerInfo);
       setValidatedBuyerInfo(buyerInfo);
-      onBuyerInfoValidated(buyerInfo); // Pasa buyerInfo a VentaBoletos
     }
     
     setIsPhoneModalOpen(false);
@@ -248,7 +245,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       {showReservedMessage && (
         <ReservedMessageAlert onClose={handleCloseReservedMessage} />
       )}
-
+      
       <Card className="p-2 sm:p-4 mb-4 bg-white dark:bg-gray-800 overflow-x-auto">
         <GridLayout
           numbers={numbers}
@@ -258,7 +255,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           onPayReserved={handlePayReserved} 
         />
       </Card>
-
+      
       <NumberGridControls 
         selectedNumbers={selectedNumbers}
         raffleSeller={raffleSeller}
@@ -267,7 +264,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         onPayReserved={handlePayReserved}
         onProceedToPayment={handleProceedToPayment}
       />
-
+      
       <NumberGridLegend highlightReserved={highlightReserved} />
       
       <PhoneValidationModal 
