@@ -124,6 +124,13 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           }
         }
 
+        // Verifica si hubo un error en la consulta a Supabase
+        if (supabaseError) {
+          console.error("👉 Error de Supabase durante la búsqueda por teléfono:", supabaseError);
+          // Puedes lanzar el error nuevamente o manejarlo de otra manera
+          // throw supabaseError;
+        }
+        
         if (!participant) {
           toast.error(`❌ Participante no encontrado con el dato ingresado: ${cleanedPhone}`);
           return;
