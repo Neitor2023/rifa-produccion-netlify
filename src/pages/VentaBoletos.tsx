@@ -157,6 +157,7 @@ const VentaBoletos: React.FC = () => {
               }}
               onReserve={handleReserveNumbers}
               onProceedToPayment={handleProceedToPayment}
+              onBuyerInfoValidated={handleBuyerInfoFromGrid} // Pasa la función al NumberGrid
               debugMode={debugMode}
               soldNumbersCount={getSoldNumbersCount(seller?.id || '')}
             />
