@@ -4,6 +4,7 @@ import PaymentModal from '@/components/PaymentModal';
 import DigitalVoucher from '@/components/DigitalVoucher';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import { PaymentFormData } from '@/components/PaymentModal';
+import { NumberSelectionProvider } from '@/contexts/NumberSelectionContext';
 
 interface RaffleModalsProps {
   isPaymentModalOpen: boolean;
@@ -41,7 +42,7 @@ const RaffleModals: React.FC<RaffleModalsProps> = ({
 }) => {
   
   return (
-    <>
+    <NumberSelectionProvider>
       <PaymentModal 
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
@@ -60,7 +61,7 @@ const RaffleModals: React.FC<RaffleModalsProps> = ({
         allowVoucherPrint={allowVoucherPrint}
         raffleDetails={raffleDetails}
       />
-    </>
+    </NumberSelectionProvider>
   );
 };
 

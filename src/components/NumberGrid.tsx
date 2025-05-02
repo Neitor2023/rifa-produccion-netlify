@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'sonner';
 import { Card } from '@/components/ui/card';
@@ -15,6 +16,7 @@ import { ValidatedBuyerInfo } from '@/types/participant';
 import GridLayout from './NumberGrid/GridLayout';
 import ReservedMessageAlert from './NumberGrid/ReservedMessageAlert';
 import { useBuyerInfo } from '@/contexts/BuyerInfoContext';
+import { useNumberSelection } from '@/contexts/NumberSelectionContext';
 
 interface RaffleNumber {
   id: string;
@@ -55,12 +57,21 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   debugMode = false,
   soldNumbersCount = 0
 }) => {
-  const [selectedNumbers, setSelectedNumbers] = useState<string[]>([]);
-  const [highlightReserved, setHighlightReserved] = useState(false);
-  const [showReservedMessage, setShowReservedMessage] = useState(false);
+  // Get values from NumberSelection context
+  const {
+    selectedNumbers,
+    setSelectedNumbers,
+    highlightReserved,
+    setHighlightReserved,
+    showReservedMessage,
+    setShowReservedMessage,
+    selectedReservedNumber,
+    setSelectedReservedNumber,
+    clearSelectionState
+  } = useNumberSelection();
+
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
-  const [selectedReservedNumber, setSelectedReservedNumber] = useState<string | null>(null);
   const [buyerData, setBuyerData] = useState<ValidatedBuyerInfo | null>(null);
   const [validatedBuyerInfo, setValidatedBuyerInfo] = useState<ValidatedBuyerInfo | null>(null);
   
@@ -125,18 +136,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     });
   };
   
-  const clearSelection = () => {
-    // Clear selected numbers
-    setSelectedNumbers([]);
-    
-    // Reset states related to "Pagar Apartados" flow
-    setHighlightReserved(false);
-    setShowReservedMessage(false);
-    setSelectedReservedNumber(null);
-    
-    // Display confirmation message
-    toast.success('Selección limpiada');
-  };
+  // Use the shared clearSelection function from context
+  const clearSelection = clearSelectionState;
   
   const handleReserve = () => {
     if (selectedNumbers.length === 0) {

@@ -1,9 +1,9 @@
-
 import React, { useEffect } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { usePaymentProcessor } from '@/hooks/usePaymentProcessor';
 import { useRaffleData } from '@/hooks/useRaffleData';
 import { BuyerInfoProvider, useBuyerInfo } from '@/contexts/BuyerInfoContext';
+import { NumberSelectionProvider } from '@/contexts/NumberSelectionContext';
 
 // Componentes
 import RaffleHeaderSection from '@/components/raffle/RaffleHeaderSection';
@@ -160,7 +160,9 @@ const VentaBoletosContent: React.FC = () => {
 const VentaBoletos: React.FC = () => {
   return (
     <BuyerInfoProvider>
-      <VentaBoletosContent />
+      <NumberSelectionProvider>
+        <VentaBoletosContent />
+      </NumberSelectionProvider>
     </BuyerInfoProvider>
   );
 };

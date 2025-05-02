@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { LoaderCircle } from "lucide-react";
+import { useNumberSelection } from '@/contexts/NumberSelectionContext';
 
 interface PaymentModalActionsProps {
   isSubmitting: boolean;
@@ -10,12 +11,22 @@ interface PaymentModalActionsProps {
 }
 
 export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit }: PaymentModalActionsProps) => {
+  const { clearSelectionState } = useNumberSelection();
+
+  const handleCancel = () => {
+    // Clear number selections and states
+    clearSelectionState();
+    
+    // Close the modal
+    onClose();
+  };
+
   return (
     <div className="flex justify-end space-x-2 pt-4 border-t mt-4">
       <Button
         type="button"
         variant="outline"
-        onClick={onClose}
+        onClick={handleCancel}
         className="flex-1 sm:flex-none"
       >
         Cancelar
