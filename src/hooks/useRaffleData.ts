@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -64,7 +63,7 @@ export function useRaffleData({ raffleId, sellerId }: UseRaffleDataProps) {
       if (error) throw error;
       
       // Add default order property if not exists
-      return (data || []).map((prize, index) => ({
+      return (data || []).map((prize: any, index: number) => ({
         ...prize,
         order: prize.order ?? index // Provide default order based on array index
       }));
@@ -245,7 +244,7 @@ export function useRaffleData({ raffleId, sellerId }: UseRaffleDataProps) {
         id: existingNumber?.id || `num-${paddedNumber}`,
         raffle_id: raffleId,
         number: paddedNumber,
-        status: existingNumber?.status || 'available',
+        status: (existingNumber?.status || 'available') as 'available' | 'reserved' | 'sold',
         seller_id: existingNumber?.seller_id || null,
         buyer_name: existingNumber?.participant_id ? 'Comprador' : null,
         buyer_phone: null,
