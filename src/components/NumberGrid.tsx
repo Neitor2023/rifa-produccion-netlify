@@ -126,7 +126,16 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   };
   
   const clearSelection = () => {
+    // Clear selected numbers
     setSelectedNumbers([]);
+    
+    // Reset states related to "Pagar Apartados" flow
+    setHighlightReserved(false);
+    setShowReservedMessage(false);
+    setSelectedReservedNumber(null);
+    
+    // Display confirmation message
+    toast.success('Selección limpiada');
   };
   
   const handleReserve = () => {
