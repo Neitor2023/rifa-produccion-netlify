@@ -15,6 +15,7 @@ import { Card } from '@/components/ui/card';
 import { PaymentFormData } from './PaymentModal';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useTheme } from '@/components/ThemeProvider';
+import { useToast } from '@/hooks/use-toast';
 
 interface DigitalVoucherProps {
   isOpen: boolean;
@@ -40,6 +41,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
 }) => {
   const printRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
+  const { toast } = useToast();
   
   // Determine text color based on theme
   const textColor = theme === 'dark' ? 'text-white' : 'text-gray-800';
@@ -186,6 +188,14 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
                   <p>Este comprobante valida la compra de los números seleccionados.</p>
                   <p>Guárdelo como referencia para futuras consultas.</p>
                 </div>
+                
+                {/* In-modal notification instead of toast */}
+                <Alert className="mt-4 bg-green-50 border-green-200">
+                  <AlertTitle className="text-green-700">Comprobante Disponible</AlertTitle>
+                  <AlertDescription className="text-green-600">
+                    Su comprobante ha sido generado correctamente. Puede imprimirlo o guardarlo como referencia.
+                  </AlertDescription>
+                </Alert>
               </div>
             </Card>
           </div>
