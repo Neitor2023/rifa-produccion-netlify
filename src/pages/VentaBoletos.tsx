@@ -26,6 +26,7 @@ const VentaBoletos: React.FC = () => {
   const handleBuyerInfoFromGrid = (buyerInfo: ValidatedBuyerInfo) => {
   console.log("📦 VentaBoletos - Recibiendo buyerInfo desde NumberGrid:", buyerInfo);
   setBuyerInfoFromGrid(buyerInfo);
+  console.log("🔄 VentaBoletos Bandera");
   };  
   // Fetch raffle data
   const { 
@@ -46,7 +47,7 @@ const VentaBoletos: React.FC = () => {
     raffleId: RAFFLE_ID, 
     sellerId: SELLER_ID 
   });
-  console.log("🔄 VentaBoletos Bandera");
+
   // Payment processor hook with allowVoucherPrint passed
   const {
     selectedNumbers,
