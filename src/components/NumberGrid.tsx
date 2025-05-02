@@ -14,6 +14,7 @@ import NumberGridItem from './NumberGridItem';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import GridLayout from './NumberGrid/GridLayout';
 import ReservedMessageAlert from './NumberGrid/ReservedMessageAlert';
+import { useBuyerInfo } from '@/contexts/BuyerInfoContext';
 
 interface RaffleNumber {
   id: string;
@@ -62,6 +63,9 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const [selectedReservedNumber, setSelectedReservedNumber] = useState<string | null>(null);
   const [buyerData, setBuyerData] = useState<ValidatedBuyerInfo | null>(null);
   const [validatedBuyerInfo, setValidatedBuyerInfo] = useState<ValidatedBuyerInfo | null>(null);
+  
+  // Use the context
+  const { setBuyerInfo } = useBuyerInfo();
 
   const handlePayReserved = () => {
     console.log('▶️ NumberGrid: handlePayReserved called');
@@ -171,8 +175,13 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         direccion: buyerInfo.direccion,
         sugerencia_producto: buyerInfo.sugerencia_producto
       });
+      
+      // Update local state
       setBuyerData(buyerInfo);
       setValidatedBuyerInfo(buyerInfo);
+      
+      // Update context state - this is the key change
+      setBuyerInfo(buyerInfo);
     }
     
     setIsPhoneModalOpen(false);

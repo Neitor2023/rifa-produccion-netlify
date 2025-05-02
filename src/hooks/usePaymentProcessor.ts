@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -7,11 +8,11 @@ import { useNumberStatus } from './useNumberStatus';
 import { useSelection } from './usePaymentProcessor/selection';
 import { useModalState } from './usePaymentProcessor/modalState';
 import { usePayment } from './usePaymentProcessor/payment';
-import { useBuyerData } from './usePaymentProcessor/buyerData';
 import { useSellerValidation } from './usePaymentProcessor/sellerValidation';
 import { useNumberAvailability } from './usePaymentProcessor/numberAvailability';
 import { usePaymentCompletion } from './usePaymentProcessor/paymentCompletion';
 import { supabase } from '@/integrations/supabase/client';
+import { useBuyerInfo } from '@/contexts/BuyerInfoContext';
 
 interface UsePaymentProcessorProps {
   raffleSeller: {
@@ -38,18 +39,22 @@ export function usePaymentProcessor({
   const { selectedNumbers, setSelectedNumbers } = useSelection();
   const { isPaymentModalOpen, setIsPaymentModalOpen, isVoucherOpen, setIsVoucherOpen } = useModalState();
   const { paymentData, setPaymentData, handleProofCheck } = usePayment();
-  const { validatedBuyerData, setValidatedBuyerData } = useBuyerData();
   const { validateSellerMaxNumbers, getSoldNumbersCount } = useSellerValidation(raffleSeller, raffleNumbers, debugMode);
+  
+  // Use the context instead of local state
+  const { buyerInfo, setBuyerInfo } = useBuyerInfo();
+  
   const { checkNumbersAvailability, checkReservedNumbersParticipant } = useNumberAvailability({ 
     raffleNumbers, 
     raffleSeller, 
-    setValidatedBuyerData,
+    setValidatedBuyerData: setBuyerInfo, // Use context setter instead
     debugMode 
   });
+  
   const { uploadPaymentProof, processParticipant, updateNumbersToSold } = usePaymentCompletion({
     raffleSeller,
     raffleId,
-    setValidatedBuyerData,
+    setValidatedBuyerData: setBuyerInfo, // Use context setter instead
     debugMode
   });
   
@@ -64,7 +69,7 @@ export function usePaymentProcessor({
     raffleId, 
     debugMode, 
     raffleSeller, 
-    setValidatedBuyerData 
+    setValidatedBuyerData: setBuyerInfo // Use context setter instead
   });
 
   const debugLog = (context: string, data: any) => {
@@ -186,7 +191,7 @@ export function usePaymentProcessor({
     }
 
     try {
-      setValidatedBuyerData(participantData);
+      setBuyerInfo(participantData);
       setSelectedNumbers(numbers);
       
       setIsPaymentModalOpen(true);
@@ -226,8 +231,8 @@ export function usePaymentProcessor({
       
       let participantId: string | null;
       
-      if (validatedBuyerData?.id) {
-        participantId = validatedBuyerData.id;
+      if (buyerInfo?.id) {
+        participantId = buyerInfo.id;
         console.log("Using existing participant ID:", participantId);
       } else {
         participantId = await processParticipant(data);
@@ -301,8 +306,6 @@ export function usePaymentProcessor({
     setIsVoucherOpen,
     paymentData,
     setPaymentData,
-    validatedBuyerData,
-    setValidatedBuyerData,
     debugMode,
     handleReserveNumbers,
     handleProceedToPayment,

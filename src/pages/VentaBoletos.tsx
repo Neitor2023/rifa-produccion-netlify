@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import RaffleHeader from '@/components/RaffleHeader';
 import PrizeCarousel from '@/components/PrizeCarousel';
@@ -13,15 +14,17 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import { usePaymentProcessor } from '@/hooks/usePaymentProcessor';
 import { useRaffleData } from '@/hooks/useRaffleData';
 import { Prize } from '@/lib/constants';
+import { BuyerInfoProvider, useBuyerInfo } from '@/contexts/BuyerInfoContext';
 
 // Constants
 const SELLER_ID = "0102030405";
 const RAFFLE_ID = "fd6bd3bc-d81f-48a9-be58-8880293a0472";
 
-const VentaBoletos: React.FC = () => {
+const VentaBoletosContent: React.FC = () => {
   // UI state management
   const [selectedPrize, setSelectedPrize] = useState<Prize | null>(null);
   const [isPrizeModalOpen, setIsPrizeModalOpen] = useState(false);
+  const { buyerInfo } = useBuyerInfo();
   
   // Fetch raffle data
   const { 
@@ -51,7 +54,6 @@ const VentaBoletos: React.FC = () => {
     isVoucherOpen,
     setIsVoucherOpen,
     paymentData,
-    validatedBuyerData,
     handleReserveNumbers,
     handleProceedToPayment,
     handlePayReservedNumbers,
@@ -71,25 +73,25 @@ const VentaBoletos: React.FC = () => {
     allowVoucherPrint
   });
 
-  // Log validatedBuyerData whenever it changes
+  // Log buyerInfo whenever it changes
   useEffect(() => {
-    console.log("📦 VentaBoletos - validatedBuyerData:", validatedBuyerData ? {
-      id: validatedBuyerData.id || 'N/A',
-      name: validatedBuyerData.name,
-      phone: validatedBuyerData.phone,
-      cedula: validatedBuyerData.cedula,
-      direccion: validatedBuyerData.direccion,
-      sugerencia_producto: validatedBuyerData.sugerencia_producto
+    console.log("📦 VentaBoletos - buyerInfo:", buyerInfo ? {
+      id: buyerInfo.id || 'N/A',
+      name: buyerInfo.name,
+      phone: buyerInfo.phone,
+      cedula: buyerInfo.cedula,
+      direccion: buyerInfo.direccion,
+      sugerencia_producto: buyerInfo.sugerencia_producto
     } : 'null');
-  }, [validatedBuyerData]);
+  }, [buyerInfo]);
 
   // Log before rendering PaymentModal
-  console.log("📦 VentaBoletos - Rendering PaymentModal with validatedBuyerData:", 
-    validatedBuyerData ? {
-      id: validatedBuyerData.id || 'N/A',
-      name: validatedBuyerData.name,
-      phone: validatedBuyerData.phone,
-      cedula: validatedBuyerData.cedula
+  console.log("📦 VentaBoletos - Rendering PaymentModal with buyerInfo:", 
+    buyerInfo ? {
+      id: buyerInfo.id || 'N/A',
+      name: buyerInfo.name,
+      phone: buyerInfo.phone,
+      cedula: buyerInfo.cedula
     } : 'null'
   );
 
@@ -99,25 +101,11 @@ const VentaBoletos: React.FC = () => {
     setIsPrizeModalOpen(true);
   };
 
-  // Log validatedBuyerData whenever it changes to help with debugging
-  useEffect(() => {
-    if (validatedBuyerData) {
-      console.log("🔄 VentaBoletos - validatedBuyerData updated:", {
-        id: validatedBuyerData.id || 'N/A',
-        name: validatedBuyerData.name,
-        phone: validatedBuyerData.phone,
-        cedula: validatedBuyerData.cedula
-      });
-    } else {
-      console.log("🔄 VentaBoletos - No validatedBuyerData available");
-    }
-  }, [validatedBuyerData]);
-
   if (isLoading) {
     return <LoadingSpinner />;
   }
 
-  console.log("📦 Datos validados en VentaBoletos antes de pasarlos a PaymentModal:", validatedBuyerData);
+  console.log("📦 Datos validados en VentaBoletos antes de pasarlos a PaymentModal:", buyerInfo);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
@@ -208,7 +196,7 @@ const VentaBoletos: React.FC = () => {
         selectedNumbers={selectedNumbers}
         price={raffle?.price || 0}
         onComplete={handleCompletePayment}
-        buyerData={validatedBuyerData}
+        buyerData={buyerInfo}
         debugMode={debugMode}
       />
       
@@ -226,6 +214,14 @@ const VentaBoletos: React.FC = () => {
         } : undefined}
       />
     </div>
+  );
+};
+
+const VentaBoletos: React.FC = () => {
+  return (
+    <BuyerInfoProvider>
+      <VentaBoletosContent />
+    </BuyerInfoProvider>
   );
 };
 
