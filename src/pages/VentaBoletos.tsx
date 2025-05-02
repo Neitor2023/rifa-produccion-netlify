@@ -201,15 +201,15 @@ const VentaBoletos: React.FC = () => {
         prize={selectedPrize}
         prizeImages={prizeImages || []}
       />
-{console.log("👉 VentaBoletos - Datos de validatedBuyerData antes de PaymentModal:", validatedBuyerData)}
+      {console.log("👉 VentaBoletos - Datos de validatedBuyerData antes de PaymentModal:", validatedBuyerData)}
       <PaymentModal 
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
         selectedNumbers={selectedNumbers}
         price={raffle?.price || 0}
         onComplete={handleCompletePayment}
-        // buyerData={validatedBuyerData}
-        buyerData={handleProceedToPayment}
+        buyerData={validatedBuyerData}
+        //buyerData={handleProceedToPayment}
         debugMode={debugMode}
       />
       
