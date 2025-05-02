@@ -42,6 +42,7 @@ interface NumberGridProps {
   raffleSeller: RaffleSeller;
   onReserve: (selectedNumbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula?: string) => void;
   onProceedToPayment: (selectedNumbers: string[], participantData?: ValidatedBuyerInfo) => void;
+  onBuyerInfoValidated: (buyerInfo: ValidatedBuyerInfo) => void; // Nueva prop
   debugMode?: boolean;
   soldNumbersCount?: number;
 }
@@ -51,6 +52,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   raffleSeller,
   onReserve,
   onProceedToPayment,
+  onBuyerInfoValidated, // Recibe la nueva prop
   debugMode = false,
   soldNumbersCount = 0
 }) => {
@@ -173,6 +175,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       });
       setBuyerData(buyerInfo);
       setValidatedBuyerInfo(buyerInfo);
+      onBuyerInfoValidated(buyerInfo); // Pasa buyerInfo a VentaBoletos
     }
     
     setIsPhoneModalOpen(false);
