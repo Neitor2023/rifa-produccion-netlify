@@ -195,19 +195,35 @@ export function useRaffleData({ raffleId, sellerId }: UseRaffleDataProps) {
   
   useEffect(() => {
     if (organization && (adminUser || organizerUser)) {
-      const updatedOrganization = { ...organization };
-      
-      if (adminUser) {
-        updatedOrganization.admin_name = adminUser.name;
-        updatedOrganization.admin_phone_number = adminUser.phone_number || '';
-        updatedOrganization.admin_photo = adminUser.avatar;
-      }
-      
-      if (organizerUser) {
-        updatedOrganization.org_name = organizerUser.name;
-        updatedOrganization.org_phone_number = organizerUser.phone_number || '';
-        updatedOrganization.org_photo = organizerUser.avatar;
-      }
+      // Create an organization object that matches the Organization interface
+      // Include all required properties from the Organization interface
+      const updatedOrganization: Organization = {
+        id: organization.id,
+        name: organization.organization_name || '',
+        logo: organization.organization_logo_url || null,
+        phone: organization.org_phone_number || null,
+        email: null,  // Default to null if not available
+        address: null, // Default to null if not available
+        website: null, // Default to null if not available
+        facebook: null, // Default to null if not available
+        instagram: null, // Default to null if not available
+        twitter: null, // Default to null if not available
+        created_at: organization.created_at || '',
+        updated_at: organization.updated_at || '',
+        
+        // Additional fields from the organization table
+        organization_name: organization.organization_name,
+        organization_logo_url: organization.organization_logo_url,
+        org_name: organizerUser?.name || organization.org_name,
+        org_photo: organizerUser?.avatar || organization.org_photo,
+        org_phone_number: organizerUser?.phone_number || organization.org_phone_number,
+        admin_name: adminUser?.name || organization.admin_name,
+        admin_phone_number: adminUser?.phone_number || organization.admin_phone_number,
+        admin_photo: adminUser?.avatar || organization.admin_photo,
+        background_color: organization.background_color,
+        select_language: organization.select_language,
+        modal: organization.modal
+      };
       
       setOrganizationData(updatedOrganization);
     }
