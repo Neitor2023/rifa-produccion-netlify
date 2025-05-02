@@ -258,7 +258,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           onPayReserved={handlePayReserved} 
         />
       </Card>
-      {console.log('▶️ NumberGrid: despues de GridLayout');}
+      {console.log("👉 VentaBoletos - Datos de validatedBuyerData despues de GridLayout:", validatedBuyerData)}
       <NumberGridControls 
         selectedNumbers={selectedNumbers}
         raffleSeller={raffleSeller}
