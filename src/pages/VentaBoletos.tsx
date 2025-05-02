@@ -6,14 +6,14 @@ import { useRaffleData } from '@/hooks/useRaffleData';
 import { BuyerInfoProvider, useBuyerInfo } from '@/contexts/BuyerInfoContext';
 import { NumberSelectionProvider } from '@/contexts/NumberSelectionContext';
 
-// Componentes
+// Components
 import RaffleHeaderSection from '@/components/raffle/RaffleHeaderSection';
 import RafflePrizesSection from '@/components/raffle/RafflePrizesSection';
 import RaffleNumberGridSection from '@/components/raffle/RaffleNumberGridSection';
 import RaffleInfoSection from '@/components/raffle/RaffleInfoSection';
 import RaffleModals from '@/components/raffle/RaffleModals';
 
-// Constantes
+// Constants
 const SELLER_ID = "0102030405";
 const RAFFLE_ID = "fd6bd3bc-d81f-48a9-be58-8880293a0472";
 
@@ -21,10 +21,10 @@ const VentaBoletosContent: React.FC = () => {
   // State for the clicked button
   const [clickedButton, setClickedButton] = useState<string | undefined>(undefined);
   
-  // Acceda a la información del comprador desde el contexto
+  // Access buyer info from context
   const { buyerInfo } = useBuyerInfo();
   
-  // Obtener datos del sorteo
+  // Get raffle data
   const { 
     seller,
     raffle,
@@ -44,7 +44,7 @@ const VentaBoletosContent: React.FC = () => {
     sellerId: SELLER_ID 
   });
   
-  // Gancho del procesador de pagos con allowVoucherPrint aprobado
+  // Payment processor hook with allowVoucherPrint approved
   const {
     selectedNumbers,
     isPaymentModalOpen,
@@ -72,13 +72,13 @@ const VentaBoletosContent: React.FC = () => {
   });
 
   // Handle proceeding to payment with the button type
-  const handleProceedToPaymentWithButton = (numbers: string[], participantData?: any, buttonType?: string) => {
+  const handleProceedToPaymentWithButton = async (numbers: string[], participantData?: any, buttonType?: string) => {
     console.log("VentaBoletos.tsx: Proceeding to payment with button type:", buttonType);
     setClickedButton(buttonType);
-    handleProceedToPayment(numbers, participantData);
+    await handleProceedToPayment(numbers, participantData);
   };
 
-  // Registrar la información del comprador cada vez que cambia
+  // Log buyer info when it changes
   useEffect(() => {
     console.log("VentaBoletos.tsx: buyerInfo:", buyerInfo ? {
       id: buyerInfo.id || 'N/A',
@@ -97,13 +97,13 @@ const VentaBoletosContent: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       <div className="container px-4 py-6 max-w-3xl mx-auto">
-        {/* Sección de encabezado */}
+        {/* Header section */}
         <RaffleHeaderSection 
           organization={organization} 
           title={raffle?.title || 'Cargando...'}
         />
         
-        {/* Carrusel de premios y modal */}
+        {/* Prize carousel and modal */}
         {prizes && prizeImages && (
           <RafflePrizesSection 
             prizes={prizes} 
@@ -111,7 +111,7 @@ const VentaBoletosContent: React.FC = () => {
           />
         )}
         
-        {/* Cuadrícula numérica */}
+        {/* Number grid */}
         <RaffleNumberGridSection 
           raffleNumbers={raffleNumbers}
           formatNumbersForGrid={formatNumbersForGrid}
@@ -124,7 +124,7 @@ const VentaBoletosContent: React.FC = () => {
           getSoldNumbersCount={getSoldNumbersCount}
         />
         
-        {/* Información del sorteo */}
+        {/* Raffle info */}
         <RaffleInfoSection 
           raffle={raffle} 
           seller={seller} 
@@ -132,7 +132,7 @@ const VentaBoletosContent: React.FC = () => {
         />
       </div>
       
-      {/* Modales */}
+      {/* Modals */}
       <RaffleModals 
         isPaymentModalOpen={isPaymentModalOpen}
         setIsPaymentModalOpen={setIsPaymentModalOpen}

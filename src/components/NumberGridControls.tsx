@@ -16,7 +16,7 @@ interface NumberGridControlsProps {
   onClearSelection: () => void;
   onReserve: () => void;
   onPayReserved: () => void;
-  onProceedToPayment: (buttonType: string) => void; // Modified to accept button type
+  onProceedToPayment: (buttonType: string) => Promise<void>; // Updated to match return type
 }
 
 export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
@@ -30,13 +30,12 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
   const handleClearSelection = () => {
     console.log("NumberGridControls.tsx: Clear button clicked");
     onClearSelection();
-    // Removed toast notification here
   };
   
   // Handler for the Pagar button with button name
-  const handleProceedToPayment = () => {
+  const handleProceedToPayment = async () => {
     console.log("NumberGridControls.tsx: Pay button clicked");
-    onProceedToPayment("Pagar");
+    await onProceedToPayment("Pagar");
   };
   
   // Handler for the Pay Reserved button

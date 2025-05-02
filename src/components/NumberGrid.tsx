@@ -42,8 +42,8 @@ interface RaffleSeller {
 interface NumberGridProps {
   numbers: RaffleNumber[];
   raffleSeller: RaffleSeller;
-  onReserve: (selectedNumbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula?: string) => void;
-  onProceedToPayment: (selectedNumbers: string[], participantData?: ValidatedBuyerInfo, clickedButton?: string) => void;
+  onReserve: (selectedNumbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula?: string) => Promise<void>;
+  onProceedToPayment: (selectedNumbers: string[], participantData?: ValidatedBuyerInfo, clickedButton?: string) => Promise<void>;
   debugMode?: boolean;
   soldNumbersCount?: number;
 }
@@ -169,7 +169,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     setSelectedNumbers([]);
   };
   
-  const handleProceedToPayment = (buttonType: string) => {
+  const handleProceedToPayment = async (buttonType: string) => {
     console.log(`NumberGrid.tsx: handleProceedToPayment called with button type: ${buttonType}`);
     setClickedPaymentButton(buttonType);
     
@@ -177,10 +177,10 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       toast.error('Seleccione al menos un número para pagar');
       return;
     }
-    onProceedToPayment(selectedNumbers, undefined, buttonType);
+    await onProceedToPayment(selectedNumbers, undefined, buttonType);
   };
   
-  const handleValidationSuccess = (
+  const handleValidationSuccess = async (
     validatedNumber: string,
     participantId: string,
     buyerInfo?: ValidatedBuyerInfo
@@ -206,9 +206,9 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     setIsPhoneModalOpen(false);
     
     if (participantId && buyerInfo) {
-      onProceedToPayment(selectedNumbers, buyerInfo, clickedPaymentButton);
+      await onProceedToPayment(selectedNumbers, buyerInfo, clickedPaymentButton);
     } else {
-      handleNumberValidation(validatedNumber);
+      await handleNumberValidation(validatedNumber);
     }
   };
   
@@ -241,7 +241,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       }
       
       toast.success(`${allReservedNumbers.length} número(s) encontrados`);
-      onProceedToPayment(allReservedNumbers);
+      await onProceedToPayment(allReservedNumbers);
     } else {
       if (debugMode) {
         console.log('NumberGrid.tsx: No se encontraron números reservados con consulta directa');
@@ -251,7 +251,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     }
   };
   
-  const handleNumberValidation = (validatedNumber: string) => {
+  const handleNumberValidation = async (validatedNumber: string) => {
     const number = numbers.find(n => n.number === validatedNumber && n.status === 'reserved');
     
     if (!number) {
@@ -260,7 +260,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     }
     
     toast.success('Validación exitosa');
-    onProceedToPayment([validatedNumber]);
+    await onProceedToPayment([validatedNumber]);
   };
 
   return (
