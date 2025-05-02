@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,14 +14,14 @@ export function useRaffleData({ raffleId, sellerId }: UseRaffleDataProps) {
   const [allowVoucherPrint, setAllowVoucherPrint] = useState(true);
   const [maxNumbersAllowed, setMaxNumbersAllowed] = useState<number>(33);
 
-  // Fetch seller data
+  // Fetch seller data - Modified to search by ID instead of cedula
   const { data: seller, isLoading: isLoadingSeller } = useQuery({
     queryKey: ['seller', sellerId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('sellers')
         .select('*')
-        .eq('cedula', sellerId)
+        .eq('id', sellerId) // Changed from 'cedula' to 'id'
         .single();
       
       if (error) throw error;
@@ -196,7 +195,6 @@ export function useRaffleData({ raffleId, sellerId }: UseRaffleDataProps) {
   useEffect(() => {
     if (organization && (adminUser || organizerUser)) {
       // Create an organization object that matches the Organization interface
-      // Include all required properties from the Organization interface
       const updatedOrganization: Organization = {
         id: organization.id,
         name: organization.organization_name || '',
