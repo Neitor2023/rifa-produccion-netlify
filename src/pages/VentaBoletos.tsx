@@ -22,7 +22,7 @@ const VentaBoletosContent: React.FC = () => {
   const [clickedButton, setClickedButton] = useState<string | undefined>(undefined);
   
   // Access buyer info from context
-  const { buyerInfo } = useBuyerInfo();
+  const { buyerInfo, setBuyerInfo } = useBuyerInfo();
   
   // Get raffle data
   const { 
@@ -75,6 +75,13 @@ const VentaBoletosContent: React.FC = () => {
   const handleProceedToPaymentWithButton = async (numbers: string[], participantData?: any, buttonType?: string) => {
     console.log("VentaBoletos.tsx: Proceeding to payment with button type:", buttonType);
     setClickedButton(buttonType);
+    
+    // Clear buyer information if "Pagar" button was clicked
+    if (buttonType === "Pagar") {
+      console.log("VentaBoletos.tsx: Clearing buyer info because 'Pagar' button was clicked");
+      setBuyerInfo(null);
+    }
+    
     // Fix: Pass only the numbers array to handleProceedToPayment
     await handleProceedToPayment(numbers);
   };
