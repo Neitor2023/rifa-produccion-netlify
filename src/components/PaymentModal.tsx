@@ -105,9 +105,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     }
   };
   
-  const onSubmit = (data: PaymentFormData) => {
+  const onSubmit = () => {
     // Add the requested console.log for debugging
     console.log('PaymentModal - Botón Completar pago pulsado');
+    
+    // Get the current form values
+    const data = form.getValues();
     
     setIsSubmitting(true);
     debugLog('Form submit - data', data);
@@ -255,7 +258,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         <PaymentModalActions 
           isSubmitting={isSubmitting}
           onClose={onClose}
-          onSubmit={form.handleSubmit(onSubmit)}
+          onSubmit={onSubmit} // Pass the direct function reference, not wrapped in form.handleSubmit
         />
         
         <Toaster

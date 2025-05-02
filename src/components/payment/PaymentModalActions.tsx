@@ -19,10 +19,19 @@ export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit }: Payment
     // Clear number selections and states
     clearSelectionState();
     
-    // Removed toast notification here
-    
     // Close the modal
     onClose();
+  };
+
+  const handleSubmit = (e: React.MouseEvent) => {
+    // Add a debug log to track when the button is clicked
+    console.log("PaymentModalActions.tsx: Completar Pago button clicked");
+    
+    // Call the onSubmit function passed from the parent
+    onSubmit();
+    
+    // Prevent default to avoid any unexpected form submissions
+    e.preventDefault();
   };
 
   return (
@@ -36,8 +45,8 @@ export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit }: Payment
         Cancelar
       </Button>
       <Button
-        type="submit"
-        onClick={onSubmit}
+        type="button" // Changed from "submit" to "button" to have more control
+        onClick={handleSubmit}
         disabled={isSubmitting}
         className="flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB]"
       >

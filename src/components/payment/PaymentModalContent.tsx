@@ -46,7 +46,10 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
   return (
     <ScrollArea className="flex-1 overflow-y-auto px-1">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(() => {})} className="space-y-6 py-4">
+        <form 
+          // Remove the onSubmit handler as we're handling submission via the action buttons
+          className="space-y-6 py-4"
+        >
           {/* PaymentSummary is still included but renders an empty div now */}
           <PaymentSummary 
             selectedNumbers={selectedNumbers}
