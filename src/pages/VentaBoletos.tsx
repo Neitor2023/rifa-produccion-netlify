@@ -25,7 +25,7 @@ const VentaBoletos: React.FC = () => {
   // Actualiza el estado cuando NumberGrid valida la información
   const handleBuyerInfoFromGrid = (buyerInfo: ValidatedBuyerInfo) => {
   console.log("📦 VentaBoletos - Recibiendo buyerInfo desde NumberGrid:", buyerInfo);
-  //setBuyerInfoFromGrid(buyerInfo);
+  // setBuyerInfoFromGrid(buyerInfo);
   console.log("🔄 VentaBoletos Bandera");
   };  
   // Fetch raffle data
