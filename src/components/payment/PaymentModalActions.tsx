@@ -3,7 +3,6 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { LoaderCircle } from "lucide-react";
 import { useNumberSelection } from '@/contexts/NumberSelectionContext';
-import { toast } from 'sonner';
 
 interface PaymentModalActionsProps {
   isSubmitting: boolean;
@@ -20,8 +19,7 @@ export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit }: Payment
     // Clear number selections and states
     clearSelectionState();
     
-    // Show toast notification here instead of in context
-    toast.success('Selección limpiada');
+    // Removed toast notification here
     
     // Close the modal
     onClose();

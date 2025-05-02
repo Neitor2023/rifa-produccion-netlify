@@ -2,7 +2,6 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, CreditCard, Check } from 'lucide-react';
-import { toast } from 'sonner';
 import { useNumberSelection } from '@/contexts/NumberSelectionContext';
 
 interface NumberGridControlsProps {
@@ -31,8 +30,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
   const handleClearSelection = () => {
     console.log("NumberGridControls.tsx: Clear button clicked");
     onClearSelection();
-    // Show toast notification here consistently
-    toast.success('Selección limpiada');
+    // Removed toast notification here
   };
 
   return (
