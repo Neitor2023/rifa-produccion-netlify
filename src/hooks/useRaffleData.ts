@@ -1,8 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Organization } from '@/lib/constants';
-import { RaffleNumber } from '@/types/raffle';
 
 interface UseRaffleDataProps {
   raffleId: string;
@@ -15,14 +15,14 @@ export function useRaffleData({ raffleId, sellerId }: UseRaffleDataProps) {
   const [allowVoucherPrint, setAllowVoucherPrint] = useState(true);
   const [maxNumbersAllowed, setMaxNumbersAllowed] = useState<number>(33);
 
-  // Fetch seller data - Modified to search by ID instead of cedula
+  // Fetch seller data
   const { data: seller, isLoading: isLoadingSeller } = useQuery({
     queryKey: ['seller', sellerId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('sellers')
         .select('*')
-        .eq('id', sellerId) // Changed from 'cedula' to 'id'
+        .eq('cedula', sellerId)
         .single();
       
       if (error) throw error;
@@ -61,12 +61,7 @@ export function useRaffleData({ raffleId, sellerId }: UseRaffleDataProps) {
         .order('created_at');
       
       if (error) throw error;
-      
-      // Add default order property if not exists
-      return (data || []).map((prize: any, index: number) => ({
-        ...prize,
-        order: prize.order ?? index // Provide default order based on array index
-      }));
+      return data || [];
     }
   });
   
@@ -200,41 +195,26 @@ export function useRaffleData({ raffleId, sellerId }: UseRaffleDataProps) {
   
   useEffect(() => {
     if (organization && (adminUser || organizerUser)) {
-      // Create an organization object that matches the Organization interface
-      const updatedOrganization: Organization = {
-        id: organization.id,
-        name: organization.organization_name || '',
-        logo: organization.organization_logo_url || null,
-        phone: organization.org_phone_number || null,
-        email: null,  // Default to null if not available
-        address: null, // Default to null if not available
-        website: null, // Default to null if not available
-        facebook: null, // Default to null if not available
-        instagram: null, // Default to null if not available
-        twitter: null, // Default to null if not available
-        created_at: organization.created_at || '',
-        updated_at: organization.updated_at || '',
-        
-        // Additional fields from the organization table
-        organization_name: organization.organization_name,
-        organization_logo_url: organization.organization_logo_url,
-        org_name: organizerUser?.name || organization.org_name,
-        org_photo: organizerUser?.avatar || organization.org_photo,
-        org_phone_number: organizerUser?.phone_number || organization.org_phone_number,
-        admin_name: adminUser?.name || organization.admin_name,
-        admin_phone_number: adminUser?.phone_number || organization.admin_phone_number,
-        admin_photo: adminUser?.avatar || organization.admin_photo,
-        background_color: organization.background_color,
-        select_language: organization.select_language,
-        modal: organization.modal
-      };
+      const updatedOrganization = { ...organization };
+      
+      if (adminUser) {
+        updatedOrganization.admin_name = adminUser.name;
+        updatedOrganization.admin_phone_number = adminUser.phone_number || '';
+        updatedOrganization.admin_photo = adminUser.avatar;
+      }
+      
+      if (organizerUser) {
+        updatedOrganization.org_name = organizerUser.name;
+        updatedOrganization.org_phone_number = organizerUser.phone_number || '';
+        updatedOrganization.org_photo = organizerUser.avatar;
+      }
       
       setOrganizationData(updatedOrganization);
     }
   }, [organization, adminUser, organizerUser]);
 
   const formatNumbersForGrid = () => {
-    const formattedNumbers: RaffleNumber[] = [];
+    const formattedNumbers = [];
     
     for (let i = 0; i < 100; i++) {
       const paddedNumber = i.toString().padStart(2, '0');
@@ -244,18 +224,13 @@ export function useRaffleData({ raffleId, sellerId }: UseRaffleDataProps) {
         id: existingNumber?.id || `num-${paddedNumber}`,
         raffle_id: raffleId,
         number: paddedNumber,
-        status: (existingNumber?.status || 'available') as 'available' | 'reserved' | 'sold',
+        status: existingNumber?.status || 'available',
         seller_id: existingNumber?.seller_id || null,
         buyer_name: existingNumber?.participant_id ? 'Comprador' : null,
         buyer_phone: null,
         payment_method: null,
         payment_proof: existingNumber?.payment_proof || null,
-        payment_date: null,
-        participant_id: existingNumber?.participant_id,
-        participant_name: existingNumber?.participant_name,
-        participant_phone: existingNumber?.participant_phone,
-        participant_cedula: existingNumber?.participant_cedula,
-        payment_approved: existingNumber?.payment_approved
+        payment_date: null
       });
     }
     

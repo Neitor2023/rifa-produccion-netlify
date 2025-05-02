@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'sonner';
 import { Card } from '@/components/ui/card';
@@ -15,7 +14,6 @@ import NumberGridItem from './NumberGridItem';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import GridLayout from './NumberGrid/GridLayout';
 import ReservedMessageAlert from './NumberGrid/ReservedMessageAlert';
-import { useBuyerInfo } from '@/contexts/BuyerInfoContext';
 
 interface RaffleNumber {
   id: string;
@@ -43,7 +41,7 @@ interface NumberGridProps {
   numbers: RaffleNumber[];
   raffleSeller: RaffleSeller;
   onReserve: (selectedNumbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula?: string) => void;
-  onProceedToPayment: (selectedNumbers: string[]) => void;
+  onProceedToPayment: (selectedNumbers: string[], participantData?: ValidatedBuyerInfo) => void;
   debugMode?: boolean;
   soldNumbersCount?: number;
 }
@@ -56,13 +54,13 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   debugMode = false,
   soldNumbersCount = 0
 }) => {
-  const { setBuyerInfo } = useBuyerInfo();
   const [selectedNumbers, setSelectedNumbers] = useState<string[]>([]);
   const [highlightReserved, setHighlightReserved] = useState(false);
   const [showReservedMessage, setShowReservedMessage] = useState(false);
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
   const [selectedReservedNumber, setSelectedReservedNumber] = useState<string | null>(null);
+  const [buyerData, setBuyerData] = useState<ValidatedBuyerInfo | null>(null);
   const [validatedBuyerInfo, setValidatedBuyerInfo] = useState<ValidatedBuyerInfo | null>(null);
 
   const handlePayReserved = () => {
@@ -173,16 +171,14 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         direccion: buyerInfo.direccion,
         sugerencia_producto: buyerInfo.sugerencia_producto
       });
-      
-      // Update the context with the validated buyer info
-      setBuyerInfo(buyerInfo);
+      setBuyerData(buyerInfo);
       setValidatedBuyerInfo(buyerInfo);
     }
     
     setIsPhoneModalOpen(false);
     
     if (participantId && buyerInfo) {
-      onProceedToPayment(selectedNumbers);
+      onProceedToPayment(selectedNumbers, buyerInfo);
     } else {
       handleNumberValidation(validatedNumber);
     }
