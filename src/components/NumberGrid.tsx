@@ -258,7 +258,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           onPayReserved={handlePayReserved} 
         />
       </Card>
-      
+      {console.log('▶️ NumberGrid: despues de GridLayout');}
       <NumberGridControls 
         selectedNumbers={selectedNumbers}
         raffleSeller={raffleSeller}
