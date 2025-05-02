@@ -24,6 +24,7 @@ interface RaffleModalsProps {
     lottery: string;
     dateLottery: string;
   };
+  clickedButton?: string; // New prop for the clicked button
 }
 
 const RaffleModals: React.FC<RaffleModalsProps> = ({
@@ -38,7 +39,8 @@ const RaffleModals: React.FC<RaffleModalsProps> = ({
   buyerInfo,
   debugMode,
   allowVoucherPrint,
-  raffleDetails
+  raffleDetails,
+  clickedButton // Add the new prop
 }) => {
   console.log("RaffleModals.tsx: Rendering with isPaymentModalOpen=", isPaymentModalOpen);
   
@@ -52,6 +54,7 @@ const RaffleModals: React.FC<RaffleModalsProps> = ({
         onComplete={onCompletePayment}
         buyerData={buyerInfo}
         debugMode={debugMode}
+        clickedButton={clickedButton} // Pass the clicked button prop
       />
       
       <DigitalVoucher 

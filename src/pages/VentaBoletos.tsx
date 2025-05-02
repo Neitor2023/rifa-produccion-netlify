@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+
+import React, { useEffect, useState } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { usePaymentProcessor } from '@/hooks/usePaymentProcessor';
 import { useRaffleData } from '@/hooks/useRaffleData';
@@ -17,6 +18,9 @@ const SELLER_ID = "0102030405";
 const RAFFLE_ID = "fd6bd3bc-d81f-48a9-be58-8880293a0472";
 
 const VentaBoletosContent: React.FC = () => {
+  // State for the clicked button
+  const [clickedButton, setClickedButton] = useState<string | undefined>(undefined);
+  
   // Acceda a la información del comprador desde el contexto
   const { buyerInfo } = useBuyerInfo();
   
@@ -67,9 +71,16 @@ const VentaBoletosContent: React.FC = () => {
     allowVoucherPrint
   });
 
+  // Handle proceeding to payment with the button type
+  const handleProceedToPaymentWithButton = (numbers: string[], participantData?: any, buttonType?: string) => {
+    console.log("VentaBoletos.tsx: Proceeding to payment with button type:", buttonType);
+    setClickedButton(buttonType);
+    handleProceedToPayment(numbers, participantData);
+  };
+
   // Registrar la información del comprador cada vez que cambia
   useEffect(() => {
-    console.log("📦 VentaBoletos - buyerInfo:", buyerInfo ? {
+    console.log("VentaBoletos.tsx: buyerInfo:", buyerInfo ? {
       id: buyerInfo.id || 'N/A',
       name: buyerInfo.name,
       phone: buyerInfo.phone,
@@ -79,21 +90,9 @@ const VentaBoletosContent: React.FC = () => {
     } : 'null');
   }, [buyerInfo]);
 
-  // Registrar antes de renderizar PaymentModal
-  console.log("📦 VentaBoletos - Rendering PaymentModal with buyerInfo:", 
-    buyerInfo ? {
-      id: buyerInfo.id || 'N/A',
-      name: buyerInfo.name,
-      phone: buyerInfo.phone,
-      cedula: buyerInfo.cedula
-    } : 'null'
-  );
-
   if (isLoading) {
     return <LoadingSpinner />;
   }
-
-  console.log("📦 Datos validados en VentaBoletos antes de pasarlos a PaymentModal:", buyerInfo);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
@@ -121,7 +120,7 @@ const VentaBoletosContent: React.FC = () => {
           sellerId={seller?.id || SELLER_ID}
           debugMode={debugMode}
           onReserve={handleReserveNumbers}
-          onProceedToPayment={handleProceedToPayment}
+          onProceedToPayment={handleProceedToPaymentWithButton}
           getSoldNumbersCount={getSoldNumbersCount}
         />
         
@@ -152,6 +151,7 @@ const VentaBoletosContent: React.FC = () => {
           lottery: raffle.lottery,
           dateLottery: raffle.date_lottery
         } : undefined}
+        clickedButton={clickedButton}
       />
     </div>
   );

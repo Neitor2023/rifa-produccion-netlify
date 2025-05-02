@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -23,6 +24,7 @@ interface PaymentModalProps {
   onComplete: (paymentData: PaymentFormData) => void;
   buyerData?: ValidatedBuyerInfo;
   debugMode?: boolean;
+  clickedButton?: string; // New prop for the clicked button
 }
 
 const paymentFormSchema = z.object({
@@ -49,7 +51,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   price,
   onComplete,
   buyerData,
-  debugMode = false
+  debugMode = false,
+  clickedButton // Add the new prop
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
@@ -217,6 +220,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           buyerData={buyerData}
           onFileUpload={handleImageUpload}
           onFileRemove={handleRemoveImage}
+          clickedButton={clickedButton} // Pass the clicked button prop
         />
         
         <PaymentModalActions 

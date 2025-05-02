@@ -43,7 +43,7 @@ interface NumberGridProps {
   numbers: RaffleNumber[];
   raffleSeller: RaffleSeller;
   onReserve: (selectedNumbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula?: string) => void;
-  onProceedToPayment: (selectedNumbers: string[], participantData?: ValidatedBuyerInfo) => void;
+  onProceedToPayment: (selectedNumbers: string[], participantData?: ValidatedBuyerInfo, clickedButton?: string) => void;
   debugMode?: boolean;
   soldNumbersCount?: number;
 }
@@ -73,13 +73,17 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
   const [buyerData, setBuyerData] = useState<ValidatedBuyerInfo | null>(null);
   const [validatedBuyerInfo, setValidatedBuyerInfo] = useState<ValidatedBuyerInfo | null>(null);
+  const [clickedPaymentButton, setClickedPaymentButton] = useState<string | undefined>(undefined);
   
   // Use the context
   const { setBuyerInfo } = useBuyerInfo();
 
   const handlePayReserved = () => {
-    console.log('▶️ NumberGrid: handlePayReserved called');
-    console.log('▶️ highlightReserved before setting:', highlightReserved);
+    console.log('NumberGrid.tsx: handlePayReserved called');
+    console.log('NumberGrid.tsx: highlightReserved before setting:', highlightReserved);
+    
+    // Set the clicked button
+    setClickedPaymentButton("Pagar Apartados");
     
     if (highlightReserved) {
       return;
@@ -139,7 +143,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   const clearSelection = () => {
     console.log("NumberGrid.tsx: Clear selection function called");
     clearSelectionState();
-    // Note: Toast notification moved to NumberGridControls component
   };
   
   const handleReserve = () => {
@@ -166,12 +169,15 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     setSelectedNumbers([]);
   };
   
-  const handleProceedToPayment = () => {
+  const handleProceedToPayment = (buttonType: string) => {
+    console.log(`NumberGrid.tsx: handleProceedToPayment called with button type: ${buttonType}`);
+    setClickedPaymentButton(buttonType);
+    
     if (selectedNumbers.length === 0) {
       toast.error('Seleccione al menos un número para pagar');
       return;
     }
-    onProceedToPayment(selectedNumbers);
+    onProceedToPayment(selectedNumbers, undefined, buttonType);
   };
   
   const handleValidationSuccess = (
@@ -180,7 +186,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     buyerInfo?: ValidatedBuyerInfo
   ) => {
     if (buyerInfo) {
-      console.log("✅ NumberGrid recibió información validada del comprador:", {
+      console.log("NumberGrid.tsx: Received validated buyer information:", {
         name: buyerInfo.name,
         phone: buyerInfo.phone,
         cedula: buyerInfo.cedula,
@@ -200,7 +206,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     setIsPhoneModalOpen(false);
     
     if (participantId && buyerInfo) {
-      onProceedToPayment(selectedNumbers, buyerInfo);
+      onProceedToPayment(selectedNumbers, buyerInfo, clickedPaymentButton);
     } else {
       handleNumberValidation(validatedNumber);
     }

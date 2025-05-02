@@ -1,6 +1,7 @@
 
 import React from 'react';
 import NumberGrid from '@/components/NumberGrid';
+import { ValidatedBuyerInfo } from '@/types/participant';
 
 interface RaffleNumberGridSectionProps {
   raffleNumbers: any[] | null;
@@ -16,7 +17,7 @@ interface RaffleNumberGridSectionProps {
   sellerId: string;
   debugMode: boolean;
   onReserve: (numbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula?: string) => Promise<void>;
-  onProceedToPayment: (numbers: string[]) => Promise<void>;
+  onProceedToPayment: (numbers: string[], participantData?: ValidatedBuyerInfo, clickedButton?: string) => Promise<void>;
   getSoldNumbersCount: (sellerId: string) => number;
 }
 

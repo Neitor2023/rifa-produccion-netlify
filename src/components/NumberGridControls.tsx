@@ -16,7 +16,7 @@ interface NumberGridControlsProps {
   onClearSelection: () => void;
   onReserve: () => void;
   onPayReserved: () => void;
-  onProceedToPayment: () => void;
+  onProceedToPayment: (buttonType: string) => void; // Modified to accept button type
 }
 
 export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
@@ -31,6 +31,18 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
     console.log("NumberGridControls.tsx: Clear button clicked");
     onClearSelection();
     // Removed toast notification here
+  };
+  
+  // Handler for the Pagar button with button name
+  const handleProceedToPayment = () => {
+    console.log("NumberGridControls.tsx: Pay button clicked");
+    onProceedToPayment("Pagar");
+  };
+  
+  // Handler for the Pay Reserved button
+  const handlePayReserved = () => {
+    console.log("NumberGridControls.tsx: Pay Reserved button clicked");
+    onPayReserved();
   };
 
   return (
@@ -56,7 +68,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       <Button 
         variant="secondary"
         className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
-        onClick={onPayReserved}
+        onClick={handlePayReserved}
       >
         <CreditCard className="h-4 w-4" />
         <span>Pagar Apartados</span>
@@ -65,7 +77,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       <Button
         variant="secondary" 
         className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white"
-        onClick={onProceedToPayment}
+        onClick={handleProceedToPayment}
       >
         <CreditCard className="h-4 w-4" />
         <span>Pagar</span>

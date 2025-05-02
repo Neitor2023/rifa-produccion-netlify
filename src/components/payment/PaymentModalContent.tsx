@@ -16,6 +16,7 @@ interface PaymentModalContentProps {
   buyerData?: ValidatedBuyerInfo;
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFileRemove: () => void;
+  clickedButton?: string; // New prop for tracking which button was clicked
 }
 
 const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
@@ -25,7 +26,8 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
   previewUrl,
   buyerData,
   onFileUpload,
-  onFileRemove
+  onFileRemove,
+  clickedButton // Add the new prop
 }) => {
   useEffect(() => {
     if (buyerData) {
@@ -48,6 +50,7 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
           <PaymentSummary 
             selectedNumbers={selectedNumbers}
             price={price}
+            clickedButton={clickedButton} // Pass the clicked button to PaymentSummary
           />
           <div className="space-y-6">
             <PaymentFormFields 
