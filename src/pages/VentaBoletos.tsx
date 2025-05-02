@@ -75,7 +75,8 @@ const VentaBoletosContent: React.FC = () => {
   const handleProceedToPaymentWithButton = async (numbers: string[], participantData?: any, buttonType?: string) => {
     console.log("VentaBoletos.tsx: Proceeding to payment with button type:", buttonType);
     setClickedButton(buttonType);
-    await handleProceedToPayment(numbers, participantData);
+    // Fix: Pass only the numbers array to handleProceedToPayment
+    await handleProceedToPayment(numbers);
   };
 
   // Log buyer info when it changes
