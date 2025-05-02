@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -265,7 +264,8 @@ export function usePaymentProcessor({
           payment_proof: paymentProofUrl,
           participant_name: data.buyerName,
           participant_phone: data.buyerPhone,
-          participant_cedula: data.buyerCedula || null
+          participant_cedula: data.buyerCedula || null,
+          payment_approved: true // Added this line to set payment_approved to true
         };
         
         if (existingNumber) {
