@@ -22,7 +22,11 @@ const VentaBoletos: React.FC = () => {
   // UI state management
   const [selectedPrize, setSelectedPrize] = useState<Prize | null>(null);
   const [isPrizeModalOpen, setIsPrizeModalOpen] = useState(false);
-  
+  // Actualiza el estado cuando NumberGrid valida la información
+  const handleBuyerInfoFromGrid = (buyerInfo: ValidatedBuyerInfo) => {
+  console.log("📦 VentaBoletos - Recibiendo buyerInfo desde NumberGrid:", buyerInfo);
+  setBuyerInfoFromGrid(buyerInfo);
+  };  
   // Fetch raffle data
   const { 
     seller,
@@ -117,6 +121,8 @@ const VentaBoletos: React.FC = () => {
     return <LoadingSpinner />;
   }
 
+
+  
   console.log("📦 Datos validados en VentaBoletos antes de pasarlos a PaymentModal:", validatedBuyerData);
 
   return (
