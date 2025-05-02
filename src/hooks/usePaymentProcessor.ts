@@ -243,7 +243,60 @@ export function usePaymentProcessor({
         return;
       }
       
-      await updateNumbersToSold(selectedNumbers, participantId, paymentProofUrl, raffleNumbers);
+      // Modified logic to check for existing records and update or insert accordingly
+      for (const number of selectedNumbers) {
+        // Check if the number already exists in the raffle_numbers table
+        const { data: existingNumber, error: queryError } = await supabase
+          .from('raffle_numbers')
+          .select('id')
+          .eq('raffle_id', raffleId)
+          .eq('number', parseInt(number))
+          .eq('seller_id', raffleSeller.seller_id)
+          .maybeSingle();
+        
+        if (queryError) {
+          console.error('Error checking if number exists:', queryError);
+          continue;
+        }
+        
+        const updateData = {
+          status: 'sold',
+          participant_id: participantId,
+          payment_proof: paymentProofUrl,
+          participant_name: data.buyerName,
+          participant_phone: data.buyerPhone,
+          participant_cedula: data.buyerCedula || null
+        };
+        
+        if (existingNumber) {
+          // Number exists, update it
+          console.log(`Number ${number} exists, updating record with ID: ${existingNumber.id}`);
+          const { error: updateError } = await supabase
+            .from('raffle_numbers')
+            .update(updateData)
+            .eq('id', existingNumber.id);
+          
+          if (updateError) {
+            console.error(`Error updating number ${number}:`, updateError);
+          }
+        } else {
+          // Number doesn't exist, insert it
+          console.log(`Number ${number} doesn't exist, creating new record`);
+          const { error: insertError } = await supabase
+            .from('raffle_numbers')
+            .insert({
+              raffle_id: raffleId,
+              number: parseInt(number),
+              seller_id: raffleSeller.seller_id,
+              ...updateData
+            });
+          
+          if (insertError) {
+            console.error(`Error inserting number ${number}:`, insertError);
+          }
+        }
+      }
+      
       await refetchRaffleNumbers();
       
       setPaymentData({
