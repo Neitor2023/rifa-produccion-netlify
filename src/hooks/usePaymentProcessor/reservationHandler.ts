@@ -20,7 +20,7 @@ export function useReservationHandler({
     buyerPhone?: string,
     buyerName?: string,
     buyerCedula?: string
-  ) => {
+  ): Promise<void> {
     console.log("🎯 useReservationHandler: handleReserveNumbers llamado con:", {
       numbers,
       buyerPhone,
@@ -79,11 +79,11 @@ export function useReservationHandler({
       await refetchRaffleNumbers();
   
       toast.success(`${numbers.length} número(s) apartados exitosamente`);
-      return true;
+      return; // Changed from returning boolean to void
     } catch (error: any) {
       console.error("useReservationHandler: ❌ Error al reservar números:", error);
       toast.error(`useReservationHandler: Error al apartar números${error.message ? ` — ${error.message}` : ""}`);
-      return false;
+      return; // Changed from returning boolean to void
     }
   };
 

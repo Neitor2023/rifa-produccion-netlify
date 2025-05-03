@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Toaster, toast } from 'sonner';
 import { Card } from '@/components/ui/card';
@@ -13,7 +12,7 @@ import GridLayout from './NumberGrid/GridLayout';
 import ReservedMessageAlert from './NumberGrid/ReservedMessageAlert';
 import { useBuyerInfo } from '@/contexts/BuyerInfoContext';
 import { useNumberSelection } from '@/contexts/NumberSelectionContext';
-import SelectionHandler from './NumberGrid/SelectionHandler';
+import SelectionHandler, { useSelectionHandler } from './NumberGrid/SelectionHandler';
 
 interface RaffleNumber {
   id: string;
@@ -70,11 +69,11 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   // Use the context
   const { setBuyerInfo } = useBuyerInfo();
 
-  // Use the selection handler
-  const { toggleNumber, handlePayReserved, clearSelection } = SelectionHandler({
+  // Use the selection handler hook instead of the component
+  const { toggleNumber, handlePayReserved, clearSelection } = useSelectionHandler(
     numbers,
     raffleSeller
-  });
+  );
   
   const handleCloseReservedMessage = () => {
     setShowReservedMessage(false);
