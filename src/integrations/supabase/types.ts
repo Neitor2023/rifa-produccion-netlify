@@ -502,7 +502,6 @@ export type Database = {
           modal: string | null
           payment_instructions: string | null
           price: number
-          reservation_days: number | null
           status: string
           title: string
           total_numbers: number
@@ -524,7 +523,6 @@ export type Database = {
           modal?: string | null
           payment_instructions?: string | null
           price: number
-          reservation_days?: number | null
           status: string
           title: string
           total_numbers: number
@@ -546,7 +544,6 @@ export type Database = {
           modal?: string | null
           payment_instructions?: string | null
           price?: number
-          reservation_days?: number | null
           status?: string
           title?: string
           total_numbers?: number
