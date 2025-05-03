@@ -57,7 +57,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   debugMode = false,
   soldNumbersCount = 0,
   lotteryDate,
-  reservationDays = 5 // Default to 5 days if not provided
+  reservationDays = 10 // Default to 5 days if not provided
 }) => {
   // Get values from NumberSelection context
   const {
