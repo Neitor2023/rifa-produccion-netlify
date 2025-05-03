@@ -12,7 +12,7 @@ export const useNumberStatus = ({ raffleSeller, raffleId, raffleNumbers, debugMo
     numbers: string[], 
     status: string, 
     participantId: string | null = null,
-    participantData = null
+    participantData: any = null
   ) => {
     if (!raffleSeller?.seller_id) {
       throw new Error('Seller ID not available');
@@ -38,13 +38,15 @@ export const useNumberStatus = ({ raffleSeller, raffleId, raffleNumbers, debugMo
       
       // Add participant details if provided
       if (participantData) {
-        if (participantData.buyerName) updateData.participant_name = participantData.buyerName;
-        if (participantData.buyerPhone) updateData.participant_phone = participantData.buyerPhone;
-        if (participantData.buyerCedula) updateData.participant_cedula = participantData.buyerCedula;
+        if (participantData.participant_name) updateData.participant_name = participantData.participant_name;
+        if (participantData.participant_phone) updateData.participant_phone = participantData.participant_phone;
+        if (participantData.participant_cedula) updateData.participant_cedula = participantData.participant_cedula;
       }
       
       if (status === 'reserved') {
-        updateData.reservation_expires_at = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+        // Use the provided expiration date if available, otherwise use default (24 hours)
+        updateData.reservation_expires_at = participantData?.reservation_expires_at || 
+          new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       } else if (status === 'sold') {
         updateData.reservation_expires_at = null;
       }

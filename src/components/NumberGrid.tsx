@@ -43,6 +43,7 @@ interface NumberGridProps {
   onProceedToPayment: (selectedNumbers: string[], participantData?: ValidatedBuyerInfo, clickedButton?: string) => Promise<void>;
   debugMode?: boolean;
   soldNumbersCount?: number;
+  lotteryDate?: Date; // Added prop for lottery date
 }
 
 const NumberGrid: React.FC<NumberGridProps> = ({ 
@@ -51,7 +52,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   onReserve,
   onProceedToPayment,
   debugMode = false,
-  soldNumbersCount = 0
+  soldNumbersCount = 0,
+  lotteryDate
 }) => {
   // Get values from NumberSelection context
   const {
@@ -106,6 +108,27 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       return;
     }
     
+    // Calculate the reservation expiration date based on the logic:
+    // If current date + 5 days is before lottery date, use current + 5 days
+    // Otherwise use the lottery date
+    const currentDate = new Date();
+    const fiveDaysLater = new Date(currentDate.getTime() + 5 * 24 * 60 * 60 * 1000);
+    
+    let expirationDate = fiveDaysLater;
+    
+    // Check if lottery date is available and compare with five days later
+    if (lotteryDate && fiveDaysLater.getTime() > lotteryDate.getTime()) {
+      expirationDate = lotteryDate;
+    }
+    
+    if (debugMode) {
+      console.log('NumberGrid.tsx: Current Date:', currentDate);
+      console.log('NumberGrid.tsx: Five days later:', fiveDaysLater);
+      console.log('NumberGrid.tsx: Lottery date:', lotteryDate);
+      console.log('NumberGrid.tsx: Selected expiration date:', expirationDate);
+    }
+    
+    // Pass the expiration date as an additional parameter to onReserve
     onReserve(selectedNumbers, data.buyerPhone, data.buyerName, data.buyerCedula);
     setIsReservationModalOpen(false);
   };

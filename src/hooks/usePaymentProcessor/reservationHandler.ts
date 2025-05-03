@@ -1,4 +1,3 @@
-
 import { toast } from 'sonner';
 
 export function useReservationHandler({
@@ -19,13 +18,15 @@ export function useReservationHandler({
     numbers: string[],
     buyerPhone?: string,
     buyerName?: string,
-    buyerCedula?: string
+    buyerCedula?: string,
+    lotteryDate?: Date
   ): Promise<void> => {
     console.log("🎯 useReservationHandler: handleReserveNumbers llamado con:", {
       numbers,
       buyerPhone,
       buyerName,
-      buyerCedula
+      buyerCedula,
+      lotteryDate
     });
   
     // 1. Validaciones iniciales
@@ -63,7 +64,27 @@ export function useReservationHandler({
         return;
       }
   
-      // 3. Reservar números y guardar datos
+      // 3. Calculate the reservation expiration date based on the logic:
+      // If current date + 5 days is before lottery date, use current + 5 days
+      // Otherwise use the lottery date
+      const currentDate = new Date();
+      const fiveDaysLater = new Date(currentDate.getTime() + 5 * 24 * 60 * 60 * 1000);
+      
+      let expirationDate = fiveDaysLater;
+      
+      // Check if lottery date is available and compare with five days later
+      if (lotteryDate && fiveDaysLater.getTime() > lotteryDate.getTime()) {
+        expirationDate = lotteryDate;
+      }
+      
+      if (debugMode) {
+        console.log('useReservationHandler: Current Date:', currentDate);
+        console.log('useReservationHandler: Five days later:', fiveDaysLater);
+        console.log('useReservationHandler: Lottery date:', lotteryDate);
+        console.log('useReservationHandler: Selected expiration date:', expirationDate);
+      }
+
+      // 4. Reservar números y guardar datos
       await updateRaffleNumbersStatus(
         numbers,
         "reserved",
@@ -71,11 +92,12 @@ export function useReservationHandler({
         {
           participant_name: buyerName,
           participant_phone: buyerPhone,
-          participant_cedula: buyerCedula ?? null
+          participant_cedula: buyerCedula ?? null,
+          reservation_expires_at: expirationDate.toISOString()
         }
       );
   
-      // 4. Refrescar y limpiar
+      // 5. Refrescar y limpiar
       await refetchRaffleNumbers();
   
       toast.success(`${numbers.length} número(s) apartados exitosamente`);
