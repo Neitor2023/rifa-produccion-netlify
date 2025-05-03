@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -25,6 +26,8 @@ interface UsePaymentProcessorProps {
   refetchRaffleNumbers: () => Promise<any>;
   debugMode?: boolean;
   allowVoucherPrint?: boolean;
+  reservationDays?: number;
+  lotteryDate?: Date;
 }
 
 export function usePaymentProcessor({
@@ -33,7 +36,9 @@ export function usePaymentProcessor({
   raffleNumbers,
   refetchRaffleNumbers,
   debugMode = false,
-  allowVoucherPrint = true
+  allowVoucherPrint = true,
+  reservationDays,
+  lotteryDate
 }: UsePaymentProcessorProps) {
   const { selectedNumbers, setSelectedNumbers } = useSelection();
   const { isPaymentModalOpen, setIsPaymentModalOpen, isVoucherOpen, setIsVoucherOpen } = useModalState();
@@ -57,11 +62,14 @@ export function usePaymentProcessor({
     debugMode
   });
   
+  // Pass both reservationDays and lotteryDate to useNumberStatus
   const { updateRaffleNumbersStatus } = useNumberStatus({ 
     raffleSeller, 
     raffleId, 
     raffleNumbers, 
-    debugMode 
+    debugMode,
+    reservationDays,
+    lotteryDate
   });
   
   const { findOrCreateParticipant } = useParticipantManager({ 

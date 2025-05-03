@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { usePaymentProcessor } from '@/hooks/usePaymentProcessor';
@@ -63,15 +62,14 @@ const VentaBoletosContent: React.FC = () => {
       seller_id: seller.id,
       active: raffleSeller?.active || true,
       cant_max: raffleSeller?.cant_max || maxNumbersAllowed,
-      raffle_id: RAFFLE_ID
     } : null,
     raffleId: RAFFLE_ID,
     raffleNumbers,
     refetchRaffleNumbers,
     debugMode,
     allowVoucherPrint,
-    reservationDays: raffle?.reservation_days,  // Pass the reservation days from raffle
-    lotteryDate: raffle?.date_lottery ? new Date(raffle.date_lottery) : undefined  // Pass the lottery date from raffle
+    reservationDays: raffle?.reservation_days,
+    lotteryDate: raffle?.date_lottery ? new Date(raffle.date_lottery) : undefined
   });
 
   // Handle proceeding to payment with the button type
