@@ -112,7 +112,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     // If current date + 5 days is before lottery date, use current + 5 days
     // Otherwise use the lottery date
     const currentDate = new Date();
-    const fiveDaysLater = new Date(currentDate.getTime() + 6 * 24 * 60 * 60 * 1000);
+    const fiveDaysLater = new Date(currentDate.getTime() + 7 * 24 * 60 * 60 * 1000);
     
     let expirationDate = fiveDaysLater;
     
