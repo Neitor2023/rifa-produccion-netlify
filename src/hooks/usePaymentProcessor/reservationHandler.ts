@@ -1,3 +1,4 @@
+
 import { toast } from 'sonner';
 
 export function useReservationHandler({
@@ -19,14 +20,16 @@ export function useReservationHandler({
     buyerPhone?: string,
     buyerName?: string,
     buyerCedula?: string,
-    lotteryDate?: Date
+    lotteryDate?: Date,
+    reservationDays: number = 5
   ): Promise<void> => {
     console.log("🎯 useReservationHandler: handleReserveNumbers llamado con:", {
       numbers,
       buyerPhone,
       buyerName,
       buyerCedula,
-      lotteryDate
+      lotteryDate,
+      reservationDays
     });
   
     // 1. Validaciones iniciales
@@ -53,7 +56,8 @@ export function useReservationHandler({
         numbers,
         buyerPhone,
         buyerName,
-        buyerCedula
+        buyerCedula,
+        reservationDays
       });
   
       // 2. Crear o encontrar participante
@@ -64,22 +68,21 @@ export function useReservationHandler({
         return;
       }
   
-      // 3. Calculate the reservation expiration date based on the logic:
-      // If current date + 5 days is before lottery date, use current + 5 days
-      // Otherwise use the lottery date
+      // 3. Calculate the reservation expiration date based on the dynamic reservationDays
       const currentDate = new Date();
-      const fiveDaysLater = new Date(currentDate.getTime() + 5 * 24 * 60 * 60 * 1000);
+      const daysLater = new Date(currentDate.getTime() + reservationDays * 24 * 60 * 60 * 1000);
       
-      let expirationDate = fiveDaysLater;
+      let expirationDate = daysLater;
       
-      // Check if lottery date is available and compare with five days later
-      if (lotteryDate && fiveDaysLater.getTime() > lotteryDate.getTime()) {
+      // Check if lottery date is available and compare
+      if (lotteryDate && daysLater.getTime() > lotteryDate.getTime()) {
         expirationDate = lotteryDate;
       }
       
       if (debugMode) {
         console.log('useReservationHandler: Current Date:', currentDate);
-        console.log('useReservationHandler: Five days later:', fiveDaysLater);
+        console.log('useReservationHandler: Reservation days:', reservationDays);
+        console.log(`useReservationHandler: Current date + ${reservationDays} days:`, daysLater);
         console.log('useReservationHandler: Lottery date:', lotteryDate);
         console.log('useReservationHandler: Selected expiration date:', expirationDate);
       }

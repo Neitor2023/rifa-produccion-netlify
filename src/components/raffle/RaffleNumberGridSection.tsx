@@ -19,7 +19,8 @@ interface RaffleNumberGridSectionProps {
   onReserve: (numbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula?: string) => Promise<void>;
   onProceedToPayment: (numbers: string[], participantData?: ValidatedBuyerInfo, clickedButton?: string) => Promise<void>;
   getSoldNumbersCount: (sellerId: string) => number;
-  lotteryDate?: Date; // Added lottery date
+  lotteryDate?: Date; // Lottery date
+  reservationDays?: number; // Added reservation days prop
 }
 
 const RaffleNumberGridSection: React.FC<RaffleNumberGridSectionProps> = ({ 
@@ -32,7 +33,8 @@ const RaffleNumberGridSection: React.FC<RaffleNumberGridSectionProps> = ({
   onReserve,
   onProceedToPayment,
   getSoldNumbersCount,
-  lotteryDate
+  lotteryDate,
+  reservationDays
 }) => {
   if (!raffleNumbers) return null;
   
@@ -52,6 +54,7 @@ const RaffleNumberGridSection: React.FC<RaffleNumberGridSectionProps> = ({
         debugMode={debugMode}
         soldNumbersCount={getSoldNumbersCount(sellerId)}
         lotteryDate={lotteryDate}
+        reservationDays={reservationDays}
       />
     </div>
   );

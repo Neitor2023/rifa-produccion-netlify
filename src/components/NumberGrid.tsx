@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Toaster, toast } from 'sonner';
 import { Card } from '@/components/ui/card';
@@ -44,6 +45,7 @@ interface NumberGridProps {
   debugMode?: boolean;
   soldNumbersCount?: number;
   lotteryDate?: Date; // Added prop for lottery date
+  reservationDays?: number; // Added prop for reservation days
 }
 
 const NumberGrid: React.FC<NumberGridProps> = ({ 
@@ -53,7 +55,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   onProceedToPayment,
   debugMode = false,
   soldNumbersCount = 0,
-  lotteryDate
+  lotteryDate,
+  reservationDays = 5 // Default to 5 days if not provided
 }) => {
   // Get values from NumberSelection context
   const {
@@ -112,18 +115,19 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     // If current date + 5 days is before lottery date, use current + 5 days
     // Otherwise use the lottery date
     const currentDate = new Date();
-    const fiveDaysLater = new Date(currentDate.getTime() + 5 * 24 * 60 * 60 * 1000);
+    const daysLater = new Date(currentDate.getTime() + reservationDays * 24 * 60 * 60 * 1000);
     
-    let expirationDate = fiveDaysLater;
+    let expirationDate = daysLater;
     
-    // Check if lottery date is available and compare with five days later
-    if (lotteryDate && fiveDaysLater.getTime() > lotteryDate.getTime()) {
+    // Check if lottery date is available and compare with reservationDays later
+    if (lotteryDate && daysLater.getTime() > lotteryDate.getTime()) {
       expirationDate = lotteryDate;
     }
     
     if (debugMode) {
       console.log('NumberGrid.tsx: Current Date:', currentDate);
-      console.log('NumberGrid.tsx: Five days later:', fiveDaysLater);
+      console.log('NumberGrid.tsx: Reservation days:', reservationDays);
+      console.log(`NumberGrid.tsx: Current date + ${reservationDays} days:`, daysLater);
       console.log('NumberGrid.tsx: Lottery date:', lotteryDate);
       console.log('NumberGrid.tsx: Selected expiration date:', expirationDate);
     }
