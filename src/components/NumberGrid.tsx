@@ -46,6 +46,8 @@ interface NumberGridProps {
   onProceedToPayment: (selectedNumbers: string[], participantData?: ValidatedBuyerInfo, clickedButton?: string) => Promise<void>;
   debugMode?: boolean;
   soldNumbersCount?: number;
+  reservationDays?: number;  // Number of days for reservation from raffles.reservation_days
+  lotteryDate?: Date;        // Lottery date from raffles.date_lottery
 }
 
 const NumberGrid: React.FC<NumberGridProps> = ({ 
@@ -54,7 +56,9 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   onReserve,
   onProceedToPayment,
   debugMode = false,
-  soldNumbersCount = 0
+  soldNumbersCount = 0,
+  reservationDays,
+  lotteryDate
 }) => {
   // Get values from NumberSelection context
   const {
@@ -166,6 +170,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     if (debugMode) {
       console.log('NumberGrid.tsx: Datos de reserva:', data);
       console.log('NumberGrid.tsx: Números seleccionados:', selectedNumbers);
+      console.log('NumberGrid.tsx: Reservation days:', reservationDays);
+      console.log('NumberGrid.tsx: Lottery date:', lotteryDate);
     }
     
     if (!data.buyerName || !data.buyerPhone) {
@@ -173,6 +179,48 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       return;
     }
     
+    // Calculate the reservation expiration date based on reservationDays and lotteryDate
+    let reservationExpiresAt: Date;
+    
+    // Get the current date
+    const currentDate = new Date();
+    
+    // Calculate the date after adding the reservation days
+    // Use the reservationDays if provided, otherwise default to a reasonable value
+    const daysToAdd = typeof reservationDays === 'number' ? reservationDays : 5;
+    
+    if (debugMode) {
+      console.log('NumberGrid.tsx: Using reservation days:', daysToAdd);
+    }
+    
+    // Create a new date by adding the specified days
+    const expirationDate = new Date(currentDate.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
+    
+    // Determine if we should use the lottery date if it comes before the calculated expiration
+    if (lotteryDate && lotteryDate instanceof Date && !isNaN(lotteryDate.getTime())) {
+      // Valid lottery date, compare with expiration date
+      if (expirationDate.getTime() > lotteryDate.getTime()) {
+        // If expiration would be after the lottery, use the lottery date instead
+        reservationExpiresAt = new Date(lotteryDate);
+        if (debugMode) {
+          console.log('NumberGrid.tsx: Using lottery date as expiration:', reservationExpiresAt.toISOString());
+        }
+      } else {
+        // Otherwise use the calculated expiration date
+        reservationExpiresAt = expirationDate;
+        if (debugMode) {
+          console.log('NumberGrid.tsx: Using calculated expiration date:', reservationExpiresAt.toISOString());
+        }
+      }
+    } else {
+      // No valid lottery date, just use the calculated expiration date
+      reservationExpiresAt = expirationDate;
+      if (debugMode) {
+        console.log('NumberGrid.tsx: No valid lottery date, using calculated expiration:', reservationExpiresAt.toISOString());
+      }
+    }
+    
+    // Pass the calculated reservation expiration date to onReserve
     onReserve(selectedNumbers, data.buyerPhone, data.buyerName, data.buyerCedula);
     setIsReservationModalOpen(false);
     setSelectedNumbers([]);

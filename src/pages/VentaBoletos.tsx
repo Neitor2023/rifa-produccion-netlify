@@ -62,13 +62,16 @@ const VentaBoletosContent: React.FC = () => {
       id: raffleSeller?.id || 'default', 
       seller_id: seller.id,
       active: raffleSeller?.active || true,
-      cant_max: raffleSeller?.cant_max || maxNumbersAllowed
+      cant_max: raffleSeller?.cant_max || maxNumbersAllowed,
+      raffle_id: RAFFLE_ID
     } : null,
     raffleId: RAFFLE_ID,
     raffleNumbers,
     refetchRaffleNumbers,
     debugMode,
-    allowVoucherPrint
+    allowVoucherPrint,
+    reservationDays: raffle?.reservation_days,  // Pass the reservation days from raffle
+    lotteryDate: raffle?.date_lottery ? new Date(raffle.date_lottery) : undefined  // Pass the lottery date from raffle
   });
 
   // Handle proceeding to payment with the button type
@@ -102,6 +105,15 @@ const VentaBoletosContent: React.FC = () => {
     return <LoadingSpinner />;
   }
 
+  // Convert lottery date string to Date object if it exists
+  const lotteryDate = raffle?.date_lottery ? new Date(raffle.date_lottery) : undefined;
+  
+  // Debug output for lottery date and reservation days
+  if (debugMode) {
+    console.log("VentaBoletos.tsx: Lottery Date:", lotteryDate);
+    console.log("VentaBoletos.tsx: Reservation Days:", raffle?.reservation_days);
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       <div className="container px-4 py-6 max-w-3xl mx-auto">
@@ -130,6 +142,8 @@ const VentaBoletosContent: React.FC = () => {
           onReserve={handleReserveNumbers}
           onProceedToPayment={handleProceedToPaymentWithButton}
           getSoldNumbersCount={getSoldNumbersCount}
+          reservationDays={raffle?.reservation_days}  // Pass reservation days
+          lotteryDate={lotteryDate}                   // Pass lottery date
         />
         
         {/* Raffle info */}
