@@ -29,7 +29,11 @@ export function usePaymentCompletionHandler({
       buyerName: paymentData.buyerName,
       buyerPhone: paymentData.buyerPhone,
       buyerCedula: paymentData.buyerCedula,
-      paymentMethod: paymentData.paymentMethod
+      buyerEmail: paymentData.buyerEmail,
+      paymentMethod: paymentData.paymentMethod,
+      direccion: paymentData.direccion,
+      sugerenciaProducto: paymentData.sugerenciaProducto,
+      nota: paymentData.nota
     });
     
     if (!raffleSeller?.seller_id) {
@@ -205,7 +209,7 @@ export function usePaymentCompletionHandler({
       
       const { data: existingParticipant, error: searchError } = await supabase
         .from('participants')
-        .select('id, name, phone, cedula, direccion, sugerencia_producto, nota')
+        .select('id, name, phone, cedula, direccion, sugerencia_producto, nota, email')
         .eq('phone', formattedPhone)
         .eq('raffle_id', raffleId)
         .maybeSingle();
@@ -220,14 +224,18 @@ export function usePaymentCompletionHandler({
         participantId = existingParticipant.id;
         console.log("✅ Found existing participant:", existingParticipant);
 
+        // Enhanced update data to include all fields from the form
         const updateData: any = {
           name: data.buyerName,
           phone: formattedPhone,
-          nota: data.nota,
+          email: data.buyerEmail, // Added email field
           cedula: data.buyerCedula || null,
           direccion: data.direccion || null,
-          sugerencia_producto: data.sugerenciaProducto || null
+          sugerencia_producto: data.sugerenciaProducto || null,
+          nota: data.nota || null // Added nota field
         };
+
+        console.log("📝 Updating participant with data:", updateData);
 
         const { error: updateError } = await supabase
           .from('participants')
@@ -246,11 +254,11 @@ export function usePaymentCompletionHandler({
           .insert({
             name: data.buyerName,
             phone: formattedPhone,
-            email: data.buyerEmail || '',
+            email: data.buyerEmail, // Added email field 
             cedula: data.buyerCedula,
             direccion: data.direccion || null,
             sugerencia_producto: data.sugerenciaProducto || null,
-            nota: data.nota || null,
+            nota: data.nota || null, // Added nota field
             raffle_id: raffleId,
             seller_id: raffleSeller.seller_id
           })
