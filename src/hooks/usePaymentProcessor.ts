@@ -1,18 +1,16 @@
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import { toast } from 'sonner';
 import { useParticipantManager } from './useParticipantManager';
-import { useNumberStatus } from './useNumberStatus';
 import { useSelection } from './usePaymentProcessor/selection';
 import { useModalState } from './usePaymentProcessor/modalState';
 import { usePayment } from './usePaymentProcessor/payment';
 import { useSellerValidation } from './usePaymentProcessor/sellerValidation';
 import { useNumberAvailability } from './usePaymentProcessor/numberAvailability';
 import { usePaymentCompletion } from './usePaymentProcessor/paymentCompletion';
-import { supabase } from '@/integrations/supabase/client';
 import { useBuyerInfo } from '@/contexts/BuyerInfoContext';
+import { useReservationHandling } from './usePaymentProcessor/reservationHandling';
 
 interface UsePaymentProcessorProps {
   raffleSeller: {
@@ -42,41 +40,42 @@ export function usePaymentProcessor({
 }: UsePaymentProcessorProps) {
   const { selectedNumbers, setSelectedNumbers } = useSelection();
   const { isPaymentModalOpen, setIsPaymentModalOpen, isVoucherOpen, setIsVoucherOpen } = useModalState();
-  const { paymentData, setPaymentData, handleProofCheck } = usePayment();
+  const { paymentData, setPaymentData } = usePayment();
   const { validateSellerMaxNumbers, getSoldNumbersCount } = useSellerValidation(raffleSeller, raffleNumbers, debugMode);
   
   // Use the context instead of local state
   const { buyerInfo, setBuyerInfo } = useBuyerInfo();
   
-  const { checkNumbersAvailability, checkReservedNumbersParticipant } = useNumberAvailability({ 
+  const { checkNumbersAvailability } = useNumberAvailability({ 
     raffleNumbers, 
     raffleSeller, 
-    setValidatedBuyerData: setBuyerInfo, // Use context setter instead
+    setValidatedBuyerData: setBuyerInfo, 
     debugMode 
   });
   
-  const { uploadPaymentProof, processParticipant, updateNumbersToSold } = usePaymentCompletion({
+  const { uploadPaymentProof, processParticipant } = usePaymentCompletion({
     raffleSeller,
     raffleId,
-    setValidatedBuyerData: setBuyerInfo, // Use context setter instead
+    setValidatedBuyerData: setBuyerInfo,
     debugMode
   });
   
-  // Pass both reservationDays and lotteryDate to useNumberStatus
-  const { updateRaffleNumbersStatus } = useNumberStatus({ 
-    raffleSeller, 
-    raffleId, 
-    raffleNumbers, 
+  const { handleReserveNumbers } = useReservationHandling({
+    raffleSeller,
+    raffleId,
+    raffleNumbers,
+    refetchRaffleNumbers,
     debugMode,
     reservationDays,
-    lotteryDate
+    lotteryDate,
+    validateSellerMaxNumbers
   });
   
   const { findOrCreateParticipant } = useParticipantManager({ 
     raffleId, 
     debugMode, 
-    raffleSeller, 
-    setValidatedBuyerData: setBuyerInfo // Use context setter instead
+    raffleSeller,
+    setValidatedBuyerData: setBuyerInfo
   });
 
   const debugLog = (context: string, data: any) => {
@@ -85,84 +84,11 @@ export function usePaymentProcessor({
     }
   };
 
-  const handleReserveNumbers = async (
-    numbers: string[],
-    buyerPhone?: string,
-    buyerName?: string,
-    buyerCedula?: string
-  ) => {
-    console.log("🎯 usePaymentProcessor: handleReserveNumbers llamado con:", {
-      numbers,
-      buyerPhone,
-      buyerName,
-      buyerCedula
-    });
-  
-    // 1. Validaciones iniciales
-    if (!raffleSeller?.seller_id) {
-      toast.error("usePaymentProcessor: Información del vendedor no disponible");
-      return;
-    }
-    if (!buyerPhone || !buyerName) {
-      toast.error("usePaymentProcessor: Nombre y teléfono son obligatorios para apartar números");
-      return;
-    }
-    // Validar cédula mínima
-    if (buyerCedula && buyerCedula.length < 5) {
-      toast.error("usePaymentProcessor: Cédula debe tener al menos 5 caracteres");
-      return;
-    }
-    // Máximo de ventas
-    if (!(await validateSellerMaxNumbers(numbers.length))) {
-      return;
-    }
-  
-    try {
-      debugLog("usePaymentProcessor: Números de reserva llamados con", {
-        numbers,
-        buyerPhone,
-        buyerName,
-        buyerCedula
-      });
-  
-      // 2. Crear o encontrar participante
-      const participantId = await findOrCreateParticipant(buyerPhone, buyerName, buyerCedula);
-      console.log("👤 usePaymentProcessor: Participante creado / encontrado:", participantId);
-      if (!participantId) {
-        toast.error("usePaymentProcessor: No se pudo crear o encontrar al participante");
-        return;
-      }
-  
-      // 3. Reservar números y guardar datos
-      await updateRaffleNumbersStatus(
-        numbers,
-        "reserved",
-        participantId,
-        {
-          // Usamos llaves idénticas a las columnas de la tabla
-          participant_name: buyerName,
-          participant_phone: buyerPhone,
-          participant_cedula: buyerCedula ?? null
-        }
-      );
-  
-      // 4. Refrescar y limpiar
-      await refetchRaffleNumbers();
-      setSelectedNumbers([]);
-  
-      toast.success(`${numbers.length} número(s) apartados exitosamente`);
-    } catch (error: any) {
-      console.error("usePaymentProcessor: ❌ Error al reservar números:", error);
-      toast.error(`usePaymentProcessor: Error al apartar números${error.message ? ` — ${error.message}` : ""}`);
-    }
-  };
-
-
   const handleProceedToPayment = async (numbers: string[]) => {
-    console.log("💰 usePaymentProcessor: handleProceedToPayment llamado con números:", numbers);
+    console.log("💰 usePaymentProcessor: handleProceedToPayment called with numbers:", numbers);
 
     if (numbers.length === 0) {
-      toast.error('Seleccione al menos un número para comprar');
+      toast.error('Select at least one number to buy');
       return;
     }
 
@@ -173,7 +99,7 @@ export function usePaymentProcessor({
 
       const unavailableNumbers = await checkNumbersAvailability(numbers);
       if (unavailableNumbers.length > 0) {
-        toast.error(`Números ${unavailableNumbers.join(', ')} no están disponibles`);
+        toast.error(`Numbers ${unavailableNumbers.join(', ')} are not available`);
         return;
       }
       
@@ -181,19 +107,19 @@ export function usePaymentProcessor({
       setIsPaymentModalOpen(true);
       
     } catch (error) {
-      console.error('usePaymentProcessor: ❌ Error al proceder al pago:', error);
-      toast.error('Error al procesar el pago');
+      console.error('usePaymentProcessor: ❌ Error proceeding to payment:', error);
+      toast.error('Error processing payment');
     }
   };
 
   const handlePayReservedNumbers = async (numbers: string[], participantData: ValidatedBuyerInfo) => {
-    console.log("💰 usePaymentProcessor: handlePayReservedNumbers llamado con:", {
+    console.log("💰 usePaymentProcessor: handlePayReservedNumbers called with:", {
       numbers,
       participantData
     });
 
     if (numbers.length === 0) {
-      toast.error('No hay números seleccionados para pagar');
+      toast.error('No numbers selected to pay');
       return;
     }
 
@@ -203,10 +129,10 @@ export function usePaymentProcessor({
       
       setIsPaymentModalOpen(true);
       
-      debugLog("usePaymentProcessor: Modal de pago abierto con datos validados:", participantData);
+      debugLog("usePaymentProcessor: Payment modal opened with validated data:", participantData);
     } catch (error) {
-      console.error('usePaymentProcessor: ❌ Error al proceder al pago de números reservados:', error);
-      toast.error('Error al procesar el pago de números reservados');
+      console.error('usePaymentProcessor: ❌ Error proceeding to payment of reserved numbers:', error);
+      toast.error('Error processing payment of reserved numbers');
     }
   };
 

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { usePaymentProcessor } from '@/hooks/usePaymentProcessor';
@@ -43,7 +44,19 @@ const VentaBoletosContent: React.FC = () => {
     sellerId: SELLER_ID 
   });
   
-  // Payment processor hook with allowVoucherPrint approved
+  // Convert lottery date string to Date object if it exists
+  const lotteryDate = raffle?.date_lottery ? new Date(raffle.date_lottery) : undefined;
+  
+  // Get reservation days from raffle
+  const reservationDays = raffle?.reservation_days;
+  
+  // Debug output for lottery date and reservation days
+  if (debugMode) {
+    console.log("VentaBoletos.tsx: Lottery Date:", lotteryDate);
+    console.log("VentaBoletos.tsx: Reservation Days:", reservationDays);
+  }
+  
+  // Payment processor hook
   const {
     selectedNumbers,
     isPaymentModalOpen,
@@ -68,8 +81,8 @@ const VentaBoletosContent: React.FC = () => {
     refetchRaffleNumbers,
     debugMode,
     allowVoucherPrint,
-    reservationDays: raffle?.reservation_days,
-    lotteryDate: raffle?.date_lottery ? new Date(raffle.date_lottery) : undefined
+    reservationDays,
+    lotteryDate
   });
 
   // Handle proceeding to payment with the button type
@@ -103,22 +116,13 @@ const VentaBoletosContent: React.FC = () => {
     return <LoadingSpinner />;
   }
 
-  // Convert lottery date string to Date object if it exists
-  const lotteryDate = raffle?.date_lottery ? new Date(raffle.date_lottery) : undefined;
-  
-  // Debug output for lottery date and reservation days
-  if (debugMode) {
-    console.log("VentaBoletos.tsx: Lottery Date:", lotteryDate);
-    console.log("VentaBoletos.tsx: Reservation Days:", raffle?.reservation_days);
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       <div className="container px-4 py-6 max-w-3xl mx-auto">
         {/* Header section */}
         <RaffleHeaderSection 
           organization={organization} 
-          title={raffle?.title || 'Cargando...'}
+          title={raffle?.title || 'Loading...'}
         />
         
         {/* Prize carousel and modal */}
@@ -140,8 +144,8 @@ const VentaBoletosContent: React.FC = () => {
           onReserve={handleReserveNumbers}
           onProceedToPayment={handleProceedToPaymentWithButton}
           getSoldNumbersCount={getSoldNumbersCount}
-          reservationDays={raffle?.reservation_days}  // Pass reservation days
-          lotteryDate={lotteryDate}                   // Pass lottery date
+          reservationDays={reservationDays}
+          lotteryDate={lotteryDate}
         />
         
         {/* Raffle info */}
