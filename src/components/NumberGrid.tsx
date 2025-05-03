@@ -86,18 +86,27 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     setClickedPaymentButton("Pagar Apartados");
     
     if (highlightReserved) {
+      // If we're already in highlight mode, don't do anything
       return;
     }
     
     const reservedNumbers = numbers.filter(n => n.status === 'reserved');
     if (reservedNumbers.length === 0) {
       toast.warning('No hay números apartados para pagar');
+      // Auto-close the message since there are no reserved numbers
+      setShowReservedMessage(false);
       return;
     }
     
     setHighlightReserved(true);
     setShowReservedMessage(true);
     toast.info(`Hay ${reservedNumbers.length} número(s) apartados. Seleccione uno para proceder al pago.`);
+    
+    // Note: We don't automatically close the message here as the user needs to see it
+    // to know they should click on a reserved number. The message will be closed when:
+    // 1. User clicks "X" on the message (handled by handleCloseReservedMessage)
+    // 2. User selects a reserved number (which opens the phone validation modal)
+    // 3. User clicks "Clear Selection" button (which calls clearSelectionState)
   };
   
   const handleCloseReservedMessage = () => {
@@ -199,11 +208,15 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       setBuyerData(buyerInfo);
       setValidatedBuyerInfo(buyerInfo);
       
-      // Update context state - this is the key change
+      // Update context state
       setBuyerInfo(buyerInfo);
     }
     
     setIsPhoneModalOpen(false);
+    
+    // After validation success, automatically close the reserved message
+    // since the user has successfully selected a reserved number
+    setShowReservedMessage(false);
     
     if (participantId && buyerInfo) {
       await onProceedToPayment(selectedNumbers, buyerInfo, clickedPaymentButton);

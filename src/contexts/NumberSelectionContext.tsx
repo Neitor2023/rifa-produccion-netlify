@@ -25,7 +25,7 @@ export const NumberSelectionProvider: React.FC<{ children: React.ReactNode }> = 
     console.log("NumberSelectionContext.tsx: Clearing selection state");
     setSelectedNumbers([]);
     setHighlightReserved(false);
-    setShowReservedMessage(false);
+    setShowReservedMessage(false); // Ensure this is set to false when clearing selection
     setSelectedReservedNumber(null);
     // Removed the toast notification from here to avoid duplication
   };
