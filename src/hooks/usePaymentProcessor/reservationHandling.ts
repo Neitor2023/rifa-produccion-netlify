@@ -51,7 +51,7 @@ export function useReservationHandling({
     buyerPhone?: string,
     buyerName?: string,
     buyerCedula?: string
-  ) => {
+  ): Promise<void> => { // Changed return type from Promise<boolean> to Promise<void>
     console.log("🎯 useReservationHandling: handleReserveNumbers called with:", {
       numbers,
       buyerPhone,
@@ -110,11 +110,11 @@ export function useReservationHandling({
       await refetchRaffleNumbers();
   
       toast.success(`${numbers.length} number(s) reserved successfully`);
-      return true;
+      // Removed the return true statement
     } catch (error: any) {
       console.error("useReservationHandling: ❌ Error reserving numbers:", error);
       toast.error(`Error reserving numbers${error.message ? ` — ${error.message}` : ""}`);
-      return false;
+      // Removed the return false statement
     }
   };
 

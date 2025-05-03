@@ -1,7 +1,9 @@
+
 import { useState } from 'react';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client'; // Add missing import
 import { useParticipantManager } from './useParticipantManager';
 import { useSelection } from './usePaymentProcessor/selection';
 import { useModalState } from './usePaymentProcessor/modalState';
