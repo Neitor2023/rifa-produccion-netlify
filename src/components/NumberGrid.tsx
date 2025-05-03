@@ -14,6 +14,7 @@ import ReservedMessageAlert from './NumberGrid/ReservedMessageAlert';
 import { useBuyerInfo } from '@/contexts/BuyerInfoContext';
 import { useNumberSelection } from '@/contexts/NumberSelectionContext';
 import SelectionHandler, { useSelectionHandler } from './NumberGrid/SelectionHandler';
+import { useReservationHandler } from './NumberGrid/ReservationHandler';
 
 interface RaffleNumber {
   id: string;
@@ -74,11 +75,27 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   // Use the context
   const { setBuyerInfo } = useBuyerInfo();
 
+  // Debug log for reservation days and lottery date
+  if (debugMode) {
+    console.log("NumberGrid.tsx: Received reservationDays:", reservationDays);
+    console.log("NumberGrid.tsx: Received lotteryDate:", lotteryDate);
+  }
+
   // Use the selection handler hook instead of the component
   const { toggleNumber, handlePayReserved, clearSelection } = useSelectionHandler(
     numbers,
     raffleSeller
   );
+  
+  // Use our new reservation handler
+  const { handleConfirmReservation } = useReservationHandler({
+    selectedNumbers,
+    onReserve,
+    reservationDays,
+    lotteryDate,
+    debugMode,
+    onClose: () => setIsReservationModalOpen(false)
+  });
   
   const handleCloseReservedMessage = () => {
     setShowReservedMessage(false);
@@ -94,47 +111,10 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   
   const handleReserve = () => {
     if (selectedNumbers.length === 0) {
-      toast.error('Seleccione al menos un número para apartar');
+      toast.error('Select at least one number to reserve');
       return;
     }
     setIsReservationModalOpen(true);
-  };
-  
-  const handleConfirmReservation = (data: { buyerName: string; buyerPhone: string; buyerCedula: string }) => {
-    if (debugMode) {
-      console.log('NumberGrid.tsx: Datos de reserva:', data);
-      console.log('NumberGrid.tsx: Números seleccionados:', selectedNumbers);
-    }
-    
-    if (!data.buyerName || !data.buyerPhone) {
-      toast.error('Nombre y teléfono son obligatorios');
-      return;
-    }
-    
-    // Calculate the reservation expiration date based on the logic:
-    // If current date + 5 days is before lottery date, use current + 5 days
-    // Otherwise use the lottery date
-    const currentDate = new Date();
-    const daysLater = new Date(currentDate.getTime() + reservationDays * 24 * 60 * 60 * 1000);
-    
-    let expirationDate = daysLater;
-    
-    // Check if lottery date is available and compare with reservationDays later
-    if (lotteryDate && daysLater.getTime() > lotteryDate.getTime()) {
-      expirationDate = lotteryDate;
-    }
-    
-    if (debugMode) {
-      console.log('NumberGrid.tsx: Current Date:', currentDate);
-      console.log('NumberGrid.tsx: Reservation days:', reservationDays);
-      console.log(`NumberGrid.tsx: Current date + ${reservationDays} days:`, daysLater);
-      console.log('NumberGrid.tsx: Lottery date:', lotteryDate);
-      console.log('NumberGrid.tsx: Selected expiration date:', expirationDate);
-    }
-    
-    // Pass the expiration date as an additional parameter to onReserve
-    onReserve(selectedNumbers, data.buyerPhone, data.buyerName, data.buyerCedula);
-    setIsReservationModalOpen(false);
   };
   
   const handleProceedToPayment = async (buttonType: string) => {
@@ -142,7 +122,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     setClickedPaymentButton(buttonType);
     
     if (selectedNumbers.length === 0) {
-      toast.error('Seleccione al menos un número para pagar');
+      toast.error('Select at least one number to pay');
       return;
     }
     await onProceedToPayment(selectedNumbers, undefined, buttonType);
@@ -184,11 +164,11 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     const number = numbers.find(n => n.number === validatedNumber && n.status === 'reserved');
     
     if (!number) {
-      toast.error('NumberGrid.tsx: Número no encontrado');
+      toast.error('NumberGrid.tsx: Number not found');
       return;
     }
     
-    toast.success('Validación exitosa');
+    toast.success('Validation successful');
     await onProceedToPayment([validatedNumber]);
   };
 

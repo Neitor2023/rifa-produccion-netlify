@@ -38,6 +38,12 @@ const RaffleNumberGridSection: React.FC<RaffleNumberGridSectionProps> = ({
 }) => {
   if (!raffleNumbers) return null;
   
+  // Debug log to verify reservationDays is being passed correctly
+  if (debugMode) {
+    console.log("🔄 RaffleNumberGridSection - reservationDays:", reservationDays);
+    console.log("🔄 RaffleNumberGridSection - lotteryDate:", lotteryDate);
+  }
+  
   return (
     <div className="mb-8">
       <NumberGrid 

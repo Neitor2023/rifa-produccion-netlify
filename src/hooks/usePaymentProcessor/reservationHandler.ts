@@ -23,7 +23,7 @@ export function useReservationHandler({
     lotteryDate?: Date,
     reservationDays: number = 5
   ): Promise<void> => {
-    console.log("🎯 useReservationHandler: handleReserveNumbers llamado con:", {
+    console.log("🎯 useReservationHandler: handleReserveNumbers called with:", {
       numbers,
       buyerPhone,
       buyerName,
@@ -32,27 +32,27 @@ export function useReservationHandler({
       reservationDays
     });
   
-    // 1. Validaciones iniciales
+    // 1. Initial validations
     if (!raffleSeller?.seller_id) {
-      toast.error("useReservationHandler: Información del vendedor no disponible");
+      toast.error("useReservationHandler: Seller information not available");
       return;
     }
     if (!buyerPhone || !buyerName) {
-      toast.error("useReservationHandler: Nombre y teléfono son obligatorios para apartar números");
+      toast.error("useReservationHandler: Name and phone are required to reserve numbers");
       return;
     }
-    // Validar cédula mínima
+    // Validate minimum cedula
     if (buyerCedula && buyerCedula.length < 5) {
-      toast.error("useReservationHandler: Cédula debe tener al menos 5 caracteres");
+      toast.error("useReservationHandler: Cedula must have at least 5 characters");
       return;
     }
-    // Máximo de ventas
+    // Maximum sales
     if (!(await validateSellerMaxNumbers(numbers.length))) {
       return;
     }
   
     try {
-      debugLog("useReservationHandler: Números de reserva llamados con", {
+      debugLog("handleReserveNumbers: Reserve numbers called with", {
         numbers,
         buyerPhone,
         buyerName,
@@ -60,17 +60,23 @@ export function useReservationHandler({
         reservationDays
       });
   
-      // 2. Crear o encontrar participante
+      // 2. Create or find participant
       const participantId = await findOrCreateParticipant(buyerPhone, buyerName, buyerCedula);
-      console.log("👤 useReservationHandler: Participante creado / encontrado:", participantId);
+      console.log("👤 useReservationHandler: Participant created / found:", participantId);
       if (!participantId) {
-        toast.error("useReservationHandler: No se pudo crear o encontrar al participante");
+        toast.error("useReservationHandler: Could not create or find participant");
         return;
       }
   
       // 3. Calculate the reservation expiration date based on the dynamic reservationDays
       const currentDate = new Date();
-      const daysLater = new Date(currentDate.getTime() + reservationDays * 24 * 60 * 60 * 1000);
+      
+      // Ensure reservationDays is treated as a number
+      const days = typeof reservationDays === 'number' ? reservationDays : 5;
+      
+      debugLog("handleReserveNumbers: Using reservation days", days);
+      
+      const daysLater = new Date(currentDate.getTime() + days * 24 * 60 * 60 * 1000);
       
       let expirationDate = daysLater;
       
@@ -81,13 +87,13 @@ export function useReservationHandler({
       
       if (debugMode) {
         console.log('useReservationHandler: Current Date:', currentDate);
-        console.log('useReservationHandler: Reservation days:', reservationDays);
-        console.log(`useReservationHandler: Current date + ${reservationDays} days:`, daysLater);
+        console.log('useReservationHandler: Reservation days:', days);
+        console.log(`useReservationHandler: Current date + ${days} days:`, daysLater);
         console.log('useReservationHandler: Lottery date:', lotteryDate);
         console.log('useReservationHandler: Selected expiration date:', expirationDate);
       }
 
-      // 4. Reservar números y guardar datos
+      // 4. Reserve numbers and save data
       await updateRaffleNumbersStatus(
         numbers,
         "reserved",
@@ -100,14 +106,14 @@ export function useReservationHandler({
         }
       );
   
-      // 5. Refrescar y limpiar
+      // 5. Refresh and clean
       await refetchRaffleNumbers();
   
-      toast.success(`${numbers.length} número(s) apartados exitosamente`);
+      toast.success(`${numbers.length} number(s) successfully reserved`);
       return;
     } catch (error: any) {
-      console.error("useReservationHandler: ❌ Error al reservar números:", error);
-      toast.error(`useReservationHandler: Error al apartar números${error.message ? ` — ${error.message}` : ""}`);
+      console.error("useReservationHandler: ❌ Error reserving numbers:", error);
+      toast.error(`useReservationHandler: Error reserving numbers${error.message ? ` — ${error.message}` : ""}`);
       return;
     }
   };
