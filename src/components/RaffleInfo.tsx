@@ -5,19 +5,19 @@ import { CalendarIcon, InfoIcon } from 'lucide-react';
 
 interface RaffleInfoProps {
   title: string;
-  price: number;
-  date: string;
-  lottery: string;
+  details: string;
+  drawInfo: string;
+  instructions?: string;
+  priceInfo: string;
 }
 
-const RaffleInfo: React.FC<RaffleInfoProps> = ({ title, price, date, lottery }) => {
-  // Format date to a readable string
-  const formattedDate = new Date(date).toLocaleDateString('es-ES', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric'
-  });
-
+const RaffleInfo: React.FC<RaffleInfoProps> = ({ 
+  title, 
+  details, 
+  drawInfo, 
+  instructions, 
+  priceInfo 
+}) => {
   return (
     <Card className="mb-6 bg-white dark:bg-gray-800">
       <CardContent className="p-4">
@@ -33,28 +33,36 @@ const RaffleInfo: React.FC<RaffleInfoProps> = ({ title, price, date, lottery }) 
           
           <div>
             <span className="text-gray-600 dark:text-gray-400 font-bold text-sm">Precio:</span>
-            <p className="text-gray-800 dark:text-gray-200 font-bold">${price.toFixed(2)}</p>
+            <p className="text-gray-800 dark:text-gray-200 font-bold">{priceInfo}</p>
           </div>
           
           <div className="flex items-start">
             <CalendarIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 mt-0.5 mr-1" />
             <div>
               <span className="text-gray-600 dark:text-gray-400 font-bold text-sm">Fecha del Sorteo:</span>
-              <p className="text-gray-800 dark:text-gray-200 font-bold">{formattedDate}</p>
+              <p className="text-gray-800 dark:text-gray-200 font-bold">{drawInfo}</p>
             </div>
           </div>
           
-          <div className="flex items-start">
-            <InfoIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 mt-0.5 mr-1" />
-            <div>
-              <span className="text-gray-600 dark:text-gray-400 font-bold text-sm">Sorteo:</span>
-              <p className="text-gray-800 dark:text-gray-200 font-bold">{lottery}</p>
+          {details && (
+            <div className="flex items-start">
+              <InfoIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 mt-0.5 mr-1" />
+              <div>
+                <span className="text-gray-600 dark:text-gray-400 font-bold text-sm">Detalles:</span>
+                <p className="text-gray-800 dark:text-gray-200 font-bold">{details}</p>
+              </div>
             </div>
-          </div>
-        </div>
-        
-        <div className="mt-4 text-xs text-gray-500 dark:text-gray-400 font-bold">
-          Las plataformas de redes sociales no están asociadas a esta rifa.
+          )}
+          
+          {instructions && (
+            <div className="flex items-start">
+              <InfoIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 mt-0.5 mr-1" />
+              <div>
+                <span className="text-gray-600 dark:text-gray-400 font-bold text-sm">Instrucciones de Pago:</span>
+                <p className="text-gray-800 dark:text-gray-200 font-bold">{instructions}</p>
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

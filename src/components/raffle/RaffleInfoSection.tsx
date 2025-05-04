@@ -20,11 +20,11 @@ const RaffleInfoSection: React.FC<RaffleInfoSectionProps> = ({
     <>
       {raffle && (
         <RaffleInfo
-          title={raffle.title}
-          details={raffle.description}
+          title={raffle.title || 'Sin título'}
+          details={raffle.description || ''}
           drawInfo={`${raffle.lottery || 'Sorteo'} - ${raffle.date_lottery || 'Fecha pendiente'}`}
-          instructions={raffle.payment_instructions}
-          priceInfo={`${raffle.price} ${raffle.currency}`}
+          instructions={raffle.payment_instructions || ''}
+          priceInfo={`${raffle.price || 0} ${raffle.currency || ''}`}
         />
       )}
       
