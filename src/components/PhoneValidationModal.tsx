@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,9 @@ interface PhoneValidationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onValidationSuccess: (validatedNumber: string, participantId: string, buyerInfo?: ValidatedBuyerInfo) => void;
-  selectedNumber?: string;
+  selectedNumber?: string | null;
+  raffleNumbers?: any[];
+  raffleSellerId: string;
   raffleId: string;
   debugMode?: boolean;
 }
@@ -22,6 +25,8 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   onClose,
   onValidationSuccess,
   selectedNumber,
+  raffleNumbers,
+  raffleSellerId,
   raffleId,
   debugMode = false
 }) => {
