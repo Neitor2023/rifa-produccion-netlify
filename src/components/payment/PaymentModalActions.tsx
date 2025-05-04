@@ -40,7 +40,7 @@ export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit }: Payment
         type="button"
         variant="outline"
         onClick={handleCancel}
-        className="flex-1 sm:flex-none"
+        className="flex-1 sm:flex-none font-bold uppercase"
       >
         Cancelar
       </Button>
@@ -48,7 +48,7 @@ export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit }: Payment
         type="button"
         onClick={handleSubmit}
         disabled={isSubmitting}
-        className="flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB]"
+        className="flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB] font-bold uppercase"
       >
         {isSubmitting ? (
           <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
