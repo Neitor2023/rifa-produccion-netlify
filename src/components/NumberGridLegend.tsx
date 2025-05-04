@@ -8,28 +8,28 @@ interface NumberGridLegendProps {
 
 export const NumberGridLegend: React.FC<NumberGridLegendProps> = ({ highlightReserved }) => {
   return (
-    <Card className="mt-4 bg-white dark:bg-gray-800 shadow-sm">
+    <Card className="mt-4 shadow-sm">
       <CardContent className="p-4">
         <div className="flex flex-wrap gap-4 justify-center">
           <div className="flex items-center">
-            <div className="h-4 w-4 bg-white dark:bg-gray-800 border dark:border-gray-600 rounded-sm mr-2"></div>
-            <span className="text-xs font-bold text-gray-600 dark:text-gray-400">Disponible</span>
+            <div className="h-4 w-4 border dark:border-gray-600 rounded-sm mr-2"></div>
+            <span className="text-xs font-bold text-foreground">Disponible</span>
           </div>
           
           <div className="flex items-center">
             <div className="h-4 w-4 bg-rifa-purple dark:bg-purple-700 rounded-sm mr-2"></div>
-            <span className="text-xs font-bold text-gray-600 dark:text-gray-400">Seleccionado</span>
+            <span className="text-xs font-bold text-foreground">Seleccionado</span>
           </div>
           
           <div className="flex items-center">
             <div className="h-4 w-4 bg-gray-100 dark:bg-gray-700 rounded-sm mr-2"></div>
-            <span className="text-xs font-bold text-gray-600 dark:text-gray-400">No disponible</span>
+            <span className="text-xs font-bold text-foreground">No disponible</span>
           </div>
           
           {highlightReserved && (
             <div className="flex items-center">
               <div className="h-4 w-4 bg-amber-300 border-amber-500 rounded-sm mr-2"></div>
-              <span className="text-xs font-bold text-gray-600 dark:text-gray-400">Apartado</span>
+              <span className="text-xs font-bold text-foreground">Apartado</span>
             </div>
           )}
         </div>

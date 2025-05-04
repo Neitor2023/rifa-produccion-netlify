@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Toaster } from 'sonner';
 import { Card } from '@/components/ui/card';
@@ -95,7 +94,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         <ReservedMessageAlert onClose={handleCloseReservedMessage} />
       )}
       
-      <Card className="p-2 sm:p-4 mb-4 bg-white dark:bg-gray-800 overflow-x-auto">
+      <Card className="p-2 sm:p-4 mb-4 overflow-x-auto">
         <GridLayout
           numbers={numbers}
           selectedNumbers={selectedNumbers}
