@@ -1,4 +1,3 @@
-
 import { PaymentFormData } from '@/components/PaymentModal';
 import { toast } from 'sonner';
 
@@ -17,7 +16,7 @@ interface UseCompletePaymentProps {
   debugMode?: boolean;
 }
 
-export function useCompletePayment({
+export const useCompletePayment = ({
   raffleSeller,
   raffleId,
   selectedNumbers,
@@ -29,16 +28,29 @@ export function useCompletePayment({
   uploadPaymentProof,
   processParticipant,
   supabase,
-  debugMode = false
-}: UseCompletePaymentProps) {
-  
-  const handleCompletePayment = async (data: PaymentFormData) => {
+  debugMode
+}: {
+  raffleSeller: any;
+  raffleId: string;
+  selectedNumbers: string[];
+  refetchRaffleNumbers: () => Promise<any>;
+  setPaymentData: (data: any) => void;
+  setIsPaymentModalOpen: (isOpen: boolean) => void;
+  setIsVoucherOpen: (isOpen: boolean) => void;
+  allowVoucherPrint: boolean;
+  uploadPaymentProof: (paymentProof: any) => Promise<string | null>;
+  processParticipant: (data: PaymentFormData) => Promise<string | null>;
+  supabase: any;
+  debugMode?: boolean;
+}) => {
+
+  const handleCompletePayment = async (formData: PaymentFormData) => {
     console.log("🔄 handleCompletePayment called with data:", {
-      buyerName: data.buyerName,
-      buyerPhone: data.buyerPhone,
-      buyerEmail: data.buyerEmail,
-      buyerCedula: data.buyerCedula,
-      paymentMethod: data.paymentMethod,
+      buyerName: formData.buyerName,
+      buyerPhone: formData.buyerPhone,
+      buyerEmail: formData.buyerEmail,
+      buyerCedula: formData.buyerCedula,
+      paymentMethod: formData.paymentMethod,
       sellerId: raffleSeller?.seller_id
     });
     
@@ -51,20 +63,17 @@ export function useCompletePayment({
       if (debugMode) {
         console.log('Complete Payment - starting', {
           selectedNumbers,
-          data,
+          formData,
           sellerId: raffleSeller.seller_id
         });
       }
       
-      const paymentProofUrl = await uploadPaymentProof(data.paymentProof);
+      const paymentProofUrl = await uploadPaymentProof(formData.paymentProof);
       
       // Add seller_id to the data passed to processParticipant
-      const processData = {
-        ...data,
-        sellerId: raffleSeller.seller_id
-      };
+      formData.sellerId = raffleSeller.seller_id;
       
-      let participantId: string | null = await processParticipant(processData);
+      let participantId: string | null = await processParticipant(formData);
       
       if (!participantId) {
         toast.error('Error al procesar la información del participante');
@@ -91,9 +100,9 @@ export function useCompletePayment({
           status: 'sold',
           participant_id: participantId,
           payment_proof: paymentProofUrl,
-          participant_name: data.buyerName,
-          participant_phone: data.buyerPhone, // This will be formatted by updateNumbersToSold
-          participant_cedula: data.buyerCedula || null,
+          participant_name: formData.buyerName,
+          participant_phone: formData.buyerPhone, // This will be formatted by updateNumbersToSold
+          participant_cedula: formData.buyerCedula || null,
           payment_approved: true
         };
         
@@ -129,12 +138,12 @@ export function useCompletePayment({
       await refetchRaffleNumbers();
       
       setPaymentData({
-        ...data,
+        ...formData,
         paymentProof: paymentProofUrl
       });
       
-      if (data.reporteSospechoso) {
-        await handleFraudReport(data.reporteSospechoso, participantId, raffleId, raffleSeller.seller_id);
+      if (formData.reporteSospechoso) {
+        await handleFraudReport(formData.reporteSospechoso, participantId, raffleId, raffleSeller.seller_id);
       }
       
       setIsPaymentModalOpen(false);
