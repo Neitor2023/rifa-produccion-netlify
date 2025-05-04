@@ -18,6 +18,16 @@ const RaffleInfo: React.FC<RaffleInfoProps> = ({
   instructions, 
   priceInfo 
 }) => {
+  // Function to preserve line breaks in text
+  const formatText = (text: string) => {
+    return text.split('\n').map((line, index) => (
+      <React.Fragment key={index}>
+        {line}
+        {index < text.split('\n').length - 1 && <br />}
+      </React.Fragment>
+    ));
+  };
+  
   return (
     <Card className="mb-6 bg-white dark:bg-gray-800">
       <CardContent className="p-4">
@@ -49,7 +59,9 @@ const RaffleInfo: React.FC<RaffleInfoProps> = ({
               <InfoIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 mt-0.5 mr-1" />
               <div>
                 <span className="text-gray-600 dark:text-gray-400 font-bold text-sm">Detalles:</span>
-                <p className="text-gray-800 dark:text-gray-200 font-bold">{details}</p>
+                <div className="text-gray-800 dark:text-gray-200 font-bold whitespace-pre-line">
+                  {formatText(details)}
+                </div>
               </div>
             </div>
           )}
@@ -59,7 +71,9 @@ const RaffleInfo: React.FC<RaffleInfoProps> = ({
               <InfoIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 mt-0.5 mr-1" />
               <div>
                 <span className="text-gray-600 dark:text-gray-400 font-bold text-sm">Instrucciones de Pago:</span>
-                <p className="text-gray-800 dark:text-gray-200 font-bold">{instructions}</p>
+                <div className="text-gray-800 dark:text-gray-200 font-bold whitespace-pre-line">
+                  {formatText(instructions)}
+                </div>
               </div>
             </div>
           )}

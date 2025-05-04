@@ -1,7 +1,6 @@
 
 import React from 'react';
 import RaffleInfo from '@/components/RaffleInfo';
-import SellerInfo from '@/components/SellerInfo';
 import OrganizerInfo from '@/components/OrganizerInfo';
 import { Organization } from '@/lib/constants';
 
@@ -25,15 +24,6 @@ const RaffleInfoSection: React.FC<RaffleInfoSectionProps> = ({
           drawInfo={`${raffle.lottery || 'Sorteo'} - ${raffle.date_lottery || 'Fecha pendiente'}`}
           instructions={raffle.payment_instructions || ''}
           priceInfo={`${raffle.price || 0} ${raffle.currency || ''}`}
-        />
-      )}
-      
-      {seller && (
-        <SellerInfo
-          name={seller.name}
-          phone={seller.phone}
-          avatar={seller.avatar}
-          id={seller.id}
         />
       )}
       

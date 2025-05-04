@@ -1,10 +1,10 @@
-
 import React, { useEffect, useState } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { usePaymentProcessor } from '@/hooks/usePaymentProcessor';
 import { useRaffleData } from '@/hooks/useRaffleData';
 import { BuyerInfoProvider, useBuyerInfo } from '@/contexts/BuyerInfoContext';
 import { NumberSelectionProvider } from '@/contexts/NumberSelectionContext';
+import { Card, CardContent } from '@/components/ui/card';
 
 // Components
 import RaffleHeaderSection from '@/components/raffle/RaffleHeaderSection';
@@ -121,11 +121,17 @@ const VentaBoletosContent: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       <div className="container px-4 py-6 max-w-3xl mx-auto">
-        {/* Header section */}
-        <RaffleHeaderSection 
-          organization={organization} 
-          title={raffle?.title || 'Loading...'}
-        />
+        {/* Header section with styled title */}
+        <div className="mb-6">
+          <Card className="bg-white dark:bg-gray-800 shadow-md">
+            <CardContent className="p-4">
+              <RaffleHeaderSection 
+                organization={organization} 
+                title={raffle?.title || 'Loading...'}
+              />
+            </CardContent>
+          </Card>
+        </div>
         
         {/* Seller Info - MOVED TO THIS POSITION (3rd) */}
         {seller && (
