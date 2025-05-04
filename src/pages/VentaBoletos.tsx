@@ -120,11 +120,11 @@ const VentaBoletosContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
-      <div className="container px-4 py-6 max-w-3xl mx-auto">
-        {/* Header section with organization info and dark mode toggle */}
-        <div className="mb-6">
+      <div className="container px-4 py-4 max-w-3xl mx-auto">
+        {/* Header section with organization info and dark mode toggle - reduced vertical padding */}
+        <div className="mb-4">
           <Card className="bg-white dark:bg-gray-800 shadow-md">
-            <CardContent className="p-4">
+            <CardContent className="p-3">
               <RaffleHeaderSection 
                 organization={organization} 
               />
@@ -132,58 +132,66 @@ const VentaBoletosContent: React.FC = () => {
           </Card>
         </div>
         
-        {/* Title card - MOVED TO THIS POSITION (2nd) */}
-        <Card className="mb-6 bg-white dark:bg-gray-800 shadow-sm">
-          <CardContent className="p-4">
-            <h1 className="text-2xl font-bold text-center text-gray-800 dark:text-gray-100">
+        {/* Title card - consistent spacing */}
+        <Card className="mb-4 bg-white dark:bg-gray-800 shadow-sm">
+          <CardContent className="p-3">
+            <h1 className="text-xl sm:text-2xl font-bold text-center text-gray-800 dark:text-gray-100">
               {raffle?.title || 'Cargando...'}
             </h1>
           </CardContent>
         </Card>
         
-        {/* Seller Info - REMAINS IN 3rd POSITION */}
+        {/* Seller Info - consistent spacing */}
         {seller && (
-          <SellerInfo 
-            name={seller.name}
-            phone={seller.phone}
-            avatar={seller.avatar}
-            id={seller.cedula || SELLER_ID}
-          />
+          <div className="mb-4">
+            <SellerInfo 
+              name={seller.name}
+              phone={seller.phone}
+              avatar={seller.avatar}
+              id={seller.cedula || SELLER_ID}
+            />
+          </div>
         )}
         
         {/* Prize carousel and modal */}
         {prizes && prizeImages && (
-          <RafflePrizesSection 
-            prizes={prizes} 
-            prizeImages={prizeImages} 
-          />
+          <div className="mb-4">
+            <RafflePrizesSection 
+              prizes={prizes} 
+              prizeImages={prizeImages} 
+            />
+          </div>
         )}
         
         {/* Number grid */}
-        <RaffleNumberGridSection 
-          raffleNumbers={raffleNumbers}
-          formatNumbersForGrid={formatNumbersForGrid}
-          raffleSeller={raffleSeller}
-          raffleId={RAFFLE_ID}
-          sellerId={seller?.id || SELLER_ID}
-          debugMode={debugMode}
-          onReserve={handleReserveNumbers}
-          onProceedToPayment={handleProceedToPaymentWithButton}
-          getSoldNumbersCount={getSoldNumbersCount}
-          reservationDays={reservationDays}
-          lotteryDate={lotteryDate}
-        />
+        <div className="mb-4">
+          <RaffleNumberGridSection 
+            raffleNumbers={raffleNumbers}
+            formatNumbersForGrid={formatNumbersForGrid}
+            raffleSeller={raffleSeller}
+            raffleId={RAFFLE_ID}
+            sellerId={seller?.id || SELLER_ID}
+            debugMode={debugMode}
+            onReserve={handleReserveNumbers}
+            onProceedToPayment={handleProceedToPaymentWithButton}
+            getSoldNumbersCount={getSoldNumbersCount}
+            reservationDays={reservationDays}
+            lotteryDate={lotteryDate}
+          />
+        </div>
         
         {/* Raffle info */}
-        <RaffleInfoSection 
-          raffle={raffle} 
-          seller={seller} 
-          organization={organization} 
-        />
+        <div className="mb-4">
+          <RaffleInfoSection 
+            raffle={raffle} 
+            seller={seller} 
+            organization={organization} 
+          />
+        </div>
 
-        {/* Promotional Image - REMAINS IN PENULTIMATE POSITION */}
+        {/* Promotional Image - with consistent spacing */}
         {organization?.organization_logo_url && (
-          <div className="mb-8 mt-12">
+          <div className="mb-8 mt-8">
             <div className="overflow-hidden rounded-lg shadow-md">
               <SafeImage 
                 src={organization.imagen_publicitaria} 
