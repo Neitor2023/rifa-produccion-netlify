@@ -29,23 +29,31 @@ const RaffleInfo: React.FC<RaffleInfoProps> = ({
   };
   
   return (
-    <Card className="mb-6 bg-white dark:bg-gray-800">
-      <CardContent className="p-4">
-        <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">
-          Detalles de la Rifa
-        </h2>
-        
-        <div className="space-y-3">
+    <div className="mb-6 space-y-4">
+      <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">
+        Detalles de la Rifa
+      </h2>
+      
+      <Card className="bg-white dark:bg-gray-800">
+        <CardContent className="p-4">
           <div>
             <span className="text-gray-600 dark:text-gray-400 font-bold text-sm">Nombre:</span>
             <p className="text-gray-800 dark:text-gray-200 font-bold">{title}</p>
           </div>
-          
+        </CardContent>
+      </Card>
+      
+      <Card className="bg-white dark:bg-gray-800">
+        <CardContent className="p-4">
           <div>
             <span className="text-gray-600 dark:text-gray-400 font-bold text-sm">Precio:</span>
             <p className="text-gray-800 dark:text-gray-200 font-bold">{priceInfo}</p>
           </div>
-          
+        </CardContent>
+      </Card>
+      
+      <Card className="bg-white dark:bg-gray-800">
+        <CardContent className="p-4">
           <div className="flex items-start">
             <CalendarIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 mt-0.5 mr-1" />
             <div>
@@ -53,8 +61,12 @@ const RaffleInfo: React.FC<RaffleInfoProps> = ({
               <p className="text-gray-800 dark:text-gray-200 font-bold">{drawInfo}</p>
             </div>
           </div>
-          
-          {details && (
+        </CardContent>
+      </Card>
+      
+      {details && (
+        <Card className="bg-white dark:bg-gray-800">
+          <CardContent className="p-4">
             <div className="flex items-start">
               <InfoIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 mt-0.5 mr-1" />
               <div>
@@ -64,9 +76,13 @@ const RaffleInfo: React.FC<RaffleInfoProps> = ({
                 </div>
               </div>
             </div>
-          )}
-          
-          {instructions && (
+          </CardContent>
+        </Card>
+      )}
+      
+      {instructions && (
+        <Card className="bg-white dark:bg-gray-800">
+          <CardContent className="p-4">
             <div className="flex items-start">
               <InfoIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 mt-0.5 mr-1" />
               <div>
@@ -76,10 +92,10 @@ const RaffleInfo: React.FC<RaffleInfoProps> = ({
                 </div>
               </div>
             </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
 

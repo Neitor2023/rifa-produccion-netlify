@@ -24,7 +24,7 @@ const OrganizerInfo: React.FC<OrganizerInfoProps> = ({ organization }) => {
     <div className="mb-8">
       <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">Organizadores:</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Organizer */}
+        {/* Cada organizador en su propia tarjeta */}
         <Card className="bg-white dark:bg-gray-800">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
@@ -48,7 +48,7 @@ const OrganizerInfo: React.FC<OrganizerInfoProps> = ({ organization }) => {
           </CardContent>
         </Card>
         
-        {/* Administrator */}
+        {/* Administrador en su propia tarjeta separada */}
         <Card className="bg-white dark:bg-gray-800">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
