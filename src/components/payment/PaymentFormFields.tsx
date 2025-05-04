@@ -79,19 +79,22 @@ function AdditionalInfoSection({ form }: { form: UseFormReturn<PaymentFormData> 
 
 function HiddenBuyerFields({ form, readOnlyData }: { form: UseFormReturn<PaymentFormData>; readOnlyData?: ValidatedBuyerInfo | null }) {
   useEffect(() => {
+    console.log("PaymentFormFields.tsx:73 - HiddenBuyerFields - readOnlyData:", readOnlyData);
     if (readOnlyData) {
       if (readOnlyData.name)
-        form.setValue("buyerName", readOnlyData.name)
+        form.setValue("buyerName", readOnlyData.name);
       if (readOnlyData.phone)
-        form.setValue("buyerPhone", readOnlyData.phone)
+        form.setValue("buyerPhone", readOnlyData.phone);
       if (readOnlyData.cedula)
-        form.setValue("buyerCedula", readOnlyData.cedula)
+        form.setValue("buyerCedula", readOnlyData.cedula);
       if (readOnlyData.direccion)
-        form.setValue("direccion", readOnlyData.direccion)
-      if (readOnlyData.email)
-        form.setValue("email", readOnlyData.email)
+        form.setValue("direccion", readOnlyData.direccion);
+      if (readOnlyData.email) {
+        console.log("PaymentFormFields.tsx:83 - HiddenBuyerFields - Estableciendo email:", readOnlyData.email);
+        form.setValue("buyerEmail", readOnlyData.email);
+      }
       if (readOnlyData.sugerencia_producto)
-        form.setValue("sugerenciaProducto", readOnlyData.sugerencia_producto)
+        form.setValue("sugerenciaProducto", readOnlyData.sugerencia_producto);
     }
   }, [readOnlyData, form]);
 
@@ -116,8 +119,9 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
   const watchedPaymentMethod = form.watch('paymentMethod');
 
   useEffect(() => {
+    console.log("PaymentFormFields.tsx:112 - Rendering with readOnlyData:", readOnlyData);
     if (readOnlyData && form) {
-      console.log("Setting form values with readOnlyData:", readOnlyData);
+      console.log("PaymentFormFields.tsx:114 - Setting form values with readOnlyData:", readOnlyData);
       if (readOnlyData.name)
         form.setValue("buyerName", readOnlyData.name);
       if (readOnlyData.phone)
@@ -126,6 +130,10 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
         form.setValue("buyerCedula", readOnlyData.cedula);
       if (readOnlyData.direccion)
         form.setValue("direccion", readOnlyData.direccion);
+      if (readOnlyData.email) {
+        console.log("PaymentFormFields.tsx:124 - Estableciendo email:", readOnlyData.email);
+        form.setValue("buyerEmail", readOnlyData.email);
+      }
       if (readOnlyData.sugerencia_producto)
         form.setValue("sugerenciaProducto", readOnlyData.sugerencia_producto);
     }

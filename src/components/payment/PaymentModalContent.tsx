@@ -30,6 +30,7 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
   clickedButton
 }) => {
   useEffect(() => {
+    console.log("PaymentModalContent.tsx:33 - buyerData recibido:", buyerData);
     if (buyerData) {
       form.setValue('buyerName', buyerData.name || '');
       form.setValue('buyerPhone', buyerData.phone || '');
@@ -38,7 +39,8 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
         form.setValue("direccion", buyerData.direccion);
       }
       if (buyerData.email) {
-        form.setValue("email", buyerData.email);
+        console.log("PaymentModalContent.tsx:41 - Estableciendo email:", buyerData.email);
+        form.setValue("buyerEmail", buyerData.email);
       }      
       if (buyerData.sugerencia_producto) {
         form.setValue("sugerenciaProducto", buyerData.sugerencia_producto);

@@ -9,6 +9,8 @@ interface EditableBuyerFieldsProps {
 }
 
 const EditableBuyerFields: React.FC<EditableBuyerFieldsProps> = ({ form }) => {
+  console.log("EditableBuyerFields.tsx:10 - Rendering with form values:", form.getValues());
+  
   return (
     <div>
       <h3 className="font-medium mb-3">Información del Comprador</h3>
