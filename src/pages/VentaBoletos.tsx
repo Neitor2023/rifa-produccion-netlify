@@ -5,6 +5,7 @@ import { usePaymentProcessor } from '@/hooks/usePaymentProcessor';
 import { useRaffleData } from '@/hooks/useRaffleData';
 import { BuyerInfoProvider, useBuyerInfo } from '@/contexts/BuyerInfoContext';
 import { NumberSelectionProvider } from '@/contexts/NumberSelectionContext';
+import SellerInfo from '@/components/SellerInfo'; // Added SellerInfo import
 
 // Components
 import RaffleHeaderSection from '@/components/raffle/RaffleHeaderSection';
@@ -125,6 +126,16 @@ const VentaBoletosContent: React.FC = () => {
           title={raffle?.title || 'Loading...'}
         />
         
+        {/* Seller info - MOVED HERE as requested */}
+        {seller && (
+          <SellerInfo
+            name={seller.name}
+            phone={seller.phone}
+            avatar={seller.avatar}
+            id={seller.id}
+          />
+        )}
+        
         {/* Prize carousel and modal */}
         {prizes && prizeImages && (
           <RafflePrizesSection 
@@ -148,11 +159,11 @@ const VentaBoletosContent: React.FC = () => {
           lotteryDate={lotteryDate}
         />
         
-        {/* Raffle info */}
+        {/* Raffle info - Modified to remove seller info from here */}
         <RaffleInfoSection 
           raffle={raffle} 
-          seller={seller} 
           organization={organization} 
+          excludeSellerInfo={true} // Added prop to exclude seller info
         />
       </div>
       
