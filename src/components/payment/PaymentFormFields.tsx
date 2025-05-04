@@ -18,23 +18,6 @@ function AdditionalInfoSection({ form }: { form: UseFormReturn<PaymentFormData> 
     <div>
       <h3 className="font-medium mb-3">Información Adicional</h3>
       <div className="grid grid-cols-1 gap-4">
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Correo Electrónico</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Ingrese su correo electrónico"
-                  {...field}
-                  value={field.value || ''}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
         
         <FormField
           control={form.control}
@@ -54,6 +37,24 @@ function AdditionalInfoSection({ form }: { form: UseFormReturn<PaymentFormData> 
           )}
         />
 
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Correo Electrónico</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Ingrese su correo electrónico"
+                  {...field}
+                  value={field.value || ''}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
         <FormField
           control={form.control}
           name="sugerenciaProducto"
