@@ -27,6 +27,11 @@ const BuyerInfoFields: React.FC<BuyerInfoFieldsProps> = ({ buyerData }) => {
             <span className="font-semibold">Dirección:</span> {buyerData.direccion}
           </div>
         )}
+        {buyerData.email && (
+          <div>
+            <span className="font-semibold">Correo:</span> {buyerData.email}
+          </div>
+        )}        
       </div>
     </div>
   );
