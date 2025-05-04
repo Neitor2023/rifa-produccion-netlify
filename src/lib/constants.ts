@@ -12,7 +12,8 @@ export interface Organization {
   admin_photo: string;
   admin_name: string;
   admin_phone_number: string;
-  imagen_publicitaria?: string; // Added this property
+  imagen_publicitaria?: string;
+  image_checklist?: string;
 }
 
 export interface Raffle {
@@ -87,7 +88,8 @@ export const mockOrganization: Organization = {
   admin_photo: "https://via.placeholder.com/100x100.png?text=Admin",
   admin_name: "Juan Pérez",
   admin_phone_number: "555-987-6543",
-  imagen_publicitaria: "https://via.placeholder.com/100x100.png?text=Imagen+Publicitaria"
+  imagen_publicitaria: "https://via.placeholder.com/100x100.png?text=Imagen+Publicitaria",
+  image_checklist: "https://via.placeholder.com/100x100.png?text=Image+Checklist"
 };
 
 export const mockRaffle: Raffle = {
