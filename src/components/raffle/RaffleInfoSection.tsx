@@ -3,7 +3,6 @@ import React from 'react';
 import RaffleInfo from '@/components/RaffleInfo';
 import OrganizerInfo from '@/components/OrganizerInfo';
 import { Organization } from '@/lib/constants';
-import { Card, CardContent } from '@/components/ui/card';
 
 interface RaffleInfoSectionProps {
   raffle: any;
@@ -29,14 +28,6 @@ const RaffleInfoSection: React.FC<RaffleInfoSectionProps> = ({
       )}
       
       {organization && <OrganizerInfo organization={organization} />}
-      
-      <Card className="mb-8">
-        <CardContent className="p-4">
-          <div className="text-center text-xs italic">
-            Las plataformas de redes sociales no están asociadas a esta rifa.
-          </div>
-        </CardContent>
-      </Card>
     </>
   );
 };

@@ -120,10 +120,19 @@ const VentaBoletosMain: React.FC<VentaBoletosMainProps> = ({
           />
         </div>
 
-        {/* Promotional Image */}
+        {/* Promotional Image - MOVED UP */}
         {organization?.imagen_publicitaria && (
           <PromotionalImage imageUrl={organization.imagen_publicitaria} />
         )}
+        
+        {/* Disclaimer Card - MOVED DOWN */}
+        <Card className="mb-8">
+          <CardContent className="p-4">
+            <div className="text-center text-xs italic">
+              Las plataformas de redes sociales no están asociadas a esta rifa.
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

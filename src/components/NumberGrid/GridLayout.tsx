@@ -48,7 +48,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
   const grid = [];
   for (let row = 0; row < 10; row++) {
     const rowItems = [];
-    for (let col = 0; col < 10; col++) {
+    for (let col = 0; col < 100; col++) {
       const num = row * 10 + col;
       const paddedNum = num.toString().padStart(2, '0');
       const raffleNumber = numberMap[paddedNum];
@@ -63,7 +63,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
           status={status}
           isSelected={isSelected}
           isHighlighted={isHighlighted}
-          checklistImage={organization?.image_checklist} // Pass the checklist image URL
+          checklistImage={organization?.image_checklist} // Use optional chaining to safely access the property
           onToggle={() => {
             if (highlightReserved && status === 'reserved') {
               // Directly call toggleNumber instead of onPayReserved
