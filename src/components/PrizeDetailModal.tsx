@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -16,7 +16,6 @@ import ImageCarousel from './prize-detail/ImageCarousel';
 import MobileCarousel from './prize-detail/MobileCarousel';
 import ThumbnailGallery from './prize-detail/ThumbnailGallery';
 import PrizeDescription from './prize-detail/PrizeDescription';
-import { supabase } from '@/integrations/supabase/client';
 
 interface PrizeDetailModalProps {
   isOpen: boolean;
@@ -25,84 +24,52 @@ interface PrizeDetailModalProps {
   prizeImages: PrizeImage[];
 }
 
-// Helper interface to handle the displayUrl property
-interface DisplayablePrizeImage {
-  id: string;
-  prize_id: string;
-  image_url: string;
-  url_image?: string;
-  displayUrl: string;
-}
-
 const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, prize, prizeImages }) => {
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
-  const [filteredImages, setFilteredImages] = React.useState<DisplayablePrizeImage[]>([]);
   
-  console.log("▶️ PrizeDetailModal.tsx: Abriendo modal con premio:", prize?.name, "y", prizeImages.length, "imágenes");
-  
-  // Reset current image index when prize changes
-  useEffect(() => {
-    setCurrentImageIndex(0);
-    console.log("▶️ PrizeDetailModal.tsx: Reiniciando índice de imagen para nuevo premio:", prize?.name);
+  // Use either url_image or image_url depending on what's available
+  const relevantImages = React.useMemo(() => {
+    if (!prize || !prizeImages.length) return [];
     
-    // Filter images for the current prize
-    if (prize) {
-      const relevantImages = prizeImages.filter(img => img.prize_id === prize.id);
-      console.log(`▶️ PrizeDetailModal.tsx: Filtradas ${relevantImages.length} imágenes para premio ${prize.id}`);
+    const filteredImages = prizeImages
+      .filter(img => prize && img.prize_id === prize.id)
+      .map(img => ({
+        ...img,
+        displayUrl: img.url_image || img.image_url
+      }));
       
-      if (relevantImages.length === 0 && prize.url_image) {
-        // Create a fallback using the prize's own image
-        setFilteredImages([{
-          id: 'default',
-          prize_id: prize.id,
-          image_url: prize.url_image,
-          url_image: prize.url_image,
-          displayUrl: prize.url_image
-        }]);
-        console.log("▶️ PrizeDetailModal.tsx: Usando imagen predeterminada del premio:", prize.url_image);
-      } else {
-        // Map images to include display URL
-        setFilteredImages(relevantImages.map(img => ({
-          ...img,
-          displayUrl: img.url_image || img.image_url
-        })));
-        console.log("▶️ PrizeDetailModal.tsx: URLs de imágenes filtradas:", 
-          relevantImages.map(img => img.url_image || img.image_url));
-      }
-    } else {
-      setFilteredImages([]);
-    }
+    console.log(`Found ${filteredImages.length} images for prize ${prize?.name}:`, 
+      filteredImages.map(img => img.displayUrl));
+    
+    return filteredImages;
   }, [prize, prizeImages]);
 
+  // Reset current image index when prize changes
+  React.useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [prize]);
+
   const handlePrevImage = () => {
-    setCurrentImageIndex(prev => {
-      const newIndex = prev > 0 ? prev - 1 : filteredImages.length - 1;
-      console.log("▶️ PrizeDetailModal.tsx: Moviendo a imagen anterior, índice:", newIndex);
-      return newIndex;
-    });
+    setCurrentImageIndex(prev => (prev > 0 ? prev - 1 : relevantImages.length - 1));
   };
 
   const handleNextImage = () => {
-    setCurrentImageIndex(prev => {
-      const newIndex = prev < filteredImages.length - 1 ? prev + 1 : 0;
-      console.log("▶️ PrizeDetailModal.tsx: Moviendo a siguiente imagen, índice:", newIndex);
-      return newIndex;
-    });
+    setCurrentImageIndex(prev => (prev < relevantImages.length - 1 ? prev + 1 : 0));
   };
 
-  // Main image to display
-  const mainImageUrl = filteredImages.length > 0 
-    ? filteredImages[currentImageIndex]?.displayUrl 
+  // Main image to display (from prize images or prize.url_image)
+  const mainImageUrl = relevantImages.length > 0 
+    ? relevantImages[currentImageIndex]?.displayUrl 
     : prize?.url_image;
 
-  console.log("▶️ PrizeDetailModal.tsx: URL de imagen principal:", mainImageUrl);
-  console.log("▶️ PrizeDetailModal.tsx: Índice actual de imagen:", currentImageIndex, "de", filteredImages.length);
+  console.log("Prize Detail Modal - Main image URL:", mainImageUrl);
+  console.log("Relevant images count:", relevantImages.length);
 
   if (!prize) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col">
+      <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col carousel-card">
         {/* Close button in the top right */}
         <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
           <X className="h-4 w-4" />
@@ -120,7 +87,7 @@ const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, pr
           <div className="py-4">
             {/* Image carousel - Standard layout for larger displays */}
             <ImageCarousel 
-              images={filteredImages}
+              images={relevantImages}
               currentIndex={currentImageIndex}
               onPrev={handlePrevImage}
               onNext={handleNextImage}
@@ -129,16 +96,14 @@ const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, pr
             
             {/* Embla Carousel for mobile devices */}
             <MobileCarousel 
-              images={filteredImages}
+              images={relevantImages}
               fallbackImage={prize.url_image}
               imageTitle={prize.name}
-              currentIndex={currentImageIndex}
-              onSlideChange={setCurrentImageIndex}
             />
             
             {/* Thumbnail gallery for multiple images - visible on both mobile and desktop */}
             <ThumbnailGallery 
-              images={filteredImages}
+              images={relevantImages}
               currentIndex={currentImageIndex}
               onThumbnailClick={setCurrentImageIndex}
             />

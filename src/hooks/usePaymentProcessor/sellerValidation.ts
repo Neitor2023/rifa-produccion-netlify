@@ -1,12 +1,7 @@
 
 import { toast } from 'sonner';
 
-export function useSellerValidation({ 
-  raffleSeller,
-  raffleNumbers = [],
-  maxNumbersAllowed = 33,
-  debugMode = false 
-}) {
+export function useSellerValidation(raffleSeller: any, raffleNumbers: any[], debugMode = false) {
   const debugLog = (context: string, data: any) => {
     if (debugMode) {
       console.log(`[DEBUG - SellerValidation - ${context}]:`, data);
@@ -25,7 +20,7 @@ export function useSellerValidation({
     }
 
     const soldCount = getSoldNumbersCount(raffleSeller.seller_id);
-    const maxAllowed = raffleSeller.cant_max || maxNumbersAllowed;
+    const maxAllowed = raffleSeller.cant_max;
     
     debugLog('Validación de números máximos de vendedores', { 
       soldCount, 

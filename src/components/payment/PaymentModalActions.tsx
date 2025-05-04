@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { LoaderCircle } from "lucide-react";
+import { useNumberSelection } from '@/contexts/NumberSelectionContext';
 
 interface PaymentModalActionsProps {
   isSubmitting: boolean;
@@ -10,19 +11,42 @@ interface PaymentModalActionsProps {
 }
 
 export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit }: PaymentModalActionsProps) => {
+  const { clearSelectionState } = useNumberSelection();
+
+  const handleCancel = () => {
+    console.log("PaymentModalActions.tsx: Cancel button clicked");
+    
+    // Clear number selections and states
+    clearSelectionState();
+    
+    // Close the modal
+    onClose();
+  };
+
+  const handleSubmit = (e: React.MouseEvent) => {
+    // Add a debug log to track when the button is clicked
+    console.log("PaymentModalActions.tsx: Completar Pago button clicked");
+    
+    // Call the onSubmit function passed from the parent
+    onSubmit();
+    
+    // Prevent default to avoid any unexpected form submissions
+    e.preventDefault();
+  };
+
   return (
     <div className="flex justify-end space-x-2 pt-4 border-t mt-4">
       <Button
         type="button"
         variant="outline"
-        onClick={onClose}
+        onClick={handleCancel}
         className="flex-1 sm:flex-none"
       >
         Cancelar
       </Button>
       <Button
-        type="submit"
-        onClick={onSubmit}
+        type="button"
+        onClick={handleSubmit}
         disabled={isSubmitting}
         className="flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB]"
       >

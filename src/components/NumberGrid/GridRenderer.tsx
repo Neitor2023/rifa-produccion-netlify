@@ -32,25 +32,6 @@ const GridRenderer: React.FC<GridRendererProps> = ({
         const status = n ? n.status : 'available';
         const isSelected = selectedNumbers.includes(paddedNum);
         const isHighlighted = highlightReserved && status === 'reserved';
-        
-        const handleNumberClick = () => {
-          console.log("[GridRenderer.tsx] number clicked:", paddedNum, "status:", status);
-          
-          // Block selection of sold numbers
-          if (status === 'sold') {
-            console.log(`NumberGrid.tsx: ⚠️ Intento de seleccionar número vendido:`, paddedNum);
-            console.log(`NumberGrid.tsx: ✅ Selección de número vendido bloqueada:`, paddedNum);
-            return;
-          }
-          
-          if (highlightReserved && status === 'reserved') {
-            onToggle(paddedNum, status);
-          } else if (!highlightReserved && status === 'available') {
-            // Only allow available numbers when not in highlight mode
-            onToggle(paddedNum, status);
-          }
-        };
-        
         rowItems.push(
           <NumberGridItem
             key={paddedNum}
@@ -58,7 +39,7 @@ const GridRenderer: React.FC<GridRendererProps> = ({
             status={status}
             isSelected={isSelected}
             isHighlighted={isHighlighted}
-            onToggle={handleNumberClick}
+            onToggle={() => onToggle(paddedNum, status)}
           />
         );
       }
@@ -70,11 +51,6 @@ const GridRenderer: React.FC<GridRendererProps> = ({
     }
     return grid;
   };
-
-  // Log selectedNumbers changes
-  React.useEffect(() => {
-    console.log("[GridRenderer.tsx] selectedNumbers:", selectedNumbers);
-  }, [selectedNumbers]);
 
   return (
     <div className="flex flex-col gap-1 sm:gap-2 min-w-fit">

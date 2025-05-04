@@ -1,7 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
-export const useNumberStatus = ({ raffleSeller, raffleId, raffleNumbers, debugMode = false }) => {
+export const useNumberStatus = ({ raffleSeller, raffleId, raffleNumbers, debugMode = false, reservationDays = 5, lotteryDate }) => {
   const debugLog = (context: string, data: any) => {
     if (debugMode) {
       console.log(`[DEBUG - NumberStatus - ${context}]:`, data);
@@ -44,7 +43,40 @@ export const useNumberStatus = ({ raffleSeller, raffleId, raffleNumbers, debugMo
       }
       
       if (status === 'reserved') {
-        updateData.reservation_expires_at = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+        // Calculate the reservation expiration date based on reservationDays and lotteryDate
+        const currentDate = new Date();
+        const daysToAdd = typeof reservationDays === 'number' ? reservationDays : 5;
+        
+        debugLog('Calculating reservation expiration date', { 
+          currentDate, 
+          daysToAdd, 
+          reservationDays, 
+          lotteryDate 
+        });
+        
+        // Create a new date by adding the specified days
+        const expirationDate = new Date(currentDate.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
+        
+        // Determine if we should use the lottery date if it comes before the calculated expiration
+        let reservationExpiresAt: Date;
+        if (lotteryDate && lotteryDate instanceof Date && !isNaN(lotteryDate.getTime())) {
+          // Valid lottery date, compare with expiration date
+          if (expirationDate.getTime() > lotteryDate.getTime()) {
+            // If expiration would be after the lottery, use the lottery date instead
+            reservationExpiresAt = new Date(lotteryDate);
+            debugLog('Using lottery date as expiration', reservationExpiresAt.toISOString());
+          } else {
+            // Otherwise use the calculated expiration date
+            reservationExpiresAt = expirationDate;
+            debugLog('Using calculated expiration date', reservationExpiresAt.toISOString());
+          }
+        } else {
+          // No valid lottery date, just use the calculated expiration date
+          reservationExpiresAt = expirationDate;
+          debugLog('No valid lottery date, using calculated expiration', reservationExpiresAt.toISOString());
+        }
+        
+        updateData.reservation_expires_at = reservationExpiresAt.toISOString();
       } else if (status === 'sold') {
         updateData.reservation_expires_at = null;
       }

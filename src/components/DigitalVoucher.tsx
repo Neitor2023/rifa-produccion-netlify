@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useContext } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { 
   Dialog, 
@@ -9,12 +9,13 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Printer, X } from 'lucide-react';
+import { Printer, X, AlertTriangle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
 import { PaymentFormData } from './PaymentModal';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertDialog, AlertDialogContent, AlertDialogTitle, AlertDialogDescription } from '@/components/ui/alert-dialog';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useTheme } from '@/components/ThemeProvider';
+import { useToast } from '@/hooks/use-toast';
 
 interface DigitalVoucherProps {
   isOpen: boolean;
@@ -39,6 +40,11 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   raffleDetails
 }) => {
   const printRef = useRef<HTMLDivElement>(null);
+  const { theme } = useTheme();
+  const { toast } = useToast();
+  
+  // Determine text color based on theme
+  const textColor = theme === 'dark' ? 'text-white' : 'text-gray-800';
 
   const formattedDate = new Date().toLocaleDateString('es-ES', {
     year: 'numeric',
@@ -72,27 +78,34 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     timestamp: formattedDate
   }) : '';
   
-  // If voucher printing is not allowed, show only the alert dialog
+  // If voucher printing is not allowed, show the alert message
   if (!allowVoucherPrint) {
     return (
-      <AlertDialog open={isOpen} onOpenChange={onClose}>
-        <AlertDialogContent className="max-w-md">
-          <AlertDialogTitle className="text-xl font-bold text-red-600 mb-2">
-            Importante: Comprobante No Disponible
-          </AlertDialogTitle>
-          <AlertDialogDescription className="text-base leading-relaxed">
-            <p className="mb-4 text-gray-800 dark:text-gray-200">
-              Su comprobante de pago está en revisión, es importante que le exija su comprobante de pago a su vendedor, este es su constancia de reclamo de premios; cualquier novedad comuníquese a los teléfonos de los organizadores que se encuentran al final de la página web.
-            </p>
-            <Button 
-              onClick={onClose} 
-              className="w-full bg-red-600 hover:bg-red-700 text-white"
-            >
-              Entendido
-            </Button>
-          </AlertDialogDescription>
-        </AlertDialogContent>
-      </AlertDialog>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-xl font-bold text-center text-red-600">
+              Important: Ask the Seller for your Voucher
+            </DialogTitle>
+          </DialogHeader>
+          
+          <Alert variant="destructive" className="my-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle className="font-semibold">Important Notice</AlertTitle>
+            <AlertDescription className={`text-base leading-relaxed ${textColor}`}>
+              <p className="mb-4">
+                Su comprobante de pago está en revisión, es importante que le exija su comprobante de pago a su vendedor, este es su constancia de reclamo de premios; cualquier novedad comuníquese a los teléfonos de los organizadores que se encuentran al final de la página web.
+              </p>
+              <Button 
+                onClick={onClose} 
+                className="w-full bg-red-600 hover:bg-red-700 text-white"
+              >
+                Entendido
+              </Button>
+            </AlertDescription>
+          </Alert>
+        </DialogContent>
+      </Dialog>
     );
   }
 
@@ -175,6 +188,14 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
                   <p>Este comprobante valida la compra de los números seleccionados.</p>
                   <p>Guárdelo como referencia para futuras consultas.</p>
                 </div>
+                
+                {/* In-modal notification instead of toast */}
+                <Alert className="mt-4 bg-green-50 border-green-200">
+                  <AlertTitle className="text-green-700">Comprobante Disponible</AlertTitle>
+                  <AlertDescription className="text-green-600">
+                    Su comprobante ha sido generado correctamente. Puede imprimirlo o guardarlo como referencia.
+                  </AlertDescription>
+                </Alert>
               </div>
             </Card>
           </div>

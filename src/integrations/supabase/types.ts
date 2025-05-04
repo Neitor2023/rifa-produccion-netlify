@@ -113,6 +113,7 @@ export type Database = {
           background_color: string | null
           created_at: string | null
           id: string
+          imagen_publicitaria: string | null
           modal: string | null
           org_name: string | null
           org_phone_number: string | null
@@ -129,6 +130,7 @@ export type Database = {
           background_color?: string | null
           created_at?: string | null
           id?: string
+          imagen_publicitaria?: string | null
           modal?: string | null
           org_name?: string | null
           org_phone_number?: string | null
@@ -145,6 +147,7 @@ export type Database = {
           background_color?: string | null
           created_at?: string | null
           id?: string
+          imagen_publicitaria?: string | null
           modal?: string | null
           org_name?: string | null
           org_phone_number?: string | null
@@ -502,6 +505,7 @@ export type Database = {
           modal: string | null
           payment_instructions: string | null
           price: number
+          reservation_days: number | null
           status: string
           title: string
           total_numbers: number
@@ -523,6 +527,7 @@ export type Database = {
           modal?: string | null
           payment_instructions?: string | null
           price: number
+          reservation_days?: number | null
           status: string
           title: string
           total_numbers: number
@@ -544,6 +549,7 @@ export type Database = {
           modal?: string | null
           payment_instructions?: string | null
           price?: number
+          reservation_days?: number | null
           status?: string
           title?: string
           total_numbers?: number
