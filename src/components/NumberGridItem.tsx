@@ -1,5 +1,6 @@
 
 import React from 'react';
+import SafeImage from '@/components/SafeImage';
 
 interface NumberGridItemProps {
   number: string;
@@ -7,6 +8,7 @@ interface NumberGridItemProps {
   isSelected: boolean;
   isHighlighted: boolean;
   onToggle: () => void;
+  checklistImage?: string; // Add the checklist image URL prop
 }
 
 const NumberGridItem: React.FC<NumberGridItemProps> = ({ 
@@ -14,7 +16,8 @@ const NumberGridItem: React.FC<NumberGridItemProps> = ({
   status, 
   isSelected, 
   isHighlighted, 
-  onToggle 
+  onToggle,
+  checklistImage // Add the checklist image parameter
 }) => {
   const getClassNames = () => {
     const baseClasses = 'number-grid-item flex items-center justify-center border rounded-md h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 cursor-pointer text-sm font-medium transition-colors duration-150';
@@ -37,6 +40,23 @@ const NumberGridItem: React.FC<NumberGridItemProps> = ({
     
     return baseClasses;
   };
+
+  // Show the checklist image for sold numbers
+  if (status === 'sold' && checklistImage) {
+    return (
+      <div className={getClassNames()} onClick={undefined}>
+        <div className="relative w-full h-full flex items-center justify-center">
+          <span className="absolute opacity-20">{number}</span>
+          <SafeImage 
+            src={checklistImage} 
+            alt="Vendido" 
+            className="w-full h-full object-contain p-1" 
+            fallbackClassName="bg-transparent"
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div 

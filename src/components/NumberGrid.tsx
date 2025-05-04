@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Toaster } from 'sonner';
 import { Card } from '@/components/ui/card';
@@ -9,6 +10,7 @@ import ReservedMessageAlert from './NumberGrid/ReservedMessageAlert';
 import ValidationModals from './NumberGrid/ValidationModals';
 import { useGridHandlers } from './NumberGrid/useGridHandlers';
 import { ValidatedBuyerInfo } from '@/types/participant';
+import { Organization } from '@/lib/constants';
 
 interface RaffleNumber {
   id: string;
@@ -41,6 +43,7 @@ interface NumberGridProps {
   soldNumbersCount?: number;
   reservationDays?: number;
   lotteryDate?: Date;
+  organization?: Organization; // Add organization prop
 }
 
 const NumberGrid: React.FC<NumberGridProps> = ({ 
@@ -51,7 +54,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   debugMode = false,
   soldNumbersCount = 0,
   reservationDays,
-  lotteryDate
+  lotteryDate,
+  organization // Add organization parameter
 }) => {
   const {
     // State
@@ -100,7 +104,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           selectedNumbers={selectedNumbers}
           highlightReserved={highlightReserved}
           toggleNumber={toggleNumber}
-          onPayReserved={handlePayReserved} 
+          onPayReserved={handlePayReserved}
+          organization={organization} // Pass organization to GridLayout
         />
       </Card>
       

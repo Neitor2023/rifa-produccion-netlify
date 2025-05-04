@@ -2,6 +2,7 @@
 import React from 'react';
 import NumberGrid from '@/components/NumberGrid';
 import { ValidatedBuyerInfo } from '@/types/participant';
+import { Organization } from '@/lib/constants';
 
 interface RaffleNumberGridSectionProps {
   raffleNumbers: any[] | null;
@@ -19,8 +20,9 @@ interface RaffleNumberGridSectionProps {
   onReserve: (numbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula?: string) => Promise<void>;
   onProceedToPayment: (numbers: string[], participantData?: ValidatedBuyerInfo, clickedButton?: string) => Promise<void>;
   getSoldNumbersCount: () => number;
-  reservationDays?: number;  // Add the reservationDays prop
-  lotteryDate?: Date;        // Add the lotteryDate prop
+  reservationDays?: number;
+  lotteryDate?: Date;
+  organization?: Organization; // Add organization prop
 }
 
 const RaffleNumberGridSection: React.FC<RaffleNumberGridSectionProps> = ({ 
@@ -33,8 +35,9 @@ const RaffleNumberGridSection: React.FC<RaffleNumberGridSectionProps> = ({
   onReserve,
   onProceedToPayment,
   getSoldNumbersCount,
-  reservationDays,  // Get the reservationDays prop
-  lotteryDate       // Get the lotteryDate prop
+  reservationDays,
+  lotteryDate,
+  organization // Get the organization prop
 }) => {
   if (!raffleNumbers) return null;
   
@@ -52,9 +55,10 @@ const RaffleNumberGridSection: React.FC<RaffleNumberGridSectionProps> = ({
         onReserve={onReserve}
         onProceedToPayment={onProceedToPayment}
         debugMode={debugMode}
-        soldNumbersCount={getSoldNumbersCount()} // Call getSoldNumbersCount with no arguments
-        reservationDays={reservationDays}  // Pass the reservationDays to NumberGrid
-        lotteryDate={lotteryDate}          // Pass the lotteryDate to NumberGrid
+        soldNumbersCount={getSoldNumbersCount()}
+        reservationDays={reservationDays}
+        lotteryDate={lotteryDate}
+        organization={organization} // Pass organization to NumberGrid
       />
     </div>
   );

@@ -1,6 +1,7 @@
 
 import React, { useMemo } from 'react';
 import NumberGridItem from '../NumberGridItem';
+import { Organization } from '@/lib/constants';
 
 interface RaffleNumber {
   id: string;
@@ -21,7 +22,8 @@ interface GridLayoutProps {
   selectedNumbers: string[];
   highlightReserved: boolean;
   toggleNumber: (number: string, status: string) => void;
-  onPayReserved: (number: string) => void;  
+  onPayReserved: (number: string) => void;
+  organization?: Organization; // Add organization prop
 }
 
 const GridLayout: React.FC<GridLayoutProps> = ({
@@ -30,6 +32,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
   highlightReserved,
   toggleNumber,
   onPayReserved,
+  organization, // Add organization parameter
 }) => {
   // Al principio de GridLayout, justo tras los props:
   const numberMap = React.useMemo(
@@ -60,6 +63,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
           status={status}
           isSelected={isSelected}
           isHighlighted={isHighlighted}
+          checklistImage={organization?.image_checklist} // Pass the checklist image URL
           onToggle={() => {
             if (highlightReserved && status === 'reserved') {
               // Directly call toggleNumber instead of onPayReserved
