@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, CreditCard, Check } from 'lucide-react';
-import { useNumberSelection } from '@/contexts/NumberSelectionContext';
+import { toast } from 'sonner';
 
 interface NumberGridControlsProps {
   selectedNumbers: string[];
@@ -16,7 +16,8 @@ interface NumberGridControlsProps {
   onClearSelection: () => void;
   onReserve: () => void;
   onPayReserved: () => void;
-  onProceedToPayment: (buttonType: string) => Promise<void>; // Updated to match return type
+  onProceedToPayment: () => void;
+  highlightReserved: boolean;
 }
 
 export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
@@ -26,21 +27,21 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
   onReserve,
   onPayReserved,
   onProceedToPayment,
+  highlightReserved,
 }) => {
   const handleClearSelection = () => {
-    console.log("NumberGridControls.tsx: Clear button clicked");
+    console.log("[NumberGridControls.tsx] Clear pressed");
     onClearSelection();
   };
-  
-  // Handler for the Pagar button with button name
-  const handleProceedToPayment = async () => {
-    console.log("NumberGridControls.tsx: Pay button clicked");
-    await onProceedToPayment("Pagar");
-  };
-  
-  // Handler for the Pay Reserved button
+
   const handlePayReserved = () => {
-    console.log("NumberGridControls.tsx: Pay Reserved button clicked");
+    console.log("[NumberGridControls.tsx] Pagar Apartados pressed, current highlight mode:", highlightReserved);
+    
+    if (highlightReserved) {
+      // If already in reserved mode, show toast message
+      toast.info("Seleccione su número apartado para seguir el proceso de pago");
+    }
+    
     onPayReserved();
   };
 
@@ -48,7 +49,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
       <Button 
         variant="outline" 
-        className="flex items-center gap-2 bg-[#1EAEDB] hover:bg-[#1EAEDB]/80 text-white dark:bg-[#1EAEDB] dark:hover:bg-[#1EAEDB]/80 dark:text-white" 
+        className="flex items-center gap-2" 
         onClick={handleClearSelection}
       >
         <Check className="h-4 w-4" />
@@ -76,7 +77,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       <Button
         variant="secondary" 
         className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white"
-        onClick={handleProceedToPayment}
+        onClick={onProceedToPayment}
       >
         <CreditCard className="h-4 w-4" />
         <span>Pagar</span>
@@ -84,4 +85,3 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
     </div>
   );
 };
-

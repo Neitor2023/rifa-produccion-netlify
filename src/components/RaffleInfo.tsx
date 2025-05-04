@@ -1,101 +1,100 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { CalendarIcon, InfoIcon } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { CalendarClock, CreditCard, Info } from 'lucide-react';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 interface RaffleInfoProps {
-  title: string;
-  details: string;
-  drawInfo: string;
-  instructions?: string;
-  priceInfo: string;
+  description: string;
+  lottery: string;
+  dateLottery: string;
+  paymentInstructions: string;
+  price: number;
+  currency: string;
 }
 
-const RaffleInfo: React.FC<RaffleInfoProps> = ({ 
-  title, 
-  details, 
-  drawInfo, 
-  instructions, 
-  priceInfo 
+// Function to preserve line breaks in text
+const formatText = (text: string) => {
+  if (!text) return null;
+  
+  return text.split('\n').map((line, index) => (
+    <React.Fragment key={index}>
+      {line}
+      {index < text.split('\n').length - 1 && <br />}
+    </React.Fragment>
+  ));
+};
+
+const RaffleInfo: React.FC<RaffleInfoProps> = ({
+  description,
+  lottery,
+  dateLottery,
+  paymentInstructions,
+  price,
+  currency
 }) => {
-  // Function to preserve line breaks in text
-  const formatText = (text: string) => {
-    return text.split('\n').map((line, index) => (
-      <React.Fragment key={index}>
-        {line}
-        {index < text.split('\n').length - 1 && <br />}
-      </React.Fragment>
-    ));
-  };
+  const formattedDate = dateLottery
+    ? format(new Date(dateLottery), "d 'de' MMMM, yyyy", { locale: es })
+    : 'Fecha por definir';
   
   return (
-    <div className="mb-6 space-y-4">
-      <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">
-        Detalles de la Rifa
-      </h2>
+    <Card className="mb-8 bg-white dark:bg-gray-800">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
+          <Info className="h-5 w-5 mr-2 text-rifa-purple" />
+          Información
+        </CardTitle>
+      </CardHeader>
       
-      <Card className="bg-white dark:bg-gray-800">
-        <CardContent className="p-4">
-          <div>
-            <span className="text-gray-600 dark:text-gray-400 font-bold text-sm">Nombre:</span>
-            <p className="text-gray-800 dark:text-gray-200 font-bold">{title}</p>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <Card className="bg-white dark:bg-gray-800">
-        <CardContent className="p-4">
-          <div>
-            <span className="text-gray-600 dark:text-gray-400 font-bold text-sm">Precio:</span>
-            <p className="text-gray-800 dark:text-gray-200 font-bold">{priceInfo}</p>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <Card className="bg-white dark:bg-gray-800">
-        <CardContent className="p-4">
-          <div className="flex items-start">
-            <CalendarIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 mt-0.5 mr-1" />
+      <CardContent className="space-y-4">
+        <div>
+          <h3 className="text-base font-medium mb-1 text-gray-700 dark:text-gray-300">Descripción</h3>
+          <CardDescription className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">
+            {formatText(description)}
+          </CardDescription>
+        </div>
+        
+        <Separator />
+        
+        <div>
+          <h3 className="text-base font-medium mb-1 text-gray-700 dark:text-gray-300 flex items-center">
+            <CalendarClock className="h-4 w-4 mr-1 text-blue-500" />
+            Sorteo
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {lottery} - {formattedDate}
+          </p>
+        </div>
+        
+        <Separator />
+        
+        <div>
+          <h3 className="text-base font-medium mb-1 text-gray-700 dark:text-gray-300 flex items-center">
+            <CreditCard className="h-4 w-4 mr-1 text-green-500" />
+            Precio
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {currency} {price.toFixed(2)}
+          </p>
+        </div>
+        
+        {paymentInstructions && (
+          <>
+            <Separator />
             <div>
-              <span className="text-gray-600 dark:text-gray-400 font-bold text-sm">Fecha del Sorteo:</span>
-              <p className="text-gray-800 dark:text-gray-200 font-bold">{drawInfo}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      {details && (
-        <Card className="bg-white dark:bg-gray-800">
-          <CardContent className="p-4">
-            <div className="flex items-start">
-              <InfoIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 mt-0.5 mr-1" />
-              <div>
-                <span className="text-gray-600 dark:text-gray-400 font-bold text-sm">Detalles:</span>
-                <div className="text-gray-800 dark:text-gray-200 font-bold whitespace-pre-line">
-                  {formatText(details)}
-                </div>
+              <h3 className="text-base font-medium mb-1 text-gray-700 dark:text-gray-300">
+                Instrucciones de pago
+              </h3>
+              <div className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">
+                {formatText(paymentInstructions)}
               </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
-      
-      {instructions && (
-        <Card className="bg-white dark:bg-gray-800">
-          <CardContent className="p-4">
-            <div className="flex items-start">
-              <InfoIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 mt-0.5 mr-1" />
-              <div>
-                <span className="text-gray-600 dark:text-gray-400 font-bold text-sm">Instrucciones de Pago:</span>
-                <div className="text-gray-800 dark:text-gray-200 font-bold whitespace-pre-line">
-                  {formatText(instructions)}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

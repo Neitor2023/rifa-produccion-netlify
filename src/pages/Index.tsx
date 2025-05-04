@@ -7,7 +7,7 @@ const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Automatically redirect to VentaBoletos page web
+    // Automatically redirect to VentaBoletos page
     navigate("/venta-boletos");
   }, [navigate]);
 

@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Form } from "@/components/ui/form";
 import { UseFormReturn } from 'react-hook-form';
-import { PaymentFormData } from '@/schemas/paymentFormSchema';
+import { PaymentFormData } from '../PaymentModal';
 import PaymentSummary from './PaymentSummary';
 import PaymentFormFields from './PaymentFormFields';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -16,7 +16,6 @@ interface PaymentModalContentProps {
   buyerData?: ValidatedBuyerInfo;
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFileRemove: () => void;
-  clickedButton?: string;
 }
 
 const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
@@ -26,11 +25,14 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
   previewUrl,
   buyerData,
   onFileUpload,
-  onFileRemove,
-  clickedButton
+  onFileRemove
 }) => {
   useEffect(() => {
+    // Logging buyer data for debugging
+    console.log("▶️ PaymentModalContent.tsx: Received buyerData:", buyerData);
+    
     if (buyerData) {
+      // Ensure the form gets updated with the buyer data
       form.setValue('buyerName', buyerData.name || '');
       form.setValue('buyerPhone', buyerData.phone || '');
       form.setValue('buyerCedula', buyerData.cedula || '');
@@ -40,21 +42,19 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
       if (buyerData.sugerencia_producto) {
         form.setValue("sugerenciaProducto", buyerData.sugerencia_producto);
       }
+      
+      // For validation
+      form.setValue('buyerEmail', 'default@example.com');
     }
   }, [buyerData, form]);
   
   return (
     <ScrollArea className="flex-1 overflow-y-auto px-1">
       <Form {...form}>
-        <form 
-          // Remove the onSubmit handler as we're handling submission via the action buttons
-          className="space-y-6 py-4"
-        >
-          {/* PaymentSummary is still included but renders an empty div now */}
+        <form onSubmit={form.handleSubmit(() => {})} className="space-y-6 py-4">
           <PaymentSummary 
             selectedNumbers={selectedNumbers}
             price={price}
-            clickedButton={clickedButton}
           />
           <div className="space-y-6">
             <PaymentFormFields 

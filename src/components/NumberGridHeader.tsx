@@ -1,30 +1,32 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface NumberGridHeaderProps {
-  soldNumbersCount: number;
-  maxNumbers: number;
+  soldNumbersCount?: number;
+  maxNumbers?: number;
 }
 
 const NumberGridHeader: React.FC<NumberGridHeaderProps> = ({ 
-  soldNumbersCount, 
-  maxNumbers 
+  soldNumbersCount = 0, 
+  maxNumbers = 100 
 }) => {
+  const remainingNumbers = maxNumbers - soldNumbersCount;
+
   return (
-    <Card className="mb-4 bg-white dark:bg-gray-800 shadow-sm">
-      <CardContent className="p-4">
-        <div className="flex flex-col sm:flex-row justify-between items-center">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-            Seleccione sus números
-          </h2>
-          
-          <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-2 sm:mt-0">
-            🎫 Vendidos: {soldNumbersCount} / {maxNumbers}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="mb-4">
+      <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">
+        Números Disponibles
+      </h2>
+      <div className="flex flex-wrap gap-2 items-center">
+        <Badge variant="outline" className="text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800">
+          Vendidos: <span className="font-bold ml-1">{soldNumbersCount}</span>
+        </Badge>
+        <Badge variant="outline" className="text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800">
+          Disponibles: <span className="font-bold ml-1">{remainingNumbers}</span>
+        </Badge>
+      </div>
+    </div>
   );
 };
 

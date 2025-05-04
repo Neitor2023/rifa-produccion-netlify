@@ -1,3 +1,4 @@
+
 // Global constants
 export const SELLER_ID = "0102030405";
 export const RAFFLE_ID = "fd6bd3bc-d81f-48a9-be58-8880293a0472";
@@ -12,7 +13,6 @@ export interface Organization {
   admin_photo: string;
   admin_name: string;
   admin_phone_number: string;
-  imagen_publicitaria?: string; // Added this property
 }
 
 export interface Raffle {
@@ -86,8 +86,7 @@ export const mockOrganization: Organization = {
   org_phone_number: "555-123-4567",
   admin_photo: "https://via.placeholder.com/100x100.png?text=Admin",
   admin_name: "Juan Pérez",
-  admin_phone_number: "555-987-6543",
-  imagen_publicitaria: "https://via.placeholder.com/100x100.png?text=Imagen+Publicitaria"
+  admin_phone_number: "555-987-6543"
 };
 
 export const mockRaffle: Raffle = {

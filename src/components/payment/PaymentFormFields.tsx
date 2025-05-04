@@ -4,7 +4,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { UseFormReturn } from "react-hook-form";
-import { PaymentFormData } from '@/schemas/paymentFormSchema';
+import { PaymentFormData } from '../PaymentModal';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import PaymentMethodFields from './PaymentMethodFields';
 import PaymentUploadZone from './PaymentUploadZone';
@@ -16,22 +16,8 @@ import EditableBuyerFields from './EditableBuyerFields';
 function AdditionalInfoSection({ form }: { form: UseFormReturn<PaymentFormData> }) {
   return (
     <div>
-      <h3 className="font-medium mb-3">Información Adicional</h3>
+      <h3 className="font-medium mb-3 text-gray-800 dark:text-gray-200">Información Adicional</h3>
       <div className="grid grid-cols-1 gap-4">
-        <FormField
-          control={form.control}
-          name="buyerEmail"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input placeholder="Ingrese su email" type="email" {...field} value={field.value || ''} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
         <FormField
           control={form.control}
           name="direccion"
@@ -73,17 +59,21 @@ function AdditionalInfoSection({ form }: { form: UseFormReturn<PaymentFormData> 
   );
 }
 
+// Hidden fields component to store the buyer data in the form
 function HiddenBuyerFields({ form, readOnlyData }: { form: UseFormReturn<PaymentFormData>; readOnlyData?: ValidatedBuyerInfo | null }) {
   useEffect(() => {
     if (readOnlyData) {
+      console.log("🔄 PaymentFormFields.tsx: Setting buyer data in hidden fields:", readOnlyData);
+      
+      // Always set these fields from the validated data
       if (readOnlyData.name)
         form.setValue("buyerName", readOnlyData.name);
       if (readOnlyData.phone)
         form.setValue("buyerPhone", readOnlyData.phone);
       if (readOnlyData.cedula)
         form.setValue("buyerCedula", readOnlyData.cedula);
-      if (readOnlyData.email)
-        form.setValue("buyerEmail", readOnlyData.email);
+        
+      // Optional fields - only set if they exist
       if (readOnlyData.direccion)
         form.setValue("direccion", readOnlyData.direccion);
       if (readOnlyData.sugerencia_producto)
@@ -110,35 +100,20 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
   onFileRemove
 }) => {
   const watchedPaymentMethod = form.watch('paymentMethod');
-
-  useEffect(() => {
-    if (readOnlyData && form) {
-      console.log("Setting form values with readOnlyData:", readOnlyData);
-      if (readOnlyData.name)
-        form.setValue("buyerName", readOnlyData.name);
-      if (readOnlyData.phone)
-        form.setValue("buyerPhone", readOnlyData.phone);
-      if (readOnlyData.cedula)
-        form.setValue("buyerCedula", readOnlyData.cedula);
-      if (readOnlyData.email)
-        form.setValue("buyerEmail", readOnlyData.email);
-      if (readOnlyData.direccion)
-        form.setValue("direccion", readOnlyData.direccion);
-      if (readOnlyData.sugerencia_producto)
-        form.setValue("sugerenciaProducto", readOnlyData.sugerencia_producto);
-    }
-  }, [readOnlyData, form]);
+  
+  console.log("▶️ PaymentFormFields.tsx: Renderizando con datos del comprador:", readOnlyData);
 
   return (
     <>
+      {/* Display buyer info as read-only fields when available, otherwise show editable fields */}
       {readOnlyData ? (
-        <>
-          <BuyerInfoFields buyerData={readOnlyData} />
-          <HiddenBuyerFields form={form} readOnlyData={readOnlyData} />
-        </>
+        <BuyerInfoFields buyerData={readOnlyData} />
       ) : (
         <EditableBuyerFields form={form} />
       )}
+      
+      {/* Store buyer data in hidden fields to ensure it's included in form submission */}
+      <HiddenBuyerFields form={form} readOnlyData={readOnlyData} />
 
       <AdditionalInfoSection form={form} />
       <PaymentNotes form={form} />

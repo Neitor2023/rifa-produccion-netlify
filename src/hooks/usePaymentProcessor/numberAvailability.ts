@@ -1,111 +1,71 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export const useNumberAvailability = ({ 
-  raffleNumbers, 
-  raffleSeller,
-  setValidatedBuyerData,
-  debugMode 
-}) => {
-  const debugLog = (context: string, data: any) => {
-    if (debugMode) {
-      console.log(`[DEBUG - NumberAvailability - ${context}]:`, data);
-    }
-  };
+// Valid UUID regex pattern
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-  /**
-   * Checks if selected numbers are available for purchase
-   * @param numbers Array of numbers to check
-   * @returns Array of unavailable numbers
-   */
+// Helper to validate and provide fallback for UUIDs
+const ensureValidUUID = (id: string | null | undefined, fallback: string): string => {
+  if (id && UUID_PATTERN.test(id)) {
+    return id;
+  }
+  console.warn(`Invalid UUID detected in numberAvailability: "${id}", using fallback value instead`);
+  return fallback;
+};
+
+export function useCheckNumberAvailability({
+  raffleId,
+  sellerId,
+  debugMode = false
+}) {
+  // Ensure we have valid UUIDs or use defaults
+  const effectiveRaffleId = ensureValidUUID(
+    raffleId,
+    "fd6bd3bc-d81f-48a9-be58-8880293a0472"
+  );
+  
+  const effectiveSellerId = ensureValidUUID(
+    sellerId,
+    "76c5b100-1530-458b-84d6-29fae68cd5d2"
+  );
+  
   const checkNumbersAvailability = async (numbers: string[]): Promise<string[]> => {
-    debugLog('Checking numbers availability', numbers);
+    console.log("🔍 useCheckNumberAvailability: Checking availability of numbers:", numbers);
+    console.log("🔍 useCheckNumberAvailability: Using validated IDs:", {
+      raffleId: effectiveRaffleId, 
+      sellerId: effectiveSellerId
+    });
     
-    const unavailableNumbers: string[] = [];
-    
-    for (const numStr of numbers) {
-      const existingNumber = raffleNumbers?.find(n => n.number === numStr);
-      if (existingNumber) {
-        // Check if status is not available or reserved by this seller
-        if (existingNumber.status === 'sold' || 
-            (existingNumber.status === 'reserved' && existingNumber.seller_id !== raffleSeller?.seller_id)) {
-          unavailableNumbers.push(numStr);
-        }
+    try {
+      const { data, error } = await supabase
+        .from('raffle_numbers')
+        .select('number, status')
+        .eq('raffle_id', effectiveRaffleId)
+        .in('number', numbers.map(n => parseInt(n)))
+        .not('status', 'eq', 'available');
+      
+      if (error) {
+        console.error('❌ useCheckNumberAvailability: Error checking availability:', error);
+        throw error;
       }
+      
+      if (data && data.length > 0) {
+        // These numbers are not available
+        const unavailableNumbers = data.map(item => item.number.toString().padStart(2, '0'));
+        
+        if (debugMode) {
+          console.log('🔍 useCheckNumberAvailability: Unavailable numbers:', unavailableNumbers);
+        }
+        
+        return unavailableNumbers;
+      }
+      
+      return []; // All numbers are available
+    } catch (error) {
+      console.error('❌ useCheckNumberAvailability: Error checking number availability:', error);
+      return [];
     }
-    
-    debugLog('Unavailable numbers', unavailableNumbers);
-    return unavailableNumbers;
   };
   
-  /**
-   * Checks if any of the selected numbers already have a participant
-   * If so, uses that participant's data for the transaction
-   * @param numbers Array of numbers to check
-   */
-  const checkReservedNumbersParticipant = async (numbers: string[]) => {
-    debugLog('Checking reserved numbers for participant', numbers);
-    
-    let participant = null;
-    let participantNumbers = null;
-    
-    // Look for numbers that are reserved by this seller
-    const reservedNumbers = raffleNumbers?.filter(n => 
-      numbers.includes(n.number) && 
-      n.status === 'reserved' && 
-      n.seller_id === raffleSeller?.seller_id &&
-      n.participant_id
-    );
-    
-    if (reservedNumbers && reservedNumbers.length > 0) {
-      debugLog('Found reserved numbers with participant', reservedNumbers);
-      
-      // Get the first number's participant
-      const participantId = reservedNumbers[0].participant_id;
-      
-      // Load participant data
-      const { data: participantData, error: participantError } = await supabase
-        .from('participants')
-        .select('id, name, phone, cedula, direccion, sugerencia_producto')
-        .eq('id', participantId)
-        .maybeSingle();
-      
-      if (participantError) {
-        console.error('Error fetching participant:', participantError);
-      } else if (participantData) {
-        participant = participantData;
-        participantNumbers = reservedNumbers;
-        
-        // Set buyer data if participant exists
-        setValidatedBuyerData({
-          name: participant.name,
-          phone: participant.phone,
-          cedula: participant.cedula,
-          direccion: participant.direccion,
-          sugerencia_producto: participant.sugerencia_producto
-        });
-        
-        debugLog('Set validated buyer data from participant', participant);
-      }
-    } else {
-      // If not found in reservation, check if any of these numbers are already sold
-      // (shouldn't happen, but just in case)
-      const soldNumbers = raffleNumbers?.filter(n => 
-        numbers.includes(n.number) && 
-        n.status === 'sold' && 
-        n.participant_id
-      );
-      
-      if (soldNumbers && soldNumbers.length > 0) {
-        debugLog('Warning: Some of the selected numbers are already sold', soldNumbers);
-      }
-    }
-    
-    return { participant, participantNumbers };
-  };
-
-  return {
-    checkNumbersAvailability,
-    checkReservedNumbersParticipant
-  };
-};
+  return { checkNumbersAvailability };
+}

@@ -23,7 +23,7 @@ const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
   const [isDebugModalOpen, setIsDebugModalOpen] = useState(false);
   const [debugData, setDebugData] = useState<any>(null);
   
-  // Check for debug mode
+  // Check for debug mode - Always execute this hook
   useEffect(() => {
     const checkDebugMode = async () => {
       try {
@@ -42,14 +42,12 @@ const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
     checkDebugMode();
   }, []);
   
-  if (images.length <= 1) return null;
-
-  // Reset refs when images change
+  // Reset refs when images change - Always execute this hook
   useEffect(() => {
     thumbnailsRef.current = thumbnailsRef.current.slice(0, images.length);
   }, [images.length]);
   
-  // Scroll the active thumbnail into view when it changes
+  // Scroll the active thumbnail into view when it changes - Always execute this hook
   useEffect(() => {
     if (!scrollContainerRef.current) return;
     
@@ -81,6 +79,9 @@ const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
       });
     });
   }, [currentIndex, debugMode]);
+  
+  // Early return with empty fragment instead of null
+  if (images.length <= 1) return <></>;
   
   // Handler for thumbnail clicks with immediate index propagation and debug info
   const handleThumbnailClick = (index: number) => {
@@ -219,15 +220,13 @@ const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
         </div>
       )}
       
-      {/* Debug modal */}
-      {debugMode && (
-        <DebugModal
-          isOpen={isDebugModalOpen}
-          onClose={() => setIsDebugModalOpen(false)}
-          data={debugData}
-          title="🛠️ Thumbnail Gallery Debug"
-        />
-      )}
+      {/* Debug modal - Always render but conditionally show */}
+      <DebugModal
+        isOpen={debugMode && isDebugModalOpen}
+        onClose={() => setIsDebugModalOpen(false)}
+        data={debugData}
+        title="🛠️ Thumbnail Gallery Debug"
+      />
     </>
   );
 };

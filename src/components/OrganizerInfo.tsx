@@ -1,36 +1,65 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Organization } from '@/lib/constants';
 import { Card, CardContent } from '@/components/ui/card';
 import { Phone } from 'lucide-react';
 import SafeImage from '@/components/SafeImage';
+import { supabase } from '@/integrations/supabase/client';
 
 interface OrganizerInfoProps {
   organization: Organization;
 }
 
 const OrganizerInfo: React.FC<OrganizerInfoProps> = ({ organization }) => {
-  // Debug logging for organization data
-  React.useEffect(() => {
-    console.log("OrganizerInfo - Organization data:", {
-      org_name: organization.org_name,
-      org_photo: organization.org_photo,
-      admin_name: organization.admin_name,
-      admin_photo: organization.admin_photo
-    });
+  const [orgPhotos, setOrgPhotos] = useState({
+    orgPhoto: organization.org_photo,
+    adminPhoto: organization.admin_photo
+  });
+
+  // Fetch organizer photos from the database
+  useEffect(() => {
+    const fetchOrganizerPhotos = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('organization')
+          .select('org_photo, admin_photo')
+          .single();
+          
+        if (error) {
+          console.error("▶️ OrganizerInfo.tsx: Error al cargar fotos de organizadores:", error);
+          return;
+        }
+        
+        if (data) {
+          console.log("▶️ OrganizerInfo.tsx: Fotos de organizadores cargadas:", {
+            org_photo: data.org_photo,
+            admin_photo: data.admin_photo
+          });
+          
+          setOrgPhotos({
+            orgPhoto: data.org_photo || organization.org_photo,
+            adminPhoto: data.admin_photo || organization.admin_photo
+          });
+        }
+      } catch (err) {
+        console.error("▶️ OrganizerInfo.tsx: Error inesperado al cargar fotos:", err);
+      }
+    };
+    
+    fetchOrganizerPhotos();
   }, [organization]);
 
   return (
     <div className="mb-8">
       <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">Organizadores:</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Cada organizador en su propia tarjeta */}
+        {/* Organizer */}
         <Card className="bg-white dark:bg-gray-800">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full overflow-hidden">
                 <SafeImage 
-                  src={organization.org_photo} 
+                  src={orgPhotos.orgPhoto} 
                   alt={organization.org_name || 'Organizador'} 
                   className="w-full h-full object-cover"
                   fallbackClassName="bg-gray-200 dark:bg-gray-700"
@@ -48,13 +77,13 @@ const OrganizerInfo: React.FC<OrganizerInfoProps> = ({ organization }) => {
           </CardContent>
         </Card>
         
-        {/* Administrador en su propia tarjeta separada */}
+        {/* Administrator */}
         <Card className="bg-white dark:bg-gray-800">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full overflow-hidden">
                 <SafeImage 
-                  src={organization.admin_photo} 
+                  src={orgPhotos.adminPhoto} 
                   alt={organization.admin_name || 'Administrador'} 
                   className="w-full h-full object-cover"
                   fallbackClassName="bg-gray-200 dark:bg-gray-700"

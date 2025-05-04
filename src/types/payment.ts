@@ -1,14 +1,19 @@
 
-export interface PaymentFormData {
-  buyerName: string;
-  buyerPhone: string;
-  buyerEmail?: string;
-  buyerCedula: string;
-  paymentMethod?: "cash" | "transfer";
-  paymentProof?: any;
-  nota?: string;
-  direccion?: string;
-  sugerenciaProducto?: string;
-  reporteSospechoso?: string;
-  sellerId?: string; // Add the sellerId field
-}
+import { z } from 'zod';
+
+export const paymentFormSchema = z.object({
+  buyerName: z.string().min(3, { message: "Nombre debe tener al menos 3 caracteres" }),
+  buyerPhone: z.string().min(10, { message: "Teléfono debe tener al menos 10 caracteres" }),
+  buyerEmail: z.string().email({ message: "Email inválido" }),
+  buyerCedula: z.string().min(5, { message: "Cédula/DNI debe tener al menos 5 caracteres" }),
+  paymentMethod: z.enum(["cash", "transfer"], { 
+    required_error: "Seleccione un método de pago" 
+  }),
+  paymentProof: z.any().optional(),
+  nota: z.string().optional(),
+  direccion: z.string().optional(),
+  sugerenciaProducto: z.string().optional(),
+  reporteSospechoso: z.string().optional(),
+});
+
+export type PaymentFormData = z.infer<typeof paymentFormSchema>;
