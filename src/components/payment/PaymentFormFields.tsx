@@ -39,15 +39,16 @@ function AdditionalInfoSection({ form }: { form: UseFormReturn<PaymentFormData> 
 
         <FormField
           control={form.control}
-          name="email"
+          name="buyerEmail"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Correo Electrónico</FormLabel>
+              <FormLabel>Correo</FormLabel>
               <FormControl>
                 <Input
                   placeholder="Ingrese su correo electrónico"
                   {...field}
                   value={field.value || ''}
+                  type="email"
                 />
               </FormControl>
               <FormMessage />

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -110,6 +109,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const onSubmit = () => {
     // Add the requested console.log for debugging
     console.log('PaymentModal.tsx:101 - Botón Completar pago pulsado');
+    console.log('PaymentModal.tsx:102 - Email a guardar:', form.getValues().buyerEmail);
     
     // Get the current form values
     const data = form.getValues();
@@ -140,11 +140,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           
           console.log('PaymentModal.tsx:128 - buyerData completada (name, phone, cedula, email):', 
             updatedFields, 'formulario actualizado:', completeData);
+          console.log('PaymentModal.tsx:130 - Email final a guardar:', completeData.buyerEmail);
         } else {
           console.log('PaymentModal.tsx:131 - buyerInfo también está vacío.');
         }
       } else {
         console.log('PaymentModal.tsx:134 - buyerData (name, phone, cedula, email) está completa:', buyerData);
+        console.log('PaymentModal.tsx:135 - Email completo a guardar:', data.buyerEmail);
       }
     } else {
       console.log('PaymentModal.tsx:137 - buyerData es null o undefined.');
@@ -225,6 +227,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         form.setValue('buyerPhone', buyerData.phone || "");
         form.setValue('buyerCedula', buyerData.cedula || "");
         form.setValue('buyerEmail', buyerData.email || "");
+        console.log("PaymentModal.tsx:209 - Email valor establecido:", buyerData.email || "");
         
         if (buyerData.direccion) {
           form.setValue("direccion", buyerData.direccion);

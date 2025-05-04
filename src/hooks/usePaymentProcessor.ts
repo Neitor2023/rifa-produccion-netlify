@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -135,6 +134,8 @@ export function usePaymentProcessor({
       numbers,
       participantData
     });
+    
+    console.log("📧 usePaymentProcessor.ts:146 - Email recibido en handlePayReservedNumbers:", participantData?.email);
 
     if (numbers.length === 0) {
       toast.error('No numbers selected to pay');

@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { calculateExpirationDate } from './expirationCalculator';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
@@ -68,6 +67,11 @@ export async function updateRaffleNumbersStatus({
       
       if (participantData.participant_cedula || participantData.buyerCedula) 
         updateData.participant_cedula = participantData.participant_cedula || participantData.buyerCedula;
+      
+      // Log email if present (for debugging)
+      if (participantData.buyerEmail) {
+        console.log("📧 updateRaffleNumbersStatus.ts:68: Email recibido para número:", numStr, participantData.buyerEmail);
+      }
     }
     
     if (status === 'reserved') {

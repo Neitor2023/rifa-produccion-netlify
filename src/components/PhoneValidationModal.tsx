@@ -1,81 +1,30 @@
-
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
-import { supabase } from '@/integrations/supabase/client';
+import React, { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
 import { toast } from 'sonner';
-import ValidationMessage from './phone-validation/ValidationMessage';
-import PhoneInputField from './phone-validation/PhoneInputField';
-import ModalFooter from './phone-validation/ModalFooter';
+import { supabase } from '@/integrations/supabase/client';
 import { ValidatedBuyerInfo } from '@/types/participant';
-import { formatPhoneNumber } from '@/utils/phoneUtils';
-
-function usePhoneValidation(phone: string) {
-  const [validation, setValidation] = useState({
-    isValid: false,
-    message: '',
-    formattedNumber: ''
-  });
-
-  useEffect(() => {
-    if (phone.length > 0) {
-      try {
-        if (phone.length >= 5 && /^\d+$/.test(phone)) {
-          setValidation({
-            isValid: true,
-            message: 'Cédula válida',
-            formattedNumber: phone
-          });
-          return;
-        }
-
-        let formattedPhone = formatPhoneNumber(phone);
-        const isValid = isValidPhoneNumber(formattedPhone);
-
-        if (isValid) {
-          const parsedPhone = parsePhoneNumber(formattedPhone);
-          setValidation({
-            isValid: true,
-            message: 'Número válido',
-            formattedNumber: parsedPhone.formatInternational()
-          });
-        } else {
-          setValidation({
-            isValid: false,
-            message: 'Número inválido',
-            formattedNumber: ''
-          });
-        }
-      } catch (error) {
-        setValidation({
-          isValid: false,
-          message: 'Formato incorrecto',
-          formattedNumber: ''
-        });
-      }
-    } else {
-      setValidation({
-        isValid: false,
-        message: '',
-        formattedNumber: ''
-      });
-    }
-  }, [phone]);
-  return validation;
-}
 
 interface PhoneValidationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onPhoneValidationSuccess: (
-    phone: string,
+    validatedNumber: string,
     participantId: string,
     buyerInfo?: ValidatedBuyerInfo
   ) => void;
-  selectedNumber?: string;
-  raffleNumbers?: any[];
-  raffleSellerId?: string;
-  raffleId?: string;
+  selectedNumber: string | null;
+  raffleNumbers: any[];
+  raffleSellerId: string;
+  raffleId: string;
   debugMode?: boolean;
 }
 
@@ -89,106 +38,100 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   raffleId,
   debugMode = false
 }) => {
-  const [phone, setPhone] = useState('');
-  const validation = usePhoneValidation(phone);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleNumberSubmit = async () => {
-    console.log("PhoneValidationModal.tsx:94 - Validando número/cédula:", phone);
-    if (validation.isValid) {
-      const isNumericOnly = /^\d+$/.test(phone);
-      const cleanedPhone = formatPhoneNumber(phone);
-      console.log("PhoneValidationModal.tsx:97 - Teléfono formateado para búsqueda:", cleanedPhone);
-      
-      let participant: ValidatedBuyerInfo | null = null;
-      let foundBy = '';
+  const handleValidatePhone = async () => {
+    if (!phoneNumber) {
+      toast.error('Please enter a phone number');
+      return;
+    }
 
-      try {
-        // BUSCA por teléfono (y la rifa!)
-        console.log("PhoneValidationModal.tsx:103 - Buscando por teléfono:", cleanedPhone);
-        const { data: byPhone } = await supabase
-          .from('participants')
-          .select('id, name, phone, cedula, direccion, sugerencia_producto, email')
-          .eq('phone', cleanedPhone)
-          .eq('raffle_id', raffleId)
-          .maybeSingle();
+    setIsLoading(true);
 
-        if (byPhone) {
-          participant = byPhone;
-          foundBy = 'phone';
-          console.log("PhoneValidationModal.tsx:113 - Participante encontrado por teléfono:", participant);
-        } else if (isNumericOnly) {
-          // BUSCA por cédula (y la rifa!)
-          console.log("PhoneValidationModal.tsx:116 - Buscando por cédula:", phone);
-          const { data: byCedula } = await supabase
-            .from('participants')
-            .select('id, name, phone, cedula, direccion, sugerencia_producto, email')
-            .eq('cedula', phone)
-            .eq('raffle_id', raffleId)
-            .maybeSingle();
-
-          if (byCedula) {
-            participant = byCedula;
-            foundBy = 'cedula';
-            console.log("PhoneValidationModal.tsx:126 - Participante encontrado por cédula:", participant);
-          }
-        }
-
-        if (!participant) {
-          console.log("PhoneValidationModal.tsx:131 - Participante no encontrado.");
-          toast.error(`❌ Participante no encontrado con el dato ingresado: ${cleanedPhone}`);
-          return;
-        }
-
-        // Retorna SIEMPRE UN OBJETO COMPLETO para el flujo posterior
-        console.log("PhoneValidationModal.tsx:137 - Validación exitosa, devolviendo datos del participante:", participant);
-        onPhoneValidationSuccess(
-          participant.phone || cleanedPhone,
-          participant.id,
-          {
-            id: participant.id,
-            name: participant.name,
-            phone: participant.phone || cleanedPhone,
-            cedula: participant.cedula,
-            direccion: participant.direccion,
-            sugerencia_producto: participant.sugerencia_producto,
-            email: participant.email
-          }
-        );
-        onClose();
-      } catch (error) {
-        console.error("PhoneValidationModal.tsx:152 - Error durante la validación:", error);
-        toast.error("Error durante la validación. Por favor intente nuevamente.");
+    try {
+      if (debugMode) {
+        console.log('PhoneValidationModal: Validating phone number:', phoneNumber);
       }
+
+      // Query Supabase to find a participant with the provided phone number
+      const { data: participants, error } = await supabase
+        .from('participants')
+        .select('*')
+        .eq('phone', phoneNumber)
+        .eq('raffle_id', raffleId);
+
+      if (error) {
+        console.error('PhoneValidationModal: Error querying Supabase:', error);
+        toast.error('Error validating phone number');
+        return;
+      }
+
+      if (participants && participants.length > 0) {
+        // If a participant is found, extract the participant ID and buyer information
+        const participant = participants[0];
+        const participantId = participant.id;
+
+        // Construct the buyer information object
+        const buyerInfo: ValidatedBuyerInfo = {
+          id: participant.id,
+          name: participant.name,
+          phone: participant.phone,
+          cedula: participant.cedula || '',
+          direccion: participant.direccion || '',
+          sugerencia_producto: participant.sugerencia_producto || '',
+          email: participant.email || ''
+        };
+
+        if (debugMode) {
+          console.log('PhoneValidationModal: Participant found:', participant);
+          console.log('PhoneValidationModal: Participant ID:', participantId);
+          console.log('PhoneValidationModal: Buyer Info:', buyerInfo);
+        }
+
+        // Call the onPhoneValidationSuccess callback with the validated number,
+        // participant ID, and buyer information
+        onPhoneValidationSuccess(selectedNumber || '', participantId, buyerInfo);
+        toast.success('Phone number validated successfully');
+        onClose();
+      } else {
+        // If no participant is found, show an error message
+        toast.error('No participant found with this phone number');
+      }
+    } catch (error) {
+      console.error('PhoneValidationModal: Error validating phone number:', error);
+      toast.error('Error validating phone number');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Validar número de ( teléfono o cédula )</DialogTitle>
+          <DialogTitle>Validate Phone Number</DialogTitle>
           <DialogDescription>
-            Ingrese su número de ( teléfono o cédula ) para continuar
+            Enter the phone number to validate the reserved number.
           </DialogDescription>
         </DialogHeader>
-
-        <div className="space-y-4 py-4">
-          <PhoneInputField
-            value={phone}
-            onChange={setPhone}
-          />
-          <ValidationMessage
-            message={validation.message}
-            isValid={validation.isValid}
-            formattedNumber={validation.formattedNumber}
-          />
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="phone" className="text-right">
+              Phone Number
+            </Label>
+            <Input
+              type="tel"
+              id="phone"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
         </div>
-
-        <ModalFooter
-          onCancel={onClose}
-          onValidate={handleNumberSubmit}
-          isValid={validation.isValid}
-        />
+        <Button onClick={handleValidatePhone} disabled={isLoading}>
+          {isLoading ? 'Validating...' : 'Validate'}
+        </Button>
       </DialogContent>
     </Dialog>
   );

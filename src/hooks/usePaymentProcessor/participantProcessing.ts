@@ -21,6 +21,7 @@ export const processParticipant = async ({
     
     const formattedPhone = formatPhoneNumber(data.buyerPhone);
     console.log("🔵 participantProcessing.ts:21 - Teléfono formateado para almacenamiento:", formattedPhone);
+    console.log("📧 participantProcessing.ts:22 - Email recibido para almacenamiento:", data.buyerEmail);
     
     const { data: existingParticipant, error: searchError } = await supabase
       .from('participants')
@@ -55,6 +56,7 @@ export const processParticipant = async ({
       };
 
       console.log("🔄 participantProcessing.ts:54 - Actualizando participante con datos:", updateData);
+      console.log("📧 participantProcessing.ts:55 - Actualizando email a:", data.buyerEmail || '');
       debugLog('Update data with email', updateData);
 
       const { error: updateError } = await supabase
@@ -77,6 +79,8 @@ export const processParticipant = async ({
         phone: formattedPhone,
         email: data.buyerEmail || '' 
       });
+      
+      console.log("📧 participantProcessing.ts:79 - Creando nuevo participante con email:", data.buyerEmail || '');
 
       const { data: newParticipant, error: participantError } = await supabase
         .from('participants')
@@ -89,7 +93,7 @@ export const processParticipant = async ({
           sugerencia_producto: data.sugerenciaProducto || null,
           nota: data.nota || null,
           raffle_id: raffleId,
-          seller_id: raffleId  // Usar raffleId como seller_id para evitar errores de UUID
+          seller_id: SELLER_ID  // Use the constant SELLER_ID instead of raffleId
         })
         .select('id')
         .single();

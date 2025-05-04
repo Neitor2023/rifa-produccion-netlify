@@ -173,7 +173,8 @@ export const useGridHandlers = ({
           name: buyerInfo.name,
           phone: buyerInfo.phone,
           cedula: buyerInfo.cedula,
-          id: buyerInfo.id
+          id: buyerInfo.id,
+          email: buyerInfo.email // Log email for debugging
         });
       }
       
@@ -187,6 +188,7 @@ export const useGridHandlers = ({
     setShowReservedMessage(false);
     
     if (participantId && buyerInfo) {
+      console.log("NumberGrid/useGridHandlers.ts:136 - Procediendo al pago con email:", buyerInfo.email);
       await onProceedToPayment(selectedNumbers, buyerInfo, clickedPaymentButton);
     } else {
       await handleNumberValidation(validatedNumber);
