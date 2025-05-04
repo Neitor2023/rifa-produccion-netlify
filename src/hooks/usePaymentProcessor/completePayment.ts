@@ -33,10 +33,11 @@ export function useCompletePayment({
 }: UseCompletePaymentProps) {
   
   const handleCompletePayment = async (data: PaymentFormData) => {
-    console.log("🔄 handleCompletePayment called with data:", {
+    console.log("🔄 completePayment.ts:29 - Iniciando proceso de pago con datos:", {
       buyerName: data.buyerName,
       buyerPhone: data.buyerPhone,
       buyerCedula: data.buyerCedula,
+      buyerEmail: data.buyerEmail,
       paymentMethod: data.paymentMethod
     });
     
@@ -55,8 +56,10 @@ export function useCompletePayment({
       }
       
       const paymentProofUrl = await uploadPaymentProof(data.paymentProof);
+      console.log("🔄 completePayment.ts:48 - Comprobante de pago subido:", paymentProofUrl);
       
       let participantId: string | null = await processParticipant(data);
+      console.log("🔄 completePayment.ts:51 - Participante procesado, ID:", participantId);
       
       if (!participantId) {
         toast.error('Error al procesar la información del participante');
@@ -65,6 +68,7 @@ export function useCompletePayment({
       
       // Modified logic to check for existing records and update or insert accordingly
       for (const number of selectedNumbers) {
+        console.log(`🔄 completePayment.ts:59 - Procesando número ${number}`);
         // Check if the number already exists in the raffle_numbers table
         const { data: existingNumber, error: queryError } = await supabase
           .from('raffle_numbers')
@@ -138,6 +142,7 @@ export function useCompletePayment({
         toast.info('Es importante que le exija su comprobante de pago a su vendedor, este es su constancia de reclamo de premios.');
       }
       
+      console.log("✅ completePayment.ts:124 - Proceso de pago completado con éxito");
       toast.success('Pago completado exitosamente');
     } catch (error) {
       console.error('Error al completar el pago:', error);

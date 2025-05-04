@@ -38,24 +38,6 @@ function AdditionalInfoSection({ form }: { form: UseFormReturn<PaymentFormData> 
 
         <FormField
           control={form.control}
-          name="buyerEmail"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Correo</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Ingrese su dirección de correo"
-                  {...field}
-                  value={field.value || ''}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
           name="sugerenciaProducto"
           render={({ field }) => (
             <FormItem>
@@ -79,7 +61,7 @@ function AdditionalInfoSection({ form }: { form: UseFormReturn<PaymentFormData> 
 
 function HiddenBuyerFields({ form, readOnlyData }: { form: UseFormReturn<PaymentFormData>; readOnlyData?: ValidatedBuyerInfo | null }) {
   useEffect(() => {
-    console.log("PaymentFormFields.tsx:73 - HiddenBuyerFields - readOnlyData:", readOnlyData);
+    console.log("PaymentFormFields.tsx:68 - HiddenBuyerFields - readOnlyData:", readOnlyData);
     if (readOnlyData) {
       if (readOnlyData.name)
         form.setValue("buyerName", readOnlyData.name);
@@ -90,7 +72,7 @@ function HiddenBuyerFields({ form, readOnlyData }: { form: UseFormReturn<Payment
       if (readOnlyData.direccion)
         form.setValue("direccion", readOnlyData.direccion);
       if (readOnlyData.email) {
-        console.log("PaymentFormFields.tsx:83 - HiddenBuyerFields - Estableciendo email:", readOnlyData.email);
+        console.log("PaymentFormFields.tsx:78 - HiddenBuyerFields - Estableciendo email:", readOnlyData.email);
         form.setValue("buyerEmail", readOnlyData.email);
       }
       if (readOnlyData.sugerencia_producto)
@@ -119,9 +101,9 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
   const watchedPaymentMethod = form.watch('paymentMethod');
 
   useEffect(() => {
-    console.log("PaymentFormFields.tsx:112 - Rendering with readOnlyData:", readOnlyData);
+    console.log("PaymentFormFields.tsx:107 - Rendering with readOnlyData:", readOnlyData);
     if (readOnlyData && form) {
-      console.log("PaymentFormFields.tsx:114 - Setting form values with readOnlyData:", readOnlyData);
+      console.log("PaymentFormFields.tsx:109 - Setting form values with readOnlyData:", readOnlyData);
       if (readOnlyData.name)
         form.setValue("buyerName", readOnlyData.name);
       if (readOnlyData.phone)
@@ -131,7 +113,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
       if (readOnlyData.direccion)
         form.setValue("direccion", readOnlyData.direccion);
       if (readOnlyData.email) {
-        console.log("PaymentFormFields.tsx:124 - Estableciendo email:", readOnlyData.email);
+        console.log("PaymentFormFields.tsx:119 - Estableciendo email:", readOnlyData.email);
         form.setValue("buyerEmail", readOnlyData.email);
       }
       if (readOnlyData.sugerencia_producto)

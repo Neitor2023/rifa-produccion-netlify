@@ -29,10 +29,10 @@ export async function updateRaffleNumbersStatus({
   reservationDays = 5,
   lotteryDate
 }: UpdateRaffleNumbersStatusProps) {
-  // Verificar que estamos usando el SELLER_ID constante
-  console.log("🔵 updateRaffleNumbersStatus.ts:29: Verificando seller_id:", SELLER_ID);
+  // Usar seller_id de raffleSeller, no del SELLER_ID constante
+  console.log("🔵 updateRaffleNumbersStatus.ts:29: Verificando seller_id del raffleSeller:", raffleSeller.seller_id);
   
-  if (!SELLER_ID) {
+  if (!raffleSeller.seller_id) {
     throw new Error('Seller ID not available');
   }
 
@@ -49,7 +49,7 @@ export async function updateRaffleNumbersStatus({
     
     const updateData: any = { 
       status, 
-      seller_id: SELLER_ID // Aseguramos que se use el SELLER_ID constante
+      seller_id: raffleSeller.seller_id // Usar el seller_id del raffleSeller
     };
     
     if (participantId) updateData.participant_id = participantId;

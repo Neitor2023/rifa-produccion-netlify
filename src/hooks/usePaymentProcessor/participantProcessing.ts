@@ -41,8 +41,8 @@ export const processParticipant = async ({
       console.log("✅ participantProcessing.ts:38 - Participante existente encontrado:", existingParticipant);
       debugLog('Using existing participant', existingParticipant);
 
-      // Verificamos que el seller_id corresponde al SELLER_ID global
-      console.log("🔄 participantProcessing.ts:42 - Verificando seller_id para actualización:", SELLER_ID);
+      // No incluir seller_id en la actualización
+      console.log("🔄 participantProcessing.ts:42 - Actualizando participante sin seller_id");
 
       const updateData: any = {
         name: data.buyerName,
@@ -51,8 +51,7 @@ export const processParticipant = async ({
         cedula: data.buyerCedula || null,
         direccion: data.direccion || null,
         sugerencia_producto: data.sugerenciaProducto || null,
-        email: data.buyerEmail || '',
-        seller_id: SELLER_ID // Aseguramos que se use el SELLER_ID constante
+        email: data.buyerEmail || ''
       };
 
       console.log("🔄 participantProcessing.ts:54 - Actualizando participante con datos:", updateData);
@@ -72,7 +71,6 @@ export const processParticipant = async ({
       console.log("✅ participantProcessing.ts:68 - Participante actualizado exitosamente con email:", data.buyerEmail);
     } else {
       console.log("🆕 participantProcessing.ts:71 - Creando nuevo participante");
-      console.log("🔄 participantProcessing.ts:72 - Asignando seller_id:", SELLER_ID);
       
       debugLog('Creating new participant', { 
         name: data.buyerName, 
@@ -91,7 +89,7 @@ export const processParticipant = async ({
           sugerencia_producto: data.sugerenciaProducto || null,
           nota: data.nota || null,
           raffle_id: raffleId,
-          seller_id: SELLER_ID // Aseguramos que se use el SELLER_ID constante
+          seller_id: raffleId  // Usar raffleId como seller_id para evitar errores de UUID
         })
         .select('id')
         .single();

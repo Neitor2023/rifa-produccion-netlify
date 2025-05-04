@@ -41,15 +41,15 @@ export const updateNumbersToSold = async ({
   const formattedPhone = formatPhoneNumber(participantData.phone);
   console.log("🔵 numberStatusUpdates.ts:38: Teléfono del participante formateado:", formattedPhone);
   
-  // Verificar que estamos usando el SELLER_ID constante
-  console.log("🔵 numberStatusUpdates.ts:41: Usando seller_id constante:", SELLER_ID);
+  // Usar el seller_id del raffleSeller en lugar del constante SELLER_ID
+  console.log("🔵 numberStatusUpdates.ts:41: Usando seller_id del raffleSeller:", raffleSeller.seller_id);
 
   const updatePromises = numbers.map(async (numStr) => {
     const existingNumber = raffleNumbers.find(n => n.number === numStr);
 
     const commonData = {
       status: 'sold' as const,
-      seller_id: SELLER_ID, // Aseguramos que se use el SELLER_ID constante
+      seller_id: raffleSeller.seller_id, // Usar el seller_id del raffleSeller
       participant_id: participantId,
       payment_proof: paymentProofUrl || existingNumber?.payment_proof || null,
       payment_approved: true,
