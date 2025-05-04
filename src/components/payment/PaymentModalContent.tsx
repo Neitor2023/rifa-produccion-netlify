@@ -37,6 +37,9 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
       if (buyerData.direccion) {
         form.setValue("direccion", buyerData.direccion);
       }
+      if (buyerData.email) {
+        form.setValue("email", buyerData.email);
+      }      
       if (buyerData.sugerencia_producto) {
         form.setValue("sugerenciaProducto", buyerData.sugerencia_producto);
       }
