@@ -68,12 +68,15 @@ export function useCompletePayment({
       
       // 4. Update numbers to sold
       console.log("✅ completePayment.ts:67 - Actualizando números a vendidos");
-      await updateNumbersToSold(
-        selectedNumbers,
-        participantId,
-        paymentProofUrl,
-        raffleNumbers
-      );
+      // Fix: Pass the required object with all parameters instead of separate arguments
+      await updateNumbersToSold({
+        numbers: selectedNumbers,
+        participantId: participantId,
+        paymentProofUrl: paymentProofUrl,
+        raffleNumbers: raffleNumbers,
+        raffleSeller: raffleSeller,
+        raffleId: raffleId
+      });
       debugLog('Numbers updated to sold', selectedNumbers);
 
       // 5. Refresh data
@@ -82,11 +85,14 @@ export function useCompletePayment({
       // 6. Show success message and prepare voucher data
       toast.success('¡Pago completado con éxito!');
       
-      setPaymentData({
+      // Fix: Create a copy of data without adding unknown properties
+      const paymentDataToSet = {
         ...data,
-        paymentProofUrl,
-        participantId,
-      });
+        // Do not add paymentProofUrl as it's not in the type
+      };
+      
+      // Set the data in a type-safe way
+      setPaymentData(paymentDataToSet);
       
       setIsPaymentModalOpen(false);
       

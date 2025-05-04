@@ -16,4 +16,7 @@ export const paymentFormSchema = z.object({
   reporteSospechoso: z.string().optional(),
 });
 
-export type PaymentFormData = z.infer<typeof paymentFormSchema>;
+export type PaymentFormData = z.infer<typeof paymentFormSchema> & {
+  paymentProofUrl?: string | null;
+  participantId?: string | null;
+};
