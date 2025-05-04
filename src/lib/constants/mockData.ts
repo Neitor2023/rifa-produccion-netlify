@@ -1,82 +1,17 @@
-// Global constants
-export const SELLER_ID = "0102030405";
-export const RAFFLE_ID = "fd6bd3bc-d81f-48a9-be58-8880293a0472";
 
-// Mock data for development (will be replaced with Supabase data)
-export interface Organization {
-  organization_logo_url: string;
-  organization_name: string;
-  org_photo: string;
-  org_name: string;
-  org_phone_number: string;
-  admin_photo: string;
-  admin_name: string;
-  admin_phone_number: string;
-  imagen_publicitaria?: string;
-  image_checklist?: string;
-}
-
-export interface Raffle {
-  id: string;
-  title: string;
-  description: string;
-  start_date: string;
-  end_date: string;
-  price_per_number: number;
-  organization_id: string;
-}
-
-export interface Prize {
-  id: string;
-  name: string;
-  description: string;
-  detail?: string;
-  value: number;
-  url_image: string;
-  raffle_id: string;
-  private_note?: string;
-  created_at?: string;
-  updated_at?: string;
-  deleted_at?: string;
-}
-
-export interface PrizeImage {
-  id: string;
-  prize_id: string;
-  url_image: string;
-  image_url: string;
-  created_at?: string;
-  updated_at?: string;
-  deleted_at?: string;
-}
-
-export interface Seller {
-  id: string;
-  name: string;
-  photo_url: string;
-  phone_number: string;
-}
-
-export interface RaffleSeller {
-  id: string;
-  raffle_id: string;
-  seller_id: string;
-  active: boolean;
-  cant_max: number;
-}
-
-export interface RaffleNumber {
-  id: string;
-  raffle_id: string;
-  number: string;
-  status: "available" | "reserved" | "sold";
-  seller_id: string | null;
-  buyer_name: string | null;
-  buyer_phone: string | null;
-  payment_method: "cash" | "transfer" | null;
-  payment_proof: string | null;
-  payment_date: string | null;
-}
+import { 
+  RAFFLE_ID, 
+  SELLER_ID 
+} from './ids';
+import {
+  Organization,
+  Raffle,
+  Prize,
+  PrizeImage,
+  Seller,
+  RaffleSeller,
+  RaffleNumber
+} from './types';
 
 // Mock data
 export const mockOrganization: Organization = {
