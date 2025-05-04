@@ -70,6 +70,8 @@ function HiddenBuyerFields({ form, readOnlyData }: { form: UseFormReturn<Payment
         form.setValue("buyerCedula", readOnlyData.cedula)
       if (readOnlyData.direccion)
         form.setValue("direccion", readOnlyData.direccion)
+      if (readOnlyData.email)
+        form.setValue("email", readOnlyData.email)
       if (readOnlyData.sugerencia_producto)
         form.setValue("sugerenciaProducto", readOnlyData.sugerencia_producto)
     }
