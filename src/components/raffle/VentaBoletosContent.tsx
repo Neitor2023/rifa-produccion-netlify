@@ -60,7 +60,8 @@ const VentaBoletosContent: React.FC = () => {
         debugMode={debugMode}
         handleReserveNumbers={handleReserveNumbers}
         handleProceedToPaymentWithButton={handleProceedToPaymentWithButton}
-        getSoldNumbersCount={getSoldNumbersCount}
+        // Fix: Wrap getSoldNumbersCount to match expected signature
+        getSoldNumbersCount={() => getSoldNumbersCount(seller?.id || '')}
       />
       
       {/* Modals */}

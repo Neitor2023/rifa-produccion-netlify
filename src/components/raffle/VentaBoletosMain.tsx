@@ -104,6 +104,7 @@ const VentaBoletosMain: React.FC<VentaBoletosMainProps> = ({
             debugMode={debugMode}
             onReserve={handleReserveNumbers}
             onProceedToPayment={handleProceedToPaymentWithButton}
+            // Fix: Pass the getSoldNumbersCount that expects no arguments
             getSoldNumbersCount={getSoldNumbersCount}
             reservationDays={reservationDays}
             lotteryDate={lotteryDate}
