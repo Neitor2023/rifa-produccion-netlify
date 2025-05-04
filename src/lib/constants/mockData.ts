@@ -34,7 +34,8 @@ export const mockRaffle: Raffle = {
   start_date: "2025-01-01",
   end_date: "2025-12-31",
   price_per_number: 100,
-  organization_id: "org-123"
+  organization_id: "org-123",
+  total_numbers: 99 // Añadido el campo total_numbers
 };
 
 export const mockPrizes: Prize[] = [

@@ -21,6 +21,7 @@ export interface Raffle {
   end_date: string;
   price_per_number: number;
   organization_id: string;
+  total_numbers?: number; // Añadido para especificar la cantidad total de números
 }
 
 export interface Prize {

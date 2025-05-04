@@ -107,7 +107,8 @@ const VentaBoletosMain: React.FC<VentaBoletosMainProps> = ({
             getSoldNumbersCount={getSoldNumbersCount}
             reservationDays={reservationDays}
             lotteryDate={lotteryDate}
-            organization={organization} // Pass organization to RaffleNumberGridSection
+            organization={organization}
+            totalNumbers={raffle?.total_numbers} // Pasamos el total_numbers del raffle
           />
         </div>
         

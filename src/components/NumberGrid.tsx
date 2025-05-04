@@ -43,7 +43,8 @@ interface NumberGridProps {
   soldNumbersCount?: number;
   reservationDays?: number;
   lotteryDate?: Date;
-  organization?: Organization; // Add organization prop
+  organization?: Organization;
+  totalNumbers?: number; // Añadimos la prop totalNumbers
 }
 
 const NumberGrid: React.FC<NumberGridProps> = ({ 
@@ -55,7 +56,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   soldNumbersCount = 0,
   reservationDays,
   lotteryDate,
-  organization // Add organization parameter
+  organization,
+  totalNumbers, // Recibimos la prop totalNumbers
 }) => {
   const {
     // State
@@ -105,7 +107,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           highlightReserved={highlightReserved}
           toggleNumber={toggleNumber}
           onPayReserved={handlePayReserved}
-          organization={organization} // Pass organization to GridLayout
+          organization={organization}
+          totalNumbers={totalNumbers} // Pasamos la prop totalNumbers
         />
       </Card>
       
