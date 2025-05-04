@@ -36,6 +36,7 @@ export function useCompletePayment({
     console.log("🔄 handleCompletePayment called with data:", {
       buyerName: data.buyerName,
       buyerPhone: data.buyerPhone,
+      buyerEmail: data.buyerEmail,
       buyerCedula: data.buyerCedula,
       paymentMethod: data.paymentMethod
     });

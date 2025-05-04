@@ -22,7 +22,7 @@ export const processParticipant = async ({
     
     const { data: existingParticipant, error: searchError } = await supabase
       .from('participants')
-      .select('id, name, phone, cedula, direccion, sugerencia_producto, nota')
+      .select('id, name, phone, email, cedula, direccion, sugerencia_producto, nota')
       .eq('phone', formattedPhone)
       .eq('raffle_id', raffleId)
       .maybeSingle();
@@ -42,6 +42,7 @@ export const processParticipant = async ({
       const updateData: any = {
         name: data.buyerName,
         phone: formattedPhone,
+        email: data.buyerEmail || null,
         nota: data.nota,
         cedula: data.buyerCedula || null,
         direccion: data.direccion || null,
@@ -62,7 +63,8 @@ export const processParticipant = async ({
       console.log("🆕 Creating new participant");
       debugLog('Creating new participant', { 
         name: data.buyerName, 
-        phone: formattedPhone 
+        phone: formattedPhone,
+        email: data.buyerEmail 
       });
 
       const { data: newParticipant, error: participantError } = await supabase
