@@ -7,12 +7,10 @@ import SafeImage from '@/components/SafeImage';
 
 interface RaffleHeaderSectionProps {
   organization: Organization | null;
-  title: string;
 }
 
 const RaffleHeaderSection: React.FC<RaffleHeaderSectionProps> = ({ 
-  organization, 
-  title 
+  organization
 }) => {
   return (
     <>
@@ -41,15 +39,6 @@ const RaffleHeaderSection: React.FC<RaffleHeaderSectionProps> = ({
         </div>
         <DarkModeToggle />
       </div>
-      
-      {/* Título de la rifa en su propia tarjeta */}
-      <Card className="mb-6 bg-white dark:bg-gray-800 shadow-sm">
-        <CardContent className="p-4">
-          <h1 className="text-2xl font-bold text-center text-gray-800 dark:text-gray-100">
-            {title || 'Cargando...'}
-          </h1>
-        </CardContent>
-      </Card>
     </>
   );
 };

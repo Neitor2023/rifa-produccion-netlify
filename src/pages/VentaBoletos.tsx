@@ -121,19 +121,27 @@ const VentaBoletosContent: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       <div className="container px-4 py-6 max-w-3xl mx-auto">
-        {/* Header section with styled title */}
+        {/* Header section with organization info and dark mode toggle */}
         <div className="mb-6">
           <Card className="bg-white dark:bg-gray-800 shadow-md">
             <CardContent className="p-4">
               <RaffleHeaderSection 
                 organization={organization} 
-                title={raffle?.title || 'Loading...'}
               />
             </CardContent>
           </Card>
         </div>
         
-        {/* Seller Info - MOVED TO THIS POSITION (3rd) */}
+        {/* Title card - MOVED TO THIS POSITION (2nd) */}
+        <Card className="mb-6 bg-white dark:bg-gray-800 shadow-sm">
+          <CardContent className="p-4">
+            <h1 className="text-2xl font-bold text-center text-gray-800 dark:text-gray-100">
+              {raffle?.title || 'Cargando...'}
+            </h1>
+          </CardContent>
+        </Card>
+        
+        {/* Seller Info - REMAINS IN 3rd POSITION */}
         {seller && (
           <SellerInfo 
             name={seller.name}
@@ -173,7 +181,7 @@ const VentaBoletosContent: React.FC = () => {
           organization={organization} 
         />
 
-        {/* Promotional Image - ADDED IN PENULTIMATE POSITION */}
+        {/* Promotional Image - REMAINS IN PENULTIMATE POSITION */}
         {organization?.organization_logo_url && (
           <div className="mb-8 mt-12">
             <div className="overflow-hidden rounded-lg shadow-md">
