@@ -38,7 +38,7 @@ function AdditionalInfoSection({ form }: { form: UseFormReturn<PaymentFormData> 
 
         <FormField
           control={form.control}
-          name="email"
+          name="buyerEmail"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Correo</FormLabel>
