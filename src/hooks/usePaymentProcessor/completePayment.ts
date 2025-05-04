@@ -29,20 +29,7 @@ export const useCompletePayment = ({
   processParticipant,
   supabase,
   debugMode
-}: {
-  raffleSeller: any;
-  raffleId: string;
-  selectedNumbers: string[];
-  refetchRaffleNumbers: () => Promise<any>;
-  setPaymentData: (data: any) => void;
-  setIsPaymentModalOpen: (isOpen: boolean) => void;
-  setIsVoucherOpen: (isOpen: boolean) => void;
-  allowVoucherPrint: boolean;
-  uploadPaymentProof: (paymentProof: any) => Promise<string | null>;
-  processParticipant: (data: PaymentFormData) => Promise<string | null>;
-  supabase: any;
-  debugMode?: boolean;
-}) => {
+}: UseCompletePaymentProps) => {
 
   const handleCompletePayment = async (formData: PaymentFormData) => {
     console.log("🔄 handleCompletePayment called with data:", {
@@ -70,10 +57,13 @@ export const useCompletePayment = ({
       
       const paymentProofUrl = await uploadPaymentProof(formData.paymentProof);
       
-      // Add seller_id to the data passed to processParticipant
-      formData.sellerId = raffleSeller.seller_id;
+      // Create a new object with the sellerId property for process participant
+      const enrichedFormData = {
+        ...formData,
+        sellerId: raffleSeller.seller_id
+      };
       
-      let participantId: string | null = await processParticipant(formData);
+      let participantId: string | null = await processParticipant(enrichedFormData);
       
       if (!participantId) {
         toast.error('Error al procesar la información del participante');
