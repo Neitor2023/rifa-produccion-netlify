@@ -19,7 +19,7 @@ const PrizeCard: React.FC<PrizeCardProps> = ({ prize, onViewDetails }) => {
   }, [prize]);
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden carousel-card">
       <div className="relative">
         {/* Using 4:5 aspect ratio as specified */}
         <AspectRatio ratio={4/5}>
