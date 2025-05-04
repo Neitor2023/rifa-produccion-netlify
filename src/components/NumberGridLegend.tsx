@@ -13,7 +13,7 @@ export const NumberGridLegend: React.FC<NumberGridLegendProps> = ({ highlightRes
         <div className="flex flex-wrap gap-4 justify-center">
           <div className="flex items-center">
             <div className="h-4 w-4 border dark:border-gray-600 rounded-sm mr-2"></div>
-            <span className="text-xs font-bold text-card-foreground">DISPONIBLE</span>
+            <span className="text-sm font-bold text-card-foreground">DISPONIBLE</span>
           </div>
           
           <div className="flex items-center">
