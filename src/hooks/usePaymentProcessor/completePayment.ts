@@ -1,3 +1,4 @@
+
 import { PaymentFormData } from '@/components/PaymentModal';
 import { toast } from 'sonner';
 
@@ -38,7 +39,8 @@ export const useCompletePayment = ({
       buyerEmail: formData.buyerEmail,
       buyerCedula: formData.buyerCedula,
       paymentMethod: formData.paymentMethod,
-      sellerId: raffleSeller?.seller_id
+      sellerId: raffleSeller?.seller_id,
+      selectedNumbers: selectedNumbers
     });
     
     if (!raffleSeller?.seller_id) {
@@ -69,13 +71,42 @@ export const useCompletePayment = ({
         toast.error('Error al procesar la información del participante');
         return;
       }
+
+      // CAMBIO IMPORTANTE: Primero verificar qué números realmente están disponibles 
+      // para prevenir sobrescribir números ya vendidos
+      console.log("Verificando disponibilidad de números antes de actualizar:", selectedNumbers);
       
-      // Modified logic to check for existing records and update or insert accordingly
-      for (const number of selectedNumbers) {
+      const { data: currentNumberStatus, error: statusError } = await supabase
+        .from('raffle_numbers')
+        .select('number, status')
+        .eq('raffle_id', raffleId)
+        .eq('seller_id', raffleSeller.seller_id)
+        .in('number', selectedNumbers.map(num => parseInt(num)));
+      
+      if (statusError) {
+        console.error('Error al verificar el estado de los números:', statusError);
+        toast.error('Error al verificar disponibilidad de números');
+        return;
+      }
+      
+      // Filtrar para excluir números ya vendidos
+      const soldNumbers = currentNumberStatus?.filter(n => n.status === 'sold').map(n => n.number.toString()) || [];
+      const numbersToUpdate = selectedNumbers.filter(num => !soldNumbers.includes(num));
+      
+      console.log("Números ya vendidos (se excluirán):", soldNumbers);
+      console.log("Números que se actualizarán:", numbersToUpdate);
+      
+      if (numbersToUpdate.length === 0) {
+        toast.error('Todos los números seleccionados ya están vendidos');
+        return;
+      }
+      
+      // Proceder con la actualización solo para los números disponibles
+      for (const number of numbersToUpdate) {
         // Check if the number already exists in the raffle_numbers table
         const { data: existingNumber, error: queryError } = await supabase
           .from('raffle_numbers')
-          .select('id')
+          .select('id, status')
           .eq('raffle_id', raffleId)
           .eq('number', parseInt(number))
           .eq('seller_id', raffleSeller.seller_id)
@@ -86,23 +117,30 @@ export const useCompletePayment = ({
           continue;
         }
         
+        // Solo actualizar si el número no está vendido
+        if (existingNumber && existingNumber.status === 'sold') {
+          console.log(`Número ${number} ya está vendido, omitiendo actualización.`);
+          continue;
+        }
+        
         const updateData = {
           status: 'sold',
           participant_id: participantId,
           payment_proof: paymentProofUrl,
           participant_name: formData.buyerName,
-          participant_phone: formData.buyerPhone, // This will be formatted by updateNumbersToSold
+          participant_phone: formData.buyerPhone, 
           participant_cedula: formData.buyerCedula || null,
           payment_approved: true
         };
         
         if (existingNumber) {
-          // Number exists, update it
-          console.log(`Number ${number} exists, updating record with ID: ${existingNumber.id}`);
+          // Number exists and is not sold, update it
+          console.log(`Number ${number} exists but not sold, updating record with ID: ${existingNumber.id}`);
           const { error: updateError } = await supabase
             .from('raffle_numbers')
             .update(updateData)
-            .eq('id', existingNumber.id);
+            .eq('id', existingNumber.id)
+            .neq('status', 'sold'); // Condición adicional para evitar actualizar números vendidos
           
           if (updateError) {
             console.error(`Error updating number ${number}:`, updateError);
