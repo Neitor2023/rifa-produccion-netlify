@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { PaymentFormData } from '@/components/PaymentModal';
+import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,7 +13,7 @@ import { usePaymentCompletion } from './usePaymentProcessor/paymentCompletion';
 import { useBuyerInfo } from '@/contexts/BuyerInfoContext';
 import { useReservationHandling } from './usePaymentProcessor/reservationHandling';
 import { useCompletePayment } from './usePaymentProcessor/completePayment';
-import { SELLER_ID } from '@/lib/constants';
+import { SELLER_ID, RAFFLE_ID } from '@/lib/constants';
 
 interface UsePaymentProcessorProps {
   raffleSeller: {

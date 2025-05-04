@@ -4,7 +4,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { UseFormReturn } from "react-hook-form";
-import { PaymentFormData } from '../PaymentModal';
+import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import PaymentMethodFields from './PaymentMethodFields';
 import PaymentUploadZone from './PaymentUploadZone';

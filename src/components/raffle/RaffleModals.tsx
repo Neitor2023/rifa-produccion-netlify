@@ -1,9 +1,8 @@
 
 import React from 'react';
-import PaymentModal from '@/components/PaymentModal';
+import PaymentModal, { PaymentFormData } from '@/components/PaymentModal';
 import DigitalVoucher from '@/components/DigitalVoucher';
 import { ValidatedBuyerInfo } from '@/types/participant';
-import { PaymentFormData } from '@/components/PaymentModal';
 import { NumberSelectionProvider } from '@/contexts/NumberSelectionContext';
 
 interface RaffleModalsProps {
@@ -24,7 +23,7 @@ interface RaffleModalsProps {
     lottery: string;
     dateLottery: string;
   };
-  clickedButton?: string; // New prop for the clicked button
+  clickedButton?: string;
 }
 
 const RaffleModals: React.FC<RaffleModalsProps> = ({
@@ -40,7 +39,7 @@ const RaffleModals: React.FC<RaffleModalsProps> = ({
   debugMode,
   allowVoucherPrint,
   raffleDetails,
-  clickedButton // Add the new prop
+  clickedButton
 }) => {
   console.log("RaffleModals.tsx: Rendering with isPaymentModalOpen=", isPaymentModalOpen);
   
@@ -54,7 +53,7 @@ const RaffleModals: React.FC<RaffleModalsProps> = ({
         onComplete={onCompletePayment}
         buyerData={buyerInfo}
         debugMode={debugMode}
-        clickedButton={clickedButton} // Pass the clicked button prop
+        clickedButton={clickedButton}
       />
       
       <DigitalVoucher 

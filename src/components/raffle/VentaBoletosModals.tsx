@@ -2,7 +2,7 @@
 import React from 'react';
 import RaffleModals from '@/components/raffle/RaffleModals';
 import { ValidatedBuyerInfo } from '@/types/participant';
-import { PaymentFormData } from '@/components/PaymentModal';
+import { PaymentFormData } from '@/schemas/paymentFormSchema';
 
 interface VentaBoletosModalsProps {
   isPaymentModalOpen: boolean;

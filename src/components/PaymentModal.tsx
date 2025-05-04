@@ -1,21 +1,19 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { 
   Dialog, 
   DialogContent, 
   DialogClose,
 } from '@/components/ui/dialog';
 import { X } from 'lucide-react';
-import { Toaster, toast } from 'sonner';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { Toaster } from 'sonner';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import { PaymentModalHeader } from './payment/PaymentModalHeader';
 import { PaymentModalActions } from './payment/PaymentModalActions';
 import PaymentModalContent from './payment/PaymentModalContent';
 import { NumberSelectionProvider } from '@/contexts/NumberSelectionContext';
-import { useBuyerInfo } from '@/contexts/BuyerInfoContext';
+import { usePaymentForm } from '@/hooks/usePaymentForm';
+import { PaymentFormData } from '@/schemas/paymentFormSchema';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -28,23 +26,6 @@ interface PaymentModalProps {
   clickedButton?: string;
 }
 
-const paymentFormSchema = z.object({
-  buyerName: z.string().min(3, { message: "Nombre debe tener al menos 3 caracteres" }),
-  buyerPhone: z.string().min(10, { message: "Teléfono debe tener al menos 10 caracteres" }),
-  buyerEmail: z.string().email({ message: "Email inválido" }).optional().or(z.literal('')),
-  buyerCedula: z.string().min(5, { message: "Cédula/DNI debe tener al menos 5 caracteres" }),
-  paymentMethod: z.enum(["cash", "transfer"], { 
-    required_error: "Seleccione un método de pago" 
-  }),
-  paymentProof: z.any().optional(),
-  nota: z.string().optional(),
-  direccion: z.string().optional(),
-  sugerenciaProducto: z.string().optional(),
-  reporteSospechoso: z.string().optional(),
-});
-
-export type PaymentFormData = z.infer<typeof paymentFormSchema>;
-
 const PaymentModal: React.FC<PaymentModalProps> = ({ 
   isOpen, 
   onClose, 
@@ -55,202 +36,20 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   debugMode = false,
   clickedButton
 }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const { buyerInfo } = useBuyerInfo();
-  
-  const form = useForm<PaymentFormData>({
-    resolver: zodResolver(paymentFormSchema),
-    defaultValues: {
-      buyerName: "",
-      buyerPhone: "",
-      buyerCedula: "",
-      buyerEmail: "",
-      paymentMethod: undefined,
-      paymentProof: undefined,
-      nota: "",
-      direccion: "",
-      sugerenciaProducto: "",
-      reporteSospechoso: "",
-    },
+  const {
+    form,
+    isSubmitting,
+    previewUrl,
+    handleImageUpload,
+    handleRemoveImage,
+    handleSubmit
+  } = usePaymentForm({
+    buyerData,
+    onComplete,
+    isOpen,
+    debugMode,
+    clickedButton
   });
-
-  // Update form values when buyerData changes
-  useEffect(() => {
-    console.log("📦 Modal is open:", isOpen, "buyerData:", buyerData);
-    
-    if (buyerData && isOpen) {
-      console.log("📦 Modal is open, updating form with buyer data:", buyerData);
-      form.setValue('buyerName', buyerData.name || "");
-      form.setValue('buyerPhone', buyerData.phone || "");
-      form.setValue('buyerCedula', buyerData.cedula || "");
-      form.setValue('buyerEmail', buyerData.email || "");
-      
-      if (buyerData.direccion) {
-        form.setValue("direccion", buyerData.direccion);
-      }
-      
-      if (buyerData.sugerencia_producto) {
-        form.setValue("sugerenciaProducto", buyerData.sugerencia_producto);
-      }
-      
-      console.log("Form values after update:", form.getValues());
-    } else {
-      console.log("Either modal is closed or no buyerData:", { isOpen, buyerData });
-    }
-  }, [buyerData, form, isOpen]);
-
-  const debugLog = (context: string, data: any) => {
-    if (debugMode) {
-      console.log(`[DEBUG - PaymentModal - ${context}]:`, data);
-    }
-  };
-  
-  const onSubmit = () => {
-    // Add the requested console.log for debugging
-    console.log('PaymentModal - Botón Completar pago pulsado');
-    console.log('PaymentModal - Valor actual del comprobante de pago:', uploadedImage ? {
-      name: uploadedImage.name,
-      size: uploadedImage.size,
-      type: uploadedImage.type
-    } : 'No hay imagen cargada');
-    
-    // Get the current form values
-    const data = form.getValues();
-    
-    setIsSubmitting(true);
-    debugLog('Form submit - data', data);
-    
-    // Check buyerData and complete with buyerInfo if needed
-    let completeData = { ...data };
-    
-    if (buyerData) {
-      const { name, phone, cedula, email } = buyerData;
-      
-      if (!name || !phone || !cedula) {
-        console.log('PaymentModal - buyerData incompleta (name, phone, cedula), intentando completar con buyerInfo:', 
-          buyerInfo, 'buyerData:', buyerData);
-        
-        if (buyerInfo) {
-          // Create an updated version of buyerData with missing fields from buyerInfo
-          const updatedFields = {
-            buyerName: completeData.buyerName || buyerInfo.name,
-            buyerPhone: completeData.buyerPhone || buyerInfo.phone,
-            buyerCedula: completeData.buyerCedula || buyerInfo.cedula || "",
-            buyerEmail: completeData.buyerEmail || buyerInfo.email || "",
-          };
-          
-          completeData = { ...completeData, ...updatedFields };
-          
-          console.log('PaymentModal - buyerData completada (name, phone, cedula, email):', 
-            updatedFields, 'formulario actualizado:', completeData);
-        } else {
-          console.log('PaymentModal - buyerInfo también está vacío.');
-        }
-      } else {
-        console.log('PaymentModal - buyerData (name, phone, cedula, email) está completa:', buyerData);
-      }
-    } else {
-      console.log('PaymentModal - buyerData es null o undefined.');
-    }
-    
-    if (data.paymentMethod === "transfer" && !uploadedImage) {
-      toast.error("Por favor suba un comprobante de pago");
-      debugLog('Validation error', 'Missing payment proof for transfer');
-      setIsSubmitting(false);
-      return;
-    }
-    
-    if (uploadedImage) {
-      completeData.paymentProof = uploadedImage;
-      debugLog('Payment proof attached', {
-        name: uploadedImage.name,
-        size: uploadedImage.size,
-        type: uploadedImage.type
-      });
-    }
-    
-    debugLog('Sending payment data to parent component', completeData);
-    console.log("🔄 Submitting payment with data:", {
-      buyerName: completeData.buyerName,
-      buyerPhone: completeData.buyerPhone,
-      buyerCedula: completeData.buyerCedula,
-      buyerEmail: completeData.buyerEmail,
-      paymentMethod: completeData.paymentMethod
-    });
-    
-    onComplete(completeData);
-    setIsSubmitting(false);
-    resetForm();
-  };
-  
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    debugLog('Image upload', {
-      name: file.name,
-      size: file.size,
-      type: file.type
-    });
-    
-    setUploadedImage(file);
-    const preview = URL.createObjectURL(file);
-    setPreviewUrl(preview);
-  };
-
-  const handleRemoveImage = () => {
-    debugLog('Removing uploaded image', null);
-    setUploadedImage(null);
-    setPreviewUrl(null);
-  };
-  
-  const resetForm = () => {
-    debugLog('Resetting form', null);
-    form.reset();
-    setUploadedImage(null);
-    setPreviewUrl(null);
-  };
-
-  useEffect(() => {
-    if (!isOpen) {
-      resetForm();
-    } else {
-      debugLog('Modal opened', {
-        selectedNumbers,
-        price,
-        buyerData,
-        clickedButton
-      });
-      
-      // Limpiar la imagen cuando se abre el modal con un botón específico
-      if (clickedButton === "Pagar") {
-        console.log("PaymentModal - Modal abierto con botón Pagar, limpiando imagen previa");
-        setUploadedImage(null);
-        setPreviewUrl(null);
-      }
-      
-      // When modal opens, update form with buyerData
-      if (buyerData) {
-        console.log("📦 Modal PaymentModal abierto, actualizando formulario con buyer data:", buyerData);
-        form.setValue('buyerName', buyerData.name || "");
-        form.setValue('buyerPhone', buyerData.phone || "");
-        form.setValue('buyerCedula', buyerData.cedula || "");
-        form.setValue('buyerEmail', buyerData.email || "");
-        
-        if (buyerData.direccion) {
-          form.setValue("direccion", buyerData.direccion);
-        }
-        
-        if (buyerData.sugerencia_producto) {
-          form.setValue("sugerenciaProducto", buyerData.sugerencia_producto);
-        }
-        
-        console.log("Form values after modal open:", form.getValues());
-      }
-    }
-  }, [isOpen, selectedNumbers, price, buyerData, form, clickedButton]);
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -276,7 +75,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         <PaymentModalActions 
           isSubmitting={isSubmitting}
           onClose={onClose}
-          onSubmit={onSubmit}
+          onSubmit={handleSubmit}
         />
         
         <Toaster
@@ -291,3 +90,4 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 };
 
 export default PaymentModal;
+export type { PaymentFormData };

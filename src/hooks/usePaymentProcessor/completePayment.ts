@@ -1,5 +1,5 @@
 
-import { PaymentFormData } from '@/components/PaymentModal';
+import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { toast } from 'sonner';
 
 interface UseCompletePaymentProps {

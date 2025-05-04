@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Form } from "@/components/ui/form";
 import { UseFormReturn } from 'react-hook-form';
-import { PaymentFormData } from '../PaymentModal';
+import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import PaymentSummary from './PaymentSummary';
 import PaymentFormFields from './PaymentFormFields';
 import { ValidatedBuyerInfo } from '@/types/participant';
