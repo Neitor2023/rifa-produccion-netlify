@@ -38,11 +38,11 @@ const OrganizerInfo: React.FC<OrganizerInfoProps> = ({ organization }) => {
               </div>
               <div>
                 <h3 className="font-medium text-card-foreground">{organization.org_name}</h3>
-                <div className="flex items-center text-muted-foreground text-sm mt-1">
+                <div className="flex items-center font-semibold text-card-foreground text-sm mt-1">
                   <Phone className="h-4 w-4 mr-1" />
                   <span>{organization.org_phone_number}</span>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">Organizador</p>
+                <p className="text-xs font-semibold text-card-foreground mt-1">Organizador</p>
               </div>
             </div>
           </CardContent>
@@ -62,11 +62,11 @@ const OrganizerInfo: React.FC<OrganizerInfoProps> = ({ organization }) => {
               </div>
               <div>
                 <h3 className="font-medium text-card-foreground">{organization.admin_name}</h3>
-                <div className="flex items-center text-muted-foreground text-sm mt-1">
+                <div className="flex items-center font-semibold text-card-foreground text-sm mt-1">
                   <Phone className="h-4 w-4 mr-1" />
                   <span>{organization.admin_phone_number}</span>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">Administrador</p>
+                <p className="text-xs font-semibold text-card-foreground mt-1">Administrador</p>
               </div>
             </div>
           </CardContent>
