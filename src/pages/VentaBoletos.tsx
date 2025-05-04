@@ -8,10 +8,12 @@ import { NumberSelectionProvider } from '@/contexts/NumberSelectionContext';
 
 // Components
 import RaffleHeaderSection from '@/components/raffle/RaffleHeaderSection';
+import SellerInfo from '@/components/SellerInfo'; // Import SellerInfo
 import RafflePrizesSection from '@/components/raffle/RafflePrizesSection';
 import RaffleNumberGridSection from '@/components/raffle/RaffleNumberGridSection';
 import RaffleInfoSection from '@/components/raffle/RaffleInfoSection';
 import RaffleModals from '@/components/raffle/RaffleModals';
+import SafeImage from '@/components/SafeImage'; // Import SafeImage for the promotional image
 
 // Constants
 const SELLER_ID = "0102030405";
@@ -125,6 +127,16 @@ const VentaBoletosContent: React.FC = () => {
           title={raffle?.title || 'Loading...'}
         />
         
+        {/* Seller Info - MOVED TO THIS POSITION (3rd) */}
+        {seller && (
+          <SellerInfo 
+            name={seller.name}
+            phone={seller.phone}
+            avatar={seller.avatar}
+            id={seller.cedula || SELLER_ID}
+          />
+        )}
+        
         {/* Prize carousel and modal */}
         {prizes && prizeImages && (
           <RafflePrizesSection 
@@ -154,6 +166,20 @@ const VentaBoletosContent: React.FC = () => {
           seller={seller} 
           organization={organization} 
         />
+
+        {/* Promotional Image - ADDED IN PENULTIMATE POSITION */}
+        {organization?.organization_logo_url && (
+          <div className="mb-8 mt-12">
+            <div className="overflow-hidden rounded-lg shadow-md">
+              <SafeImage 
+                src={organization.imagen_publicitaria} 
+                alt="Promotional Image"
+                className="w-full h-auto object-cover"
+                containerClassName="max-w-full"
+              />
+            </div>
+          </div>
+        )}
       </div>
       
       {/* Modals */}

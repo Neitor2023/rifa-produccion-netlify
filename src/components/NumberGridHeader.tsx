@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface NumberGridHeaderProps {
   soldNumbersCount: number;
@@ -11,15 +12,19 @@ const NumberGridHeader: React.FC<NumberGridHeaderProps> = ({
   maxNumbers 
 }) => {
   return (
-    <>
-      <h2 className="text-lg font-semibold mb-4 text-center text-gray-800 dark:text-gray-200">
-        Seleccione sus números
-      </h2>
-      
-      <div className="mb-4 text-center text-sm font-medium text-gray-700 dark:text-gray-300">
-        🎫 Vendidos: {soldNumbersCount} / {maxNumbers}
-      </div>
-    </>
+    <Card className="mb-4 bg-white dark:bg-gray-800 shadow-sm">
+      <CardContent className="p-4">
+        <div className="flex flex-col sm:flex-row justify-between items-center">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+            Seleccione sus números
+          </h2>
+          
+          <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-2 sm:mt-0">
+            🎫 Vendidos: {soldNumbersCount} / {maxNumbers}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
