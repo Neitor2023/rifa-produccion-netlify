@@ -4,6 +4,7 @@ export interface ValidatedBuyerInfo {
   name: string;
   phone: string;
   cedula?: string;
+  email?: string;
   direccion?: string;
   sugerencia_producto?: string;
 }
