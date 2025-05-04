@@ -51,7 +51,7 @@ export function useReservationHandling({
     buyerPhone?: string,
     buyerName?: string,
     buyerCedula?: string
-  ): Promise<void> => { // Changed return type from Promise<boolean> to Promise<void>
+  ): Promise<void> { // Changed return type from Promise<boolean> to Promise<void>
     console.log("🎯 useReservationHandling: handleReserveNumbers called with:", {
       numbers,
       buyerPhone,
