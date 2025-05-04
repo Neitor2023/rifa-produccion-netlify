@@ -101,6 +101,11 @@ export const useParticipantManager = ({
       }
     }
     
+    // Always ensure seller_id is set/updated if raffleSeller is available
+    if (raffleSeller?.seller_id) {
+      updateData.seller_id = raffleSeller.seller_id;
+    }
+    
     if (Object.keys(updateData).length > 0) {
       console.log("📝 Updating participant data:", updateData);
       const { error } = await supabase
@@ -151,7 +156,8 @@ export const useParticipantManager = ({
       formattedPhone, 
       cedula,
       email,
-      raffle_id: raffleId
+      raffle_id: raffleId,
+      seller_id: raffleSeller?.seller_id
     });
     
     const { data, error } = await supabase
@@ -162,8 +168,7 @@ export const useParticipantManager = ({
         email: email || '',
         cedula: cedula || null,
         raffle_id: raffleId,
-        seller_id: raffleSeller?.seller_id
-        // nota field is removed as per requirements
+        seller_id: raffleSeller?.seller_id // Ensure seller_id is set
       })
       .select('id, name, phone, email, cedula')
       .single();

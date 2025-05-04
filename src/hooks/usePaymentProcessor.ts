@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { PaymentFormData } from '@/components/PaymentModal';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -14,6 +13,7 @@ import { usePaymentCompletion } from './usePaymentProcessor/paymentCompletion';
 import { useBuyerInfo } from '@/contexts/BuyerInfoContext';
 import { useReservationHandling } from './usePaymentProcessor/reservationHandling';
 import { useCompletePayment } from './usePaymentProcessor/completePayment';
+import { SELLER_ID } from '@/lib/constants';
 
 interface UsePaymentProcessorProps {
   raffleSeller: {
@@ -77,12 +77,13 @@ export function usePaymentProcessor({
   const { findOrCreateParticipant } = useParticipantManager({ 
     raffleId, 
     debugMode, 
-    raffleSeller,
+    // Use the constant SELLER_ID as default seller ID
+    raffleSeller: raffleSeller || { seller_id: SELLER_ID },
     setValidatedBuyerData: setBuyerInfo
   });
 
   const { handleCompletePayment } = useCompletePayment({
-    raffleSeller,
+    raffleSeller: raffleSeller || { seller_id: SELLER_ID }, // Use SELLER_ID as fallback
     raffleId,
     selectedNumbers,
     refetchRaffleNumbers,

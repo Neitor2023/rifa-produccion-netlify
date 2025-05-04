@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { formatPhoneNumber } from '@/utils/phoneUtils';
 
 interface UpdateNumbersToSoldProps {
   numbers: string[];
@@ -35,6 +36,9 @@ export const updateNumbersToSold = async ({
     throw new Error('No se encontraron datos del participante');
   }
 
+  // Ensure phone is in international format
+  const formattedPhone = formatPhoneNumber(participantData.phone);
+
   const updatePromises = numbers.map(async (numStr) => {
     const existingNumber = raffleNumbers.find(n => n.number === numStr);
 
@@ -46,7 +50,7 @@ export const updateNumbersToSold = async ({
       payment_approved: true,
       reservation_expires_at: null,
       participant_name: participantData.name,
-      participant_phone: participantData.phone,
+      participant_phone: formattedPhone, // Use formatted phone number
       participant_cedula: participantData.cedula
     };
 

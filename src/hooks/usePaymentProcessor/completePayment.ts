@@ -38,7 +38,8 @@ export function useCompletePayment({
       buyerPhone: data.buyerPhone,
       buyerEmail: data.buyerEmail,
       buyerCedula: data.buyerCedula,
-      paymentMethod: data.paymentMethod
+      paymentMethod: data.paymentMethod,
+      sellerId: raffleSeller?.seller_id
     });
     
     if (!raffleSeller?.seller_id) {
@@ -57,7 +58,13 @@ export function useCompletePayment({
       
       const paymentProofUrl = await uploadPaymentProof(data.paymentProof);
       
-      let participantId: string | null = await processParticipant(data);
+      // Add seller_id to the data passed to processParticipant
+      const processData = {
+        ...data,
+        sellerId: raffleSeller.seller_id
+      };
+      
+      let participantId: string | null = await processParticipant(processData);
       
       if (!participantId) {
         toast.error('Error al procesar la información del participante');
@@ -85,7 +92,7 @@ export function useCompletePayment({
           participant_id: participantId,
           payment_proof: paymentProofUrl,
           participant_name: data.buyerName,
-          participant_phone: data.buyerPhone,
+          participant_phone: data.buyerPhone, // This will be formatted by updateNumbersToSold
           participant_cedula: data.buyerCedula || null,
           payment_approved: true
         };

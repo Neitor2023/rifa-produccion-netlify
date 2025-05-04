@@ -41,13 +41,18 @@ export const processParticipant = async ({
 
       const updateData: any = {
         name: data.buyerName,
-        phone: formattedPhone,
+        phone: formattedPhone, // Ensuring phone is in international format
         nota: data.nota,
         email: data.buyerEmail || null,
         cedula: data.buyerCedula || null,
         direccion: data.direccion || null,
         sugerencia_producto: data.sugerenciaProducto || null
       };
+
+      // Save seller_id on the participant record if applicable
+      if (data.sellerId) {
+        updateData.seller_id = data.sellerId;
+      }
 
       const { error: updateError } = await supabase
         .from('participants')
@@ -66,18 +71,23 @@ export const processParticipant = async ({
         phone: formattedPhone 
       });
 
+      const insertData = {
+        name: data.buyerName,
+        phone: formattedPhone, // Ensuring phone is in international format
+        email: data.buyerEmail || '',
+        cedula: data.buyerCedula,
+        direccion: data.direccion || null,
+        sugerencia_producto: data.sugerenciaProducto || null,
+        nota: data.nota || null,
+        raffle_id: raffleId,
+        seller_id: data.sellerId || null // Add seller_id when creating participant
+      };
+      
+      debugLog('Inserting participant data', insertData);
+
       const { data: newParticipant, error: participantError } = await supabase
         .from('participants')
-        .insert({
-          name: data.buyerName,
-          phone: formattedPhone,
-          email: data.buyerEmail || '',
-          cedula: data.buyerCedula,
-          direccion: data.direccion || null,
-          sugerencia_producto: data.sugerenciaProducto || null,
-          nota: data.nota || null,
-          raffle_id: raffleId
-        })
+        .insert(insertData)
         .select('id')
         .single();
 
