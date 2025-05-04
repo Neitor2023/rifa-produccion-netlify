@@ -45,8 +45,12 @@ export const processParticipant = async ({
         nota: data.nota,
         cedula: data.buyerCedula || null,
         direccion: data.direccion || null,
-        sugerencia_producto: data.sugerenciaProducto || null
+        sugerencia_producto: data.sugerenciaProducto || null,
+        email: data.buyerEmail || '' // Asegurando que el email se actualice también
       };
+
+      console.log("🔄 Updating participant with data:", updateData);
+      debugLog('Update data with email', updateData);
 
       const { error: updateError } = await supabase
         .from('participants')
@@ -62,7 +66,8 @@ export const processParticipant = async ({
       console.log("🆕 Creating new participant");
       debugLog('Creating new participant', { 
         name: data.buyerName, 
-        phone: formattedPhone 
+        phone: formattedPhone,
+        email: data.buyerEmail || '' // Asegurar que el email se incluye en la creación
       });
 
       const { data: newParticipant, error: participantError } = await supabase

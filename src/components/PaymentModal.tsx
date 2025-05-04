@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -52,7 +53,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   onComplete,
   buyerData,
   debugMode = false,
-  clickedButton // Add the new prop
+  clickedButton
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
@@ -119,7 +120,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     let completeData = { ...data };
     
     if (buyerData) {
-      const { name, phone, cedula } = buyerData;
+      const { name, phone, cedula, email } = buyerData;
       
       if (!name || !phone || !cedula) {
         console.log('PaymentModal - buyerData incompleta (name, phone, cedula), intentando completar con buyerInfo:', 
@@ -131,11 +132,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             buyerName: completeData.buyerName || buyerInfo.name,
             buyerPhone: completeData.buyerPhone || buyerInfo.phone,
             buyerCedula: completeData.buyerCedula || buyerInfo.cedula || "",
+            buyerEmail: completeData.buyerEmail || buyerInfo.email || "", // Asegurarnos que el email se incluye aquí
           };
           
           completeData = { ...completeData, ...updatedFields };
           
-          console.log('PaymentModal - buyerData completada (name, phone, cedula):', 
+          console.log('PaymentModal - buyerData completada (name, phone, cedula, email):', 
             updatedFields, 'formulario actualizado:', completeData);
         } else {
           console.log('PaymentModal - buyerInfo también está vacío.');
@@ -168,6 +170,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       buyerName: completeData.buyerName,
       buyerPhone: completeData.buyerPhone,
       buyerCedula: completeData.buyerCedula,
+      buyerEmail: completeData.buyerEmail, // Log también el email
       paymentMethod: completeData.paymentMethod
     });
     
