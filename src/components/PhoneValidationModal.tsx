@@ -93,16 +93,18 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   const validation = usePhoneValidation(phone);
 
   const handleNumberSubmit = async () => {
-    console.log("PhoneValidationModal.tsx:48 - Validando número/cédula:", phone);
+    console.log("PhoneValidationModal.tsx:94 - Validando número/cédula:", phone);
     if (validation.isValid) {
       const isNumericOnly = /^\d+$/.test(phone);
       const cleanedPhone = formatPhoneNumber(phone);
+      console.log("PhoneValidationModal.tsx:97 - Teléfono formateado para búsqueda:", cleanedPhone);
+      
       let participant: ValidatedBuyerInfo | null = null;
       let foundBy = '';
 
       try {
         // BUSCA por teléfono (y la rifa!)
-        console.log("PhoneValidationModal.tsx:56 - Buscando por teléfono:", cleanedPhone);
+        console.log("PhoneValidationModal.tsx:103 - Buscando por teléfono:", cleanedPhone);
         const { data: byPhone } = await supabase
           .from('participants')
           .select('id, name, phone, cedula, direccion, sugerencia_producto, email')
@@ -113,10 +115,10 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         if (byPhone) {
           participant = byPhone;
           foundBy = 'phone';
-          console.log("PhoneValidationModal.tsx:66 - Participante encontrado por teléfono:", participant);
+          console.log("PhoneValidationModal.tsx:113 - Participante encontrado por teléfono:", participant);
         } else if (isNumericOnly) {
           // BUSCA por cédula (y la rifa!)
-          console.log("PhoneValidationModal.tsx:69 - Buscando por cédula:", phone);
+          console.log("PhoneValidationModal.tsx:116 - Buscando por cédula:", phone);
           const { data: byCedula } = await supabase
             .from('participants')
             .select('id, name, phone, cedula, direccion, sugerencia_producto, email')
@@ -127,18 +129,18 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           if (byCedula) {
             participant = byCedula;
             foundBy = 'cedula';
-            console.log("PhoneValidationModal.tsx:79 - Participante encontrado por cédula:", participant);
+            console.log("PhoneValidationModal.tsx:126 - Participante encontrado por cédula:", participant);
           }
         }
 
         if (!participant) {
-          console.log("PhoneValidationModal.tsx:84 - Participante no encontrado.");
+          console.log("PhoneValidationModal.tsx:131 - Participante no encontrado.");
           toast.error(`❌ Participante no encontrado con el dato ingresado: ${cleanedPhone}`);
           return;
         }
 
         // Retorna SIEMPRE UN OBJETO COMPLETO para el flujo posterior
-        console.log("PhoneValidationModal.tsx:90 - Validación exitosa, devolviendo datos del participante:", participant);
+        console.log("PhoneValidationModal.tsx:137 - Validación exitosa, devolviendo datos del participante:", participant);
         onPhoneValidationSuccess(
           participant.phone || cleanedPhone,
           participant.id,
@@ -154,7 +156,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         );
         onClose();
       } catch (error) {
-        console.error("PhoneValidationModal.tsx:105 - Error durante la validación:", error);
+        console.error("PhoneValidationModal.tsx:152 - Error durante la validación:", error);
         toast.error("Error durante la validación. Por favor intente nuevamente.");
       }
     }

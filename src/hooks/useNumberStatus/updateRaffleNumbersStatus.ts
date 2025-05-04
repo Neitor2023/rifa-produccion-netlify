@@ -1,6 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { calculateExpirationDate } from './expirationCalculator';
+import { formatPhoneNumber } from '@/utils/phoneUtils';
+import { SELLER_ID } from '@/lib/constants'; // Import the constant SELLER_ID
 
 interface UpdateRaffleNumbersStatusProps {
   numbers: string[];
@@ -27,7 +29,10 @@ export async function updateRaffleNumbersStatus({
   reservationDays = 5,
   lotteryDate
 }: UpdateRaffleNumbersStatusProps) {
-  if (!raffleSeller?.seller_id) {
+  // Verificar que estamos usando el SELLER_ID constante
+  console.log("🔵 updateRaffleNumbersStatus.ts:29: Verificando seller_id:", SELLER_ID);
+  
+  if (!SELLER_ID) {
     throw new Error('Seller ID not available');
   }
 
@@ -44,7 +49,7 @@ export async function updateRaffleNumbersStatus({
     
     const updateData: any = { 
       status, 
-      seller_id: raffleSeller.seller_id
+      seller_id: SELLER_ID // Aseguramos que se use el SELLER_ID constante
     };
     
     if (participantId) updateData.participant_id = participantId;
@@ -54,8 +59,12 @@ export async function updateRaffleNumbersStatus({
       if (participantData.participant_name || participantData.buyerName) 
         updateData.participant_name = participantData.participant_name || participantData.buyerName;
       
-      if (participantData.participant_phone || participantData.buyerPhone) 
-        updateData.participant_phone = participantData.participant_phone || participantData.buyerPhone;
+      if (participantData.participant_phone || participantData.buyerPhone) {
+        // Formato internacional para teléfono
+        const phone = participantData.participant_phone || participantData.buyerPhone;
+        updateData.participant_phone = formatPhoneNumber(phone);
+        console.log("🔵 updateRaffleNumbersStatus.ts:60: Teléfono formateado para almacenamiento:", updateData.participant_phone);
+      }
       
       if (participantData.participant_cedula || participantData.buyerCedula) 
         updateData.participant_cedula = participantData.participant_cedula || participantData.buyerCedula;
