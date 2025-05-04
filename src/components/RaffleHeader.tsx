@@ -15,7 +15,7 @@ const RaffleHeader: React.FC<RaffleHeaderProps> = ({ organization }) => {
   }, [organization]);
 
   return (
-    <Card className="mb-4 bg-white dark:bg-gray-800 shadow-sm">
+    <Card className="mb-4 shadow-sm">
       <CardContent className="p-4">
         <div className="flex items-center">
           <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0">
@@ -26,7 +26,7 @@ const RaffleHeader: React.FC<RaffleHeaderProps> = ({ organization }) => {
               fallbackClassName="bg-gray-200 dark:bg-gray-700"
             />
           </div>
-          <h1 className="ml-3 text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-100">
+          <h1 className="ml-3 text-lg sm:text-xl font-semibold">
             {organization.organization_name}
           </h1>
         </div>

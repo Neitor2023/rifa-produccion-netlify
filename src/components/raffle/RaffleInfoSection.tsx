@@ -30,9 +30,9 @@ const RaffleInfoSection: React.FC<RaffleInfoSectionProps> = ({
       
       {organization && <OrganizerInfo organization={organization} />}
       
-      <Card className="mb-8 bg-white dark:bg-gray-800">
+      <Card className="mb-8">
         <CardContent className="p-4">
-          <div className="text-center text-xs text-gray-500 dark:text-gray-400 italic">
+          <div className="text-center text-xs italic">
             Las plataformas de redes sociales no están asociadas a esta rifa.
           </div>
         </CardContent>

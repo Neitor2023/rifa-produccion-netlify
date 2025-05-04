@@ -19,7 +19,7 @@ const PrizeCard: React.FC<PrizeCardProps> = ({ prize, onViewDetails }) => {
   }, [prize]);
 
   return (
-    <Card className="overflow-hidden carousel-card">
+    <Card className="overflow-hidden">
       <div className="relative">
         {/* Using 4:5 aspect ratio as specified */}
         <AspectRatio ratio={4/5}>
@@ -35,7 +35,7 @@ const PrizeCard: React.FC<PrizeCardProps> = ({ prize, onViewDetails }) => {
       <CardFooter className="p-3 flex justify-center">
         <Button 
           variant="secondary"
-          className="w-full bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="w-full hover:bg-gray-100 dark:hover:bg-gray-700"
           onClick={() => onViewDetails(prize)}
         >
           <Eye className="h-4 w-4 mr-2" />

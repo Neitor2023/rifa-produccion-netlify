@@ -53,7 +53,7 @@ const VentaBoletosMain: React.FC<VentaBoletosMainProps> = ({
       <div className="container px-4 py-4 max-w-3xl mx-auto">
         {/* Header section with organization info and dark mode toggle */}
         <div className="mb-4">
-          <Card className="bg-white dark:bg-gray-800 shadow-md">
+          <Card className="shadow-md">
             <CardContent className="p-3">
               <RaffleHeaderSection 
                 organization={organization} 
@@ -63,9 +63,9 @@ const VentaBoletosMain: React.FC<VentaBoletosMainProps> = ({
         </div>
         
         {/* Title card */}
-        <Card className="mb-4 bg-white dark:bg-gray-800 shadow-sm">
+        <Card className="mb-4 shadow-sm">
           <CardContent className="p-3">
-            <h1 className="text-xl sm:text-2xl font-bold text-center text-gray-800 dark:text-gray-100">
+            <h1 className="text-xl sm:text-2xl font-bold text-center">
               {raffle?.title || 'Cargando...'}
             </h1>
           </CardContent>
