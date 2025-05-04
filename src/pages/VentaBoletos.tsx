@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { usePaymentProcessor } from '@/hooks/usePaymentProcessor';
@@ -163,7 +162,7 @@ const VentaBoletosContent: React.FC = () => {
         <RaffleInfoSection 
           raffle={raffle} 
           organization={organization} 
-          excludeSellerInfo={true} // Added prop to exclude seller info
+          excludeSellerInfo={true} // Pass the prop to exclude seller info
         />
       </div>
       
