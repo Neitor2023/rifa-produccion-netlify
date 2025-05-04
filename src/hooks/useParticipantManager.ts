@@ -28,7 +28,7 @@ export const useParticipantManager = ({
     
     const { data, error } = await supabase
       .from('participants')
-      .select('id, name, phone, cedula, direccion, sugerencia_producto')
+      .select('id, name, phone, email, cedula, direccion, sugerencia_producto')
       .eq('phone', formattedPhone)
       .eq('raffle_id', raffleId)
       .maybeSingle();
@@ -48,6 +48,7 @@ export const useParticipantManager = ({
           id: data.id,
           name: data.name,
           phone: data.phone,
+          email: data.email,
           cedula: data.cedula,
           direccion: data.direccion,
           sugerencia_producto: data.sugerencia_producto
@@ -69,18 +70,24 @@ export const useParticipantManager = ({
       id: string; 
       name: string; 
       phone?: string;
+      email?: string;
       cedula?: string;
       direccion?: string;
       sugerencia_producto?: string;
     }, 
     newName?: string, 
     newCedula?: string,
-    newPhone?: string
+    newPhone?: string,
+    newEmail?: string
   ): Promise<string> => {
     const updateData: any = {};
     
     if (newName && newName !== participant.name) {
       updateData.name = newName;
+    }
+    
+    if (newEmail && newEmail !== participant.email) {
+      updateData.email = newEmail;
     }
     
     if (newCedula && newCedula !== participant.cedula) {
@@ -110,7 +117,8 @@ export const useParticipantManager = ({
           const buyerInfo: ValidatedBuyerInfo = {
             id: participant.id,
             name: newName || participant.name,
-            phone: newPhone ? formatPhoneNumber(newPhone) : participant.phone,
+            phone: newPhone ? formatPhoneNumber(newPhone) : participant.phone || '',
+            email: newEmail || participant.email,
             cedula: newCedula || participant.cedula,
             direccion: participant.direccion,
             sugerencia_producto: participant.sugerencia_producto
@@ -125,14 +133,15 @@ export const useParticipantManager = ({
     return participant.id;
   };
 
-  const createNewParticipant = async (phone: string, name?: string, cedula?: string): Promise<string | null> => {
+  const createNewParticipant = async (phone: string, name?: string, cedula?: string, email?: string): Promise<string | null> => {
     if (!name) return null;
     
     const formattedPhone = formatPhoneNumber(phone);
     debugLog('Creating new participant', { 
       name, 
       formattedPhone, 
-      cedula, 
+      cedula,
+      email,
       raffle_id: raffleId, 
       seller_id: raffleSeller?.seller_id 
     });
@@ -140,7 +149,8 @@ export const useParticipantManager = ({
     console.log("🆕 Creating new participant:", { 
       name, 
       formattedPhone, 
-      cedula, 
+      cedula,
+      email,
       raffle_id: raffleId
     });
     
@@ -149,13 +159,13 @@ export const useParticipantManager = ({
       .insert({
         name,
         phone: formattedPhone,
-        email: '',
+        email: email || '',
         cedula: cedula || null,
         raffle_id: raffleId,
         seller_id: raffleSeller?.seller_id
         // nota field is removed as per requirements
       })
-      .select('id, name, phone, cedula')
+      .select('id, name, phone, email, cedula')
       .single();
       
     if (error) {
@@ -173,6 +183,7 @@ export const useParticipantManager = ({
         id: data.id,
         name: data.name,
         phone: data.phone,
+        email: data.email,
         cedula: data.cedula
       };
       
@@ -183,10 +194,10 @@ export const useParticipantManager = ({
     return data?.id || null;
   };
 
-  const findOrCreateParticipant = async (phone: string, name?: string, cedula?: string) => {
+  const findOrCreateParticipant = async (phone: string, name?: string, cedula?: string, email?: string) => {
     try {
-      debugLog('findOrCreateParticipant input', { phone, name, cedula, raffle_id: raffleId });
-      console.log("🔄 findOrCreateParticipant called with:", { phone, name, cedula });
+      debugLog('findOrCreateParticipant input', { phone, name, cedula, email, raffle_id: raffleId });
+      console.log("🔄 findOrCreateParticipant called with:", { phone, name, cedula, email });
       
       const existingParticipant = await findExistingParticipant(phone);
       
@@ -196,13 +207,14 @@ export const useParticipantManager = ({
           existingParticipant, 
           name, 
           cedula, 
-          phone
+          phone,
+          email
         );
       }
       
       console.log("🔄 No existing participant found, creating new one");
-      return createNewParticipant(phone, name, cedula);
-    } catch (error) {
+      return createNewParticipant(phone, name, cedula, email);
+    } catch (error: any) {
       console.error('Error in findOrCreateParticipant:', error);
       toast.error('Error al buscar o crear participante: ' + (error.message || 'Error desconocido'));
       return null;

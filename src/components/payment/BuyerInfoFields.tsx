@@ -22,6 +22,11 @@ const BuyerInfoFields: React.FC<BuyerInfoFieldsProps> = ({ buyerData }) => {
         <div>
           <span className="font-semibold">Cédula:</span> {buyerData.cedula || 'No disponible'}
         </div>
+        {buyerData.email && (
+          <div>
+            <span className="font-semibold">Email:</span> {buyerData.email}
+          </div>
+        )}
         {buyerData.direccion && (
           <div>
             <span className="font-semibold">Dirección:</span> {buyerData.direccion}

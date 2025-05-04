@@ -20,6 +20,20 @@ function AdditionalInfoSection({ form }: { form: UseFormReturn<PaymentFormData> 
       <div className="grid grid-cols-1 gap-4">
         <FormField
           control={form.control}
+          name="buyerEmail"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input placeholder="Ingrese su email" type="email" {...field} value={field.value || ''} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
           name="direccion"
           render={({ field }) => (
             <FormItem>
@@ -63,15 +77,17 @@ function HiddenBuyerFields({ form, readOnlyData }: { form: UseFormReturn<Payment
   useEffect(() => {
     if (readOnlyData) {
       if (readOnlyData.name)
-        form.setValue("buyerName", readOnlyData.name)
+        form.setValue("buyerName", readOnlyData.name);
       if (readOnlyData.phone)
-        form.setValue("buyerPhone", readOnlyData.phone)
+        form.setValue("buyerPhone", readOnlyData.phone);
       if (readOnlyData.cedula)
-        form.setValue("buyerCedula", readOnlyData.cedula)
+        form.setValue("buyerCedula", readOnlyData.cedula);
+      if (readOnlyData.email)
+        form.setValue("buyerEmail", readOnlyData.email);
       if (readOnlyData.direccion)
-        form.setValue("direccion", readOnlyData.direccion)
+        form.setValue("direccion", readOnlyData.direccion);
       if (readOnlyData.sugerencia_producto)
-        form.setValue("sugerenciaProducto", readOnlyData.sugerencia_producto)
+        form.setValue("sugerenciaProducto", readOnlyData.sugerencia_producto);
     }
   }, [readOnlyData, form]);
 
@@ -104,6 +120,8 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
         form.setValue("buyerPhone", readOnlyData.phone);
       if (readOnlyData.cedula)
         form.setValue("buyerCedula", readOnlyData.cedula);
+      if (readOnlyData.email)
+        form.setValue("buyerEmail", readOnlyData.email);
       if (readOnlyData.direccion)
         form.setValue("direccion", readOnlyData.direccion);
       if (readOnlyData.sugerencia_producto)

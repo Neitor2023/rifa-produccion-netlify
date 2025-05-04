@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -24,13 +25,13 @@ interface PaymentModalProps {
   onComplete: (paymentData: PaymentFormData) => void;
   buyerData?: ValidatedBuyerInfo;
   debugMode?: boolean;
-  clickedButton?: string; // New prop for the clicked button
+  clickedButton?: string;
 }
 
 const paymentFormSchema = z.object({
   buyerName: z.string().min(3, { message: "Nombre debe tener al menos 3 caracteres" }),
   buyerPhone: z.string().min(10, { message: "Teléfono debe tener al menos 10 caracteres" }),
-  buyerEmail: z.string().email({ message: "Email inválido" }),
+  buyerEmail: z.string().email({ message: "Email inválido" }).optional().or(z.literal('')),
   buyerCedula: z.string().min(5, { message: "Cédula/DNI debe tener al menos 5 caracteres" }),
   paymentMethod: z.enum(["cash", "transfer"], { 
     required_error: "Seleccione un método de pago" 
@@ -52,12 +53,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   onComplete,
   buyerData,
   debugMode = false,
-  clickedButton // Add the new prop
+  clickedButton
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const { buyerInfo } = useBuyerInfo(); // Get buyerInfo from context
+  const { buyerInfo } = useBuyerInfo();
   
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentFormSchema),
@@ -84,6 +85,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       form.setValue('buyerName', buyerData.name || "");
       form.setValue('buyerPhone', buyerData.phone || "");
       form.setValue('buyerCedula', buyerData.cedula || "");
+      form.setValue('buyerEmail', buyerData.email || "");
       
       if (buyerData.direccion) {
         form.setValue("direccion", buyerData.direccion);
@@ -119,7 +121,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     let completeData = { ...data };
     
     if (buyerData) {
-      const { name, phone, cedula } = buyerData;
+      const { name, phone, cedula, email } = buyerData;
       
       if (!name || !phone || !cedula) {
         console.log('PaymentModal - buyerData incompleta (name, phone, cedula), intentando completar con buyerInfo:', 
@@ -131,17 +133,18 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             buyerName: completeData.buyerName || buyerInfo.name,
             buyerPhone: completeData.buyerPhone || buyerInfo.phone,
             buyerCedula: completeData.buyerCedula || buyerInfo.cedula || "",
+            buyerEmail: completeData.buyerEmail || buyerInfo.email || "",
           };
           
           completeData = { ...completeData, ...updatedFields };
           
-          console.log('PaymentModal - buyerData completada (name, phone, cedula):', 
+          console.log('PaymentModal - buyerData completada (name, phone, cedula, email):', 
             updatedFields, 'formulario actualizado:', completeData);
         } else {
           console.log('PaymentModal - buyerInfo también está vacío.');
         }
       } else {
-        console.log('PaymentModal - buyerData (name, phone, cedula) está completa:', buyerData);
+        console.log('PaymentModal - buyerData (name, phone, cedula, email) está completa:', buyerData);
       }
     } else {
       console.log('PaymentModal - buyerData es null o undefined.');
@@ -168,6 +171,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       buyerName: completeData.buyerName,
       buyerPhone: completeData.buyerPhone,
       buyerCedula: completeData.buyerCedula,
+      buyerEmail: completeData.buyerEmail,
       paymentMethod: completeData.paymentMethod
     });
     
@@ -220,6 +224,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         form.setValue('buyerName', buyerData.name || "");
         form.setValue('buyerPhone', buyerData.phone || "");
         form.setValue('buyerCedula', buyerData.cedula || "");
+        form.setValue('buyerEmail', buyerData.email || "");
         
         if (buyerData.direccion) {
           form.setValue("direccion", buyerData.direccion);
@@ -252,13 +257,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           buyerData={buyerData}
           onFileUpload={handleImageUpload}
           onFileRemove={handleRemoveImage}
-          clickedButton={clickedButton} // Pass the clicked button prop
+          clickedButton={clickedButton}
         />
         
         <PaymentModalActions 
           isSubmitting={isSubmitting}
           onClose={onClose}
-          onSubmit={onSubmit} // Pass the direct function reference, not wrapped in form.handleSubmit
+          onSubmit={onSubmit}
         />
         
         <Toaster
