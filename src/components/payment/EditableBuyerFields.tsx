@@ -53,8 +53,21 @@ const EditableBuyerFields: React.FC<EditableBuyerFieldsProps> = ({ form }) => {
               <FormMessage />
             </FormItem>
           )}
-        />        
-        
+        />
+
+        <FormField
+          control={form.control}
+          name="buyerEmail"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input placeholder="Ingrese su email" type="email" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </div>
     </div>
   );
