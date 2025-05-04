@@ -20,25 +20,6 @@ function AdditionalInfoSection({ form }: { form: UseFormReturn<PaymentFormData> 
       <div className="grid grid-cols-1 gap-4">
         <FormField
           control={form.control}
-          name="buyerEmail"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Ingrese su email"
-                  type="email"
-                  {...field}
-                  value={field.value || ''}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
           name="direccion"
           render={({ field }) => (
             <FormItem>
@@ -85,8 +66,6 @@ function HiddenBuyerFields({ form, readOnlyData }: { form: UseFormReturn<Payment
         form.setValue("buyerName", readOnlyData.name)
       if (readOnlyData.phone)
         form.setValue("buyerPhone", readOnlyData.phone)
-      if (readOnlyData.email)
-        form.setValue("buyerEmail", readOnlyData.email)
       if (readOnlyData.cedula)
         form.setValue("buyerCedula", readOnlyData.cedula)
       if (readOnlyData.direccion)
@@ -123,8 +102,6 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
         form.setValue("buyerName", readOnlyData.name);
       if (readOnlyData.phone)
         form.setValue("buyerPhone", readOnlyData.phone);
-      if (readOnlyData.email)
-        form.setValue("buyerEmail", readOnlyData.email);
       if (readOnlyData.cedula)
         form.setValue("buyerCedula", readOnlyData.cedula);
       if (readOnlyData.direccion)

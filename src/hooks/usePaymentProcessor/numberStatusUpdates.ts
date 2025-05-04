@@ -7,7 +7,7 @@ interface UpdateNumbersToSoldProps {
   paymentProofUrl: string | null;
   raffleNumbers: any[];
   raffleSeller: any;
-  raffleId: string;
+  raffleId: string; // Added missing raffleId parameter
 }
 
 export const updateNumbersToSold = async ({
@@ -16,7 +16,7 @@ export const updateNumbersToSold = async ({
   paymentProofUrl,
   raffleNumbers,
   raffleSeller,
-  raffleId
+  raffleId // Added missing raffleId parameter
 }: UpdateNumbersToSoldProps) => {
   console.log("🔵 numberStatusUpdates.ts: Actualización de números a vendidos:", {
     numbers,
@@ -27,7 +27,7 @@ export const updateNumbersToSold = async ({
   // Trae los datos del participante para rellenar los campos
   const { data: participantData } = await supabase
     .from('participants')
-    .select('name, phone, email, cedula, direccion')
+    .select('name, phone, cedula, direccion')
     .eq('id', participantId)
     .single();
 

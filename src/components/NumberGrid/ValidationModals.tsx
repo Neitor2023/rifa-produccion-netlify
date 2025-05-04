@@ -46,7 +46,7 @@ const ValidationModals: React.FC<ValidationModalsProps> = ({
       <PhoneValidationModal 
         isOpen={isPhoneModalOpen}
         onClose={() => setIsPhoneModalOpen(false)}
-        onValidationSuccess={handleValidationSuccess}
+        onPhoneValidationSuccess={handleValidationSuccess}
         selectedNumber={selectedReservedNumber}
         raffleNumbers={raffleNumbers}
         raffleSellerId={raffleSellerId}
