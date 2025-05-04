@@ -110,6 +110,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const onSubmit = () => {
     // Add the requested console.log for debugging
     console.log('PaymentModal - Botón Completar pago pulsado');
+    console.log('PaymentModal - Valor actual del comprobante de pago:', uploadedImage ? {
+      name: uploadedImage.name,
+      size: uploadedImage.size,
+      type: uploadedImage.type
+    } : 'No hay imagen cargada');
     
     // Get the current form values
     const data = form.getValues();
@@ -215,8 +220,16 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       debugLog('Modal opened', {
         selectedNumbers,
         price,
-        buyerData
+        buyerData,
+        clickedButton
       });
+      
+      // Limpiar la imagen cuando se abre el modal con un botón específico
+      if (clickedButton === "Pagar") {
+        console.log("PaymentModal - Modal abierto con botón Pagar, limpiando imagen previa");
+        setUploadedImage(null);
+        setPreviewUrl(null);
+      }
       
       // When modal opens, update form with buyerData
       if (buyerData) {
@@ -237,7 +250,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         console.log("Form values after modal open:", form.getValues());
       }
     }
-  }, [isOpen, selectedNumbers, price, buyerData, form]);
+  }, [isOpen, selectedNumbers, price, buyerData, form, clickedButton]);
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>

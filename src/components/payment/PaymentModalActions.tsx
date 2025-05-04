@@ -45,7 +45,7 @@ export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit }: Payment
         Cancelar
       </Button>
       <Button
-        type="button" // Changed from "submit" to "button" to have more control
+        type="button"
         onClick={handleSubmit}
         disabled={isSubmitting}
         className="flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB]"
