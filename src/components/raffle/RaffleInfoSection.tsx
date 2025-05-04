@@ -7,16 +7,14 @@ import { Organization } from '@/lib/constants';
 
 interface RaffleInfoSectionProps {
   raffle: any;
-  seller?: any; // Make seller optional
+  seller: any;
   organization: Organization | null;
-  excludeSellerInfo?: boolean; // Add the new prop
 }
 
 const RaffleInfoSection: React.FC<RaffleInfoSectionProps> = ({ 
   raffle, 
   seller, 
-  organization,
-  excludeSellerInfo = false // Default to false to maintain backward compatibility
+  organization 
 }) => {
   return (
     <>
@@ -31,8 +29,7 @@ const RaffleInfoSection: React.FC<RaffleInfoSectionProps> = ({
         />
       )}
       
-      {/* Only render SellerInfo if excludeSellerInfo is false and seller exists */}
-      {!excludeSellerInfo && seller && (
+      {seller && (
         <SellerInfo
           name={seller.name}
           phone={seller.phone}

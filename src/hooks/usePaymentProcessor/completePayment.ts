@@ -1,19 +1,17 @@
 
+import { PaymentFormData } from '@/components/PaymentModal';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
-import { PaymentFormData } from '@/types/payment';
-import { updateNumbersToSold } from './numberStatusUpdates';
 
 interface UseCompletePaymentProps {
   raffleSeller: any;
   raffleId: string;
   selectedNumbers: string[];
   refetchRaffleNumbers: () => Promise<any>;
-  setPaymentData: (data: PaymentFormData | null) => void;
+  setPaymentData: (data: any) => void;
   setIsPaymentModalOpen: (isOpen: boolean) => void;
   setIsVoucherOpen: (isOpen: boolean) => void;
   allowVoucherPrint: boolean;
-  uploadPaymentProof: (paymentProof: File | string | null) => Promise<string | null>;
+  uploadPaymentProof: (paymentProof: any) => Promise<string | null>;
   processParticipant: (data: PaymentFormData) => Promise<string | null>;
   supabase: any;
   debugMode?: boolean;
@@ -30,84 +28,156 @@ export function useCompletePayment({
   allowVoucherPrint,
   uploadPaymentProof,
   processParticipant,
+  supabase,
   debugMode = false
 }: UseCompletePaymentProps) {
-  const debugLog = (context: string, data: any) => {
-    if (debugMode) {
-      console.log(`[DEBUG - CompletePayment - ${context}]:`, data);
-    }
-  };
-
+  
   const handleCompletePayment = async (data: PaymentFormData) => {
-    console.log("🚀 completePayment.ts:41 - Iniciando proceso de completar pago");
-    debugLog('handleCompletePayment called with data', data);
+    console.log("🔄 handleCompletePayment called with data:", {
+      buyerName: data.buyerName,
+      buyerPhone: data.buyerPhone,
+      buyerCedula: data.buyerCedula,
+      paymentMethod: data.paymentMethod
+    });
+    
+    if (!raffleSeller?.seller_id) {
+      toast.error('Información del vendedor no disponible');
+      return;
+    }
     
     try {
-      // 1. Upload payment proof if it exists
-      console.log("🧾 completePayment.ts:46 - Procesando comprobante de pago");
-      const paymentProofUrl = await uploadPaymentProof(data.paymentProof);
-      debugLog('Payment proof uploaded', paymentProofUrl);
-
-      // 2. Process participant information
-      console.log("👤 completePayment.ts:51 - Procesando información del participante");
-      console.log("📧 completePayment.ts:52 - Email a guardar:", data.buyerEmail);
+      if (debugMode) {
+        console.log('Complete Payment - starting', {
+          selectedNumbers,
+          data,
+          sellerId: raffleSeller.seller_id
+        });
+      }
       
-      const participantId = await processParticipant(data);
+      const paymentProofUrl = await uploadPaymentProof(data.paymentProof);
+      
+      let participantId: string | null = await processParticipant(data);
       
       if (!participantId) {
-        throw new Error('Failed to process participant information');
+        toast.error('Error al procesar la información del participante');
+        return;
       }
-      debugLog('Participant processed', participantId);
-
-      // 3. Get the latest raffle numbers (for checking status)
-      console.log("🎟️ completePayment.ts:61 - Obteniendo números actualizados de la rifa");
-      const { data: raffleNumbers } = await supabase
-        .from('raffle_numbers')
-        .select('*')
-        .eq('raffle_id', raffleId);
       
-      // 4. Update numbers to sold
-      console.log("✅ completePayment.ts:67 - Actualizando números a vendidos");
-      // Fix: Pass the required object with all parameters instead of separate arguments
-      await updateNumbersToSold({
-        numbers: selectedNumbers,
-        participantId: participantId,
-        paymentProofUrl: paymentProofUrl,
-        raffleNumbers: raffleNumbers,
-        raffleSeller: raffleSeller,
-        raffleId: raffleId
-      });
-      debugLog('Numbers updated to sold', selectedNumbers);
-
-      // 5. Refresh data
+      // Modified logic to check for existing records and update or insert accordingly
+      for (const number of selectedNumbers) {
+        // Check if the number already exists in the raffle_numbers table
+        const { data: existingNumber, error: queryError } = await supabase
+          .from('raffle_numbers')
+          .select('id')
+          .eq('raffle_id', raffleId)
+          .eq('number', parseInt(number))
+          .eq('seller_id', raffleSeller.seller_id)
+          .maybeSingle();
+        
+        if (queryError) {
+          console.error('Error checking if number exists:', queryError);
+          continue;
+        }
+        
+        const updateData = {
+          status: 'sold',
+          participant_id: participantId,
+          payment_proof: paymentProofUrl,
+          participant_name: data.buyerName,
+          participant_phone: data.buyerPhone,
+          participant_cedula: data.buyerCedula || null,
+          payment_approved: true
+        };
+        
+        if (existingNumber) {
+          // Number exists, update it
+          console.log(`Number ${number} exists, updating record with ID: ${existingNumber.id}`);
+          const { error: updateError } = await supabase
+            .from('raffle_numbers')
+            .update(updateData)
+            .eq('id', existingNumber.id);
+          
+          if (updateError) {
+            console.error(`Error updating number ${number}:`, updateError);
+          }
+        } else {
+          // Number doesn't exist, insert it
+          console.log(`Number ${number} doesn't exist, creating new record`);
+          const { error: insertError } = await supabase
+            .from('raffle_numbers')
+            .insert({
+              raffle_id: raffleId,
+              number: parseInt(number),
+              seller_id: raffleSeller.seller_id,
+              ...updateData
+            });
+          
+          if (insertError) {
+            console.error(`Error inserting number ${number}:`, insertError);
+          }
+        }
+      }
+      
       await refetchRaffleNumbers();
       
-      // 6. Show success message and prepare voucher data
-      toast.success('¡Pago completado con éxito!');
-      
-      // Fix: Create a copy of data without adding unknown properties
-      const paymentDataToSet = {
+      setPaymentData({
         ...data,
-        // Do not add paymentProofUrl as it's not in the type
-      };
+        paymentProof: paymentProofUrl
+      });
       
-      // Set the data in a type-safe way
-      setPaymentData(paymentDataToSet);
+      if (data.reporteSospechoso) {
+        await handleFraudReport(data.reporteSospechoso, participantId, raffleId, raffleSeller.seller_id);
+      }
       
       setIsPaymentModalOpen(false);
       
       if (allowVoucherPrint) {
         setIsVoucherOpen(true);
+      } else {
+        toast.success('Pago completado exitosamente. El comprobante de pago está en revisión.');
+        toast.info('Es importante que le exija su comprobante de pago a su vendedor, este es su constancia de reclamo de premios.');
       }
       
-      console.log("🎉 completePayment.ts:91 - Proceso de pago completado con éxito");
+      toast.success('Pago completado exitosamente');
     } catch (error) {
-      console.error('completePayment.ts:93 - ❌ Error al completar el pago:', error);
-      toast.error(`Error al completar el pago: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      console.error('Error al completar el pago:', error);
+      toast.error('Error al completar el pago');
     }
   };
 
-  return {
-    handleCompletePayment
+  const handleFraudReport = async (reportMessage: string, participantId: string, raffleId: string, sellerId: string) => {
+    try {
+      const { data: existingReport } = await supabase
+        .from('fraud_reports')
+        .select('id')
+        .match({
+          participant_id: participantId,
+          raffle_id: raffleId,
+          seller_id: sellerId
+        })
+        .maybeSingle();
+      
+      if (!existingReport) {
+        const { error: fraudError } = await supabase
+          .from('fraud_reports')
+          .insert({
+            raffle_id: raffleId,
+            seller_id: sellerId,
+            participant_id: participantId,
+            mensaje: reportMessage,
+            estado: 'pendiente'
+          });
+
+        if (fraudError) {
+          console.error('Error saving fraud report:', fraudError);
+        }
+      } else {
+        console.log("⚠️ Fraud report already exists for this participant, skipping duplicate insert");
+      }
+    } catch (error) {
+      console.error('Error handling fraud report:', error);
+    }
   };
+
+  return { handleCompletePayment };
 }

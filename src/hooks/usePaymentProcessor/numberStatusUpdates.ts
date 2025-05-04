@@ -1,7 +1,5 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { formatPhoneNumber } from '@/utils/phoneUtils';
-import { SELLER_ID } from '@/lib/constants'; // Import the constant SELLER_ID
 
 interface UpdateNumbersToSoldProps {
   numbers: string[];
@@ -9,7 +7,7 @@ interface UpdateNumbersToSoldProps {
   paymentProofUrl: string | null;
   raffleNumbers: any[];
   raffleSeller: any;
-  raffleId: string;
+  raffleId: string; // Added missing raffleId parameter
 }
 
 export const updateNumbersToSold = async ({
@@ -18,9 +16,9 @@ export const updateNumbersToSold = async ({
   paymentProofUrl,
   raffleNumbers,
   raffleSeller,
-  raffleId
+  raffleId // Added missing raffleId parameter
 }: UpdateNumbersToSoldProps) => {
-  console.log("🔵 numberStatusUpdates.ts:21: Actualización de números a vendidos:", {
+  console.log("🔵 numberStatusUpdates.ts: Actualización de números a vendidos:", {
     numbers,
     participantId,
     paymentProofUrl
@@ -36,26 +34,19 @@ export const updateNumbersToSold = async ({
   if (!participantData) {
     throw new Error('No se encontraron datos del participante');
   }
-  
-  // Asegurar formato internacional del teléfono
-  const formattedPhone = formatPhoneNumber(participantData.phone);
-  console.log("🔵 numberStatusUpdates.ts:38: Teléfono del participante formateado:", formattedPhone);
-  
-  // Usar el seller_id del raffleSeller en lugar del constante SELLER_ID
-  console.log("🔵 numberStatusUpdates.ts:41: Usando seller_id del raffleSeller:", raffleSeller.seller_id);
 
   const updatePromises = numbers.map(async (numStr) => {
     const existingNumber = raffleNumbers.find(n => n.number === numStr);
 
     const commonData = {
       status: 'sold' as const,
-      seller_id: raffleSeller.seller_id, // Usar el seller_id del raffleSeller
+      seller_id: raffleSeller.seller_id,
       participant_id: participantId,
       payment_proof: paymentProofUrl || existingNumber?.payment_proof || null,
       payment_approved: true,
       reservation_expires_at: null,
       participant_name: participantData.name,
-      participant_phone: formattedPhone, // Usamos el teléfono formateado
+      participant_phone: participantData.phone,
       participant_cedula: participantData.cedula
     };
 

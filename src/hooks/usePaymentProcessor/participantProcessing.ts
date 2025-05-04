@@ -2,7 +2,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentFormData } from '@/types/payment';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
-import { SELLER_ID } from '@/lib/constants'; // Import the constant SELLER_ID
 
 interface ProcessParticipantProps {
   data: PaymentFormData;
@@ -16,22 +15,20 @@ export const processParticipant = async ({
   debugLog
 }: ProcessParticipantProps): Promise<string | null> => {
   try {
-    console.log("🔵 participantProcessing.ts:17 - Procesando participante con datos:", data);
+    console.log("🔵 Processing participant with data:", data);
     debugLog('Processing participant', data);
     
     const formattedPhone = formatPhoneNumber(data.buyerPhone);
-    console.log("🔵 participantProcessing.ts:21 - Teléfono formateado para almacenamiento:", formattedPhone);
-    console.log("📧 participantProcessing.ts:22 - Email recibido para almacenamiento:", data.buyerEmail);
     
     const { data: existingParticipant, error: searchError } = await supabase
       .from('participants')
-      .select('id, name, phone, cedula, direccion, sugerencia_producto, nota, email')
+      .select('id, name, phone, cedula, direccion, sugerencia_producto, nota')
       .eq('phone', formattedPhone)
       .eq('raffle_id', raffleId)
       .maybeSingle();
 
     if (searchError) {
-      console.error("participantProcessing.ts:31 - Error buscando participante existente:", searchError);
+      console.error("Error searching for existing participant:", searchError);
       debugLog('Search error', searchError);
     }
 
@@ -39,11 +36,8 @@ export const processParticipant = async ({
 
     if (existingParticipant) {
       participantId = existingParticipant.id;
-      console.log("✅ participantProcessing.ts:38 - Participante existente encontrado:", existingParticipant);
+      console.log("✅ Found existing participant:", existingParticipant);
       debugLog('Using existing participant', existingParticipant);
-
-      // No incluir seller_id en la actualización
-      console.log("🔄 participantProcessing.ts:42 - Actualizando participante sin seller_id");
 
       const updateData: any = {
         name: data.buyerName,
@@ -51,13 +45,8 @@ export const processParticipant = async ({
         nota: data.nota,
         cedula: data.buyerCedula || null,
         direccion: data.direccion || null,
-        sugerencia_producto: data.sugerenciaProducto || null,
-        email: data.buyerEmail || ''
+        sugerencia_producto: data.sugerenciaProducto || null
       };
-
-      console.log("🔄 participantProcessing.ts:54 - Actualizando participante con datos:", updateData);
-      console.log("📧 participantProcessing.ts:55 - Actualizando email a:", data.buyerEmail || '');
-      debugLog('Update data with email', updateData);
 
       const { error: updateError } = await supabase
         .from('participants')
@@ -65,22 +54,16 @@ export const processParticipant = async ({
         .eq('id', participantId);
 
       if (updateError) {
-        console.error("participantProcessing.ts:63 - Error actualizando participante:", updateError);
+        console.error("Error updating participant:", updateError);
         debugLog('Update error', updateError);
         throw updateError;
       }
-      
-      console.log("✅ participantProcessing.ts:68 - Participante actualizado exitosamente con email:", data.buyerEmail);
     } else {
-      console.log("🆕 participantProcessing.ts:71 - Creando nuevo participante");
-      
+      console.log("🆕 Creating new participant");
       debugLog('Creating new participant', { 
         name: data.buyerName, 
-        phone: formattedPhone,
-        email: data.buyerEmail || '' 
+        phone: formattedPhone 
       });
-      
-      console.log("📧 participantProcessing.ts:79 - Creando nuevo participante con email:", data.buyerEmail || '');
 
       const { data: newParticipant, error: participantError } = await supabase
         .from('participants')
@@ -92,26 +75,24 @@ export const processParticipant = async ({
           direccion: data.direccion || null,
           sugerencia_producto: data.sugerenciaProducto || null,
           nota: data.nota || null,
-          raffle_id: raffleId,
-          seller_id: SELLER_ID  // Use the constant SELLER_ID instead of raffleId
+          raffle_id: raffleId
         })
         .select('id')
         .single();
 
       if (participantError) {
-        console.error("participantProcessing.ts:95 - Error creando nuevo participante:", participantError);
+        console.error("Error creating new participant:", participantError);
         debugLog('Creation error', participantError);
         throw participantError;
       }
 
       participantId = newParticipant.id;
-      console.log("✅ participantProcessing.ts:101 - Nuevo participante creado con ID:", participantId);
       debugLog('New participant created', { id: participantId });
     }
 
     return participantId;
   } catch (error) {
-    console.error('participantProcessing.ts:107 - Error procesando participante:', error);
+    console.error('Error processing participant:', error);
     debugLog('Process error', error);
     throw error;
   }

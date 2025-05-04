@@ -4,7 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import { useNumberSelection } from '@/contexts/NumberSelectionContext';
 import { useBuyerInfo } from '@/contexts/BuyerInfoContext';
-import { calculateExpirationDate } from '@/hooks/useNumberStatus/expirationCalculator';
 
 interface UseGridHandlersProps {
   numbers: any[];
@@ -133,13 +132,45 @@ export const useGridHandlers = ({
       return;
     }
     
-    // Calculate the reservation expiration date using the utility function
-    // This will handle all the logic for determining if we should use the lottery date
-    // or the calculated expiration date based on reservation days
-    const reservationExpiresAt = calculateExpirationDate(reservationDays, lotteryDate);
+    // Calculate the reservation expiration date based on reservationDays and lotteryDate
+    let reservationExpiresAt: Date;
+    
+    // Get the current date
+    const currentDate = new Date();
+    
+    // Calculate the date after adding the reservation days
+    // Use the reservationDays if provided, otherwise default to a reasonable value
+    const daysToAdd = typeof reservationDays === 'number' ? reservationDays : 5;
     
     if (debugMode) {
-      console.log('NumberGrid: Calculated reservation expiration date:', reservationExpiresAt.toISOString());
+      console.log('NumberGrid: Using reservation days:', daysToAdd);
+    }
+    
+    // Create a new date by adding the specified days
+    const expirationDate = new Date(currentDate.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
+    
+    // Determine if we should use the lottery date if it comes before the calculated expiration
+    if (lotteryDate && lotteryDate instanceof Date && !isNaN(lotteryDate.getTime())) {
+      // Valid lottery date, compare with expiration date
+      if (expirationDate.getTime() > lotteryDate.getTime()) {
+        // If expiration would be after the lottery, use the lottery date instead
+        reservationExpiresAt = new Date(lotteryDate);
+        if (debugMode) {
+          console.log('NumberGrid: Using lottery date as expiration:', reservationExpiresAt.toISOString());
+        }
+      } else {
+        // Otherwise use the calculated expiration date
+        reservationExpiresAt = expirationDate;
+        if (debugMode) {
+          console.log('NumberGrid: Using calculated expiration date:', reservationExpiresAt.toISOString());
+        }
+      }
+    } else {
+      // No valid lottery date, just use the calculated expiration date
+      reservationExpiresAt = expirationDate;
+      if (debugMode) {
+        console.log('NumberGrid: No valid lottery date, using calculated expiration:', reservationExpiresAt.toISOString());
+      }
     }
     
     // Pass the calculated reservation expiration date to onReserve
@@ -173,8 +204,7 @@ export const useGridHandlers = ({
           name: buyerInfo.name,
           phone: buyerInfo.phone,
           cedula: buyerInfo.cedula,
-          id: buyerInfo.id,
-          email: buyerInfo.email // Log email for debugging
+          id: buyerInfo.id
         });
       }
       
@@ -188,7 +218,6 @@ export const useGridHandlers = ({
     setShowReservedMessage(false);
     
     if (participantId && buyerInfo) {
-      console.log("NumberGrid/useGridHandlers.ts:136 - Procediendo al pago con email:", buyerInfo.email);
       await onProceedToPayment(selectedNumbers, buyerInfo, clickedPaymentButton);
     } else {
       await handleNumberValidation(validatedNumber);

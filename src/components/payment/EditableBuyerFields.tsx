@@ -9,8 +9,6 @@ interface EditableBuyerFieldsProps {
 }
 
 const EditableBuyerFields: React.FC<EditableBuyerFieldsProps> = ({ form }) => {
-  console.log("EditableBuyerFields.tsx:10 - Rendering with form values:", form.getValues());
-  
   return (
     <div>
       <h3 className="font-medium mb-3">Información del Comprador</h3>
@@ -51,6 +49,20 @@ const EditableBuyerFields: React.FC<EditableBuyerFieldsProps> = ({ form }) => {
               <FormLabel>Cédula</FormLabel>
               <FormControl>
                 <Input placeholder="Ingrese su cédula" {...field} value={field.value || ''} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="buyerEmail"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input placeholder="Ingrese su email" type="email" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

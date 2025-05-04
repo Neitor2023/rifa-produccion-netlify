@@ -1,7 +1,6 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { calculateExpirationDate } from './expirationCalculator';
-import { formatPhoneNumber } from '@/utils/phoneUtils';
-import { SELLER_ID } from '@/lib/constants'; // Import the constant SELLER_ID
 
 interface UpdateRaffleNumbersStatusProps {
   numbers: string[];
@@ -28,10 +27,7 @@ export async function updateRaffleNumbersStatus({
   reservationDays = 5,
   lotteryDate
 }: UpdateRaffleNumbersStatusProps) {
-  // Usar seller_id de raffleSeller, no del SELLER_ID constante
-  console.log("🔵 updateRaffleNumbersStatus.ts:29: Verificando seller_id del raffleSeller:", raffleSeller.seller_id);
-  
-  if (!raffleSeller.seller_id) {
+  if (!raffleSeller?.seller_id) {
     throw new Error('Seller ID not available');
   }
 
@@ -48,7 +44,7 @@ export async function updateRaffleNumbersStatus({
     
     const updateData: any = { 
       status, 
-      seller_id: raffleSeller.seller_id // Usar el seller_id del raffleSeller
+      seller_id: raffleSeller.seller_id
     };
     
     if (participantId) updateData.participant_id = participantId;
@@ -58,20 +54,11 @@ export async function updateRaffleNumbersStatus({
       if (participantData.participant_name || participantData.buyerName) 
         updateData.participant_name = participantData.participant_name || participantData.buyerName;
       
-      if (participantData.participant_phone || participantData.buyerPhone) {
-        // Formato internacional para teléfono
-        const phone = participantData.participant_phone || participantData.buyerPhone;
-        updateData.participant_phone = formatPhoneNumber(phone);
-        console.log("🔵 updateRaffleNumbersStatus.ts:60: Teléfono formateado para almacenamiento:", updateData.participant_phone);
-      }
+      if (participantData.participant_phone || participantData.buyerPhone) 
+        updateData.participant_phone = participantData.participant_phone || participantData.buyerPhone;
       
       if (participantData.participant_cedula || participantData.buyerCedula) 
         updateData.participant_cedula = participantData.participant_cedula || participantData.buyerCedula;
-      
-      // Log email if present (for debugging)
-      if (participantData.buyerEmail) {
-        console.log("📧 updateRaffleNumbersStatus.ts:68: Email recibido para número:", numStr, participantData.buyerEmail);
-      }
     }
     
     if (status === 'reserved') {

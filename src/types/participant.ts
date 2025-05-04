@@ -6,5 +6,4 @@ export interface ValidatedBuyerInfo {
   cedula?: string;
   direccion?: string;
   sugerencia_producto?: string;
-  email?: string; // Agregando campo email al tipo
 }
