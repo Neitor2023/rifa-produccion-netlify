@@ -10,26 +10,26 @@ const BuyerInfoFields: React.FC<BuyerInfoFieldsProps> = ({ buyerData }) => {
   if (!buyerData) return null;
 
   return (
-    <div className="p-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 dark:bg-blue-900/40 dark:border-blue-700 dark:text-blue-50 text-sm mb-4">
-      <h3 className="text-base font-medium text-blue-900 dark:text-blue-50 mb-2">Información del Comprador (Validada)</h3>
+    <div className="p-4 rounded-lg bg-gray-200 border border-gray-300 text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm mb-4">
+      <h3 className="text-base font-medium text-gray-800 dark:text-white mb-2">Información del Comprador (Validada)</h3>
       <div className="grid grid-cols-1 gap-1">
         <div>
-          <span className="font-semibold">Nombre:</span> {buyerData.name || ''}
+          <span className="font-semibold text-gray-800 dark:text-white">Nombre:</span> {buyerData.name || ''}
         </div>
         <div>
-          <span className="font-semibold">Teléfono:</span> {buyerData.phone || ''}
+          <span className="font-semibold text-gray-800 dark:text-white">Teléfono:</span> {buyerData.phone || ''}
         </div>
         <div>
-          <span className="font-semibold">Cédula:</span> {buyerData.cedula || 'No disponible'}
+          <span className="font-semibold text-gray-800 dark:text-white">Cédula:</span> {buyerData.cedula || 'No disponible'}
         </div>
         {buyerData.email && (
           <div>
-            <span className="font-semibold">Email:</span> {buyerData.email}
+            <span className="font-semibold text-gray-800 dark:text-white">Email:</span> {buyerData.email}
           </div>
         )}
         {buyerData.direccion && (
           <div>
-            <span className="font-semibold">Dirección:</span> {buyerData.direccion}
+            <span className="font-semibold text-gray-800 dark:text-white">Dirección:</span> {buyerData.direccion}
           </div>
         )}
       </div>
