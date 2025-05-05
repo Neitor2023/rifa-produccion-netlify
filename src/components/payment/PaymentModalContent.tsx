@@ -7,6 +7,7 @@ import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import PaymentSummary from './PaymentSummary';
 import PaymentFormFields from './PaymentFormFields';
 import { ValidatedBuyerInfo } from '@/types/participant';
+import { Card, CardContent } from "@/components/ui/card";
 
 interface PaymentModalContentProps {
   form: UseFormReturn<PaymentFormData>;
@@ -44,30 +45,33 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
   }, [buyerData, form]);
   
   return (
-    <ScrollArea className="flex-1 overflow-y-auto px-1 bg-gray-100 dark:bg-gray-800 rounded-md">
-      <Form {...form}>
-        <form 
-          // Remove the onSubmit handler as we're handling submission via the action buttons
-          className="space-y-6 py-4"
-        >
-          {/* PaymentSummary is still included but renders an empty div now */}
-          <PaymentSummary 
-            selectedNumbers={selectedNumbers}
-            price={price}
-            clickedButton={clickedButton}
-          />
-          <div className="space-y-6">
-            <PaymentFormFields 
-              form={form}
-              readOnlyData={buyerData}
-              previewUrl={previewUrl}
-              onFileUpload={onFileUpload}
-              onFileRemove={onFileRemove}
-            />
+    <Card className="border-0 shadow-sm mt-4 bg-transparent">
+      <CardContent className="p-0">
+        <ScrollArea className="max-h-[50vh] overflow-y-auto px-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
+          <div className="p-4">
+            <Form {...form}>
+              <form className="space-y-6">
+                {/* PaymentSummary is still included but renders an empty div now */}
+                <PaymentSummary 
+                  selectedNumbers={selectedNumbers}
+                  price={price}
+                  clickedButton={clickedButton}
+                />
+                <div className="space-y-6">
+                  <PaymentFormFields 
+                    form={form}
+                    readOnlyData={buyerData}
+                    previewUrl={previewUrl}
+                    onFileUpload={onFileUpload}
+                    onFileRemove={onFileRemove}
+                  />
+                </div>
+              </form>
+            </Form>
           </div>
-        </form>
-      </Form>
-    </ScrollArea>
+        </ScrollArea>
+      </CardContent>
+    </Card>
   );
 };
 

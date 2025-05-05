@@ -14,6 +14,7 @@ import PaymentModalContent from './payment/PaymentModalContent';
 import { NumberSelectionProvider } from '@/contexts/NumberSelectionContext';
 import { usePaymentForm } from '@/hooks/usePaymentForm';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
+import { Card } from '@/components/ui/card';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -53,30 +54,32 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col carousel-card">
-        <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+      <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
+        <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-gray-600 dark:text-gray-300">
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
         </DialogClose>
 
-        <PaymentModalHeader />
+        <Card className="bg-background dark:bg-gray-900 border-0 shadow-none">
+          <PaymentModalHeader />
 
-        <PaymentModalContent
-          form={form}
-          selectedNumbers={selectedNumbers}
-          price={price}
-          previewUrl={previewUrl}
-          buyerData={buyerData}
-          onFileUpload={handleImageUpload}
-          onFileRemove={handleRemoveImage}
-          clickedButton={clickedButton}
-        />
-        
-        <PaymentModalActions 
-          isSubmitting={isSubmitting}
-          onClose={onClose}
-          onSubmit={handleSubmit}
-        />
+          <PaymentModalContent
+            form={form}
+            selectedNumbers={selectedNumbers}
+            price={price}
+            previewUrl={previewUrl}
+            buyerData={buyerData}
+            onFileUpload={handleImageUpload}
+            onFileRemove={handleRemoveImage}
+            clickedButton={clickedButton}
+          />
+          
+          <PaymentModalActions 
+            isSubmitting={isSubmitting}
+            onClose={onClose}
+            onSubmit={handleSubmit}
+          />
+        </Card>
         
         <Toaster
           position="top-right"
