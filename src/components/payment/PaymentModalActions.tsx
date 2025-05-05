@@ -40,7 +40,7 @@ export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit }: Payment
         type="button"
         variant="outline"
         onClick={handleCancel}
-        className="flex-1 sm:flex-none font-bold uppercase text-gray-800 dark:text-white hover:text-white dark:hover:text-gray-800"
+        className="flex-1 sm:flex-none font-bold uppercase text-gray-800 dark:text-white hover:bg-[#9b87f5] hover:text-white dark:hover:text-gray-800"
       >
         Cancelar
       </Button>

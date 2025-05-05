@@ -16,7 +16,7 @@ interface PaymentNotesProps {
 const PaymentNotes: React.FC<PaymentNotesProps> = ({ form }) => {
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-medium text-muted-foreground">
+      <h3 className="text-base font-medium text-gray-800 dark:text-white">
         Comentarios adicionales (opcional)
       </h3>
       

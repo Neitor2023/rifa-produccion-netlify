@@ -24,26 +24,26 @@ interface PaymentMethodFieldsProps {
 const PaymentMethodFields: React.FC<PaymentMethodFieldsProps> = ({ form }) => {
   return (
     <div className="space-y-4">
+      <h3 className="text-base font-medium text-gray-800 dark:text-white mb-2">Método de Pago</h3>
       <FormField
         control={form.control}
         name="paymentMethod"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Método de Pago</FormLabel>
-            <Select 
-              onValueChange={field.onChange} 
-              defaultValue={field.value}
-            >
-              <FormControl>
+            <FormControl>
+              <Select 
+                onValueChange={field.onChange} 
+                defaultValue={field.value}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccione un método de pago" />
                 </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="cash">Efectivo</SelectItem>
-                <SelectItem value="transfer">Transferencia bancaria</SelectItem>
-              </SelectContent>
-            </Select>
+                <SelectContent>
+                  <SelectItem value="cash">Efectivo</SelectItem>
+                  <SelectItem value="transfer">Transferencia bancaria</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormControl>
             <FormMessage />
           </FormItem>
         )}

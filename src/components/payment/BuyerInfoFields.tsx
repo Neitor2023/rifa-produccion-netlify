@@ -11,7 +11,7 @@ const BuyerInfoFields: React.FC<BuyerInfoFieldsProps> = ({ buyerData }) => {
 
   return (
     <div className="p-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 dark:bg-blue-900/40 dark:border-blue-700 dark:text-blue-50 text-sm mb-4">
-      <h3 className="font-medium mb-2">Información del Comprador (Validada)</h3>
+      <h3 className="text-base font-medium text-blue-900 dark:text-blue-50 mb-2">Información del Comprador (Validada)</h3>
       <div className="grid grid-cols-1 gap-1">
         <div>
           <span className="font-semibold">Nombre:</span> {buyerData.name || ''}

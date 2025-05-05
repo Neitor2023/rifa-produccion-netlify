@@ -3,7 +3,6 @@ import React from 'react';
 import {
   FormField,
   FormItem,
-  FormLabel,
   FormControl,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,7 +16,7 @@ interface SuspiciousActivityReportProps {
 const SuspiciousActivityReport: React.FC<SuspiciousActivityReportProps> = ({ form }) => {
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-medium text-muted-foreground">
+      <h3 className="text-base font-medium text-gray-800 dark:text-white">
         Reporte actitud sospechosa del vendedor o del sistema
       </h3>
       

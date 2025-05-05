@@ -11,7 +11,7 @@ interface EditableBuyerFieldsProps {
 const EditableBuyerFields: React.FC<EditableBuyerFieldsProps> = ({ form }) => {
   return (
     <div>
-      <h3 className="font-medium mb-3">Información del Comprador</h3>
+      <h3 className="text-base font-medium text-gray-800 dark:text-white mb-3">Información del Comprador</h3>
       <div className="grid grid-cols-1 gap-4">
         <FormField
           control={form.control}
