@@ -9,22 +9,24 @@ import {
   DialogClose
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Prize, PrizeImage } from '@/lib/constants';
+import { Prize, PrizeImage, Organization } from '@/lib/constants/types';
 import { X } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ImageCarousel from './prize-detail/ImageCarousel';
 import MobileCarousel from './prize-detail/MobileCarousel';
 import ThumbnailGallery from './prize-detail/ThumbnailGallery';
 import PrizeDescription from './prize-detail/PrizeDescription';
+import PromotionalImage from './raffle/PromotionalImage';
 
 interface PrizeDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   prize: Prize | null;
   prizeImages: PrizeImage[];
+  organization?: Organization | null;
 }
 
-const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, prize, prizeImages }) => {
+const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, prize, prizeImages, organization }) => {
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
   
   // Use either url_image or image_url depending on what's available
@@ -113,6 +115,13 @@ const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, pr
               description={prize.description || ''}
               detail={prize.detail}
             />
+
+            {/* Display promotional image at the end if available */}
+            {organization?.imagen_publicitaria && (
+              <div className="mt-6">
+                <PromotionalImage imageUrl={organization.imagen_publicitaria} />
+              </div>
+            )}
           </div>
         </ScrollArea>
         

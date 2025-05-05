@@ -89,6 +89,7 @@ const VentaBoletosMain: React.FC<VentaBoletosMainProps> = ({
             <RafflePrizesSection 
               prizes={prizes} 
               prizeImages={prizeImages} 
+              organization={organization}
             />
           </div>
         )}

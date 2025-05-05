@@ -2,16 +2,18 @@
 import React, { useState } from 'react';
 import PrizeCarousel from '@/components/PrizeCarousel';
 import PrizeDetailModal from '@/components/PrizeDetailModal';
-import { Prize, PrizeImage } from '@/lib/constants';
+import { Prize, PrizeImage, Organization } from '@/lib/constants/types';
 
 interface RafflePrizesSectionProps {
   prizes: Prize[];
   prizeImages: PrizeImage[];
+  organization?: Organization | null;
 }
 
 const RafflePrizesSection: React.FC<RafflePrizesSectionProps> = ({ 
   prizes, 
-  prizeImages 
+  prizeImages,
+  organization 
 }) => {
   const [selectedPrize, setSelectedPrize] = useState<Prize | null>(null);
   const [isPrizeModalOpen, setIsPrizeModalOpen] = useState(false);
@@ -33,6 +35,7 @@ const RafflePrizesSection: React.FC<RafflePrizesSectionProps> = ({
         onClose={() => setIsPrizeModalOpen(false)}
         prize={selectedPrize}
         prizeImages={prizeImages}
+        organization={organization}
       />
     </>
   );
