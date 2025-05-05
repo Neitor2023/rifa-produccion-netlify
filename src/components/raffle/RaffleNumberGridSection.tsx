@@ -23,7 +23,7 @@ interface RaffleNumberGridSectionProps {
   reservationDays?: number;
   lotteryDate?: Date;
   organization?: Organization;
-  totalNumbers?: number; // Añadimos la prop totalNumbers
+  totalNumbers?: number;
 }
 
 const RaffleNumberGridSection: React.FC<RaffleNumberGridSectionProps> = ({ 
@@ -39,7 +39,7 @@ const RaffleNumberGridSection: React.FC<RaffleNumberGridSectionProps> = ({
   reservationDays,
   lotteryDate,
   organization,
-  totalNumbers, // Recibimos la prop totalNumbers
+  totalNumbers,
 }) => {
   if (!raffleNumbers) return null;
   
@@ -61,7 +61,7 @@ const RaffleNumberGridSection: React.FC<RaffleNumberGridSectionProps> = ({
         reservationDays={reservationDays}
         lotteryDate={lotteryDate}
         organization={organization}
-        totalNumbers={totalNumbers} // Pasamos la prop totalNumbers
+        totalNumbers={totalNumbers}
       />
     </div>
   );

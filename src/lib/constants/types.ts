@@ -1,4 +1,3 @@
-
 // Type definitions
 export interface Organization {
   organization_logo_url: string;
@@ -11,6 +10,7 @@ export interface Organization {
   admin_phone_number: string;
   imagen_publicitaria?: string;
   image_checklist?: string;
+  image_apartado?: string; // Added field for reserved numbers image
 }
 
 export interface Raffle {
