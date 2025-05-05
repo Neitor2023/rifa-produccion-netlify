@@ -19,9 +19,8 @@ export const NumberGridLegend: React.FC<NumberGridLegendProps> = ({
       <CardContent className="p-4">
         <div className="flex flex-wrap gap-4 justify-center">
           <div className="flex items-center">
-            <div className="h-4 w-4 mr-2 flex items-center justify-center">
-              <CircleDot className="h-4 w-4 text-gray-800 dark:text-gray-200" />
-            </div>
+            <div className="h-4 w-4 border dark:border-gray-600 rounded-sm mr-2"></div>
+            <div className="h-4 w-4 bg-gray-100 dark:bg-gray-700 rounded-sm mr-2"></div>            
             <span className="text-xs font-bold text-card-foreground">DISPONIBLE</span>
           </div>
           
