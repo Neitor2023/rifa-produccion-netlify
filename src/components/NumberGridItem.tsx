@@ -8,7 +8,8 @@ interface NumberGridItemProps {
   isSelected: boolean;
   isHighlighted: boolean;
   onToggle: () => void;
-  checklistImage?: string; // Add the checklist image URL prop
+  checklistImage?: string; // Image URL for sold numbers
+  reservedImage?: string;  // Added: Image URL for reserved numbers
 }
 
 const NumberGridItem: React.FC<NumberGridItemProps> = ({ 
@@ -17,7 +18,8 @@ const NumberGridItem: React.FC<NumberGridItemProps> = ({
   isSelected, 
   isHighlighted, 
   onToggle,
-  checklistImage // Add the checklist image parameter
+  checklistImage,
+  reservedImage  // Added parameter for reserved numbers image
 }) => {
   const getClassNames = () => {
     const baseClasses = 'number-grid-item flex items-center justify-center border rounded-md h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 cursor-pointer text-sm font-medium transition-colors duration-150';
@@ -50,6 +52,23 @@ const NumberGridItem: React.FC<NumberGridItemProps> = ({
           <SafeImage 
             src={checklistImage} 
             alt="Vendido" 
+            className="w-full h-full object-contain p-1" 
+            fallbackClassName="bg-transparent"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Show the reserved image for reserved numbers when not highlighted or selected
+  if (status === 'reserved' && reservedImage && !isHighlighted && !isSelected) {
+    return (
+      <div className={getClassNames()} onClick={onToggle}>
+        <div className="relative w-full h-full flex items-center justify-center">
+          <span className="absolute opacity-20">{number}</span>
+          <SafeImage 
+            src={reservedImage} 
+            alt="Apartado" 
             className="w-full h-full object-contain p-1" 
             fallbackClassName="bg-transparent"
           />
