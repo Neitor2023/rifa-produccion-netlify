@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Toaster } from 'sonner';
 import { Card } from '@/components/ui/card';
@@ -10,7 +9,7 @@ import ReservedMessageAlert from './NumberGrid/ReservedMessageAlert';
 import ValidationModals from './NumberGrid/ValidationModals';
 import { useGridHandlers } from './NumberGrid/useGridHandlers';
 import { ValidatedBuyerInfo } from '@/types/participant';
-import { Organization } from '@/lib/constants';
+import { Organization } from '@/lib/constants/types';
 
 interface RaffleNumber {
   id: string;
@@ -121,7 +120,10 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         onProceedToPayment={handleProceedToPayment}
       />
       
-      <NumberGridLegend highlightReserved={highlightReserved} />
+      <NumberGridLegend 
+        highlightReserved={highlightReserved} 
+        organization={organization} 
+      />
       
       <ValidationModals 
         isPhoneModalOpen={isPhoneModalOpen}
