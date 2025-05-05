@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Toaster } from 'sonner';
 import { Card } from '@/components/ui/card';
@@ -9,7 +10,7 @@ import ReservedMessageAlert from './NumberGrid/ReservedMessageAlert';
 import ValidationModals from './NumberGrid/ValidationModals';
 import { useGridHandlers } from './NumberGrid/useGridHandlers';
 import { ValidatedBuyerInfo } from '@/types/participant';
-import { Organization } from '@/lib/constants/types';
+import { Organization } from '@/lib/constants';
 
 interface RaffleNumber {
   id: string;
@@ -43,7 +44,7 @@ interface NumberGridProps {
   reservationDays?: number;
   lotteryDate?: Date;
   organization?: Organization;
-  totalNumbers?: number;
+  totalNumbers?: number; // Añadimos la prop totalNumbers
 }
 
 const NumberGrid: React.FC<NumberGridProps> = ({ 
@@ -56,7 +57,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   reservationDays,
   lotteryDate,
   organization,
-  totalNumbers,
+  totalNumbers, // Recibimos la prop totalNumbers
 }) => {
   const {
     // State
@@ -107,7 +108,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
           toggleNumber={toggleNumber}
           onPayReserved={handlePayReserved}
           organization={organization}
-          totalNumbers={totalNumbers}
+          totalNumbers={totalNumbers} // Pasamos la prop totalNumbers
         />
       </Card>
       
@@ -120,10 +121,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         onProceedToPayment={handleProceedToPayment}
       />
       
-      <NumberGridLegend 
-        highlightReserved={highlightReserved} 
-        organization={organization} 
-      />
+      <NumberGridLegend highlightReserved={highlightReserved} />
       
       <ValidationModals 
         isPhoneModalOpen={isPhoneModalOpen}

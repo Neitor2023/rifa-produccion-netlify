@@ -113,7 +113,6 @@ export type Database = {
           background_color: string | null
           created_at: string | null
           id: string
-          image_apartado: string | null
           image_checklist: string | null
           imagen_publicitaria: string | null
           modal: string | null
@@ -132,7 +131,6 @@ export type Database = {
           background_color?: string | null
           created_at?: string | null
           id?: string
-          image_apartado?: string | null
           image_checklist?: string | null
           imagen_publicitaria?: string | null
           modal?: string | null
@@ -151,7 +149,6 @@ export type Database = {
           background_color?: string | null
           created_at?: string | null
           id?: string
-          image_apartado?: string | null
           image_checklist?: string | null
           imagen_publicitaria?: string | null
           modal?: string | null

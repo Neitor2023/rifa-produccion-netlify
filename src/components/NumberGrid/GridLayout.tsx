@@ -24,7 +24,7 @@ interface GridLayoutProps {
   toggleNumber: (number: string, status: string) => void;
   onPayReserved: (number: string) => void;
   organization?: Organization;
-  totalNumbers?: number;
+  totalNumbers?: number; // Añadimos prop para recibir total_numbers
 }
 
 const GridLayout: React.FC<GridLayoutProps> = ({
@@ -34,9 +34,9 @@ const GridLayout: React.FC<GridLayoutProps> = ({
   toggleNumber,
   onPayReserved,
   organization,
-  totalNumbers = 99,
+  totalNumbers = 99, // Por defecto, mostrar hasta 99 números (0-99) si no se especifica
 }) => {
-  // At the beginning of GridLayout, just after the props:
+  // Al principio de GridLayout, justo tras los props:
   const numberMap = React.useMemo(
     () => Object.fromEntries(numbers.map(n => [n.number, n])),
     [numbers]
@@ -47,30 +47,30 @@ const GridLayout: React.FC<GridLayoutProps> = ({
     console.log("📊 GridLayout - highlightReserved changed:", highlightReserved);
   }, [highlightReserved]);
 
-  // Calculate how many rows and columns we need to display all numbers
+  // Calculamos cuántas filas y columnas necesitamos para mostrar todos los números
   const calculateGridDimensions = () => {
-    // Ensure totalNumbers is always a number
+    // Aseguramos que totalNumbers sea siempre un número
     const total = Math.max(1, totalNumbers || 0);
     
-    // Determine the number of columns (10 is a good value for mobile and desktop)
+    // Determinamos el número de columnas (10 es un buen valor para móviles y desktop)
     const columns = 10;
     
-    // Calculate how many rows we need to display all numbers
-    const rows = Math.ceil((total + 1) / columns); // +1 because we include 0
+    // Calculamos cuántas filas necesitamos para mostrar todos los números
+    const rows = Math.ceil((total + 1) / columns); // +1 porque incluimos el 0
     
     return { rows, columns };
   };
 
   const { rows, columns } = calculateGridDimensions();
   
-  // Generate the grid of numbers
+  // Generamos la cuadrícula de números
   const grid = [];
   for (let row = 0; row < rows; row++) {
     const rowItems = [];
     for (let col = 0; col < columns; col++) {
       const num = row * columns + col;
       
-      // If we exceed totalNumbers, don't render more numbers
+      // Si excedemos el totalNumbers, no renderizamos más números
       if (num > totalNumbers) break;
       
       const paddedNum = num.toString().padStart(2, '0');
@@ -87,14 +87,13 @@ const GridLayout: React.FC<GridLayoutProps> = ({
           isSelected={isSelected}
           isHighlighted={isHighlighted}
           checklistImage={organization?.image_checklist}
-          reservedImage={organization?.image_apartado} // Pass the reserved image URL
           onToggle={() => {
             if (highlightReserved && status === 'reserved') {
               // Directly call toggleNumber instead of onPayReserved
               console.log("▶️ src/components/NumberGrid/GridLayout.tsx: pulsado reservado:", paddedNum);
               toggleNumber(paddedNum, status);
             } else {
-              // Normal selection logic
+              // Lógica normal de selección
               toggleNumber(paddedNum, status);
             }
           }}          
