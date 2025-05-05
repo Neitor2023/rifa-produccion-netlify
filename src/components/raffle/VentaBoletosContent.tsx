@@ -84,6 +84,7 @@ const VentaBoletosContent: React.FC = () => {
           dateLottery: raffle.date_lottery
         } : undefined}
         clickedButton={clickedButton}
+        organization={organization}
       />
     </>
   );

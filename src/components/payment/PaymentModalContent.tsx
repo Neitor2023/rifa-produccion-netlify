@@ -8,6 +8,8 @@ import PaymentSummary from './PaymentSummary';
 import PaymentFormFields from './PaymentFormFields';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import { Card, CardContent } from "@/components/ui/card";
+import PromotionalImage from '@/components/raffle/PromotionalImage';
+import { Organization } from '@/lib/constants/types';
 
 interface PaymentModalContentProps {
   form: UseFormReturn<PaymentFormData>;
@@ -18,6 +20,7 @@ interface PaymentModalContentProps {
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFileRemove: () => void;
   clickedButton?: string;
+  organization?: Organization | null;
 }
 
 const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
@@ -28,7 +31,8 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
   buyerData,
   onFileUpload,
   onFileRemove,
-  clickedButton
+  clickedButton,
+  organization
 }) => {
   useEffect(() => {
     if (buyerData) {
@@ -68,6 +72,11 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
                 </div>
               </form>
             </Form>
+            
+            {/* Display promotional image at the end if available */}
+            {organization?.imagen_publicitaria && (
+              <PromotionalImage imageUrl={organization.imagen_publicitaria} />
+            )}
           </div>
         </ScrollArea>
       </CardContent>

@@ -3,6 +3,7 @@ import React from 'react';
 import RaffleModals from '@/components/raffle/RaffleModals';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
+import { Organization } from '@/lib/constants/types';
 
 interface VentaBoletosModalsProps {
   isPaymentModalOpen: boolean;
@@ -23,6 +24,7 @@ interface VentaBoletosModalsProps {
     dateLottery: string;
   };
   clickedButton?: string;
+  organization?: Organization | null;
 }
 
 const VentaBoletosModals: React.FC<VentaBoletosModalsProps> = ({
@@ -38,7 +40,8 @@ const VentaBoletosModals: React.FC<VentaBoletosModalsProps> = ({
   debugMode,
   allowVoucherPrint,
   raffleDetails,
-  clickedButton
+  clickedButton,
+  organization
 }) => {
   return (
     <RaffleModals 
@@ -55,6 +58,7 @@ const VentaBoletosModals: React.FC<VentaBoletosModalsProps> = ({
       allowVoucherPrint={allowVoucherPrint}
       raffleDetails={raffleDetails}
       clickedButton={clickedButton}
+      organization={organization}
     />
   );
 };

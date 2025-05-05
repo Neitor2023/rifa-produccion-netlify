@@ -4,6 +4,7 @@ import PaymentModal, { PaymentFormData } from '@/components/PaymentModal';
 import DigitalVoucher from '@/components/DigitalVoucher';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import { NumberSelectionProvider } from '@/contexts/NumberSelectionContext';
+import { Organization } from '@/lib/constants/types';
 
 interface RaffleModalsProps {
   isPaymentModalOpen: boolean;
@@ -24,6 +25,7 @@ interface RaffleModalsProps {
     dateLottery: string;
   };
   clickedButton?: string;
+  organization?: Organization | null;
 }
 
 const RaffleModals: React.FC<RaffleModalsProps> = ({
@@ -39,7 +41,8 @@ const RaffleModals: React.FC<RaffleModalsProps> = ({
   debugMode,
   allowVoucherPrint,
   raffleDetails,
-  clickedButton
+  clickedButton,
+  organization
 }) => {
   console.log("RaffleModals.tsx: Rendering with isPaymentModalOpen=", isPaymentModalOpen);
   
@@ -54,6 +57,7 @@ const RaffleModals: React.FC<RaffleModalsProps> = ({
         buyerData={buyerInfo}
         debugMode={debugMode}
         clickedButton={clickedButton}
+        organization={organization}
       />
       
       <DigitalVoucher 

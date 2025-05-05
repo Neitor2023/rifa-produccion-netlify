@@ -15,6 +15,7 @@ import { NumberSelectionProvider } from '@/contexts/NumberSelectionContext';
 import { usePaymentForm } from '@/hooks/usePaymentForm';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { Card } from '@/components/ui/card';
+import { Organization } from '@/lib/constants/types';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ interface PaymentModalProps {
   buyerData?: ValidatedBuyerInfo;
   debugMode?: boolean;
   clickedButton?: string;
+  organization?: Organization | null;
 }
 
 const PaymentModal: React.FC<PaymentModalProps> = ({ 
@@ -35,7 +37,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   onComplete,
   buyerData,
   debugMode = false,
-  clickedButton
+  clickedButton,
+  organization
 }) => {
   const {
     form,
@@ -72,6 +75,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             onFileUpload={handleImageUpload}
             onFileRemove={handleRemoveImage}
             clickedButton={clickedButton}
+            organization={organization}
           />
           
           <PaymentModalActions 
