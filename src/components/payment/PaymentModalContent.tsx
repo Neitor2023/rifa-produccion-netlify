@@ -44,7 +44,7 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
   }, [buyerData, form]);
   
   return (
-    <ScrollArea className="flex-1 overflow-y-auto px-1">
+    <ScrollArea className="flex-1 overflow-y-auto px-1 bg-gray-100 dark:bg-gray-800 rounded-md">
       <Form {...form}>
         <form 
           // Remove the onSubmit handler as we're handling submission via the action buttons
