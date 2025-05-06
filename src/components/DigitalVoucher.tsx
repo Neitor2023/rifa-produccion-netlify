@@ -85,7 +85,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         <DialogContent className="sm:max-w-md">
           <DialogHeader className="pb-4">
             <DialogTitle className="text-xl font-bold text-center text-red-600">
-              Important: Ask the Seller for your Voucher
+              Importante: Pide al vendedor tu comprobante de pago
             </DialogTitle>
           </DialogHeader>
           
