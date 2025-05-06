@@ -15,12 +15,12 @@ const ValidationMessage: React.FC<ValidationMessageProps> = ({
   if (!message) return null;
   
   return (
-    <div className="space-y-1">
-      <p className={`text-sm ${isValid ? 'text-green-600' : 'text-red-500'}`}>
+    <div className="space-y-1 mt-3">
+      <p className={`text-sm ${isValid ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
         {message}
       </p>
       {isValid && formattedNumber && (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 dark:text-gray-300">
           Formato internacional o DNI: {formattedNumber} o 1702030405
         </p>
       )}

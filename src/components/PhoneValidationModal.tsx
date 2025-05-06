@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -9,6 +9,9 @@ import PhoneInputField from './phone-validation/PhoneInputField';
 import ModalFooter from './phone-validation/ModalFooter';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { X } from 'lucide-react';
 
 function usePhoneValidation(phone: string) {
   const [validation, setValidation] = useState({
@@ -153,31 +156,50 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Validar número de ( teléfono o cédula )</DialogTitle>
-          <DialogDescription>
-            Ingrese su número de ( teléfono o cédula ) para continuar
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
+        <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-gray-600 dark:text-gray-300">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DialogClose>
+        
+        <Card className="bg-background dark:bg-gray-900 border-0 shadow-none">
+          <DialogHeader className="pt-6">
+            <Card className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0">
+              <CardHeader className="py-3 px-4">
+                <DialogTitle className="text-xl text-white font-bold text-center">
+                  Validar número de ( teléfono o cédula )
+                </DialogTitle>
+              </CardHeader>
+            </Card>
+            <DialogDescription className="mt-4 px-2">
+              Ingrese su número de ( teléfono o cédula ) para continuar
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <PhoneInputField
-            value={phone}
-            onChange={setPhone}
-          />
-          <ValidationMessage
-            message={validation.message}
+          <Card className="border-0 shadow-sm mt-4 bg-transparent">
+            <CardContent className="p-0">
+              <ScrollArea className="max-h-[50vh] overflow-y-auto px-1 bg-gray-400 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700">
+                <div className="p-4">
+                  <PhoneInputField
+                    value={phone}
+                    onChange={setPhone}
+                  />
+                  <ValidationMessage
+                    message={validation.message}
+                    isValid={validation.isValid}
+                    formattedNumber={validation.formattedNumber}
+                  />
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+
+          <ModalFooter
+            onCancel={onClose}
+            onValidate={handleNumberSubmit}
             isValid={validation.isValid}
-            formattedNumber={validation.formattedNumber}
           />
-        </div>
-
-        <ModalFooter
-          onCancel={onClose}
-          onValidate={handleNumberSubmit}
-          isValid={validation.isValid}
-        />
+        </Card>
       </DialogContent>
     </Dialog>
   );

@@ -18,6 +18,7 @@ const PhoneInputField: React.FC<PhoneInputFieldProps> = ({ value, onChange }) =>
         placeholder="+593 987 654 321 o 1702030405"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        className="bg-background dark:bg-gray-700 text-foreground dark:text-white"
       />
     </div>
   );
