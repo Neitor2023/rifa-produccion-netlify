@@ -31,6 +31,7 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
+    --input-foreground: 0 0% 10%;   /* texto oscuro en modo claro */
     --ring: 262 83% 58%;
 
     --radius: 0.75rem;
@@ -72,6 +73,7 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
+    --input-foreground: 0 0% 100%;  /* texto claro en modo oscuro */
     --ring: 263 70% 50%;
 
     --sidebar-background: 240 5.9% 10%;
