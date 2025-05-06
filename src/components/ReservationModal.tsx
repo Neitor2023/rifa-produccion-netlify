@@ -170,9 +170,9 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                     />
                     
                     {/* Display promotional image if available */}
-                    {organization?.image_apartado && (
+                    {organization?.imagen_publicitaria && (
                       <div className="mt-6">
-                        <PromotionalImage imageUrl={organization.image_apartado} />
+                        <PromotionalImage imageUrl={organization.imagen_publicitaria} />
                       </div>
                     )}
                   </form>
