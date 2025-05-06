@@ -17,6 +17,7 @@ import MobileCarousel from './prize-detail/MobileCarousel';
 import ThumbnailGallery from './prize-detail/ThumbnailGallery';
 import PrizeDescription from './prize-detail/PrizeDescription';
 import PromotionalImage from './raffle/PromotionalImage';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 
 interface PrizeDetailModalProps {
   isOpen: boolean;
@@ -71,68 +72,74 @@ const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, pr
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col">
-        {/* Close button in the top right */}
-        <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+      <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
+        <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-gray-600 dark:text-gray-300">
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
         </DialogClose>
         
-        <DialogHeader className="pt-6">
-          <DialogTitle className="text-xl font-bold text-center">
-            {prize.name}
-          </DialogTitle>
-        </DialogHeader>
-        
-        {/* ScrollArea to enable scrolling for long content */}
-        <ScrollArea className="flex-1 overflow-y-auto px-1">
-          <div className="py-4">
-            {/* Image carousel - Standard layout for larger displays */}
-            <ImageCarousel 
-              images={relevantImages}
-              currentIndex={currentImageIndex}
-              onPrev={handlePrevImage}
-              onNext={handleNextImage}
-              imageTitle={prize.name}
-            />
-            
-            {/* Embla Carousel for mobile devices */}
-            <MobileCarousel 
-              images={relevantImages}
-              fallbackImage={prize.url_image}
-              imageTitle={prize.name}
-            />
-            
-            {/* Thumbnail gallery for multiple images - visible on both mobile and desktop */}
-            <ThumbnailGallery 
-              images={relevantImages}
-              currentIndex={currentImageIndex}
-              onThumbnailClick={setCurrentImageIndex}
-            />
-            
-            {/* Description */}
-            <PrizeDescription 
-              description={prize.description || ''}
-              detail={prize.detail}
-            />
+        <Card className="bg-background dark:bg-gray-900 border-0 shadow-none">
+          <DialogHeader className="pt-6">
+            <Card className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0">
+              <CardHeader className="py-3 px-4">
+                <DialogTitle className="text-xl text-white font-bold text-center">
+                  {prize.name}
+                </DialogTitle>
+              </CardHeader>
+            </Card>
+          </DialogHeader>
+          
+          <CardContent className="p-0 mt-4">
+            <ScrollArea className="max-h-[50vh] overflow-y-auto px-1 bg-gray-400 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700">
+              <div className="p-4">
+                {/* Image carousel - Standard layout for larger displays */}
+                <ImageCarousel 
+                  images={relevantImages}
+                  currentIndex={currentImageIndex}
+                  onPrev={handlePrevImage}
+                  onNext={handleNextImage}
+                  imageTitle={prize.name}
+                />
+                
+                {/* Embla Carousel for mobile devices */}
+                <MobileCarousel 
+                  images={relevantImages}
+                  fallbackImage={prize.url_image}
+                  imageTitle={prize.name}
+                />
+                
+                {/* Thumbnail gallery for multiple images - visible on both mobile and desktop */}
+                <ThumbnailGallery 
+                  images={relevantImages}
+                  currentIndex={currentImageIndex}
+                  onThumbnailClick={setCurrentImageIndex}
+                />
+                
+                {/* Description */}
+                <PrizeDescription 
+                  description={prize.description || ''}
+                  detail={prize.detail}
+                />
 
-            {/* Display promotional image at the end if available */}
-            {organization?.imagen_publicitaria && (
-              <div className="mt-6">
-                <PromotionalImage imageUrl={organization.imagen_publicitaria} />
+                {/* Display promotional image at the end if available */}
+                {organization?.imagen_publicitaria && (
+                  <div className="mt-6">
+                    <PromotionalImage imageUrl={organization.imagen_publicitaria} />
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </ScrollArea>
-        
-        <DialogFooter className="mt-4">
-          <Button 
-            className="w-full bg-rifa-purple hover:bg-rifa-darkPurple text-white" 
-            onClick={onClose}
-          >
-            Volver
-          </Button>
-        </DialogFooter>
+            </ScrollArea>
+          </CardContent>
+          
+          <DialogFooter className="mt-4 pt-4 border-t">
+            <Button 
+              className="w-full flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB] text-white font-bold uppercase" 
+              onClick={onClose}
+            >
+              Volver
+            </Button>
+          </DialogFooter>
+        </Card>
       </DialogContent>
     </Dialog>
   );
