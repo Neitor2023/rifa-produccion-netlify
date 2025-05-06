@@ -95,6 +95,13 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  input,
+  textarea,
+  select {
+    background-color: hsl(var(--input));
+    color: hsl(var(--input-foreground));
+  }
 }
 
 /* Existing prize card styles */
