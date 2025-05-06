@@ -40,8 +40,8 @@ const PaymentMethodFields: React.FC<PaymentMethodFieldsProps> = ({ form }) => {
                   border-gray-300 dark:border-gray-700
                   hover:bg-gray-100 dark:hover:bg-gray-800
                   transition-colors
-                  [&_[data-placeholder]]:text-gray-500
-                  dark:[&_[data-placeholder]]:text-gray-400                  
+                  [&_[data-placeholder]]:text-black
+                  dark:[&_[data-placeholder]]:text-white                  
                   ">
                   <SelectValue placeholder="Seleccione un método de pago" />
                 </SelectTrigger>
