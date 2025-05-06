@@ -10,6 +10,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogClose
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -21,8 +22,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { X } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
+import PromotionalImage from '@/components/raffle/PromotionalImage';
+import { Organization } from '@/lib/constants/types';
 
 const formSchema = z.object({
   buyerName: z.string().min(3, { message: "El nombre debe tener al menos 3 caracteres" }),
@@ -37,6 +43,7 @@ interface ReservationModalProps {
   onClose: () => void;
   onConfirm: (data: { buyerName: string; buyerPhone: string; buyerCedula: string }) => void;
   selectedNumbers: string[];
+  organization?: Organization | null;
 }
 
 const ReservationModal: React.FC<ReservationModalProps> = ({
@@ -44,6 +51,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   onClose,
   onConfirm,
   selectedNumbers,
+  organization,
 }) => {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -86,75 +94,111 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Apartar números</DialogTitle>
-          <DialogDescription>
-            Ingrese los datos de la persona que apartará los números: {selectedNumbers.join(', ')}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
+        <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-gray-600 dark:text-gray-300">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DialogClose>
         
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="buyerName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nombre</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Nombre del comprador" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="buyerPhone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Teléfono</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Número de teléfono" 
-                      type="tel"
-                      {...field} 
+        <Card className="bg-background dark:bg-gray-900 border-0 shadow-none">
+          <DialogHeader className="pt-6">
+            <Card className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0">
+              <CardHeader className="py-3 px-4">
+                <DialogTitle className="text-xl text-white font-bold text-center">
+                  Apartar números
+                </DialogTitle>
+              </CardHeader>
+            </Card>
+          </DialogHeader>
+          
+          <CardContent className="p-0 mt-4">
+            <ScrollArea className="max-h-[50vh] overflow-y-auto px-1 bg-gray-400 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700">
+              <div className="p-4">
+                <DialogDescription className="mb-4">
+                  Ingrese los datos de la persona que apartará los números: {selectedNumbers.join(', ')}
+                </DialogDescription>
+                
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="buyerName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nombre</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Nombre del comprador" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="buyerCedula"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cédula/DNI</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Número de cédula o documento" 
-                      {...field} 
+                    
+                    <FormField
+                      control={form.control}
+                      name="buyerPhone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Teléfono</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Número de teléfono" 
+                              type="tel"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose} className="font-bold uppercase">
-                Cancelar
-              </Button>
-              <Button type="submit" className="bg-amber-500 hover:bg-amber-600 text-white font-bold uppercase">
-                Confirmar
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+                    
+                    <FormField
+                      control={form.control}
+                      name="buyerCedula"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Cédula/DNI</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Número de cédula o documento" 
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    {/* Display promotional image if available */}
+                    {organization?.image_apartado && (
+                      <div className="mt-6">
+                        <PromotionalImage imageUrl={organization.image_apartado} />
+                      </div>
+                    )}
+                  </form>
+                </Form>
+              </div>
+            </ScrollArea>
+          </CardContent>
+          
+          <DialogFooter className="mt-4 pt-4 border-t">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose} 
+              className="flex-1 sm:flex-none font-bold uppercase text-gray-800 dark:text-white hover:bg-[#9b87f5] hover:text-white dark:hover:text-gray-800"
+            >
+              Cancelar
+            </Button>
+            <Button 
+              type="button" 
+              onClick={form.handleSubmit(handleSubmit)} 
+              className="flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB] text-white font-bold uppercase"
+            >
+              Confirmar
+            </Button>
+          </DialogFooter>
+        </Card>
       </DialogContent>
     </Dialog>
   );

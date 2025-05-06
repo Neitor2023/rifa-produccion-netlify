@@ -3,6 +3,7 @@ import React from 'react';
 import PhoneValidationModal from '../PhoneValidationModal';
 import ReservationModal from '../ReservationModal';
 import { ValidatedBuyerInfo } from '@/types/participant';
+import { Organization } from '@/lib/constants/types';
 
 interface ValidationModalsProps {
   isPhoneModalOpen: boolean;
@@ -25,6 +26,7 @@ interface ValidationModalsProps {
     buyerCedula: string 
   }) => void;
   selectedNumbers: string[];
+  organization?: Organization | null;
 }
 
 const ValidationModals: React.FC<ValidationModalsProps> = ({
@@ -39,7 +41,8 @@ const ValidationModals: React.FC<ValidationModalsProps> = ({
   debugMode = false,
   handleValidationSuccess,
   handleConfirmReservation,
-  selectedNumbers
+  selectedNumbers,
+  organization
 }) => {
   return (
     <>
@@ -59,6 +62,7 @@ const ValidationModals: React.FC<ValidationModalsProps> = ({
         onClose={() => setIsReservationModalOpen(false)}
         onConfirm={handleConfirmReservation}
         selectedNumbers={selectedNumbers}
+        organization={organization}
       />
     </>
   );

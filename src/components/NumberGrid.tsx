@@ -138,6 +138,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         handleValidationSuccess={handleValidationSuccess}
         handleConfirmReservation={handleConfirmReservation}
         selectedNumbers={selectedNumbers}
+        organization={organization}
       />
     </div>
   );
