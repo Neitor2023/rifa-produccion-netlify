@@ -133,6 +133,14 @@
   cursor: not-allowed;
 }
 
+[data-placeholder] {
+  color: rgb(107, 114, 128); /* gris medio para fondo claro */
+}
+
+.dark [data-placeholder] {
+  color: rgb(156, 163, 175); /* gris claro para fondo oscuro */
+}
+
 /* placeholder */
 .SelectTrigger [data-placeholder] {
   color: rgb(107, 114, 128);
