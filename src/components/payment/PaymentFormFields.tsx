@@ -143,8 +143,8 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
       <AdditionalInfoSection form={form} />
       <PaymentNotes form={form} />
       <SuspiciousActivityReport form={form} />
-      <PaymentMethodFields form={form} />
       
+      {/* Relocated PaymentUploadZone to appear before PaymentMethodFields when transferencia is selected */}
       {watchedPaymentMethod === "transfer" && (
         <PaymentUploadZone
           previewUrl={previewUrl}
@@ -152,6 +152,8 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
           onFileRemove={onFileRemove}
         />
       )}
+      
+      <PaymentMethodFields form={form} />
     </>
   );
 };

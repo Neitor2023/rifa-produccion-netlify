@@ -508,6 +508,7 @@ export type Database = {
           id_admin: string | null
           id_organizer: string | null
           lottery: string | null
+          mini_instructivo: string | null
           modal: string | null
           payment_instructions: string | null
           price: number
@@ -530,6 +531,7 @@ export type Database = {
           id_admin?: string | null
           id_organizer?: string | null
           lottery?: string | null
+          mini_instructivo?: string | null
           modal?: string | null
           payment_instructions?: string | null
           price: number
@@ -552,6 +554,7 @@ export type Database = {
           id_admin?: string | null
           id_organizer?: string | null
           lottery?: string | null
+          mini_instructivo?: string | null
           modal?: string | null
           payment_instructions?: string | null
           price?: number
