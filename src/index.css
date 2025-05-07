@@ -145,10 +145,10 @@
 .SelectTrigger [data-placeholder] {
   color: rgb(107, 114, 128);
 }
-/* valor (cuando no es placeholder) */
-.SelectTrigger [data-placeholder="false"] {
-  color: rgb(0, 0, 0);
+/* valor (cuando NO es placeholder) */
+.SelectTrigger span[data-placeholder="false"] {
+  color: hsl(var(--foreground)) !important; /* usa tu variable raíz */
 }
-.dark .SelectTrigger [data-placeholder="false"] {
-  color: rgb(255, 255, 255);
+.dark .SelectTrigger span[data-placeholder="false"] {
+  color: hsl(var(--foreground)) !important;
 }
