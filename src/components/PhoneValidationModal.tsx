@@ -12,6 +12,8 @@ import { formatPhoneNumber } from '@/utils/phoneUtils';
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { X } from 'lucide-react';
+import PromotionalImage from '@/components/raffle/PromotionalImage';
+import { Organization } from '@/lib/constants/types';
 
 function usePhoneValidation(phone: string) {
   const [validation, setValidation] = useState({
@@ -80,6 +82,7 @@ interface PhoneValidationModalProps {
   raffleSellerId?: string;
   raffleId?: string;
   debugMode?: boolean;
+  organization?: Organization | null;
 }
 
 const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
@@ -90,7 +93,8 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   raffleNumbers,
   raffleSellerId,
   raffleId,
-  debugMode = false
+  debugMode = false,
+  organization
 }) => {
   const [phone, setPhone] = useState('');
   const validation = usePhoneValidation(phone);
@@ -189,6 +193,11 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
                     isValid={validation.isValid}
                     formattedNumber={validation.formattedNumber}
                   />
+                  
+                  {/* Display promotional image at the end if available */}
+                  {organization?.imagen_publicitaria && (
+                    <PromotionalImage imageUrl={organization.imagen_publicitaria} />
+                  )}
                 </div>
               </ScrollArea>
             </CardContent>
