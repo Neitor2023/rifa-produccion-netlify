@@ -55,6 +55,7 @@ const ValidationModals: React.FC<ValidationModalsProps> = ({
         raffleSellerId={raffleSellerId}
         raffleId={raffleId}
         debugMode={debugMode}
+        organization={organization}
       />
       
       <ReservationModal
