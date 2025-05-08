@@ -131,7 +131,7 @@ const VentaBoletosMain: React.FC<VentaBoletosMainProps> = ({
         <Card className="mb-8">
           <CardContent className="p-4">
             <div className="text-center text-xs italic">
-              Las plataformas de redes sociales no están asociadas a esta rifa.
+              Las redes sociales no están asociadas a esta rifa.
             </div>
           </CardContent>
         </Card>
