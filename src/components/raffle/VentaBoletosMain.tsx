@@ -113,6 +113,11 @@ const VentaBoletosMain: React.FC<VentaBoletosMainProps> = ({
           />
         </div>
         
+        {/* Promotional Image - MOVED UP */}
+        {organization?.mini_instructivo && (
+          <PromotionalImage imageUrl={organization.mini_instructivo} />
+        )}
+        
         {/* Raffle info */}
         <div className="mb-4">
           <RaffleInfoSection 
