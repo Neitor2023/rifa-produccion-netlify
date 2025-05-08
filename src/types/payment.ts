@@ -10,5 +10,5 @@ export interface PaymentFormData {
   direccion?: string;
   sugerenciaProducto?: string;
   reporteSospechoso?: string;
-  sellerId?: string; // Add the sellerId field
+  sellerId?: string;
 }
