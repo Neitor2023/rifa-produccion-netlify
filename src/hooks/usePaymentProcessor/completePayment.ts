@@ -79,7 +79,7 @@ export const useCompletePayment = ({
       const paymentProofUrl = await uploadPaymentProof(formData.paymentProof);
       
       // Create a complete PaymentFormData object with all required fields
-      // Note: We explicitly create a properly typed object with all required fields
+      // Ensure all required fields are properly assigned as non-optional
       const participantData: PaymentFormData = {
         buyerName: formData.buyerName,
         buyerPhone: formData.buyerPhone,
