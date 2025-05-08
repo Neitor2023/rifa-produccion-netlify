@@ -55,7 +55,7 @@ export const useCompletePayment = ({
     console.log("🔄 handleCompletePayment called with data:", {
       buyerName: formData.buyerName,
       buyerPhone: formData.buyerPhone,
-      buyerEmail: formData.buyerEmail, // Log email
+      buyerEmail: formData.buyerEmail,
       buyerCedula: formData.buyerCedula,
       paymentMethod: formData.paymentMethod,
       sellerId: raffleSeller?.seller_id,
@@ -84,13 +84,13 @@ export const useCompletePayment = ({
         buyerName: formData.buyerName,
         buyerPhone: formData.buyerPhone,
         buyerCedula: formData.buyerCedula,
-        paymentMethod: formData.paymentMethod,
+        paymentMethod: formData.paymentMethod || "cash", // Default to cash if undefined
         paymentProof: paymentProofUrl,
-        buyerEmail: formData.buyerEmail,
-        direccion: formData.direccion,
-        nota: formData.nota,
-        sugerenciaProducto: formData.sugerenciaProducto,
-        reporteSospechoso: formData.reporteSospechoso,
+        buyerEmail: formData.buyerEmail || "",  // Ensure it's not undefined
+        direccion: formData.direccion || "",
+        nota: formData.nota || "",
+        sugerenciaProducto: formData.sugerenciaProducto || "",
+        reporteSospechoso: formData.reporteSospechoso || "",
         sellerId: raffleSeller.seller_id
       };
       

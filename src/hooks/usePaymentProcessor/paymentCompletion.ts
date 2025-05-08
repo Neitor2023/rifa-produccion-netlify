@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { PaymentFormData } from '@/types/payment';
+import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
 import { uploadPaymentProof } from './fileUpload';
