@@ -4,28 +4,31 @@ import { handleExistingParticipant } from './handleExistingParticipant';
 import { createNewParticipant } from './createNewParticipant';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
 import { toast } from 'sonner';
+import { ValidatedBuyerInfo } from '@/types/participant';
+
+interface UseParticipantManagerProps {
+  raffleId: string;
+  debugMode?: boolean;
+  raffleSeller: any;
+  setValidatedBuyerData?: (data: ValidatedBuyerInfo) => void;
+}
 
 export const useParticipantManager = ({ 
   raffleId, 
   debugMode = false, 
   raffleSeller, 
   setValidatedBuyerData 
-}: { 
-  raffleId: string;
-  debugMode?: boolean;
-  raffleSeller: any;
-  setValidatedBuyerData?: (data: any) => void;
-}) => {
+}: UseParticipantManagerProps) => {
   const debugLog = (context: string, data: any) => {
     if (debugMode) {
       console.log(`[DEBUG - ParticipantManager - ${context}]:`, data);
     }
   };
 
-  const findOrCreateParticipant = async (phone: string, name?: string, cedula?: string) => {
+  const findOrCreateParticipant = async (phone: string, name?: string, cedula?: string, email?: string) => {
     try {
-      debugLog('findOrCreateParticipant input', { phone, name, cedula, raffle_id: raffleId });
-      console.log("🔄 findOrCreateParticipant called with:", { phone, name, cedula });
+      console.log("🔄 useParticipantManager: findOrCreateParticipant entry", { phone, name, cedula, email });
+      debugLog('findOrCreateParticipant input', { phone, name, cedula, email, raffle_id: raffleId });
       
       const existingParticipant = await findExistingParticipant({
         phone,
@@ -35,26 +38,33 @@ export const useParticipantManager = ({
       });
       
       if (existingParticipant) {
-        console.log("🔄 Using existing participant:", existingParticipant);
-        return handleExistingParticipant({
+        console.log("🔄 useParticipantManager: Using existing participant:", existingParticipant);
+        const participantId = await handleExistingParticipant({
           participant: existingParticipant, 
           newName: name, 
           newCedula: cedula, 
           newPhone: phone,
+          newEmail: email,
           setValidatedBuyerData
         });
+        console.log("✅ useParticipantManager: findOrCreateParticipant exit with existing participant ID:", participantId);
+        return participantId;
       }
       
-      console.log("🔄 No existing participant found, creating new one");
-      return createNewParticipant({
+      console.log("🔄 useParticipantManager: No existing participant found, creating new one");
+      const newParticipantId = await createNewParticipant({
         phone,
         name,
         cedula,
+        email,
         raffleId,
         raffleSeller,
         setValidatedBuyerData,
         debugLog
       });
+      
+      console.log("✅ useParticipantManager: findOrCreateParticipant exit with new participant ID:", newParticipantId);
+      return newParticipantId;
     } catch (error: any) {
       console.error('Error in findOrCreateParticipant:', error);
       toast.error('Error al buscar o crear participante: ' + (error.message || 'Error desconocido'));
@@ -70,10 +80,11 @@ export const useParticipantManager = ({
       setValidatedBuyerData,
       debugLog
     }), 
-    createNewParticipant: (phone: string, name?: string, cedula?: string) => createNewParticipant({
+    createNewParticipant: (phone: string, name?: string, cedula?: string, email?: string) => createNewParticipant({
       phone,
       name,
       cedula,
+      email,
       raffleId,
       raffleSeller,
       setValidatedBuyerData,
