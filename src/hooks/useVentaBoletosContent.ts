@@ -84,8 +84,8 @@ export function useVentaBoletosContent() {
       setBuyerInfo(null);
     }
     
-    // Pass only the numbers array to handleProceedToPayment
-    await handleProceedToPayment(numbers);
+    // Pass numbers, participant data, and the button type to handleProceedToPayment
+    await handleProceedToPayment(numbers, participantData, buttonType);
   };
 
   // Log buyer info when it changes

@@ -498,6 +498,7 @@ export type Database = {
       }
       raffles: {
         Row: {
+          copy_writing: string | null
           created_at: string | null
           currency: string
           date_lottery: string | null
@@ -521,6 +522,7 @@ export type Database = {
           url_sellers: string | null
         }
         Insert: {
+          copy_writing?: string | null
           created_at?: string | null
           currency: string
           date_lottery?: string | null
@@ -544,6 +546,7 @@ export type Database = {
           url_sellers?: string | null
         }
         Update: {
+          copy_writing?: string | null
           created_at?: string | null
           currency?: string
           date_lottery?: string | null

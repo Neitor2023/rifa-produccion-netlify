@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -103,8 +104,12 @@ export function usePaymentProcessor({
     }
   };
 
-  const handleProceedToPayment = async (numbers: string[]) => {
-    console.log("💰 usePaymentProcessor: handleProceedToPayment called with numbers:", numbers);
+  const handleProceedToPayment = async (numbers: string[], participantData?: any, clickedButton?: string) => {
+    console.log("💰 usePaymentProcessor: handleProceedToPayment called with:", {
+      numbers,
+      participantData,
+      clickedButton
+    });
 
     if (numbers.length === 0) {
       toast.error('Select at least one number to buy');
@@ -120,6 +125,12 @@ export function usePaymentProcessor({
       if (unavailableNumbers.length > 0) {
         toast.error(`Numbers ${unavailableNumbers.join(', ')} are not available`);
         return;
+      }
+      
+      // For "Pagar" flow specifically, we need to clear buyerInfo since this is a new buyer
+      if (clickedButton === "Pagar") {
+        console.log("🧹 usePaymentProcessor: Clearing buyer info for 'Pagar' flow");
+        setBuyerInfo(null);
       }
       
       setSelectedNumbers(numbers);

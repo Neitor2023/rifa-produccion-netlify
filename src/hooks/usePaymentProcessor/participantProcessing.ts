@@ -43,10 +43,10 @@ export const processParticipant = async ({
         name: data.buyerName,
         phone: formattedPhone, // Ensuring phone is in international format
         nota: data.nota,
-        email: data.buyerEmail || null,
-        cedula: data.buyerCedula || null,
-        direccion: data.direccion || null,
-        sugerencia_producto: data.sugerenciaProducto || null
+        email: data.buyerEmail || existingParticipant.email || '', // Ensure email is always set or preserved
+        cedula: data.buyerCedula || existingParticipant.cedula || null,
+        direccion: data.direccion || existingParticipant.direccion || null,
+        sugerencia_producto: data.sugerenciaProducto || existingParticipant.sugerencia_producto || null
       };
 
       // Save seller_id on the participant record if applicable
@@ -54,6 +54,10 @@ export const processParticipant = async ({
       if (data.sellerId) {
         updateData.seller_id = data.sellerId;
       }
+
+      // Add debug log for email specifically
+      console.log("📧 Updating participant with email:", data.buyerEmail || existingParticipant.email || null);
+      debugLog('Email being updated to', data.buyerEmail || existingParticipant.email || null);
 
       const { error: updateError } = await supabase
         .from('participants')
@@ -69,20 +73,25 @@ export const processParticipant = async ({
       console.log("🆕 Creating new participant");
       debugLog('Creating new participant', { 
         name: data.buyerName, 
-        phone: formattedPhone 
+        phone: formattedPhone,
+        email: data.buyerEmail || ''
       });
 
       const insertData = {
         name: data.buyerName,
         phone: formattedPhone, // Ensuring phone is in international format
-        email: data.buyerEmail || '',
-        cedula: data.buyerCedula,
+        email: data.buyerEmail || '', // Make sure email is included in the insert
+        cedula: data.buyerCedula || null,
         direccion: data.direccion || null,
         sugerencia_producto: data.sugerenciaProducto || null,
         nota: data.nota || null,
         raffle_id: raffleId,
         seller_id: data.sellerId || null // Add seller_id when creating participant
       };
+      
+      // Add debug log for email specifically
+      console.log("📧 Creating participant with email:", data.buyerEmail || '');
+      debugLog('Email being set to', data.buyerEmail || '');
       
       debugLog('Inserting participant data', insertData);
 
