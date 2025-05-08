@@ -59,7 +59,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
         "                        
         onClick={handleClearSelection}
       >
-        <Check className="h-14 w-14" />
+        <Check className="h-8 w-8" />
         <span>Limpiar</span>
       </Button>
       
@@ -76,7 +76,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
         "                
         onClick={onReserve}
       >
-        <ShoppingCart className="h-14 w-14" />
+        <ShoppingCart className="h-8 w-8" />
         <span>Apartar</span>
       </Button>
       
@@ -92,7 +92,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
         "
         onClick={handlePayReserved}
       >
-        <CreditCard className="h-14 w-14" />
+        <CreditCard className="h-8 w-8" />
         <span>Pagar<br/>Apartados</span>
       </Button>
       
@@ -109,7 +109,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
         "        
         onClick={handleProceedToPayment}
       >
-        <CreditCard className="h-14 w-14" />
+        <CreditCard className="h-8 w-8" />
         <span>Pagar</span>
       </Button>
     </div>
