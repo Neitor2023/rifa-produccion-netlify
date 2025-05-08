@@ -86,11 +86,11 @@ export const useCompletePayment = ({
         buyerCedula: formData.buyerCedula, // This is required
         paymentMethod: formData.paymentMethod,
         paymentProof: paymentProofUrl,
-        buyerEmail: formData.buyerEmail || '',  // Ensure this is never undefined
-        direccion: formData.direccion || '',    // Ensure this is never undefined 
-        nota: formData.nota || '',              // Ensure this is never undefined
-        sugerenciaProducto: formData.sugerenciaProducto || '', // Ensure this is never undefined
-        reporteSospechoso: formData.reporteSospechoso || '',   // Ensure this is never undefined
+        buyerEmail: formData.buyerEmail,  // Using the value directly as it's guaranteed to be initialized
+        direccion: formData.direccion,    // Using the value directly as it's guaranteed to be initialized
+        nota: formData.nota,              // Using the value directly as it's guaranteed to be initialized
+        sugerenciaProducto: formData.sugerenciaProducto, // Using the value directly as it's guaranteed to be initialized
+        reporteSospechoso: formData.reporteSospechoso,   // Using the value directly as it's guaranteed to be initialized
         sellerId: raffleSeller.seller_id        // Ensure this is set from raffleSeller
       };
       
