@@ -92,7 +92,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
 
         onClick={handlePayReserved}
       >
-        <CreditCard className="32×32px" />
+        <CreditCard className="h-8 w-8 mb-1 32×32px" />
         <span>Pagar<br/>Apartados</span>
       </Button>
       
