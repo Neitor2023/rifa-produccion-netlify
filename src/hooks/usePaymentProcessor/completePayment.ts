@@ -86,12 +86,12 @@ export const useCompletePayment = ({
         buyerCedula: formData.buyerCedula, // This is required
         paymentMethod: formData.paymentMethod,
         paymentProof: paymentProofUrl,
-        buyerEmail: formData.buyerEmail,
-        direccion: formData.direccion,
-        nota: formData.nota,
-        sugerenciaProducto: formData.sugerenciaProducto,
-        reporteSospechoso: formData.reporteSospechoso,
-        sellerId: raffleSeller.seller_id
+        buyerEmail: formData.buyerEmail || '',  // Ensure this is never undefined
+        direccion: formData.direccion || '',    // Ensure this is never undefined 
+        nota: formData.nota || '',              // Ensure this is never undefined
+        sugerenciaProducto: formData.sugerenciaProducto || '', // Ensure this is never undefined
+        reporteSospechoso: formData.reporteSospechoso || '',   // Ensure this is never undefined
+        sellerId: raffleSeller.seller_id        // Ensure this is set from raffleSeller
       };
       
       let participantId: string | null = await processParticipant(participantData);
