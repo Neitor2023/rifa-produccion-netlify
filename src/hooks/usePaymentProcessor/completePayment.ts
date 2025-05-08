@@ -78,13 +78,23 @@ export const useCompletePayment = ({
       
       const paymentProofUrl = await uploadPaymentProof(formData.paymentProof);
       
-      // Create a new object with the sellerId property for process participant
-      const enrichedFormData = {
-        ...formData,
+      // Create a participant data object that fully matches PaymentFormData type
+      // Making sure all required fields are included
+      const participantData: PaymentFormData = {
+        buyerName: formData.buyerName,
+        buyerPhone: formData.buyerPhone,
+        buyerCedula: formData.buyerCedula,
+        paymentMethod: formData.paymentMethod,
+        paymentProof: paymentProofUrl,
+        buyerEmail: formData.buyerEmail,
+        direccion: formData.direccion,
+        nota: formData.nota,
+        sugerenciaProducto: formData.sugerenciaProducto,
+        reporteSospechoso: formData.reporteSospechoso,
         sellerId: raffleSeller.seller_id
       };
       
-      let participantId: string | null = await processParticipant(enrichedFormData);
+      let participantId: string | null = await processParticipant(participantData);
       
       if (!participantId) {
         toast.error('Error al procesar la información del participante');

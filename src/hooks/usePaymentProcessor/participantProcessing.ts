@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { PaymentFormData } from '@/types/payment';
+import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
 
 interface ProcessParticipantProps {
