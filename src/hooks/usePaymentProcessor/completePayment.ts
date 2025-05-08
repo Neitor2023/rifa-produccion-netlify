@@ -79,19 +79,19 @@ export const useCompletePayment = ({
       const paymentProofUrl = await uploadPaymentProof(formData.paymentProof);
       
       // Create a complete PaymentFormData object with all required fields
-      // Ensure all required fields are properly assigned and non-optional
+      // Note: We explicitly create a properly typed object with all required fields
       const participantData: PaymentFormData = {
-        buyerName: formData.buyerName, // This is required
-        buyerPhone: formData.buyerPhone, // This is required
-        buyerCedula: formData.buyerCedula, // This is required
+        buyerName: formData.buyerName,
+        buyerPhone: formData.buyerPhone,
+        buyerCedula: formData.buyerCedula,
         paymentMethod: formData.paymentMethod,
         paymentProof: paymentProofUrl,
-        buyerEmail: formData.buyerEmail,  // Using the value directly as it's guaranteed to be initialized
-        direccion: formData.direccion,    // Using the value directly as it's guaranteed to be initialized
-        nota: formData.nota,              // Using the value directly as it's guaranteed to be initialized
-        sugerenciaProducto: formData.sugerenciaProducto, // Using the value directly as it's guaranteed to be initialized
-        reporteSospechoso: formData.reporteSospechoso,   // Using the value directly as it's guaranteed to be initialized
-        sellerId: raffleSeller.seller_id        // Ensure this is set from raffleSeller
+        buyerEmail: formData.buyerEmail,
+        direccion: formData.direccion,
+        nota: formData.nota,
+        sugerenciaProducto: formData.sugerenciaProducto,
+        reporteSospechoso: formData.reporteSospechoso,
+        sellerId: raffleSeller.seller_id
       };
       
       let participantId: string | null = await processParticipant(participantData);
