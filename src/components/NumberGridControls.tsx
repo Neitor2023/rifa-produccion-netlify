@@ -66,7 +66,14 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       
       <Button 
         variant="secondary"
-        className="flex flex-col items-center gap-1 bg-orange-500 hover:bg-orange-600 text-white font-bold uppercase"
+        className="
+          flex flex-col items-center justify-center   /* apilar icono + texto */
+          gap-1                                       /* pequeño espacio vertical */
+          bg-orange-500 hover:bg-orange-600 
+          text-white font-bold uppercase
+          aspect-square                               /* igual ancho y alto */
+          p-4                                         /* relleno interior */
+        "
         onClick={handlePayReserved}
       >
         <CreditCard className="h-4 w-4" />
