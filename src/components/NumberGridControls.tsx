@@ -58,22 +58,20 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
       <Button 
         variant="outline" 
-        className="flex flex-col items-center justify-center h-20 w-full bg-[#1EAEDB] hover:bg-[#1EAEDB]/80 text-white dark:bg-[#1EAEDB] dark:hover:bg-[#1EAEDB]/80 dark:text-white p-2"                      
+        className="flex flex-col items-center gap-2 py-3 bg-[#1EAEDB] hover:bg-[#1EAEDB]/80 text-white dark:bg-[#1EAEDB] dark:hover:bg-[#1EAEDB]/80 dark:text-white"                      
         onClick={handleClearSelection}
       >
-        <div className="w-8 h-8 mb-1 flex items-center justify-center">
-          {organization?.imagen_limpiar ? (
-            <SafeImage 
-              src={organization.imagen_limpiar} 
-              alt="Limpiar Icon"
-              containerClassName="w-full h-full"
-              className="object-contain w-full h-full"
-            />
-          ) : (
-            <Check className="h-6 w-6" />
-          )}
-        </div>
-        <div className="flex flex-col items-center justify-center normal-case text-xs">
+        {organization?.imagen_limpiar ? (
+          <SafeImage 
+            src={organization?.imagen_limpiar} 
+            alt="Limpiar Icon"
+            containerClassName="w-10 h-10 mb-1"
+            className="object-contain w-full h-full"
+          />
+        ) : (
+          <Check className="h-10 w-10 mb-1" />
+        )}
+        <div className="flex flex-col items-center normal-case">
           <span>Limpiar</span>
           <span>Selección</span>        
         </div>                        
@@ -81,22 +79,20 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       
       <Button
         variant="secondary"
-        className="flex flex-col items-center justify-center h-20 w-full bg-amber-500 hover:bg-amber-600 text-white p-2"
+        className="flex flex-col items-center gap-2 py-3 bg-amber-500 hover:bg-amber-600 text-white"
         onClick={onReserve}
       >
-        <div className="w-8 h-8 mb-1 flex items-center justify-center">
-          {organization?.image_apartado ? (
-            <SafeImage 
-              src={organization.image_apartado} 
-              alt="Apartar Icon"
-              containerClassName="w-full h-full"
-              className="object-contain w-full h-full"
-            />
-          ) : (
-            <ShoppingCart className="h-6 w-6" />
-          )}
-        </div>
-        <div className="flex flex-col items-center justify-center normal-case text-xs">
+        {organization?.image_apartado ? (
+          <SafeImage 
+            src={organization?.image_apartado} 
+            alt="Apartar Icon"
+            containerClassName="w-10 h-10 mb-1"
+            className="object-contain w-full h-full"
+          />
+        ) : (
+          <ShoppingCart className="h-10 w-10 mb-1" />
+        )}
+        <div className="flex flex-col items-center normal-case">
           <span>Apartar</span>
           <span>Número(s)</span>
         </div>                
@@ -104,22 +100,20 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       
       <Button 
         variant="secondary"
-        className="flex flex-col items-center justify-center h-20 w-full bg-orange-500 hover:bg-orange-600 text-white p-2"
+        className="flex flex-col items-center gap-2 py-3 bg-orange-500 hover:bg-orange-600 text-white"
         onClick={handlePayReserved}
       >
-        <div className="w-8 h-8 mb-1 flex items-center justify-center">
-          {organization?.imagen_pago_apartado ? (
-            <SafeImage 
-              src={organization.imagen_pago_apartado} 
-              alt="Pagar Apartados Icon"
-              containerClassName="w-full h-full"
-              className="object-contain w-full h-full"
-            />
-          ) : (
-            <CreditCard className="h-6 w-6" />
-          )}
-        </div>
-        <div className="flex flex-col items-center justify-center normal-case text-xs whitespace-pre-line">
+        {organization?.imagen_pago_apartado ? (
+          <SafeImage 
+            src={organization?.imagen_pago_apartado} 
+            alt="Pagar Apartados Icon"
+            containerClassName="w-10 h-10 mb-1"
+            className="object-contain w-full h-full"
+          />
+        ) : (
+          <CreditCard className="h-10 w-10 mb-1" />
+        )}
+        <div className="flex flex-col items-center normal-case">
           <span>Pagar</span>
           <span>Apartados</span>
         </div>
@@ -127,22 +121,20 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       
       <Button
         variant="secondary" 
-        className="flex flex-col items-center justify-center h-20 w-full bg-green-500 hover:bg-green-600 text-white p-2"
+        className="flex flex-col items-center gap-2 py-3 bg-green-500 hover:bg-green-600 text-white"
         onClick={handleProceedToPayment}
       >
-        <div className="w-8 h-8 mb-1 flex items-center justify-center">
-          {organization?.imagen_pago ? (
-            <SafeImage 
-              src={organization.imagen_pago} 
-              alt="Pagar Icon"
-              containerClassName="w-full h-full"
-              className="object-contain w-full h-full"
-            />
-          ) : (
-            <CreditCard className="h-6 w-6" />
-          )}
-        </div>
-        <div className="flex flex-col items-center justify-center normal-case text-xs whitespace-pre-line">
+        {organization?.imagen_pago ? (
+          <SafeImage 
+            src={organization?.imagen_pago} 
+            alt="Pagar Icon"
+            containerClassName="w-10 h-10 mb-1"
+            className="object-contain w-full h-full"
+          />
+        ) : (
+          <CreditCard className="h-10 w-10 mb-1" />
+        )}
+        <div className="flex flex-col items-center normal-case">
           <span>Pago</span>
           <span>Directo</span>
         </div>        
