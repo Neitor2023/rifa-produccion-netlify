@@ -92,7 +92,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
             btn.bgClass
           )}
         >
-          <div className="w-8 h-8 md:w-6 md:h-6 flex items-center justify-center mb-1 md:mb-0">
+          <div className="flex items-center justify-center mb-1 md:mb-0">
             {btn.iconOrImage}
           </div>          
           <div className="text-xs text-center md:text-left">
