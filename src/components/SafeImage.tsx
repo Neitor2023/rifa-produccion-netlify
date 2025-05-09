@@ -52,11 +52,11 @@ const SafeImage: React.FC<SafeImageProps> = ({
   const validSrc = processedSrc && isValidUrl(processedSrc);
   
   // More detailed logging for debugging image issues
-  console.log(`SafeImage for ${alt}: src=${src}, processed=${processedSrc}, valid=${validSrc}, hasError=${hasError}`);
+  console.log(`[SafeImage for ${alt}] src=${src}, processed=${processedSrc}, valid=${validSrc}, hasError=${hasError}`);
   
   // Handler for image load errors
   const handleError = () => {
-    console.log(`Image load error for ${alt}: ${processedSrc}`);
+    console.log(`[SafeImage] Image load error for ${alt}: ${processedSrc}`);
     setHasError(true);
   };
 

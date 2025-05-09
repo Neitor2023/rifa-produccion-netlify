@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,7 +17,8 @@ export function useOrganizationData(raffleId: string) {
             imagen_pago,
             imagen_pago_apartado,
             imagen_limpiar,
-            image_apartado
+            image_apartado,
+            image_checklist
           `)
           .limit(1)
           .single();
@@ -36,7 +36,8 @@ export function useOrganizationData(raffleId: string) {
             imagen_pago: data.imagen_pago || 'undefined',
             imagen_pago_apartado: data.imagen_pago_apartado || 'undefined',
             imagen_limpiar: data.imagen_limpiar || 'undefined',
-            image_apartado: data.image_apartado || 'undefined'
+            image_apartado: data.image_apartado || 'undefined',
+            image_checklist: data.image_checklist || 'undefined'
           });
         }
         
@@ -128,7 +129,8 @@ export function useOrganizationData(raffleId: string) {
         imagen_pago: updatedOrganization.imagen_pago || 'undefined',
         imagen_pago_apartado: updatedOrganization.imagen_pago_apartado || 'undefined',
         image_apartado: updatedOrganization.image_apartado || 'undefined',
-        imagen_limpiar: updatedOrganization.imagen_limpiar || 'undefined'
+        imagen_limpiar: updatedOrganization.imagen_limpiar || 'undefined',
+        image_checklist: updatedOrganization.image_checklist || 'undefined'
       });
       
       setOrganizationData(updatedOrganization);

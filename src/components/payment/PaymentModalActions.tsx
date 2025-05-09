@@ -3,7 +3,6 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { LoaderCircle } from "lucide-react";
 import { useNumberSelection } from '@/contexts/NumberSelectionContext';
-import SafeImage from '@/components/SafeImage';
 import { Organization } from '@/lib/constants/types';
 
 interface PaymentModalActionsProps {
@@ -37,8 +36,7 @@ export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit, organizat
     e.preventDefault();
   };
 
-  // Debug logs for image URLs
-  console.log('[PaymentModalActions.tsx] Button image (Completar Pago):', organization?.imagen_pago);
+  console.log('[PaymentModalActions] Button image removed from Completar Pago button');
 
   return (
     <div className="flex justify-end space-x-2 pt-4 border-t mt-4">
@@ -55,26 +53,17 @@ export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit, organizat
         type="button"
         onClick={handleSubmit}
         disabled={isSubmitting}
-        className="flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB] normal-case flex flex-col items-center justify-center h-16 py-2 px-3"
+        className="flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB] text-white normal-case w-16 h-16 md:w-20 md:h-20 flex items-center justify-center py-2 px-3"
       >
         {isSubmitting ? (
-          <LoaderCircle className="h-4 w-4 animate-spin mb-1" />
+          <LoaderCircle className="h-4 w-4 animate-spin" />
         ) : (
-          <div className="w-8 h-8 mb-1 flex items-center justify-center">
-            {organization?.imagen_pago ? (
-              <SafeImage 
-                src={organization.imagen_pago} 
-                alt="Completar Pago Icon"
-                containerClassName="w-full h-full"
-                className="object-contain w-full h-full"
-              />
-            ) : null}
+          <div className="text-xs whitespace-pre-line text-center">
+            Completar
+            {"\n"}
+            Pago
           </div>
         )}
-        <div className="flex flex-col items-center justify-center normal-case text-xs whitespace-pre-line">
-          <span>Completar</span>
-          <span>Pago</span>
-        </div>
       </Button>
     </div>
   );

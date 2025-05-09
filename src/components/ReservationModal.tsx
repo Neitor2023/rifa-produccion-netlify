@@ -94,7 +94,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   };
 
   // Debug logs for image URLs
-  console.log('[ReservationModal.tsx] Button image (Confirmar):', organization?.image_apartado);
+  console.log('[ReservationModal] Button image (Confirmar):', organization?.image_apartado);
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
@@ -197,9 +197,9 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             <Button 
               type="button" 
               onClick={form.handleSubmit(handleSubmit)} 
-              className="flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB] text-white normal-case flex flex-col items-center justify-center h-16 py-2 px-3"
+              className="flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB] text-white normal-case w-16 h-16 md:w-20 md:h-20 flex flex-col items-center justify-center py-2 px-3"
             >
-              <div className="w-8 h-8 mb-1 flex items-center justify-center">
+              <div className="w-8 h-8 md:w-12 md:h-12 flex items-center justify-center mb-1">
                 {organization?.image_apartado ? (
                   <SafeImage 
                     src={organization.image_apartado} 
@@ -209,7 +209,9 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                   />
                 ) : null}
               </div>
-              <span className="text-xs">Confirmar</span>
+              <div className="text-xs whitespace-pre-line text-center">
+                Confirmar
+              </div>
             </Button>
           </DialogFooter>
         </Card>

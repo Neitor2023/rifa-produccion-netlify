@@ -49,94 +49,106 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
   };
 
   // Debug logs for image URLs
-  console.log('[NumberGridControls.tsx] Button image (Limpiar):', organization?.imagen_limpiar);
-  console.log('[NumberGridControls.tsx] Button image (Apartar):', organization?.image_apartado);
-  console.log('[NumberGridControls.tsx] Button image (Pagar Apartados):', organization?.imagen_pago_apartado);
-  console.log('[NumberGridControls.tsx] Button image (Pagar):', organization?.imagen_pago);
+  console.log('[NumberGridControls] Button image (Limpiar):', organization?.imagen_limpiar);
+  console.log('[NumberGridControls] Button image (Apartar):', organization?.image_apartado);
+  console.log('[NumberGridControls] Button image (Pagar Apartados):', organization?.imagen_pago_apartado);
+  console.log('[NumberGridControls] Button image (Pagar):', organization?.imagen_pago);
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
       <Button 
         variant="outline" 
-        className="flex flex-col items-center gap-2 py-3 bg-[#1EAEDB] hover:bg-[#1EAEDB]/80 text-white dark:bg-[#1EAEDB] dark:hover:bg-[#1EAEDB]/80 dark:text-white"                      
+        className="flex flex-col items-center justify-center gap-1 py-2 w-16 h-16 md:w-20 md:h-20 bg-[#1EAEDB] hover:bg-[#1EAEDB]/80 text-white dark:bg-[#1EAEDB] dark:hover:bg-[#1EAEDB]/80 dark:text-white"                      
         onClick={handleClearSelection}
       >
-        {organization?.imagen_limpiar ? (
-          <SafeImage 
-            src={organization.imagen_limpiar} 
-            alt="Limpiar Icon"
-            containerClassName="w-10 h-10 mb-1"
-            className="object-contain w-full h-full"
-          />
-        ) : (
-          <Check className="h-10 w-10 mb-1" />
-        )}
-        <div className="flex flex-col items-center normal-case">
-          <span>Limpiar</span>
-          <span>Selección</span>        
+        <div className="w-8 h-8 md:w-12 md:h-12 flex items-center justify-center mb-1">
+          {organization?.imagen_limpiar ? (
+            <SafeImage 
+              src={organization.imagen_limpiar} 
+              alt="Limpiar Icon"
+              containerClassName="w-full h-full"
+              className="object-contain w-full h-full"
+            />
+          ) : (
+            <Check className="h-full w-full" />
+          )}
+        </div>
+        <div className="text-xs whitespace-pre-line text-center">
+          Limpiar
+          {"\n"}
+          Selección
         </div>                        
       </Button>
       
       <Button
         variant="secondary"
-        className="flex flex-col items-center gap-2 py-3 bg-amber-500 hover:bg-amber-600 text-white"
+        className="flex flex-col items-center justify-center gap-1 py-2 w-16 h-16 md:w-20 md:h-20 bg-amber-500 hover:bg-amber-600 text-white"
         onClick={onReserve}
       >
-        {organization?.image_apartado ? (
-          <SafeImage 
-            src={organization.image_apartado} 
-            alt="Apartar Icon"
-            containerClassName="w-10 h-10 mb-1"
-            className="object-contain w-full h-full"
-          />
-        ) : (
-          <ShoppingCart className="h-10 w-10 mb-1" />
-        )}
-        <div className="flex flex-col items-center normal-case">
-          <span>Apartar</span>
-          <span>Número(s)</span>
+        <div className="w-8 h-8 md:w-12 md:h-12 flex items-center justify-center mb-1">
+          {organization?.image_apartado ? (
+            <SafeImage 
+              src={organization.image_apartado} 
+              alt="Apartar Icon"
+              containerClassName="w-full h-full"
+              className="object-contain w-full h-full"
+            />
+          ) : (
+            <ShoppingCart className="h-full w-full" />
+          )}
+        </div>
+        <div className="text-xs whitespace-pre-line text-center">
+          Apartar
+          {"\n"}
+          Número(s)
         </div>                
       </Button>
       
       <Button 
         variant="secondary"
-        className="flex flex-col items-center gap-2 py-3 bg-orange-500 hover:bg-orange-600 text-white"
+        className="flex flex-col items-center justify-center gap-1 py-2 w-16 h-16 md:w-20 md:h-20 bg-orange-500 hover:bg-orange-600 text-white"
         onClick={handlePayReserved}
       >
-        {organization?.imagen_pago_apartado ? (
-          <SafeImage 
-            src={organization.imagen_pago_apartado} 
-            alt="Pagar Apartados Icon"
-            containerClassName="w-10 h-10 mb-1"
-            className="object-contain w-full h-full"
-          />
-        ) : (
-          <CreditCard className="h-10 w-10 mb-1" />
-        )}
-        <div className="flex flex-col items-center normal-case">
-          <span>Pagar</span>
-          <span>Apartados</span>
+        <div className="w-8 h-8 md:w-12 md:h-12 flex items-center justify-center mb-1">
+          {organization?.imagen_pago_apartado ? (
+            <SafeImage 
+              src={organization.imagen_pago_apartado} 
+              alt="Pagar Apartados Icon"
+              containerClassName="w-full h-full"
+              className="object-contain w-full h-full"
+            />
+          ) : (
+            <CreditCard className="h-full w-full" />
+          )}
+        </div>
+        <div className="text-xs whitespace-pre-line text-center">
+          Pagar
+          {"\n"}
+          Apartados
         </div>
       </Button>
       
       <Button
         variant="secondary" 
-        className="flex flex-col items-center gap-2 py-3 bg-green-500 hover:bg-green-600 text-white"
+        className="flex flex-col items-center justify-center gap-1 py-2 w-16 h-16 md:w-20 md:h-20 bg-green-500 hover:bg-green-600 text-white"
         onClick={handleProceedToPayment}
       >
-        {organization?.imagen_pago ? (
-          <SafeImage 
-            src={organization.imagen_pago} 
-            alt="Pagar Icon"
-            containerClassName="w-10 h-10 mb-1"
-            className="object-contain w-full h-full"
-          />
-        ) : (
-          <CreditCard className="h-10 w-10 mb-1" />
-        )}
-        <div className="flex flex-col items-center normal-case">
-          <span>Pago</span>
-          <span>Directo</span>
+        <div className="w-8 h-8 md:w-12 md:h-12 flex items-center justify-center mb-1">
+          {organization?.imagen_pago ? (
+            <SafeImage 
+              src={organization.imagen_pago} 
+              alt="Pagar Icon"
+              containerClassName="w-full h-full"
+              className="object-contain w-full h-full"
+            />
+          ) : (
+            <CreditCard className="h-full w-full" />
+          )}
+        </div>
+        <div className="text-xs whitespace-pre-line text-center">
+          Pago
+          {"\n"}
+          Directo
         </div>        
       </Button>
     </div>
