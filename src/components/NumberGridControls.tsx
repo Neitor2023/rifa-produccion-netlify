@@ -71,7 +71,10 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
         ) : (
           <Check className="h-10 w-10 mb-1" />
         )}
-        <span className="text-center normal-case">Limpiar Selecciones</span>
+        <div className="flex flex-col items-center normal-case">
+          <span>Limpiar</span>
+          <span>Selección</span>        
+        </div>                        
       </Button>
       
       <Button
