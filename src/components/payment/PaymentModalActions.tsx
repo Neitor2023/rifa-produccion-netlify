@@ -58,10 +58,8 @@ export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit, organizat
         {isSubmitting ? (
           <LoaderCircle className="h-4 w-4 animate-spin" />
         ) : (
-          <div className="text-xs whitespace-pre-line text-center">
-            Completar
-            {"\n"}
-            Pago
+          <div className="text-xs text-center">
+            Completar Pago
           </div>
         )}
       </Button>
