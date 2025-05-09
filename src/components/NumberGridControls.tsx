@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, CreditCard, Check } from 'lucide-react';
 import { useNumberSelection } from '@/contexts/NumberSelectionContext';
+import { cn } from "@/lib/utils";
 
 interface NumberGridControlsProps {
   selectedNumbers: string[];
@@ -44,43 +45,71 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
     onPayReserved();
   };
 
+  const buttons = [
+    {
+      key: "clear",
+      variant: "outline",
+      onClick: handleClearSelection,
+      bgClass: "bg-[#1EAEDB] dark:bg-[#1EAEDB]",
+      iconOrImage: organization?.imagen_limpiar
+        ? <SafeImage src={organization.imagen_limpiar} alt="Limpiar Icon" /*…*/ />
+        : <Check className="h-full w-full" />,
+      text: "Limpiar\nSelección"
+    },
+    {
+      key: "reserve",
+      variant: "secondary",
+      onClick: onReserve,
+      bgClass: "bg-amber-500 hover:bg-amber-600",
+      iconOrImage: organization?.image_apartado
+        ? <SafeImage src={organization.image_apartado} alt="Apartar Icon" /*…*/ />
+        : <ShoppingCart className="h-full w-full" />,
+      text: "Apartar\nNúmero(s)"
+    },
+    {
+      key: "payReserved",
+      variant: "secondary",
+      onClick: handlePayReserved,
+      bgClass: "bg-orange-500 hover:bg-orange-600",
+      iconOrImage: organization?.imagen_pago_apartado
+        ? <SafeImage src={organization.imagen_pago_apartado} alt="Pagar Apartados Icon" /*…*/ />
+        : <CreditCard className="h-full w-full" />,
+      text: "Pagar\nApartados"
+    },
+    {
+      key: "pay",
+      variant: "secondary",
+      onClick: handleProceedToPayment,
+      bgClass: "bg-green-500 hover:bg-green-600",
+      iconOrImage: organization?.imagen_pago
+        ? <SafeImage src={organization.imagen_pago} alt="Pagar Icon" /*…*/ />
+        : <CreditCard className="h-full w-full" />,
+      text: "Pago\nDirecto"
+    }
+  ];
+    
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
-      <Button 
-        variant="outline" 
-        className="flex items-center gap-2 bg-[#1EAEDB] hover:bg-[#1EAEDB]/80 text-white dark:bg-[#1EAEDB] dark:hover:bg-[#1EAEDB]/80 dark:text-white font-bold uppercase" 
-        onClick={handleClearSelection}
-      >
-        <Check className="h-4 w-4" />
-        <span>Limpiar</span>
-      </Button>
-      
-      <Button
-        variant="secondary"
-        className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-bold uppercase"
-        onClick={onReserve}
-      >
-        <ShoppingCart className="h-4 w-4" />
-        <span>Apartar</span>
-      </Button>
-      
-      <Button 
-        variant="secondary"
-        className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-bold uppercase"
-        onClick={handlePayReserved}
-      >
-        <CreditCard className="h-4 w-4" />
-        <span>Pagar Apartados</span>
-      </Button>
-      
-      <Button
-        variant="secondary" 
-        className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold uppercase"
-        onClick={handleProceedToPayment}
-      >
-        <CreditCard className="h-4 w-4" />
-        <span>Pagar</span>
-      </Button>
+    <div className="grid grid-cols-4 sm:grid-cols-4 gap-2 mb-6">
+      {buttons.map(btn => (
+        <Button
+          key={btn.key}
+          variant={btn.variant}
+          onClick={btn.onClick}
+          className={cn(
+            "flex flex-col items-center justify-center gap-1 py-2 w-26 h-26 md:flex-row md:items-center md:justify-start md:gap-2",
+            btn.bgClass
+          )}
+        >
+          <div className="w-8 h-8 md:w-6 md:h-6 flex items-center justify-center mb-1 md:mb-0">
+            {btn.iconOrImage}
+          </div>
+          <div className="text-xs text-center md:text-left">
+            {btn.text.split("\n").map((line, i) => (
+              <span key={i} className="block md:inline">{line}</span>
+            ))}
+          </div>
+        </Button>
+      ))}
     </div>
   );
 };
