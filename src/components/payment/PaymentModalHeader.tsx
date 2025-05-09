@@ -12,7 +12,7 @@ export const PaymentModalHeader = () => {
       <Card className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0">
         <CardHeader className="py-3 px-4">
           <DialogTitle className="text-xl text-white font-bold text-center">
-            Completa Los Datos
+            Completa Los Datos Para Continuar
           </DialogTitle>
         </CardHeader>
       </Card>

@@ -51,12 +51,12 @@ const SafeImage: React.FC<SafeImageProps> = ({
   const processedSrc = src && typeof src === 'string' ? processGoogleDriveUrl(src) : null;
   const validSrc = processedSrc && isValidUrl(processedSrc);
   
-  // More detailed logging for debugging image issues
-  console.log(`[SafeImage for ${alt}] src=${src}, processed=${processedSrc}, valid=${validSrc}, hasError=${hasError}`);
+  // Log for debugging purposes
+  console.log(`SafeImage for ${alt}: original=${src}, processed=${processedSrc}, valid=${validSrc}`);
   
   // Handler for image load errors
   const handleError = () => {
-    console.log(`[SafeImage] Image load error for ${alt}: ${processedSrc}`);
+    console.log(`Image load error for ${alt}: ${processedSrc}`);
     setHasError(true);
   };
 
@@ -79,7 +79,7 @@ const SafeImage: React.FC<SafeImageProps> = ({
             fallbackClassName
           )}
         >
-          <ImageIcon className="h-6 w-6 text-gray-400 dark:text-gray-500" />
+          <ImageIcon className="h-8 w-8 text-gray-400 dark:text-gray-500" />
         </div>
       )}
     </div>

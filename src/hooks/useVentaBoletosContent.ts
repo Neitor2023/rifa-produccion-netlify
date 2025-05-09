@@ -6,8 +6,6 @@ import { useBuyerInfo } from '@/contexts/BuyerInfoContext';
 import { SELLER_ID, RAFFLE_ID } from '@/lib/constants';
 
 export function useVentaBoletosContent() {
-  console.log("🔄 useVentaBoletosContent: Entry point");
-  
   // State for the clicked button
   const [clickedButton, setClickedButton] = useState<string | undefined>(undefined);
   
@@ -87,7 +85,6 @@ export function useVentaBoletosContent() {
     }
     
     // Pass numbers, participant data, and the button type to handleProceedToPayment
-    // This ensures the correct flow is followed depending on which button was clicked
     await handleProceedToPayment(numbers, participantData, buttonType);
   };
 
@@ -97,14 +94,11 @@ export function useVentaBoletosContent() {
       id: buyerInfo.id || 'N/A',
       name: buyerInfo.name,
       phone: buyerInfo.phone,
-      email: buyerInfo.email, // Make sure to log email
       cedula: buyerInfo.cedula,
       direccion: buyerInfo.direccion,
       sugerencia_producto: buyerInfo.sugerencia_producto
     } : 'null');
   }, [buyerInfo]);
-
-  console.log("✅ useVentaBoletosContent: Exit");
 
   return {
     isLoading,

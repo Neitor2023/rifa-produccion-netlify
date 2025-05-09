@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import NumberGridItem from '../NumberGridItem';
 import { Organization } from '@/lib/constants';
@@ -89,9 +90,9 @@ const GridLayout: React.FC<GridLayoutProps> = ({
           reservedImage={organization?.image_apartado} // Pass the reserved image URL
           onToggle={() => {
             if (highlightReserved && status === 'reserved') {
-              // Call onPayReserved directly to open the phone validation modal when a highlighted reserved number is clicked
-              console.log("▶️ GridLayout: highlighted reserved number clicked:", paddedNum);
-              onPayReserved(paddedNum);
+              // Directly call toggleNumber instead of onPayReserved
+              console.log("▶️ src/components/NumberGrid/GridLayout.tsx: pulsado reservado:", paddedNum);
+              toggleNumber(paddedNum, status);
             } else {
               // Normal selection logic
               toggleNumber(paddedNum, status);

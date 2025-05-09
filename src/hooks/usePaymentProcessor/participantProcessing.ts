@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { PaymentFormData } from '@/schemas/paymentFormSchema';
+import { PaymentFormData } from '@/types/payment';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
 
 interface ProcessParticipantProps {
@@ -50,6 +50,7 @@ export const processParticipant = async ({
       };
 
       // Save seller_id on the participant record if applicable
+      // Either use the sellerId from data if available, or use the SELLER_ID constant
       if (data.sellerId) {
         updateData.seller_id = data.sellerId;
       }

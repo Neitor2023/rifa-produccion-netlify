@@ -29,7 +29,6 @@ import { toast } from 'sonner';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
 import PromotionalImage from '@/components/raffle/PromotionalImage';
 import { Organization } from '@/lib/constants/types';
-import SafeImage from './SafeImage';
 
 const formSchema = z.object({
   buyerName: z.string().min(3, { message: "El nombre debe tener al menos 3 caracteres" }),
@@ -92,9 +91,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     });
     form.reset();
   };
-
-  // Debug logs for image URLs
-  console.log('[ReservationModal] Button image (Confirmar):', organization?.image_apartado);
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
@@ -185,23 +181,21 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             </ScrollArea>
           </CardContent>
           
-          <DialogFooter className="mt-4 pt-4 border-t flex flex-row flex-nowrap  gap-2 space-x-2">
+          <DialogFooter className="mt-4 pt-4 border-t">
             <Button 
               type="button" 
               variant="outline" 
               onClick={onClose} 
-              className="flex-1 normal-case text-gray-800 dark:text-white hover:bg-[#9b87f5] hover:text-white dark:hover:text-gray-800 py2"
+              className="flex-1 sm:flex-none font-bold uppercase text-gray-800 dark:text-white hover:bg-[#9b87f5] hover:text-white dark:hover:text-gray-800"
             >
               Cancelar
             </Button>
             <Button 
               type="button" 
               onClick={form.handleSubmit(handleSubmit)} 
-              className="flex-1 bg-[#9b87f5] hover:bg-[#7E69AB] text-white normal-case flex flex-col items-center justify-center py-2 px-3"
+              className="flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB] text-white font-bold uppercase"
             >
-              <div className="text-xs whitespace-pre-line text-center">
-                Confirmar
-              </div>
+              Confirmar
             </Button>
           </DialogFooter>
         </Card>
