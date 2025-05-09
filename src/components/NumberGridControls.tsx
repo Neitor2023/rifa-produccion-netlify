@@ -51,6 +51,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       variant: "outline",
       onClick: handleClearSelection,
       bgClass: "bg-[#1EAEDB] dark:bg-[#1EAEDB]",
+      iconOrImage: <Check className="h-full w-full" />,
       text: "Limpiar\nSelección"
     },
     {
@@ -58,6 +59,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       variant: "secondary",
       onClick: onReserve,
       bgClass: "bg-amber-500 hover:bg-amber-600",
+      iconOrImage: <ShoppingCart className="h-full w-full" />, 
       text: "Apartar\nNúmero(s)"
     },
     {
@@ -65,6 +67,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       variant: "secondary",
       onClick: handlePayReserved,
       bgClass: "bg-orange-500 hover:bg-orange-600",
+      iconOrImage: <CreditCard className="h-full w-full" />,  
       text: "Pagar\nApartados"
     },
     {
@@ -72,6 +75,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       variant: "secondary",
       onClick: handleProceedToPayment,
       bgClass: "bg-green-500 hover:bg-green-600",
+       iconOrImage: <CreditCard className="h-full w-full" />,
       text: "Pago\nDirecto"
     }
   ];
@@ -88,6 +92,9 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
             btn.bgClass
           )}
         >
+          <div className="w-8 h-8 md:w-6 md:h-6 flex items-center justify-center mb-1 md:mb-0">
+            {btn.iconOrImage}
+          </div>          
           <div className="text-xs text-center md:text-left">
             {btn.text.split("\n").map((line, i) => (
               <span key={i} className="block md:inline">{line}</span>
