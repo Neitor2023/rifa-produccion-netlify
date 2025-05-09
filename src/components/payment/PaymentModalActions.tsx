@@ -55,19 +55,23 @@ export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit, organizat
         type="button"
         onClick={handleSubmit}
         disabled={isSubmitting}
-        className="flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB] normal-case flex flex-col items-center py-2"
+        className="flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB] normal-case flex flex-col items-center justify-center h-16 py-2 px-3"
       >
         {isSubmitting ? (
           <LoaderCircle className="h-4 w-4 animate-spin mb-1" />
-        ) : organization?.imagen_pago ? (
-          <SafeImage 
-            src={organization.imagen_pago} 
-            alt="Completar Pago Icon"
-            containerClassName="w-8 h-8 mb-1"
-            className="object-contain w-full h-full"
-          />
-        ) : null}
-        <div className="flex flex-col items-center">
+        ) : (
+          <div className="w-8 h-8 mb-1 flex items-center justify-center">
+            {organization?.imagen_pago ? (
+              <SafeImage 
+                src={organization.imagen_pago} 
+                alt="Completar Pago Icon"
+                containerClassName="w-full h-full"
+                className="object-contain w-full h-full"
+              />
+            ) : null}
+          </div>
+        )}
+        <div className="flex flex-col items-center justify-center normal-case text-xs whitespace-pre-line">
           <span>Completar</span>
           <span>Pago</span>
         </div>

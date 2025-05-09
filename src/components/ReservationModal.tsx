@@ -197,17 +197,19 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             <Button 
               type="button" 
               onClick={form.handleSubmit(handleSubmit)} 
-              className="flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB] text-white normal-case flex flex-col py-2 items-center"
+              className="flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB] text-white normal-case flex flex-col items-center justify-center h-16 py-2 px-3"
             >
-              {organization?.image_apartado ? (
-                <SafeImage 
-                  src={organization.image_apartado} 
-                  alt="Apartar Icon"
-                  containerClassName="w-8 h-8 mb-1"
-                  className="object-contain w-full h-full"
-                />
-              ) : null}
-              <span>Confirmar</span>
+              <div className="w-8 h-8 mb-1 flex items-center justify-center">
+                {organization?.image_apartado ? (
+                  <SafeImage 
+                    src={organization.image_apartado} 
+                    alt="Apartar Icon"
+                    containerClassName="w-full h-full"
+                    className="object-contain w-full h-full"
+                  />
+                ) : null}
+              </div>
+              <span className="text-xs">Confirmar</span>
             </Button>
           </DialogFooter>
         </Card>

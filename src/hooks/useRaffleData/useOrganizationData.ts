@@ -10,21 +10,41 @@ export function useOrganizationData(raffleId: string) {
   const { data: organization, isLoading: isLoadingOrganization } = useQuery({
     queryKey: ['organization'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('organization')
-        .select(`
-          *,
-          imagen_pago,
-          imagen_pago_apartado,
-          imagen_limpiar,
-          image_apartado
-        `)
-        .limit(1)
-        .single();
-      
-      if (error) throw error;
-      console.log('[useOrganizationData.ts] Organization data:', data);
-      return data;
+      try {
+        const { data, error } = await supabase
+          .from('organization')
+          .select(`
+            *,
+            imagen_pago,
+            imagen_pago_apartado,
+            imagen_limpiar,
+            image_apartado
+          `)
+          .limit(1)
+          .single();
+        
+        if (error) {
+          console.error('[useOrganizationData] Error fetching organization:', error);
+          throw error;
+        }
+        
+        console.log('[useOrganizationData] Raw organization data:', data);
+        
+        // Verify image URLs
+        if (data) {
+          console.log('[useOrganizationData] Image URLs:', {
+            imagen_pago: data.imagen_pago || 'undefined',
+            imagen_pago_apartado: data.imagen_pago_apartado || 'undefined',
+            imagen_limpiar: data.imagen_limpiar || 'undefined',
+            image_apartado: data.image_apartado || 'undefined'
+          });
+        }
+        
+        return data;
+      } catch (error) {
+        console.error('[useOrganizationData] Error in query:', error);
+        throw error;
+      }
     }
   });
   
@@ -104,11 +124,11 @@ export function useOrganizationData(raffleId: string) {
       }
       
       // Log the image URLs for debugging
-      console.log('[useOrganizationData.ts] Organization images:', {
-        imagen_pago: updatedOrganization.imagen_pago,
-        imagen_pago_apartado: updatedOrganization.imagen_pago_apartado,
-        image_apartado: updatedOrganization.image_apartado,
-        imagen_limpiar: updatedOrganization.imagen_limpiar
+      console.log('[useOrganizationData] Final organization images:', {
+        imagen_pago: updatedOrganization.imagen_pago || 'undefined',
+        imagen_pago_apartado: updatedOrganization.imagen_pago_apartado || 'undefined',
+        image_apartado: updatedOrganization.image_apartado || 'undefined',
+        imagen_limpiar: updatedOrganization.imagen_limpiar || 'undefined'
       });
       
       setOrganizationData(updatedOrganization);
