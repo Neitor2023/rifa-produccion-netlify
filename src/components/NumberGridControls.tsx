@@ -59,7 +59,6 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       variant: "secondary",
       onClick: onReserve,
       bgClass: "bg-amber-500 hover:bg-amber-600",
-      iconOrImage: <ShoppingCart className="h-full w-full" />, 
       text: "Apartar\nNúmero(s)"
     },
     {
@@ -67,7 +66,6 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       variant: "secondary",
       onClick: handlePayReserved,
       bgClass: "bg-orange-500 hover:bg-orange-600",
-      iconOrImage: <CreditCard className="h-full w-full" />,  
       text: "Pagar\nApartados"
     },
     {
@@ -75,7 +73,6 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       variant: "secondary",
       onClick: handleProceedToPayment,
       bgClass: "bg-green-500 hover:bg-green-600",
-       iconOrImage: <CreditCard className="h-full w-full" />,
       text: "Pago\nDirecto"
     }
   ];
