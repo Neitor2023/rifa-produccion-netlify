@@ -52,7 +52,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       onClick: handleClearSelection,
       bgClass: "bg-[#1EAEDB] dark:bg-[#1EAEDB]",
       iconOrImage: <Check className="h-full w-full" />,
-      text: "Limpiar\nSelección"
+      text: "Limpiar \nSelección"
     },
     {
       key: "reserve",
@@ -60,7 +60,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       onClick: onReserve,
       bgClass: "bg-amber-500 hover:bg-amber-600",
       iconOrImage: <ShoppingCart className="h-full w-full" />, 
-      text: "Apartar\nNúmero(s)"
+      text: "Apartar \nNúmero(s)"
     },
     {
       key: "payReserved",
@@ -68,7 +68,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       onClick: handlePayReserved,
       bgClass: "bg-orange-500 hover:bg-orange-600",
       iconOrImage: <CreditCard className="h-full w-full" />,   
-      text: "Pagar\nApartados"
+      text: "Pagar \nApartados"
     },
     {
       key: "pay",
@@ -76,7 +76,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       onClick: handleProceedToPayment,
       bgClass: "bg-green-500 hover:bg-green-600",
       iconOrImage: <CreditCard className="h-full w-full" />,
-      text: "Pagar\nDirecto"
+      text: "Pagar \nDirecto"
     }
   ];
     
