@@ -1,7 +1,9 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, CreditCard, Check } from 'lucide-react';
+// import { ShoppingCart, CreditCard, Check } from 'lucide-react';
+import { ShoppingCart, Check } from 'lucide-react';
+import type { RaffleSeller } from './types'; // ajusta la ruta
 import { useNumberSelection } from '@/contexts/NumberSelectionContext';
 
 interface NumberGridControlsProps {
@@ -92,7 +94,11 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
 
         onClick={handlePayReserved}
       >
-        <CreditCard size={40} className="mb-1" />
+        <img
+          src={organization.imagen_pago}
+          alt="Pagar Apartados"
+          className="h-8 w-8 mb-1 object-contain"
+        />        
         <span>Pagar<br/>Apartados</span>
       </Button>
       
