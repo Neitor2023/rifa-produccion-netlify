@@ -58,7 +58,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
     <div className="grid grid-cols-4 sm:grid-cols-4 gap-2 mb-6">
       <Button 
         variant="outline" 
-        className="flex flex-col items-center justify-center gap-1 py-2 w-16 h-16 md:w-20 md:h-20 bg-[#1EAEDB] hover:bg-[#1EAEDB]/80 text-white dark:bg-[#1EAEDB] dark:hover:bg-[#1EAEDB]/80 dark:text-white"                      
+        className="flex flex-col items-center justify-center gap-1 py-2 w-26 h-26 md:w-20 md:h-20 bg-[#1EAEDB] hover:bg-[#1EAEDB]/80 text-white dark:bg-[#1EAEDB] dark:hover:bg-[#1EAEDB]/80 dark:text-white"                      
         onClick={handleClearSelection}
       >
         <div className="w-8 h-8 md:w-12 md:h-12 flex items-center justify-center mb-1">
@@ -82,7 +82,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       
       <Button
         variant="secondary"
-        className="flex flex-col items-center justify-center gap-1 py-2 w-16 h-16 md:w-20 md:h-20 bg-amber-500 hover:bg-amber-600 text-white"
+        className="flex flex-col items-center justify-center gap-1 py-2 w-26 h-26 md:w-20 md:h-20 bg-amber-500 hover:bg-amber-600 text-white"
         onClick={onReserve}
       >
         <div className="w-8 h-8 md:w-12 md:h-12 flex items-center justify-center mb-1">
@@ -106,7 +106,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       
       <Button 
         variant="secondary"
-        className="flex flex-col items-center justify-center gap-1 py-2 w-16 h-16 md:w-20 md:h-20 bg-orange-500 hover:bg-orange-600 text-white"
+        className="flex flex-col items-center justify-center gap-1 py-2 w-26 h-26 md:w-20 md:h-20 bg-orange-500 hover:bg-orange-600 text-white"
         onClick={handlePayReserved}
       >
         <div className="w-8 h-8 md:w-12 md:h-12 flex items-center justify-center mb-1">
