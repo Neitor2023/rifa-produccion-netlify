@@ -153,10 +153,14 @@ export const useCompletePayment = ({
         await handleFraudReport(formData.reporteSospechoso, participantId, raffleId, raffleSeller.seller_id);
       }
       
+      // Close the payment modal first before showing the voucher
       setIsPaymentModalOpen(false);
       
       if (allowVoucherPrint) {
-        setIsVoucherOpen(true);
+        // Slight delay to ensure modal transitions happen properly
+        setTimeout(() => {
+          setIsVoucherOpen(true);
+        }, 100);
       } else {
         toast.success('Pago completado exitosamente. El comprobante de pago está en revisión.');
         toast.info('Es importante que le exija su comprobante de pago a su vendedor, este es su constancia de reclamo de premios.');
@@ -168,6 +172,7 @@ export const useCompletePayment = ({
     } catch (error) {
       console.error('Error al completar el pago:', error);
       toast.error('Error al completar el pago');
+      throw error; // Re-throw the error so the payment modal can handle it
     }
   };
 
