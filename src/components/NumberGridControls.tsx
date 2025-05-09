@@ -33,7 +33,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
     onClearSelection();
   };
   
-  // Handler for the Pagar button with button name
+  // Handler for the Pagar button with button name 36
   const handleProceedToPayment = async () => {
     console.log("NumberGridControls.tsx: Pay button clicked");
     await onProceedToPayment("Pagar");
@@ -51,7 +51,6 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       variant: "outline",
       onClick: handleClearSelection,
       bgClass: "bg-[#1EAEDB] dark:bg-[#1EAEDB]",
-      iconOrImage: <Check className="h-full w-full" />,
       text: "Limpiar\nSelección"
     },
     {
@@ -89,9 +88,6 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
             btn.bgClass
           )}
         >
-          <div className="w-8 h-8 md:w-6 md:h-6 flex items-center justify-center mb-1 md:mb-0">
-            {btn.iconOrImage}
-          </div>          
           <div className="text-xs text-center md:text-left">
             {btn.text.split("\n").map((line, i) => (
               <span key={i} className="block md:inline">{line}</span>
