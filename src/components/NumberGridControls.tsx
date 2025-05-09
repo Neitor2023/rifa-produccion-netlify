@@ -75,7 +75,8 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       variant: "secondary",
       onClick: handleProceedToPayment,
       bgClass: "bg-green-500 hover:bg-green-600",
-      iconOrImage: <CreditCard className="h-full w-full" />,      
+      iconOrImage: <CreditCard className="h-full w-full" />,    
+      text: "Pagar\nDirecto"
     }
   ];
     
