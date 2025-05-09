@@ -51,7 +51,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
         className="flex items-center gap-2 bg-[#1EAEDB] hover:bg-[#1EAEDB]/80 text-white dark:bg-[#1EAEDB] dark:hover:bg-[#1EAEDB]/80 dark:text-white font-bold uppercase"                      
         onClick={handleClearSelection}
       >
-        <Check className="h-8 w-8" />
+        <Check className="h-4 w-4" />
         <span>Limpiar</span>
       </Button>
       
@@ -60,7 +60,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
         className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-bold uppercase"
         onClick={onReserve}
       >
-        <ShoppingCart className="h-8 w-8" />
+        <ShoppingCart className="h-4 w-4" />
         <span>Apartar</span>
       </Button>
       
@@ -69,7 +69,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
         className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-bold uppercase"
         onClick={handlePayReserved}
       >
-        <CreditCard className="h-8 w-8" />
+        <CreditCard className="h-4 w-4" />
         <span>Pagar Apartados</span>
       </Button>
       
@@ -78,7 +78,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
         className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold uppercase"
         onClick={handleProceedToPayment}
       >
-        <CreditCard className="h-8 w-8" />
+        <CreditCard className="h-4 w-4" />
         <span>Pagar</span>
       </Button>
     </div>
