@@ -55,7 +55,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
   console.log('[NumberGridControls] Button image (Pagar):', organization?.imagen_pago);
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+    <div className="grid grid-cols-4 sm:grid-cols-4 gap-2 mb-6">
       <Button 
         variant="outline" 
         className="flex flex-col items-center justify-center gap-1 py-2 w-16 h-16 md:w-20 md:h-20 bg-[#1EAEDB] hover:bg-[#1EAEDB]/80 text-white dark:bg-[#1EAEDB] dark:hover:bg-[#1EAEDB]/80 dark:text-white"                      
