@@ -39,7 +39,7 @@ export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit, organizat
   console.log('[PaymentModalActions] Button image removed from Completar Pago button');
 
   return (
-    <div className="flex flex-row flex-nowrap gap-2 justify-center space-x-2 pt-4 border-t mt-4">
+    <div className="flex flex-row flex-nowrap gap-2 justify-center space-x-2 pt-2 border-t mt-4">
       <Button
         type="button"
         variant="outline"
