@@ -29,6 +29,7 @@ import { toast } from 'sonner';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
 import PromotionalImage from '@/components/raffle/PromotionalImage';
 import { Organization } from '@/lib/constants/types';
+import SafeImage from './SafeImage';
 
 const formSchema = z.object({
   buyerName: z.string().min(3, { message: "El nombre debe tener al menos 3 caracteres" }),
@@ -91,6 +92,9 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     });
     form.reset();
   };
+
+  // Debug logs for image URLs
+  console.log('[ReservationModal.tsx] Button image (Confirmar):', organization?.image_apartado);
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
@@ -186,16 +190,24 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
               type="button" 
               variant="outline" 
               onClick={onClose} 
-              className="flex-1 sm:flex-none font-bold uppercase text-gray-800 dark:text-white hover:bg-[#9b87f5] hover:text-white dark:hover:text-gray-800"
+              className="flex-1 sm:flex-none normal-case text-gray-800 dark:text-white hover:bg-[#9b87f5] hover:text-white dark:hover:text-gray-800"
             >
               Cancelar
             </Button>
             <Button 
               type="button" 
               onClick={form.handleSubmit(handleSubmit)} 
-              className="flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB] text-white font-bold uppercase"
+              className="flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB] text-white normal-case flex flex-col py-2 items-center"
             >
-              Confirmar
+              {organization?.image_apartado ? (
+                <SafeImage 
+                  src={organization.image_apartado} 
+                  alt="Apartar Icon"
+                  containerClassName="w-8 h-8 mb-1"
+                  className="object-contain w-full h-full"
+                />
+              ) : null}
+              <span>Confirmar</span>
             </Button>
           </DialogFooter>
         </Card>

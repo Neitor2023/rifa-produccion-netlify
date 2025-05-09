@@ -97,6 +97,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               isSubmitting={isSubmitting || processingPayment}
               onClose={onClose}
               onSubmit={handleSubmit}
+              organization={organization}
             />
           </Card>
           

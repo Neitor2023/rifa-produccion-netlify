@@ -115,7 +115,9 @@ export type Database = {
           id: string
           image_apartado: string | null
           image_checklist: string | null
+          imagen_limpiar: string | null
           imagen_pago: string | null
+          imagen_pago_apartado: string | null
           imagen_publicitaria: string | null
           modal: string | null
           org_name: string | null
@@ -135,7 +137,9 @@ export type Database = {
           id?: string
           image_apartado?: string | null
           image_checklist?: string | null
+          imagen_limpiar?: string | null
           imagen_pago?: string | null
+          imagen_pago_apartado?: string | null
           imagen_publicitaria?: string | null
           modal?: string | null
           org_name?: string | null
@@ -155,7 +159,9 @@ export type Database = {
           id?: string
           image_apartado?: string | null
           image_checklist?: string | null
+          imagen_limpiar?: string | null
           imagen_pago?: string | null
+          imagen_pago_apartado?: string | null
           imagen_publicitaria?: string | null
           modal?: string | null
           org_name?: string | null

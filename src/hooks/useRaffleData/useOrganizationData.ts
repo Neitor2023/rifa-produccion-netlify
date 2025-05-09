@@ -12,11 +12,18 @@ export function useOrganizationData(raffleId: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('organization')
-        .select('*')
+        .select(`
+          *,
+          imagen_pago,
+          imagen_pago_apartado,
+          imagen_limpiar,
+          image_apartado
+        `)
         .limit(1)
         .single();
       
       if (error) throw error;
+      console.log('[useOrganizationData.ts] Organization data:', data);
       return data;
     }
   });
@@ -95,6 +102,14 @@ export function useOrganizationData(raffleId: string) {
         updatedOrganization.org_phone_number = organizerUser.phone_number || '';
         updatedOrganization.org_photo = organizerUser.avatar;
       }
+      
+      // Log the image URLs for debugging
+      console.log('[useOrganizationData.ts] Organization images:', {
+        imagen_pago: updatedOrganization.imagen_pago,
+        imagen_pago_apartado: updatedOrganization.imagen_pago_apartado,
+        image_apartado: updatedOrganization.image_apartado,
+        imagen_limpiar: updatedOrganization.imagen_limpiar
+      });
       
       setOrganizationData(updatedOrganization);
     }
