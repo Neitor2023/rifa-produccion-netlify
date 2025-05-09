@@ -10,7 +10,10 @@ export interface Organization {
   admin_phone_number: string;
   imagen_publicitaria?: string;
   image_checklist?: string;
-  image_apartado?: string; // Added field for reserved numbers image
+  image_apartado?: string; // For the Apartar button
+  imagen_pago?: string;   // For the Pagar button
+  imagen_pago_apartado?: string; // For the Pagar Apartados button
+  imagen_limpiar?: string; // For the Limpiar button
 }
 
 export interface Raffle {

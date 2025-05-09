@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 
 interface UsePaymentFormProps {
   buyerData?: ValidatedBuyerInfo;
-  onComplete: (data: PaymentFormData) => void;
+  onComplete: (data: PaymentFormData) => Promise<void>;
   isOpen: boolean;
   debugMode?: boolean;
   clickedButton?: string;
@@ -131,7 +131,7 @@ export const usePaymentForm = ({
     setPreviewUrl(null);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     console.log('PaymentModal - Botón Completar pago pulsado');
     console.log('PaymentModal - Valor actual del comprobante de pago:', uploadedImage ? {
       name: uploadedImage.name,
@@ -173,9 +173,15 @@ export const usePaymentForm = ({
       paymentMethod: completeData.paymentMethod
     });
     
-    onComplete(completeData);
-    setIsSubmitting(false);
-    resetForm();
+    try {
+      await onComplete(completeData);
+    } catch (error) {
+      console.error("Error completing payment:", error);
+      toast.error("Error al procesar el pago");
+    } finally {
+      setIsSubmitting(false);
+      resetForm();
+    }
   };
 
   return {
