@@ -100,7 +100,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
 
   
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+    <div className="flex flex-row flex-wrap gap-2 mb-6">
       {buttons.map(btn => (
         <Button
           key={btn.key}
