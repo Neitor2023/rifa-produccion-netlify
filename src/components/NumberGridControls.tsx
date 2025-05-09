@@ -5,6 +5,7 @@ import { Check, CreditCard, ShoppingCart } from 'lucide-react';
 import { useNumberSelection } from '@/contexts/NumberSelectionContext';
 import SafeImage from './SafeImage';
 import { Organization } from '@/lib/constants/types';
+import { cn } from "@/lib/utils";
 
 interface NumberGridControlsProps {
   selectedNumbers: string[];
