@@ -50,15 +50,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
       <Button 
         variant="outline" 
-//        className="flex items-center gap-2 bg-[#1EAEDB] hover:bg-[#1EAEDB]/80 text-white dark:bg-[#1EAEDB] dark:hover:bg-[#1EAEDB]/80 dark:text-white font-bold uppercase" 
-        className="
-          flex flex-col items-center justify-center   /* apilar icono + texto */
-          gap-1                                       /* pequeño espacio vertical */
-          bg-[#1EAEDB] hover:bg-[#1EAEDB]/80 
-          text-white font-bold
-          aspect-square                               /* igual ancho y alto */
-          p-4                                         /* relleno interior */
-        "                        
+        className="flex items-center gap-2 bg-[#1EAEDB] hover:bg-[#1EAEDB]/80 text-white dark:bg-[#1EAEDB] dark:hover:bg-[#1EAEDB]/80 dark:text-white font-bold uppercase"                      
         onClick={handleClearSelection}
       >
         <Check className="h-8 w-8" />
@@ -67,15 +59,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       
       <Button
         variant="secondary"
-//        className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-bold uppercase"
-        className="
-          flex flex-col items-center justify-center   /* apilar icono + texto */
-          gap-1                                       /* pequeño espacio vertical */
-          bg-amber-500 hover:bg-amber-600 
-          text-white font-bold
-          aspect-square                               /* igual ancho y alto */
-          p-4                                         /* relleno interior */
-        "                
+        className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-bold uppercase"
         onClick={onReserve}
       >
         <ShoppingCart className="h-8 w-8" />
@@ -84,35 +68,16 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       
       <Button 
         variant="secondary"
-  className={`
-    flex flex-col items-center justify-around
-    w-20 h-20             /* 5rem = 80px */
-    px-3 py-2             /* menos padding */
-    bg-orange-500 hover:bg-orange-600
-    text-white 
-  `}
-
+        className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-bold uppercase"
         onClick={handlePayReserved}
       >
-        <img
-          src={organization.imagen_pago}
-          alt="Pagar Apartados"
-          className="h-8 w-8 mb-1 object-contain"
-        />        
-        <span>Pagar<br/>Apartados</span>
+        <CreditCard className="h-8 w-8" />
+        <span>Pagar Apartados</span>
       </Button>
       
       <Button
         variant="secondary" 
- //       className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold uppercase"
-        className="
-          flex flex-col items-center justify-center   /* apilar icono + texto */
-          gap-1                                       /* pequeño espacio vertical */
-          bg-green-500 hover:bg-green-600 
-          text-white font-bold
-          aspect-square                               /* igual ancho y alto */
-          p-4                                         /* relleno interior */
-        "        
+        className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold uppercase"
         onClick={handleProceedToPayment}
       >
         <CreditCard className="h-8 w-8" />
