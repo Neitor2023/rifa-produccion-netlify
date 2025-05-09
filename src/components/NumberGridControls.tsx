@@ -63,7 +63,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       >
         {organization?.imagen_limpiar ? (
           <SafeImage 
-            src={organization?.imagen_limpiar} 
+            src={organization.imagen_limpiar} 
             alt="Limpiar Icon"
             containerClassName="w-10 h-10 mb-1"
             className="object-contain w-full h-full"
@@ -84,7 +84,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       >
         {organization?.image_apartado ? (
           <SafeImage 
-            src={organization?.image_apartado} 
+            src={organization.image_apartado} 
             alt="Apartar Icon"
             containerClassName="w-10 h-10 mb-1"
             className="object-contain w-full h-full"
@@ -105,7 +105,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       >
         {organization?.imagen_pago_apartado ? (
           <SafeImage 
-            src={organization?.imagen_pago_apartado} 
+            src={organization.imagen_pago_apartado} 
             alt="Pagar Apartados Icon"
             containerClassName="w-10 h-10 mb-1"
             className="object-contain w-full h-full"
@@ -126,7 +126,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       >
         {organization?.imagen_pago ? (
           <SafeImage 
-            src={organization?.imagen_pago} 
+            src={organization.imagen_pago} 
             alt="Pagar Icon"
             containerClassName="w-10 h-10 mb-1"
             className="object-contain w-full h-full"
