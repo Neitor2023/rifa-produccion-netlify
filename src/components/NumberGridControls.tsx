@@ -1,9 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-// import { ShoppingCart, CreditCard, Check } from 'lucide-react';
-import { ShoppingCart, Check } from 'lucide-react';
-import type { RaffleSeller } from './types'; // ajusta la ruta
+import { ShoppingCart, CreditCard, Check } from 'lucide-react';
 import { useNumberSelection } from '@/contexts/NumberSelectionContext';
 
 interface NumberGridControlsProps {
