@@ -82,7 +82,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       
       <Button
         variant="secondary"
-        className="flex flex-col items-center justify-center gap-1 py-2 w-26 h-26 md:w-20 md:h-20 bg-amber-500 hover:bg-amber-600 text-white"
+        className="flex flex-col items-center justify-center gap-1 py-2 w-26 h-26 md:w-20 md:h-30 bg-amber-500 hover:bg-amber-600 text-white"
         onClick={onReserve}
       >
         <div className="w-8 h-8 md:w-12 md:h-12 flex items-center justify-center mb-1">
@@ -106,7 +106,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       
       <Button 
         variant="secondary"
-        className="flex flex-col items-center justify-center gap-1 py-2 w-26 h-26 md:w-20 md:h-20 bg-orange-500 hover:bg-orange-600 text-white"
+        className="flex flex-col items-center justify-center gap-1 py-2 w-26 h-26 md:w-20 md:h-30 bg-orange-500 hover:bg-orange-600 text-white"
         onClick={handlePayReserved}
       >
         <div className="w-8 h-8 md:w-12 md:h-12 flex items-center justify-center mb-1">
@@ -130,7 +130,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       
       <Button
         variant="secondary" 
-        className="flex flex-col items-center justify-center gap-1 py-2 w-26 h-26 md:w-20 md:h-20 bg-green-500 hover:bg-green-600 text-white"
+        className="flex flex-col items-center justify-center gap-1 py-2 w-26 h-26 md:w-20 md:h-30 bg-green-500 hover:bg-green-600 text-white"
         onClick={handleProceedToPayment}
       >
         <div className="w-8 h-8 md:w-12 md:h-12 flex items-center justify-center mb-1">
