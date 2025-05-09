@@ -53,7 +53,7 @@ export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit, organizat
         type="button"
         onClick={handleSubmit}
         disabled={isSubmitting}
-        className="flex-1 bg-[#9b87f5] hover:bg-[#7E69AB] text-white normal-case md:w-10 md:h-10 flex items-center justify-center py-2 px-3"
+        className="flex-1 bg-[#9b87f5] hover:bg-[#7E69AB] text-white normal-case  flex items-center justify-center py-2 px-3"
       >
         {isSubmitting ? (
           <LoaderCircle className="h-4 w-4 animate-spin" />
