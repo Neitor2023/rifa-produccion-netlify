@@ -120,5 +120,4 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       </Button>
     ))}
   </div>
-  );
 };
