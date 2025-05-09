@@ -89,7 +89,10 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
         ) : (
           <ShoppingCart className="h-10 w-10 mb-1" />
         )}
-        <span className="text-center normal-case">Apartar Seleccionado(s)</span>
+        <div className="flex flex-col items-center normal-case">
+          <span>Apartar</span>
+          <span>Número(s)</span>
+        </div>                
       </Button>
       
       <Button 
