@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -16,7 +16,6 @@ import { usePaymentForm } from '@/hooks/usePaymentForm';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { Card } from '@/components/ui/card';
 import { Organization } from '@/lib/constants/types';
-import PaymentProcessingOverlay from './payment/PaymentProcessingOverlay';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -41,8 +40,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   clickedButton,
   organization
 }) => {
-  const [processingPayment, setProcessingPayment] = useState(false);
-  
   const {
     form,
     isSubmitting,
@@ -52,66 +49,50 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     handleSubmit
   } = usePaymentForm({
     buyerData,
-    onComplete: async (data) => {
-      console.log("PaymentModal: Processing payment started");
-      setProcessingPayment(true);
-      
-      try {
-        await onComplete(data);
-      } finally {
-        // In case there's an error, we still want to hide the overlay
-        console.log("PaymentModal: Processing payment completed");
-        setProcessingPayment(false);
-      }
-    },
+    onComplete,
     isOpen,
     debugMode,
     clickedButton
   });
   
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
-          <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-gray-600 dark:text-gray-300">
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </DialogClose>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
+        <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-gray-600 dark:text-gray-300">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DialogClose>
 
-          <Card className="bg-background dark:bg-gray-900 border-0 shadow-none">
-            <PaymentModalHeader />
+        <Card className="bg-background dark:bg-gray-900 border-0 shadow-none">
+          <PaymentModalHeader />
 
-            <PaymentModalContent
-              form={form}
-              selectedNumbers={selectedNumbers}
-              price={price}
-              previewUrl={previewUrl}
-              buyerData={buyerData}
-              onFileUpload={handleImageUpload}
-              onFileRemove={handleRemoveImage}
-              clickedButton={clickedButton}
-              organization={organization}
-            />
-            
-            <PaymentModalActions 
-              isSubmitting={isSubmitting || processingPayment}
-              onClose={onClose}
-              onSubmit={handleSubmit}
-              organization={organization}
-            />
-          </Card>
-          
-          <Toaster
-            position="top-right"
-            visibleToasts={10}
-            gap={12}
-            closeButton
+          <PaymentModalContent
+            form={form}
+            selectedNumbers={selectedNumbers}
+            price={price}
+            previewUrl={previewUrl}
+            buyerData={buyerData}
+            onFileUpload={handleImageUpload}
+            onFileRemove={handleRemoveImage}
+            clickedButton={clickedButton}
+            organization={organization}
           />
-        </DialogContent>
-      </Dialog>
-      
-      <PaymentProcessingOverlay isVisible={processingPayment} />
-    </>
+          
+          <PaymentModalActions 
+            isSubmitting={isSubmitting}
+            onClose={onClose}
+            onSubmit={handleSubmit}
+          />
+        </Card>
+        
+        <Toaster
+          position="top-right"
+          visibleToasts={10}
+          gap={12}
+          closeButton
+        />
+      </DialogContent>
+    </Dialog>
   );
 };
 

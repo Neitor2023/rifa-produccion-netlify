@@ -1,6 +1,14 @@
 
-// Importing from the schema file to ensure type consistency
-import { PaymentFormData as SchemaPaymentFormData } from '@/schemas/paymentFormSchema';
-
-// Re-export the type to maintain compatibility
-export type PaymentFormData = SchemaPaymentFormData;
+export interface PaymentFormData {
+  buyerName: string;
+  buyerPhone: string;
+  buyerEmail?: string;
+  buyerCedula: string;
+  paymentMethod?: "cash" | "transfer";
+  paymentProof?: any;
+  nota?: string;
+  direccion?: string;
+  sugerenciaProducto?: string;
+  reporteSospechoso?: string;
+  sellerId?: string; // Add the sellerId field
+}

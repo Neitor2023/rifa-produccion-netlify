@@ -3,16 +3,14 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { LoaderCircle } from "lucide-react";
 import { useNumberSelection } from '@/contexts/NumberSelectionContext';
-import { Organization } from '@/lib/constants/types';
 
 interface PaymentModalActionsProps {
   isSubmitting: boolean;
   onClose: () => void;
   onSubmit: () => void;
-  organization?: Organization | null;
 }
 
-export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit, organization }: PaymentModalActionsProps) => {
+export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit }: PaymentModalActionsProps) => {
   const { clearSelectionState } = useNumberSelection();
 
   const handleCancel = () => {
@@ -36,16 +34,13 @@ export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit, organizat
     e.preventDefault();
   };
 
-  console.log('[PaymentModalActions] Button image removed from Completar Pago button');
-
   return (
-    <div className="flex flex-row flex-nowrap gap-2 justify-center space-x-2 pt-2 border-t mt-4">
+    <div className="flex justify-end space-x-2 pt-4 border-t mt-4">
       <Button
         type="button"
         variant="outline"
         onClick={handleCancel}
-        className="flex-1 font-bold normal-case text-gray-800 dark:text-white hover:bg-[#9b87f5] hover:text-white dark:hover:text-gray-800"
-        disabled={isSubmitting}
+        className="flex-1 sm:flex-none font-bold uppercase text-gray-800 dark:text-white hover:bg-[#9b87f5] hover:text-white dark:hover:text-gray-800"
       >
         Cancelar
       </Button>
@@ -53,15 +48,12 @@ export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit, organizat
         type="button"
         onClick={handleSubmit}
         disabled={isSubmitting}
-        className="flex-1 bg-[#9b87f5] hover:bg-[#7E69AB] text-white normal-case  flex items-center justify-center py-2 px-3"
+        className="flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB] font-bold uppercase"
       >
         {isSubmitting ? (
-          <LoaderCircle className="h-4 w-4 animate-spin" />
-        ) : (
-          <div className="text-xs text-center">
-            Completar Pago
-          </div>
-        )}
+          <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+        ) : null}
+        Completar Pago
       </Button>
     </div>
   );
