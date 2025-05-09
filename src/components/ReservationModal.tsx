@@ -197,7 +197,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             <Button 
               type="button" 
               onClick={form.handleSubmit(handleSubmit)} 
-              className="flex-1 bg-[#9b87f5] hover:bg-[#7E69AB] text-white normal-case md:w-20 md:h-20 flex flex-col items-center justify-center py-2 px-3"
+              className="flex-1 bg-[#9b87f5] hover:bg-[#7E69AB] text-white normal-case flex flex-col items-center justify-center py-2 px-3"
             >
               <div className="text-xs whitespace-pre-line text-center">
                 Confirmar
