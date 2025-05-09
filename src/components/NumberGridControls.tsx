@@ -75,7 +75,8 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
       variant: "secondary",
       onClick: handleProceedToPayment,
       bgClass: "bg-green-500 hover:bg-green-600",
-      iconOrImage: <CreditCard className="h-full w-full" />,      
+      iconOrImage: <CreditCard className="h-full w-full" />,   
+      text: "Pagar\nDirecto"
     }
   ];
     
@@ -91,7 +92,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
             btn.bgClass
           )}
         >
-          <div className="w-full h-full md:w-full md:h-full flex items-center justify-center mb-1 md:mb-0">
+          <div className="flex items-center justify-center mb-1 md:mb-0">
             {btn.iconOrImage}
           </div>          
           <div className="text-xs text-center md:text-left">
