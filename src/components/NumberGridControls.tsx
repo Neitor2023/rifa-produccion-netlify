@@ -71,7 +71,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
         ) : (
           <Check className="h-10 w-10 mb-1" />
         )}
-        <span className="text-center normal-case">Limpiar</span>
+        <span className="text-center normal-case">Limpiar Selecciones</span>
       </Button>
       
       <Button
@@ -89,7 +89,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
         ) : (
           <ShoppingCart className="h-10 w-10 mb-1" />
         )}
-        <span className="text-center normal-case">Apartar</span>
+        <span className="text-center normal-case">Apartar Seleccionado(s)</span>
       </Button>
       
       <Button 
@@ -128,7 +128,10 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
         ) : (
           <CreditCard className="h-10 w-10 mb-1" />
         )}
-        <span className="text-center normal-case">Pagar</span>
+        <div className="flex flex-col items-center normal-case">
+          <span>Pago</span>
+          <span>Directo</span>
+        </div>        
       </Button>
     </div>
   );
