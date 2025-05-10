@@ -20,8 +20,8 @@ const ValidationMessage: React.FC<ValidationMessageProps> = ({
         {message}
       </p>
       {isValid && formattedNumber && (
-        <p className="text-sm font-bold text-gray-500 dark:text-gray-300">
-          Formato internacional o DNI: {formattedNumber} o 1702030405
+        <p className="text-sm font-extrabold text-gray-500 dark:text-gray-300">
+          Formato x internacional o DNI: {formattedNumber} o 1702030405
         </p>
       )}
     </div>
