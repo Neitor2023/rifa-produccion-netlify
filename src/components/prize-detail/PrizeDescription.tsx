@@ -30,8 +30,8 @@ const PrizeDescription: React.FC<PrizeDescriptionProps> = ({ description, detail
       
       {detail && (
         <div>
-          <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">Detalles</h3>
-          <div className="text-gray-600 dark:text-gray-400 text-sm whitespace-pre-line">
+          <h3 className="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-200">Detalles</h3>
+          <div className="text-base font-bold text-gray-600 dark:text-gray-400 text-sm whitespace-pre-line">
             {formatText(detail)}
           </div>
         </div>
