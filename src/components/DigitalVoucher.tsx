@@ -224,7 +224,16 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
           </div>
         </ScrollArea>
         
-        <DialogFooter className="flex flex-row justify-between space-x-2 sm:flex-row sm:justify-between sm:space-x-2">          
+        <DialogFooter className="flex flex-row justify-between space-x-2 sm:flex-row sm:justify-between sm:space-x-2">                    
+          <Button 
+            type="button" 
+            className="bg-purple-700 hover:bg-purple-800"
+            onClick={handleDownload}
+          >
+            <Download className="flex-1 h-4 w-4 mr-2" />
+            Descargar
+          </Button>
+          
           <Button
             type="button"
             variant="outline"
@@ -235,14 +244,6 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
             Cerrar
           </Button>
           
-          <Button 
-            type="button" 
-            className="bg-purple-700 hover:bg-purple-800"
-            onClick={handleDownload}
-          >
-            <Download className="flex-1 h-4 w-4 mr-2" />
-            Descargar
-          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
