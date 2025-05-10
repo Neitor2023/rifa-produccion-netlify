@@ -67,7 +67,7 @@ export const useGridHandlers = ({
     
     setHighlightReserved(true);
     setShowReservedMessage(true);
-    toast.info(`There are ${reservedNumbers.length} reserved number(s). Select one to proceed with payment.`);
+    toast.info(`Hay ${reservedNumbers.length} numero reservado(s). Seleccione uno para proceder con el pago.`);
   };
   
   const handleCloseReservedMessage = () => {
