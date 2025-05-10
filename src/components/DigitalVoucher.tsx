@@ -206,7 +206,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
             type="button"
             variant="outline"
             onClick={onClose}
-            className="mt-3 sm:mt-0"
+            className="bg-gray-700 hover:bg-gray-800"
           >
             <X className="flex-1 h-4 w-4 mr-2" />
             Cerrar
