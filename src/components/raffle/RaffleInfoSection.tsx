@@ -24,6 +24,8 @@ const RaffleInfoSection: React.FC<RaffleInfoSectionProps> = ({
           drawInfo={`${raffle.lottery || 'Sorteo'} - ${raffle.date_lottery || 'Fecha pendiente'}`}
           instructions={raffle.payment_instructions || ''}
           priceInfo={`${raffle.price || 0} ${raffle.currency || ''}`}
+          copyWriting={raffle.copy_writing || ''}
+          sellerAdvertisingImage={raffle.seller_advertising_image || ''}
         />
       )}
       

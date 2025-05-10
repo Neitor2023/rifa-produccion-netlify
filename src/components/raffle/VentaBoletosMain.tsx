@@ -62,6 +62,17 @@ const VentaBoletosMain: React.FC<VentaBoletosMainProps> = ({
           </Card>
         </div>
         
+        {/* Description - MOVED HERE from below */}
+        {raffle?.description && (
+          <Card className="mb-4 shadow-sm">
+            <CardContent className="p-3">
+              <div className="whitespace-pre-line text-sm">
+                {raffle.description}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
         {/* Title card */}
         <Card className="mb-4 shadow-sm">
           <CardContent className="p-3">
@@ -109,7 +120,8 @@ const VentaBoletosMain: React.FC<VentaBoletosMainProps> = ({
             reservationDays={reservationDays}
             lotteryDate={lotteryDate}
             organization={organization}
-            totalNumbers={raffle?.total_numbers} // Pasamos el total_numbers del raffle
+            totalNumbers={raffle?.total_numbers}
+            mini_instructivo={raffle?.mini_instructivo}
           />
         </div>
         

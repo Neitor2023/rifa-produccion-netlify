@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Toaster } from 'sonner';
 import { Card } from '@/components/ui/card';
@@ -44,6 +45,7 @@ interface NumberGridProps {
   lotteryDate?: Date;
   organization?: Organization;
   totalNumbers?: number;
+  mini_instructivo?: string;
 }
 
 const NumberGrid: React.FC<NumberGridProps> = ({ 
@@ -57,6 +59,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
   lotteryDate,
   organization,
   totalNumbers,
+  mini_instructivo,
 }) => {
   const {
     // State
@@ -122,7 +125,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       
       <NumberGridLegend 
         highlightReserved={highlightReserved} 
-        organization={organization} 
+        organization={organization}
+        mini_instructivo={mini_instructivo}
       />
       
       <ValidationModals 
