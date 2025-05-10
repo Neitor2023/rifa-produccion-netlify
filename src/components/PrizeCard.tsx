@@ -38,7 +38,7 @@ const PrizeCard: React.FC<PrizeCardProps> = ({ prize, onViewDetails }) => {
           className="w-full hover:bg-gray-100 dark:hover:bg-gray-700"
           onClick={() => onViewDetails(prize)}
         >
-          <Eye className="h-4 w-1 mr-2" />
+          <Eye className="h-4 w-4 mr-2" />
           Ver Detalles
         </Button>
       </CardFooter>
