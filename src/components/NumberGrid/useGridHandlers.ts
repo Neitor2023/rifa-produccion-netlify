@@ -76,7 +76,7 @@ export const useGridHandlers = ({
   
   const toggleNumber = (number: string, status: string) => {
     if (debugMode) {
-      console.log(`NumberGrid: Toggle number called with number=${number}, status=${status}`);
+      console.log(`NumberGrid: Alternar número llamado con número=${number}, status=${status}`);
     }
     
     if (highlightReserved && status === 'reserved') {
@@ -103,7 +103,7 @@ export const useGridHandlers = ({
         return prev.filter(n => n !== number);
       } else {
         if (prev.length >= raffleSeller.cant_max) {
-          toast.error(`You cannot select more than ${raffleSeller.cant_max} numbers`);
+          toast.error(`No puedes seleccionar más de ${raffleSeller.cant_max} números`);
           return prev;
         }
         return [...prev, number];
@@ -238,8 +238,8 @@ export const useGridHandlers = ({
       .eq('seller_id', raffleSeller.seller_id);
     
     if (error) {
-      console.error('NumberGrid: Error getting reserved numbers:', error);
-      toast.error('Error looking up reserved numbers');
+      console.error('NumberGrid: Error al obtener números reservados:', error);
+      toast.error('Error al buscar números reservados');
       return;
     }
     
@@ -249,17 +249,17 @@ export const useGridHandlers = ({
       );
       
       if (debugMode) {
-        console.log('NumberGrid: Reserved numbers found:', allReservedNumbers);
+        console.log('NumberGrid: Números reservados encontrados:', allReservedNumbers);
       }
       
       toast.success(`${allReservedNumbers.length} number(s) found`);
       await onProceedToPayment(allReservedNumbers);
     } else {
       if (debugMode) {
-        console.log('NumberGrid: No reserved numbers found with direct query');
+        console.log('NumberGrid: No se encontraron números reservados con consulta directa');
       }
       
-      toast.error('❗ No reserved numbers found for this participant.');
+      toast.error('❗ No se encontraron números reservados para este participante.');
     }
   };
   
