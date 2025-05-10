@@ -59,7 +59,7 @@ export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit }: Payment
           {isSubmitting ? (
             <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
           ) : null}
-          Completar Pago
+          CompletarXXX Pago
         </Button>
       </div>
 
