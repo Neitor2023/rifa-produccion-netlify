@@ -11,7 +11,8 @@ interface ModalFooterProps {
 
 const ModalFooter: React.FC<ModalFooterProps> = ({ onCancel, onValidate, isValid }) => {
   return (
-    <DialogFooter className="flex justify-end space-x-2 pt-4 border-t mt-4">
+//    <DialogFooter className="flex justify-end space-x-2 pt-4 border-t mt-4">
+      <DialogFooter className="flex justify-between space-x-2 pt-4 border-t mt-4">
       <Button 
         type="button" 
         variant="outline" 
