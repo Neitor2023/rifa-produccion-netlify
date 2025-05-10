@@ -41,7 +41,7 @@ export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit }: Payment
 
   return (
     <>
-      <div className="flex justify-end space-x-2 pt-4 border-t mt-4">
+      <div className="flex justify-end space-x-2 pt-0 border-t mt-0">
         <Button
           type="button"
           variant="outline"
