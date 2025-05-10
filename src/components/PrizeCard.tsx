@@ -32,13 +32,13 @@ const PrizeCard: React.FC<PrizeCardProps> = ({ prize, onViewDetails }) => {
       </div>
       
       {/* Button below image */}
-      <CardFooter className="w-4 p-3 flex justify-center">
+      <CardFooter className="p-3 flex justify-center">
         <Button 
           variant="secondary"
           className="w-full hover:bg-gray-100 dark:hover:bg-gray-700"
           onClick={() => onViewDetails(prize)}
         >
-          <Eye className="h-4 w-4 mr-2" />
+          <Eye className="h-4 w-1 mr-2" />
           Ver Detalles
         </Button>
       </CardFooter>
