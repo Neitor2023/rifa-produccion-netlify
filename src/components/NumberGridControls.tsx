@@ -48,7 +48,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
   const buttons = [
     {
       key: "clear",
-      variant: "outline",
+      variant: "outline" as const, // Fixed: Using "as const" to specify the literal type
       onClick: handleClearSelection,
       bgClass: "bg-[#1EAEDB] dark:bg-[#1EAEDB]",
       iconOrImage: <Check className="h-full w-full" />,
@@ -56,7 +56,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
     },
     {
       key: "reserve",
-      variant: "secondary",
+      variant: "secondary" as const, // Fixed: Using "as const" to specify the literal type
       onClick: onReserve,
       bgClass: "bg-amber-500 hover:bg-amber-600",
       iconOrImage: <ShoppingCart className="h-full w-full" />, 
@@ -64,7 +64,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
     },
     {
       key: "payReserved",
-      variant: "secondary",
+      variant: "secondary" as const, // Fixed: Using "as const" to specify the literal type
       onClick: handlePayReserved,
       bgClass: "bg-orange-500 hover:bg-orange-600",
       iconOrImage: <CreditCard className="h-full w-full" />,   
@@ -72,7 +72,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
     },
     {
       key: "pay",
-      variant: "secondary",
+      variant: "secondary" as const, // Fixed: Using "as const" to specify the literal type
       onClick: handleProceedToPayment,
       bgClass: "bg-green-500 hover:bg-green-600",
       iconOrImage: <CreditCard className="h-full w-full" />,
