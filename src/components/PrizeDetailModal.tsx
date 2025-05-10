@@ -131,7 +131,7 @@ const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, pr
             </ScrollArea>
           </CardContent>
           
-          <DialogFooter className="mt-4 pt-4 border-t">
+          <DialogFooter className="mt-2 pt-2 border-t">
             <Button 
               className="w-full flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB] text-white font-bold uppercase" 
               onClick={onClose}
