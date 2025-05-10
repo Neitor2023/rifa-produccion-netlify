@@ -19,7 +19,7 @@ const ModalFooter: React.FC<ModalFooterProps> = ({ onCancel, onValidate, isValid
         onClick={onCancel} 
         className="flex-1 sm:flex-none font-bold uppercase text-gray-800 dark:text-white hover:bg-[#9b87f5] hover:text-white dark:hover:text-gray-800"
       >
-        Cancelar XZ
+        Cancelar
       </Button>
       <Button 
         type="button" 
@@ -27,7 +27,7 @@ const ModalFooter: React.FC<ModalFooterProps> = ({ onCancel, onValidate, isValid
         disabled={!isValid}
         className="flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB] font-bold uppercase"
       >
-        Validar
+        Validar lx
       </Button>
     </DialogFooter>
   );
