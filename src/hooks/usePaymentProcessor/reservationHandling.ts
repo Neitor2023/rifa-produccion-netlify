@@ -61,16 +61,16 @@ export function useReservationHandling({
   
     // 1. Initial validations
     if (!raffleSeller?.seller_id) {
-      toast.error("Seller information is not available");
+      toast.error("La información del vendedor no está disponible");
       return;
     }
     if (!buyerPhone || !buyerName) {
-      toast.error("Name and phone are required to reserve numbers");
+      toast.error("Se requiere nombre y teléfono para reservar números.");
       return;
     }
     // Validate minimum cedula length
     if (buyerCedula && buyerCedula.length < 5) {
-      toast.error("Cedula must have at least 5 characters");
+      toast.error("La cédula debe tener al menos 5 caracteres");
       return;
     }
     // Maximum sales validation
@@ -90,7 +90,7 @@ export function useReservationHandling({
       const participantId = await findOrCreateParticipant(buyerPhone, buyerName, buyerCedula);
       console.log("👤 useReservationHandling: Participant created/found:", participantId);
       if (!participantId) {
-        toast.error("Could not create or find participant");
+        toast.error("No se pudo crear ni encontrar el participante");
         return;
       }
   
@@ -109,10 +109,10 @@ export function useReservationHandling({
       // 4. Refresh and clean
       await refetchRaffleNumbers();
   
-      toast.success(`${numbers.length} number(s) reserved successfully`);
+      toast.success(`${numbers.length} número(s) reservado(s) exitosamente`);
     } catch (error: any) {
-      console.error("useReservationHandling: ❌ Error reserving numbers:", error);
-      toast.error(`Error reserving numbers${error.message ? ` — ${error.message}` : ""}`);
+      console.error("useReservationHandling: ❌ Error números de reserva:", error);
+      toast.error(`Error números de reserva${error.message ? ` — ${error.message}` : ""}`);
     }
   };
 
