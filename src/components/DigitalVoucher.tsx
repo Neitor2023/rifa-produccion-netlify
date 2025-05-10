@@ -159,7 +159,9 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
                     </div>
                     <div>
                       <span className="font-semibold">Fecha Sorteo:</span>{' '}
-                      {raffleDetails?.dateLottery || '-'}
+                      <div>
+                        {raffleDetails?.dateLottery || '-'}
+                      </div>
                     </div>
                   </div>
                 </div>
