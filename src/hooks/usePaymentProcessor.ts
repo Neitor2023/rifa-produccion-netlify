@@ -92,6 +92,8 @@ export function usePaymentProcessor({
     setIsPaymentModalOpen,
     setIsVoucherOpen,
     allowVoucherPrint,
+    uploadPaymentProof,
+    processParticipant,
     supabase,
     debugMode
   });
