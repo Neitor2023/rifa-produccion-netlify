@@ -9,7 +9,7 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Printer, X, AlertTriangle } from 'lucide-react';
+import { Download, X, AlertTriangle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
 import { PaymentFormData } from './PaymentModal';
@@ -56,16 +56,37 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
 
   const paymentMethod = paymentData?.paymentMethod === 'cash' ? 'Efectivo' : 'Transferencia bancaria';
 
-  const handlePrint = () => {
+  const handleDownload = () => {
     const content = printRef.current;
     if (content) {
-      const originalContents = document.body.innerHTML;
-      const printContents = content.innerHTML;
+      // Create a canvas from the content
+      const canvas = document.createElement('canvas');
+      const scale = 2; // Higher scale for better quality
       
-      document.body.innerHTML = printContents;
-      window.print();
-      document.body.innerHTML = originalContents;
-      window.location.reload();
+      import('html2canvas').then(({ default: html2canvas }) => {
+        html2canvas(content, {
+          scale: scale,
+          logging: false,
+          useCORS: true,
+          allowTaint: true
+        }).then((canvas) => {
+          const imgData = canvas.toDataURL('image/png');
+          const link = document.createElement('a');
+          link.download = `comprobante_${formattedDate.replace(/\s+/g, '_')}.png`;
+          link.href = imgData;
+          link.click();
+          toast({
+            title: "¡Descarga exitosa!",
+            description: "El comprobante ha sido guardado en tus descargas.",
+          });
+        });
+      }).catch(() => {
+        toast({
+          title: "Error al descargar",
+          description: "No se pudo generar la imagen. Intente nuevamente.",
+          variant: "destructive"
+        });
+      });
     }
   };
 
@@ -193,7 +214,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
                 <Alert className="mt-4 bg-green-50 border-green-200">
                   <AlertTitle className="text-green-700">Comprobante Disponible</AlertTitle>
                   <AlertDescription className="text-green-600">
-                    Su comprobante ha sido generado correctamente. Puede imprimirlo o guardarlo como referencia.
+                    Su comprobante ha sido generado correctamente. Puede descargarlo o guardarlo como referencia.
                   </AlertDescription>
                 </Alert>
               </div>
@@ -215,10 +236,10 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
           <Button 
             type="button" 
             className="bg-purple-700 hover:bg-purple-800"
-            onClick={handlePrint}
+            onClick={handleDownload}
           >
-            <Printer className="flex-1 h-4 w-4 mr-2" />
-            Imprimir
+            <Download className="flex-1 h-4 w-4 mr-2" />
+            Descargar
           </Button>
         </DialogFooter>
       </DialogContent>
