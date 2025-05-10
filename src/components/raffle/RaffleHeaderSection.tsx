@@ -15,7 +15,7 @@ const RaffleHeaderSection: React.FC<RaffleHeaderSectionProps> = ({
   return (
     <>
       <div className="flex justify-between items-center">
-        <div>
+        <div className="flex-1">
           {/* Nombre de la organización en su propia tarjeta con espaciado reducido */}
           {organization && (
             <Card className="shadow-sm">
