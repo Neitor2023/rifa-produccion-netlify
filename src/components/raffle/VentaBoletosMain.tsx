@@ -62,7 +62,16 @@ const VentaBoletosMain: React.FC<VentaBoletosMainProps> = ({
           </Card>
         </div>
         
-        {/* Description - MOVED HERE from below */}
+        {/* Title card - MOVED UP from below */}
+        <Card className="mb-4 shadow-sm">
+          <CardContent className="p-3">
+            <h1 className="text-xl sm:text-2xl font-bold text-center">
+              {raffle?.title || 'Cargando...'}
+            </h1>
+          </CardContent>
+        </Card>
+        
+        {/* Description - MOVED DOWN from above */}
         {raffle?.description && (
           <Card className="mb-4 shadow-sm">
             <CardContent className="p-3">
@@ -72,15 +81,6 @@ const VentaBoletosMain: React.FC<VentaBoletosMainProps> = ({
             </CardContent>
           </Card>
         )}
-        
-        {/* Title card */}
-        <Card className="mb-4 shadow-sm">
-          <CardContent className="p-3">
-            <h1 className="text-xl sm:text-2xl font-bold text-center">
-              {raffle?.title || 'Cargando...'}
-            </h1>
-          </CardContent>
-        </Card>
         
         {/* Seller Info */}
         {seller && (
