@@ -181,7 +181,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             </ScrollArea>
           </CardContent>
           
-          <DialogFooter className="mt-4 pt-4 border-t">
+          <DialogFooter className="flex flex-row justify-between mt-2 pt-2 border-t">
             <Button 
               type="button" 
               variant="outline" 
