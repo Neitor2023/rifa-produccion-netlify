@@ -201,14 +201,14 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
           </div>
         </ScrollArea>
         
-        <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between sm:space-x-2">
+        <DialogFooter className="flex flex-row justify-between space-x-2 sm:flex-row sm:justify-between sm:space-x-2">          
           <Button
             type="button"
             variant="outline"
             onClick={onClose}
             className="mt-3 sm:mt-0"
           >
-            <X className="h-4 w-4 mr-2" />
+            <X className="flex-1 h-4 w-4 mr-2" />
             Cerrar
           </Button>
           
@@ -217,7 +217,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
             className="bg-purple-700 hover:bg-purple-800"
             onClick={handlePrint}
           >
-            <Printer className="h-4 w-4 mr-2" />
+            <Printer className="flex-1 h-4 w-4 mr-2" />
             Imprimir
           </Button>
         </DialogFooter>
