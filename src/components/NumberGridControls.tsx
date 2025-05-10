@@ -48,7 +48,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
       <Button 
         variant="outline" 
-        className="flex items-center gap-2 bg-[#1EAEDB] hover:bg-[#1EAEDB]/80 text-white dark:bg-[#1EAEDB] dark:hover:bg-[#1EAEDB]/80 dark:text-white font-bold uppercase" 
+        className="flex items-center gap-2 bg-[#1EAEDB] hover:bg-[#1EAEDB]/80 text-white dark:bg-[#1EAEDB] dark:hover:bg-[#1EAEDB]/80 dark:text-white font-bold uppercase"                      
         onClick={handleClearSelection}
       >
         <Check className="h-4 w-4" />

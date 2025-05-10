@@ -16,13 +16,13 @@ export const findExistingParticipant = async ({
   setValidatedBuyerData,
   debugLog
 }: FindExistingParticipantProps): Promise<ValidatedBuyerInfo & { id: string } | null> => {
+  console.log("🔍 findExistingParticipant: Entry point with phone", phone);
   const formattedPhone = formatPhoneNumber(phone);
   debugLog('Finding participant with formatted phone', formattedPhone);
-  console.log("🔍 Looking for participant with formatted phone:", formattedPhone);
   
   const { data, error } = await supabase
     .from('participants')
-    .select('id, name, phone, cedula, direccion, sugerencia_producto')
+    .select('id, name, phone, email, cedula, direccion, sugerencia_producto')
     .eq('phone', formattedPhone)
     .eq('raffle_id', raffleId)
     .maybeSingle();
@@ -34,7 +34,7 @@ export const findExistingParticipant = async ({
   
   if (data) {
     debugLog('Found existing participant', data);
-    console.log("✅ Found existing participant:", data);
+    console.log("✅ findExistingParticipant: Found existing participant:", data);
     
     // Update the global validatedBuyerData state if the setter is provided
     if (setValidatedBuyerData) {
@@ -42,18 +42,19 @@ export const findExistingParticipant = async ({
         id: data.id,
         name: data.name,
         phone: data.phone,
+        email: data.email, // Important: Include email
         cedula: data.cedula,
         direccion: data.direccion,
         sugerencia_producto: data.sugerencia_producto
       };
       
-      console.log("🔄 Setting validatedBuyerData in findExistingParticipant:", buyerInfo);
+      console.log("🔄 findExistingParticipant: Setting validatedBuyerData:", buyerInfo);
       setValidatedBuyerData(buyerInfo);
     }
     
     return data as ValidatedBuyerInfo & { id: string };
   }
   
-  console.log("❌ No participant found with phone:", formattedPhone);
+  console.log("❌ findExistingParticipant: No participant found with phone:", formattedPhone);
   return null;
 };
