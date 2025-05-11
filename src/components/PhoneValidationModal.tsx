@@ -187,7 +187,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
                       }
                     }}                    
                     >
-                    Validación de ( teléfono o cédula )XY
+                    Validación de ( teléfono o cédula )
                   </DialogTitle>
                   <DialogClose className="absolute right-10 center bg-[#3d3d3d] hover:bg-[#1a1a1a] rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-white">
                     <X className="h-4 w-4" />
