@@ -10,7 +10,7 @@ import {
 import { X } from 'lucide-react';
 import { Toaster } from 'sonner';
 import { ValidatedBuyerInfo } from '@/types/participant';
-import { PaymentModalHeader } from './payment/PaymentModalHeader';
+
 import { PaymentModalActions } from './payment/PaymentModalActions';
 import PaymentModalContent from './payment/PaymentModalContent';
 import { NumberSelectionProvider } from '@/contexts/NumberSelectionContext';
