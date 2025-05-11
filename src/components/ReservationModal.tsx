@@ -93,7 +93,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
+    <Dialog open={isOpen}>
       <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
         {/* Botón de cierre personalizado con un estilo más estético */}
         
@@ -106,7 +106,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             >
               <CardHeader className="py-3 px-4">
                 <DialogTitle className="text-xl text-white font-bold text-center">
-                  Apartar números 333
+                  Apartar números 333444
                 </DialogTitle>
                 {/* Botón de cierre personalizado con un estilo más estético */}
                 {/*<DialogClose className="absolute right-4 top-4 rounded-full bg-[#9b87f5] hover:bg-[#7E69AB] p-1 opacity-90 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-white">*/}
