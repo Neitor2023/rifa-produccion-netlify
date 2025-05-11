@@ -98,7 +98,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
         <Card className="bg-background dark:bg-gray-900 border-0 shadow-none">
           <DialogHeader className="pt-1 pb-1">
             <Card className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0">
-              <CardHeader className="pt-1 pb-1 px-4">
+              <CardHeader className="pt-1 pb-1 py-3 px-4">
                 <DialogTitle onClick={form.handleSubmit(handleSubmit)} className="text-xl text-white font-bold text-center">
                   Apartar números
                 </DialogTitle>
