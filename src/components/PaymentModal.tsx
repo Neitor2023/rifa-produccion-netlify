@@ -71,7 +71,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                   className="cursor-pointer text-xl text-white font-bold text-center"
                   onKeyDown={(e) => {           // captura Enter y Barra espaciadora
                     if (e.key === 'Enter' || e.key === ' ') {
-                      handleSubmit()
+                      handleSubmit();
+                      isSubmitting();
                     }
                   }}
                 >
