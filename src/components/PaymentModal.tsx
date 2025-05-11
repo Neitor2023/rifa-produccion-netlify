@@ -56,7 +56,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     debugMode,
     clickedButton
   });
-  
+  const [isSearching, setIsSearching] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
@@ -70,11 +72,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     type="button"
                     className="w-full cursor-pointer text-lg text-white font-bold text-center"
                     onClick={async () => {
-                      setIsSubmitting(true);
+                      setIsSearching(true);
                       try {
                         await handleSubmit();
                       } finally {
-                        setIsSubmitting(false);
+                        setIsSearching(false);
                       }
                     }}
                   >
