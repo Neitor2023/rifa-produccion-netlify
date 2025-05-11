@@ -98,9 +98,9 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
         <Card className="bg-background dark:bg-gray-900 border-0 shadow-none">
           <DialogHeader>
             <Card className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0">
-              <CardHeader className="px-4">
+              <CardHeader className="pt-1 px-4">
                 <DialogTitle className="text-xl text-white font-bold text-center">
-                  Apartar númerosXYZ--XYZ---XYZ
+                  Apartar números
                 </DialogTitle>
                 <DialogClose className="absolute - right-10 center bg-[#3d3d3d] hover:bg-[#1a1a1a] rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-white">
                   <X className="h-4 w-4" />
