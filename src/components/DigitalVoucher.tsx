@@ -9,7 +9,7 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Download, X, AlertTriangle } from 'lucide-react';
+import { Download, X, AlertTriangle, Maximize2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
 import { PaymentFormData } from './PaymentModal';
@@ -84,6 +84,85 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         toast({
           title: "Error al descargar",
           description: "No se pudo generar la imagen. Intente nuevamente.",
+          variant: "destructive"
+        });
+      });
+    }
+  };
+  
+  // Nueva función para presentar el comprobante a pantalla completa
+  const handlePresent = () => {
+    const content = printRef.current;
+    if (content) {
+      import('html2canvas').then(({ default: html2canvas }) => {
+        html2canvas(content, {
+          scale: 2,
+          logging: false,
+          useCORS: true,
+          allowTaint: true
+        }).then((canvas) => {
+          const imgData = canvas.toDataURL('image/png');
+          
+          // Mostrar imagen a pantalla completa (similar a lo que hace handleDownloadImage en RaffleInfo)
+          const newWindow = window.open('', '_blank');
+          if (newWindow) {
+            newWindow.document.write(`
+              <html>
+                <head>
+                  <title>Comprobante de Pago</title>
+                  <style>
+                    body {
+                      margin: 0;
+                      padding: 0;
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      background: rgba(0, 0, 0, 0.9);
+                      min-height: 100vh;
+                      overflow: auto;
+                    }
+                    img {
+                      max-width: 95%;
+                      max-height: 95vh;
+                      object-fit: contain;
+                    }
+                    .close-btn {
+                      position: fixed;
+                      top: 20px;
+                      right: 20px;
+                      background: white;
+                      color: black;
+                      border: none;
+                      border-radius: 50%;
+                      width: 40px;
+                      height: 40px;
+                      font-size: 20px;
+                      cursor: pointer;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                    }
+                  </style>
+                </head>
+                <body>
+                  <button class="close-btn" onclick="window.close()">×</button>
+                  <img src="${imgData}" alt="Comprobante de pago" />
+                </body>
+              </html>
+            `);
+            newWindow.document.close();
+          } else {
+            toast({
+              title: "Error",
+              description: "No se pudo abrir la ventana de presentación. Verifique que no tenga bloqueadores de ventanas emergentes activados.",
+              variant: "destructive"
+            });
+          }
+        });
+      }).catch(() => {
+        toast({
+          title: "Error al presentar",
+          description: "No se pudo generar la imagen para presentación. Intente nuevamente.",
           variant: "destructive"
         });
       });
@@ -236,6 +315,17 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
           >
             <Download className="h-4 w-4 mr-2" />
             Descargar
+          </Button>
+          
+          {/* Nuevo botón "Presentar" */}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handlePresent}
+            className="bg-purple-500 hover:bg-purple-600 text-white w-full sm:w-auto mb-2 sm:mb-0"
+          >
+            <Maximize2 className="h-4 w-4 mr-2" />
+            Presentar
           </Button>
           
           <Button
