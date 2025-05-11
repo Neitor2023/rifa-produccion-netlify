@@ -176,8 +176,8 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
             <DialogHeader className="pt-1 pb-1">
               <Card className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0">
                 <CardHeader className="py-3 px-4">
-                  <DialogTitle className="text-lg text-white font-bold text-center">
-                    Validación de ( teléfono o cédula )
+                  <DialogTitle onValidate={handleNumberSubmit} isValid={validation.isValid} className="text-lg text-white font-bold text-center">
+                    Validación de ( teléfono o cédula )Z
                   </DialogTitle>
                   <DialogClose className="absolute right-10 center bg-[#3d3d3d] hover:bg-[#1a1a1a] rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-white">
                     <X className="h-4 w-4" />
@@ -204,7 +204,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
                       formattedNumber={validation.formattedNumber}
                     />
                     
-                    {/* Display promotional image at the end if available */}
+                    {/* Mostrar imagen promocional al final si está disponible*/}
                     {organization?.imagen_publicitaria && (
                       <PromotionalImage imageUrl={organization.imagen_publicitaria} />
                     )}
