@@ -307,10 +307,11 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
           </div>
         </ScrollArea>
         
-        <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between sm:space-x-2 mt-4">                    
+        {/*<DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between sm:space-x-2 mt-4">*/}
+        <DialogFooter className="flex flex-row justify-between space-x-2 mt-4">
           <Button 
             type="button" 
-            className="bg-purple-700 hover:bg-purple-800 text-white w-full sm:w-auto"
+            className="flex-1 bg-purple-700 hover:bg-purple-800 text-white w-full sm:w-auto"
             onClick={handleDownload}
           >
             <Download className="h-4 w-4 mr-2" />
@@ -322,7 +323,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
             type="button"
             variant="outline"
             onClick={handlePresent}
-            className="bg-purple-500 hover:bg-purple-600 text-white w-full sm:w-auto mb-2 sm:mb-0"
+            className="flex-1 bg-purple-500 hover:bg-purple-600 text-white w-full sm:w-auto mb-2 sm:mb-0"
           >
             <Maximize2 className="h-4 w-4 mr-2" />
             Presentar
@@ -332,7 +333,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
             type="button"
             variant="outline"
             onClick={onClose}
-            className="bg-gray-400 hover:bg-gray-500 text-white w-full sm:w-auto mb-2 sm:mb-0"
+            className="flex-1 bg-gray-400 hover:bg-gray-500 text-white w-full sm:w-auto mb-2 sm:mb-0"
           >
             <X className="h-4 w-4 mr-2" />
             Cerrar
