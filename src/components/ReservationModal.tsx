@@ -93,17 +93,13 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} >
+    <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
       <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
-        {/* Custom close button with more aesthetic styling */}
-        <DialogClose className="absolute right-4 top-4 rounded-full bg-[#9b87f5] hover:bg-[#7E69AB] p-1 opacity-90 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-white">
-          <X className="h-4 w-4" />
-          <span className="sr-only">Close</span>
-        </DialogClose>
+        {/* Botón de cierre personalizado con un estilo más estético */}
         
         <Card className="bg-background dark:bg-gray-900 border-0 shadow-none">
           <DialogHeader className="pt-2 mt-2">
-            {/* Wrapped title in a card with vibrant styling and added click handler */}
+            {/* Título envuelto en una tarjeta con un estilo vibrante y un controlador de clic agregado */}
             <Card 
               className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0 cursor-pointer hover:bg-[#7E69AB] transition-colors"
               onClick={form.handleSubmit(handleSubmit)}
@@ -114,11 +110,16 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                 </DialogTitle>
               </CardHeader>
             </Card>
+            {/* Botón de cierre personalizado con un estilo más estético */}
+            <DialogClose className="absolute right-4 top-4 rounded-full bg-[#9b87f5] hover:bg-[#7E69AB] p-1 opacity-90 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-white">
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </DialogClose>            
           </DialogHeader>
           
           <CardContent className="p-0 mt-4">
             <ScrollArea className="max-h-[50vh] overflow-y-auto px-1 bg-gray-400 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700">
-              <div className="p-6"> {/* Increased vertical padding from p-4 to p-6 */}
+              <div className="p-6"> {/* Aumento del relleno vertical de p-4 a p-6 */}
                 <DialogDescription className="mb-4 font-black">
                   Ingrese los datos de la persona que apartará los números: {selectedNumbers.join(', ')}
                 </DialogDescription>
@@ -174,7 +175,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                       )}
                     />
                     
-                    {/* Display promotional image if available */}
+                    {/* Mostrar imagen promocional si está disponible */}
                     {organization?.imagen_publicitaria && (
                       <div className="mt-6">
                         <PromotionalImage imageUrl={organization.imagen_publicitaria} />
