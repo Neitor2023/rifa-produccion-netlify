@@ -110,9 +110,9 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                 </DialogTitle>
                 {/* Botón de cierre personalizado con un estilo más estético */}
                 {/*<DialogClose className="absolute right-4 top-4 rounded-full bg-[#9b87f5] hover:bg-[#7E69AB] p-1 opacity-90 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-white">*/}
-                <DialogClose className="- right-4 absolute rounded-full bg-[#9b87f5] hover:bg-[#7E69AB] p-1 opacity-90 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-white">
+                <DialogClose className="- right-10 absolute rounded-full bg-[#9b87f5] hover:bg-[#7E69AB] p-1 opacity-90 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-white">
                   <X className="h-4 w-4" />
-                  <span className="- right-4 sr-only">Close</span>
+                  <span className="- right-10 sr-only">Close</span>
                 </DialogClose>                                                                            
               </CardHeader>
             </Card>
