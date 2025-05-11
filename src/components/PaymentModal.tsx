@@ -57,7 +57,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     clickedButton
   });
   const [isSearching, setIsSearching] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
