@@ -171,19 +171,18 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
-          <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-gray-600 dark:text-gray-300">
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </DialogClose>
-          
+        <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">          
           <Card className="bg-background dark:bg-gray-900 border-0 shadow-none">
             <DialogHeader className="pt-6">
               <Card className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0">
                 <CardHeader className="py-3 px-4">
                   <DialogTitle className="text-lg text-white font-bold text-center">
-                    Validación de ( teléfono o cédula )
+                    Validación de ( teléfono o cédula )X
                   </DialogTitle>
+                  <DialogClose className="absolute right-10 center bg-[#3d3d3d] hover:bg-[#1a1a1a] rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-gray-600 dark:text-gray-300">
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Close</span>
+                  </DialogClose>                  
                 </CardHeader>
               </Card>
               <DialogDescription className="mt-4 px-2">
