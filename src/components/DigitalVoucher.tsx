@@ -103,7 +103,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   if (!allowVoucherPrint) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
           <DialogHeader className="pb-4">
             <DialogTitle className="text-xl font-bold text-center text-red-600">
               Importante: Pide al vendedor tu comprobante de pago
@@ -132,23 +132,27 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader className="pb-4">
-          <DialogTitle className="text-2xl font-bold text-center bg-gradient-to-r from-violet-700 to-purple-700 text-white py-3 rounded-lg shadow-lg">
-            COMPROBANTE DE PAGO
-          </DialogTitle>
+      <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
+        <DialogHeader className="pt-6 pb-4">
+          <Card className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0">
+            <div className="py-3 px-4">
+              <DialogTitle className="text-2xl font-bold text-center text-white">
+                COMPROBANTE DE PAGO
+              </DialogTitle>
+            </div>
+          </Card>
         </DialogHeader>
         
-        <ScrollArea className="max-h-[70vh]">
+        <ScrollArea className="max-h-[50vh] overflow-y-auto px-1 bg-background dark:bg-gray-900 rounded-lg border border-gray-300 dark:border-gray-700">
           <div ref={printRef} className="print-content p-4">
-            <Card className="p-6 mb-4 bg-white border border-gray-300">
+            <Card className="p-6 mb-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
               <div className="flex flex-col space-y-4">
                 {/* Raffle Details */}
-                <div className="border-b border-gray-200 pb-4">
-                  <h3 className="font-bold text-xl mb-2 text-purple-700">
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-4">
+                  <h3 className="font-bold text-xl mb-2 text-purple-700 dark:text-purple-400">
                     {raffleDetails?.title || 'Rifa'}
                   </h3>
-                  <div className="grid grid-cols-2 gap-2 text-sm text-gray-900">
+                  <div className="grid grid-cols-2 gap-2 text-sm text-gray-900 dark:text-gray-200">
                     <div>
                       <span className="font-semibold">Valor:</span>{' '}
                       {raffleDetails?.price?.toFixed(2) || 0}
@@ -178,17 +182,17 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
 
                 {/* Transaction Details */}
                 <div className="text-center">
-                  <p className="text-sm text-gray-600">{formattedDate}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{formattedDate}</p>
                 </div>
                 
-                <div className="border-t border-gray-300 my-2 pt-2">
-                  <h3 className="font-semibold text-sm text-gray-800">Detalles de la Transacción</h3>
-                  <p className="text-sm text-gray-700">Método de pago: {paymentMethod}</p>
+                <div className="border-t border-gray-300 dark:border-gray-700 my-2 pt-2">
+                  <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-300">Detalles de la Transacción</h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-400">Método de pago: {paymentMethod}</p>
                   <div className="mt-2">
-                    <p className="text-sm font-semibold text-gray-800">Números comprados:</p>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-300">Números comprados:</p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {selectedNumbers.map((num) => (
-                        <span key={num} className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-medium">
+                        <span key={num} className="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded text-xs font-medium">
                           {num}
                         </span>
                       ))}
@@ -197,8 +201,8 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
                 </div>
                 
                 {paymentData?.paymentProof && typeof paymentData.paymentProof === 'string' && (
-                  <div className="border-t border-gray-300 my-2 pt-2">
-                    <h3 className="font-semibold text-sm text-gray-800 mb-2">Comprobante de Pago</h3>
+                  <div className="border-t border-gray-300 dark:border-gray-700 my-2 pt-2">
+                    <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-300 mb-2">Comprobante de Pago</h3>
                     <img 
                       src={paymentData.paymentProof} 
                       alt="Comprobante de pago" 
@@ -207,15 +211,15 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
                   </div>
                 )}
                 
-                <div className="border-t border-gray-300 mt-2 pt-4 text-center text-xs text-gray-500">
+                <div className="border-t border-gray-300 dark:border-gray-700 mt-2 pt-4 text-center text-xs text-gray-500 dark:text-gray-400">
                   <p>Este comprobante valida la compra de los números seleccionados.</p>
                   <p>Guárdelo como referencia para futuras consultas.</p>
                 </div>
                 
                 {/* In-modal notification instead of toast */}
-                <Alert className="mt-4 bg-green-50 border-green-200">
-                  <AlertTitle className="text-green-700">Comprobante Disponible</AlertTitle>
-                  <AlertDescription className="text-green-600">
+                <Alert className="mt-4 bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800">
+                  <AlertTitle className="text-green-700 dark:text-green-400">Comprobante Disponible</AlertTitle>
+                  <AlertDescription className="text-green-600 dark:text-green-300">
                     Su comprobante ha sido generado correctamente. Puede descargarlo o guardarlo como referencia.
                   </AlertDescription>
                 </Alert>
@@ -224,13 +228,13 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
           </div>
         </ScrollArea>
         
-        <DialogFooter className="flex flex-row justify-between space-x-2 sm:flex-row sm:justify-between sm:space-x-2">                    
+        <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between sm:space-x-2 mt-4">                    
           <Button 
             type="button" 
-            className="bg-purple-700 hover:bg-purple-800"
+            className="bg-purple-700 hover:bg-purple-800 text-white w-full sm:w-auto"
             onClick={handleDownload}
           >
-            <Download className="flex-1 h-4 w-4 mr-2" />
+            <Download className="h-4 w-4 mr-2" />
             Descargar
           </Button>
           
@@ -238,9 +242,9 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
             type="button"
             variant="outline"
             onClick={onClose}
-            className="bg-gray-400 hover:bg-gray-500"
+            className="bg-gray-400 hover:bg-gray-500 text-white w-full sm:w-auto mb-2 sm:mb-0"
           >
-            <X className="flex-1 h-4 w-4 mr-2" />
+            <X className="h-4 w-4 mr-2" />
             Cerrar
           </Button>
           
