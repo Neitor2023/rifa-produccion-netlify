@@ -7,11 +7,17 @@ import LoadingModal from '@/components/payment/LoadingModal';
 
 interface PaymentModalActionsProps {
   isSubmitting: boolean;
+  isFormValid?: boolean;
   onClose: () => void;
   onSubmit: () => void;
 }
 
-export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit }: PaymentModalActionsProps) => {
+export const PaymentModalActions = ({ 
+  isSubmitting, 
+  isFormValid = true, 
+  onClose, 
+  onSubmit 
+}: PaymentModalActionsProps) => {
   const { clearSelectionState } = useNumberSelection();
   const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false);
 
@@ -24,22 +30,6 @@ export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit }: Payment
     // Close the modal
     onClose();
   };
-
-  {/*
-  // 1. Define un wrapper que encienda el estado de loading y luego llame a tu submit
-    const handleSubmitWithLoading = async () => {
-    // 2. Activa el indicador de “submitting”
-    setIsSubmitting(true);
-  
-    try {
-      // 3. Ejecuta tu lógica original
-      await handleSubmit();
-    } finally {
-      // 4. (Opcional) apaga el loading si quieres
-      setIsSubmitting(false);
-    }
-  };
-  */}
   
   const handleSubmit = (e: React.MouseEvent) => {
     // Add a debug log to track when the button is clicked
@@ -69,7 +59,7 @@ export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit }: Payment
         <Button
           type="button"
           onClick={handleSubmit}
-          disabled={isSubmitting}
+          disabled={isSubmitting || !isFormValid}
           className="flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB] font-bold uppercase"
         >
           {isSubmitting ? (

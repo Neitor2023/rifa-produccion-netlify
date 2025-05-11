@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,  
 } from '@/components/ui/dialog';
-import { X } from 'lucide-react';
+import { X, LoaderCircle } from 'lucide-react';
 import { Toaster } from 'sonner';
 import { ValidatedBuyerInfo } from '@/types/participant';
 
@@ -57,6 +57,48 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     clickedButton
   });
   const [isSearching, setIsSearching] = useState(false);
+  
+  // Check if form is valid based on required fields
+  const formValues = form.getValues();
+  const isFormValid = () => {
+    // Default required fields
+    const requiredFields = ['buyerName', 'buyerPhone', 'buyerCedula', 'paymentMethod'];
+    
+    // Add fields based on button context
+    if (clickedButton === 'Pagar') {
+      // For "Pagar Directo" we need all fields
+      requiredFields.push('buyerEmail', 'direccion');
+    } else if (clickedButton === 'Pagar Apartados') {
+      // For "Pagar Apartados" we need email and direccion
+      requiredFields.push('buyerEmail', 'direccion');
+    }
+    
+    // Check if payment method is transfer and needs proof
+    if (formValues.paymentMethod === 'transfer' && !previewUrl) {
+      return false;
+    }
+    
+    // Check all required fields
+    return requiredFields.every(field => 
+      formValues[field as keyof PaymentFormData] && 
+      String(formValues[field as keyof PaymentFormData]).trim() !== ''
+    );
+  };
+
+  const submissionHandler = async () => {
+    setIsSearching(true);
+    try {
+      if (!isFormValid()) {
+        console.log("Form validation failed");
+        form.trigger(); // Trigger validation to show error messages
+        setIsSearching(false);
+        return;
+      }
+      await handleSubmit();
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -69,16 +111,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 <DialogTitle asChild>
                   <button
                     type="button"
-                    className="w-full cursor-pointer text-lg text-white font-bold text-center"
-                    onClick={async () => {
-                      setIsSearching(true);
-                      try {
-                        await handleSubmit();
-                      } finally {
-                        setIsSearching(false);
-                      }
-                    }}
+                    className="w-full cursor-pointer text-lg text-white font-bold text-center flex items-center justify-center"
+                    onClick={submissionHandler}
+                    disabled={isSubmitting || isSearching}
                   >
+                    {(isSubmitting || isSearching) && (
+                      <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                    )}
                     Confirma tu pago
                   </button>
                 </DialogTitle>                
@@ -104,9 +143,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           />
           
           <PaymentModalActions 
-            isSubmitting={isSubmitting}
+            isSubmitting={isSubmitting || isSearching}
+            isFormValid={isFormValid()}
             onClose={onClose}
-            onSubmit={handleSubmit}
+            onSubmit={submissionHandler}
           />
         </Card>
         

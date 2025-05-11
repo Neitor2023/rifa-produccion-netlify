@@ -39,6 +39,7 @@ export const usePaymentForm = ({
       sugerenciaProducto: "",
       reporteSospechoso: "",
     },
+    mode: "onChange" // Validate on change for better user feedback
   });
 
   const debugLog = (context: string, data: any) => {
@@ -131,7 +132,7 @@ export const usePaymentForm = ({
     setPreviewUrl(null);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     console.log('PaymentModal - Botón Completar pago pulsado');
     console.log('PaymentModal - Valor actual del comprobante de pago:', uploadedImage ? {
       name: uploadedImage.name,
@@ -145,15 +146,53 @@ export const usePaymentForm = ({
     setIsSubmitting(true);
     debugLog('Form submit - data', data);
     
-    // Check buyerData and complete with form data
-    let completeData = { ...data };
+    // Validate required fields based on the button context
+    const requiredFields = ['buyerName', 'buyerPhone', 'buyerCedula', 'paymentMethod'];
     
+    // Add fields based on button context
+    if (clickedButton === 'Pagar') {
+      // For "Pagar Directo" we need all fields
+      requiredFields.push('buyerEmail', 'direccion');
+    } else if (clickedButton === 'Pagar Apartados') {
+      // For "Pagar Apartados" we need email and direccion
+      requiredFields.push('buyerEmail', 'direccion');
+    }
+    
+    // Check all required fields
+    const missingFields = requiredFields.filter(field => 
+      !data[field as keyof PaymentFormData] || 
+      String(data[field as keyof PaymentFormData]).trim() === ''
+    );
+    
+    if (missingFields.length > 0) {
+      const fieldNames = missingFields.map(field => {
+        switch(field) {
+          case 'buyerName': return 'Nombre';
+          case 'buyerPhone': return 'Teléfono';
+          case 'buyerCedula': return 'Cédula';
+          case 'buyerEmail': return 'Email';
+          case 'direccion': return 'Dirección';
+          case 'paymentMethod': return 'Método de pago';
+          default: return field;
+        }
+      }).join(', ');
+      
+      toast.error(`Por favor complete los siguientes campos: ${fieldNames}`);
+      await form.trigger(missingFields as any); // Trigger validation for specific fields
+      setIsSubmitting(false);
+      return;
+    }
+    
+    // Check if payment method is transfer and needs proof
     if (data.paymentMethod === "transfer" && !uploadedImage) {
       toast.error("Por favor suba un comprobante de pago");
       debugLog('Validation error', 'Missing payment proof for transfer');
       setIsSubmitting(false);
       return;
     }
+    
+    // Check buyerData and complete with form data
+    let completeData = { ...data };
     
     if (uploadedImage) {
       completeData.paymentProof = uploadedImage;
@@ -173,9 +212,12 @@ export const usePaymentForm = ({
       paymentMethod: completeData.paymentMethod
     });
     
-    onComplete(completeData);
-    setIsSubmitting(false);
-    resetForm();
+    try {
+      await onComplete(completeData);
+      resetForm();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return {

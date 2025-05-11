@@ -231,10 +231,23 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
                   <h3 className="font-bold text-xl mb-2 text-purple-700 dark:text-purple-400">
                     {raffleDetails?.title || 'Rifa'}
                   </h3>
-                  <div className="grid grid-cols-2 gap-2 text-sm text-gray-900 dark:text-gray-200">
+                  
+                  {/* Buyer Name - Added as requested */}
+                  {paymentData?.buyerName && (
+                    <div className="mb-2 text-md font-semibold text-gray-800 dark:text-gray-200">
+                      Cliente: {paymentData.buyerName}
+                    </div>
+                  )}
+                  
+                  {/* Reorganized layout with two columns */}
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-900 dark:text-gray-200">
                     <div>
                       <span className="font-semibold">Valor:</span>{' '}
                       {raffleDetails?.price?.toFixed(2) || 0}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Fecha Emisión:</span>{' '}
+                      <div className="text-xs">{formattedDate}</div>
                     </div>
                     <div>
                       <span className="font-semibold">Lotería:</span>{' '}
@@ -242,33 +255,36 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
                     </div>
                     <div>
                       <span className="font-semibold">Fecha Sorteo:</span>{' '}
-                      <div>
+                      <div className="text-xs">
                         {raffleDetails?.dateLottery || '-'}
                       </div>
+                    </div>
+                    <div>
+                      <span className="font-semibold">Método de pago:</span>{' '}
+                      {paymentMethod}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Núm. seleccionados:</span>{' '}
+                      {selectedNumbers.length}
                     </div>
                   </div>
                 </div>
 
-                {/* QR Code */}
-                <div className="flex justify-center py-4">
-                  <QRCodeSVG
-                    value={qrData}
-                    size={160}
-                    level="H"
-                    includeMargin={true}
-                  />
-                </div>
+                {/* QR Code and Transaction Details in a side-by-side layout */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* QR Code */}
+                  <div className="flex justify-center items-center">
+                    <QRCodeSVG
+                      value={qrData}
+                      size={150}
+                      level="H"
+                      includeMargin={true}
+                    />
+                  </div>
 
-                {/* Transaction Details */}
-                <div className="text-center">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{formattedDate}</p>
-                </div>
-                
-                <div className="border-t border-gray-300 dark:border-gray-700 my-2 pt-2">
-                  <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-300">Detalles de la Transacción</h3>
-                  <p className="text-sm text-gray-700 dark:text-gray-400">Método de pago: {paymentMethod}</p>
-                  <div className="mt-2">
-                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-300">Números comprados:</p>
+                  {/* Numbers box */}
+                  <div className="flex flex-col justify-center">
+                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-300 mb-1">Números comprados:</p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {selectedNumbers.map((num) => (
                         <span key={num} className="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded text-xs font-medium">
@@ -279,14 +295,17 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
                   </div>
                 </div>
                 
-                {paymentData?.paymentProof && typeof paymentData.paymentProof === 'string' && (
+                {/* Payment proof image when payment is by transfer */}
+                {paymentData?.paymentMethod === 'transfer' && paymentData?.paymentProof && typeof paymentData.paymentProof === 'string' && (
                   <div className="border-t border-gray-300 dark:border-gray-700 my-2 pt-2">
-                    <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-300 mb-2">Comprobante de Pago</h3>
-                    <img 
-                      src={paymentData.paymentProof} 
-                      alt="Comprobante de pago" 
-                      className="w-full h-auto object-contain"
-                    />
+                    <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-300 mb-2">Comprobante de Transferencia</h3>
+                    <div className="flex justify-center">
+                      <img 
+                        src={paymentData.paymentProof} 
+                        alt="Comprobante de pago" 
+                        className="w-auto h-auto max-h-[150px] object-contain"
+                      />
+                    </div>
                   </div>
                 )}
                 
@@ -307,7 +326,6 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
           </div>
         </ScrollArea>
         
-        {/*<DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between sm:space-x-2 mt-4">*/}
         <DialogFooter className="flex flex-row justify-between space-x-2 mt-4">
           <Button 
             type="button" 
@@ -318,7 +336,6 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
             Descargar
           </Button>
           
-          {/* Nuevo botón "Presentar" */}
           <Button
             type="button"
             variant="outline"
@@ -338,7 +355,6 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
             <X className="h-4 w-4 mr-2" />
             Cerrar
           </Button>
-          
         </DialogFooter>
       </DialogContent>
     </Dialog>
