@@ -93,34 +93,27 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   };
 
   return (
-    <Dialog onOpenChange={open => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
       <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
-        {/* Botón de cierre personalizado con un estilo más estético */}
+        <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-gray-600 dark:text-gray-300">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DialogClose>
         
         <Card className="bg-background dark:bg-gray-900 border-0 shadow-none">
-          <DialogHeader className="pt-2 mt-2">
-            {/* Título envuelto en una tarjeta con un estilo vibrante y un controlador de clic agregado */}
-            <Card 
-              className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0 cursor-pointer hover:bg-[#7E69AB] transition-colors"
-              onClick={form.handleSubmit(handleSubmit)}
-            >
+          <DialogHeader className="pt-6">
+            <Card className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0">
               <CardHeader className="py-3 px-4">
                 <DialogTitle className="text-xl text-white font-bold text-center">
-                  Apartar números 333444555
+                  Apartar números
                 </DialogTitle>
-                {/* Botón de cierre personalizado con un estilo más estético */}
-                {/*<DialogClose className="absolute right-4 top-4 rounded-full bg-[#9b87f5] hover:bg-[#7E69AB] p-1 opacity-90 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-white">*/}
-                <DialogClose className="absolute rounded-full bg-[#3d3d3d] hover:bg-[#1a1a1a] p-1 opacity-90 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-white">
-                  <X className="h-4 w-4" />
-                  <span className="sr-only">Close</span>
-                </DialogClose>                                                                            
               </CardHeader>
             </Card>
           </DialogHeader>
           
           <CardContent className="p-0 mt-4">
             <ScrollArea className="max-h-[50vh] overflow-y-auto px-1 bg-gray-400 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700">
-              <div className="p-6"> {/* Aumento del relleno vertical de p-4 a p-6 */}
+              <div className="p-4">
                 <DialogDescription className="mb-4 font-black">
                   Ingrese los datos de la persona que apartará los números: {selectedNumbers.join(', ')}
                 </DialogDescription>
@@ -176,7 +169,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
                       )}
                     />
                     
-                    {/* Mostrar imagen promocional si está disponible */}
+                    {/* Display promotional image if available */}
                     {organization?.imagen_publicitaria && (
                       <div className="mt-6">
                         <PromotionalImage imageUrl={organization.imagen_publicitaria} />
