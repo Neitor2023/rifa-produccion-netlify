@@ -25,6 +25,22 @@ export const PaymentModalActions = ({ isSubmitting, onClose, onSubmit }: Payment
     onClose();
   };
 
+  {/*
+  // 1. Define un wrapper que encienda el estado de loading y luego llame a tu submit
+    const handleSubmitWithLoading = async () => {
+    // 2. Activa el indicador de “submitting”
+    setIsSubmitting(true);
+  
+    try {
+      // 3. Ejecuta tu lógica original
+      await handleSubmit();
+    } finally {
+      // 4. (Opcional) apaga el loading si quieres
+      setIsSubmitting(false);
+    }
+  };
+  */}
+  
   const handleSubmit = (e: React.MouseEvent) => {
     // Add a debug log to track when the button is clicked
     console.log("PaymentModalActions.tsx: Completar Pago button clicked");

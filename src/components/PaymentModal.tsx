@@ -65,17 +65,25 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             <Card className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0">
               <CardHeader className="py-3 px-4">
                 <DialogTitle
-                  onClick={handleSubmit}
                   tabIndex={0}                  // lo hace focoable
                   role="button"                 // semántica de “botón”
                   className="cursor-pointer text-xl text-white font-bold text-center"
-                  onKeyDown={(e) => {           // captura Enter y Barra espaciadora
+                  onClick={async () => {
+                    setIsSubmitting(true);
+                    try {
+                      await handleSubmit();
+                    } finally {
+                      setIsSubmitting(false);
+                    }
+                  }}
+                  onKeyDown={async (e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
-                      <PaymentModalActions 
-                        isSubmitting={isSubmitting}
-                        onClose={onClose}
-                        onSubmit={handleSubmit}
-                      />                      
+                      setIsSubmitting(true);
+                      try {
+                        await handleSubmit();
+                      } finally {
+                        setIsSubmitting(false);
+                      }
                     }
                   }}
                 >
