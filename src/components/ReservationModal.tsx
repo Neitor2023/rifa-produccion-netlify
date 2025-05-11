@@ -96,7 +96,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
       <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">        
         <Card className="bg-background dark:bg-gray-900 border-0 shadow-none">
-          <DialogHeader className="pt-30">
+          <DialogHeader className="pt-2">
             <Card className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0">
               <CardHeader className="py-3 px-4">
                 <DialogTitle className="text-xl text-white font-bold text-center">
