@@ -1,21 +1,20 @@
 
-import React, { useRef, useContext } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
+import React, { useRef } from 'react';
 import { 
   Dialog, 
   DialogContent, 
-  DialogHeader, 
-  DialogTitle,
-  DialogFooter
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Download, X, AlertTriangle, Maximize2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card } from '@/components/ui/card';
 import { PaymentFormData } from './PaymentModal';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useTheme } from '@/components/ThemeProvider';
 import { useToast } from '@/hooks/use-toast';
+
+// Import the refactored components
+import AlertMessage from './digital-voucher/AlertMessage';
+import VoucherHeader from './digital-voucher/VoucherHeader';
+import VoucherContent from './digital-voucher/VoucherContent';
+import VoucherActions from './digital-voucher/VoucherActions';
+import { exportVoucherAsImage, downloadVoucherImage, presentVoucherImage } from './digital-voucher/utils/voucherExport';
 
 interface DigitalVoucherProps {
   isOpen: boolean;
@@ -56,116 +55,17 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
 
   const paymentMethod = paymentData?.paymentMethod === 'cash' ? 'Efectivo' : 'Transferencia bancaria';
 
-  const handleDownload = () => {
-    const content = printRef.current;
-    if (content) {
-      // Create a canvas from the content
-      const canvas = document.createElement('canvas');
-      const scale = 2; // Higher scale for better quality
-      
-      import('html2canvas').then(({ default: html2canvas }) => {
-        html2canvas(content, {
-          scale: scale,
-          logging: false,
-          useCORS: true,
-          allowTaint: true
-        }).then((canvas) => {
-          const imgData = canvas.toDataURL('image/png');
-          const link = document.createElement('a');
-          link.download = `comprobante_${formattedDate.replace(/\s+/g, '_')}.png`;
-          link.href = imgData;
-          link.click();
-          toast({
-            title: "¡Descarga exitosa!",
-            description: "El comprobante ha sido guardado en tus descargas.",
-          });
-        });
-      }).catch(() => {
-        toast({
-          title: "Error al descargar",
-          description: "No se pudo generar la imagen. Intente nuevamente.",
-          variant: "destructive"
-        });
-      });
+  const handleDownload = async () => {
+    const imgData = await exportVoucherAsImage(printRef.current, `comprobante_${formattedDate.replace(/\s+/g, '_')}.png`);
+    if (imgData) {
+      downloadVoucherImage(imgData, `comprobante_${formattedDate.replace(/\s+/g, '_')}.png`);
     }
   };
   
-  // Nueva función para presentar el comprobante a pantalla completa
-  const handlePresent = () => {
-    const content = printRef.current;
-    if (content) {
-      import('html2canvas').then(({ default: html2canvas }) => {
-        html2canvas(content, {
-          scale: 2,
-          logging: false,
-          useCORS: true,
-          allowTaint: true
-        }).then((canvas) => {
-          const imgData = canvas.toDataURL('image/png');
-          
-          // Mostrar imagen a pantalla completa (similar a lo que hace handleDownloadImage en RaffleInfo)
-          const newWindow = window.open('', '_blank');
-          if (newWindow) {
-            newWindow.document.write(`
-              <html>
-                <head>
-                  <title>Comprobante de Pago</title>
-                  <style>
-                    body {
-                      margin: 0;
-                      padding: 0;
-                      display: flex;
-                      justify-content: center;
-                      align-items: center;
-                      background: rgba(0, 0, 0, 0.9);
-                      min-height: 100vh;
-                      overflow: auto;
-                    }
-                    img {
-                      max-width: 95%;
-                      max-height: 95vh;
-                      object-fit: contain;
-                    }
-                    .close-btn {
-                      position: fixed;
-                      top: 20px;
-                      right: 20px;
-                      background: white;
-                      color: black;
-                      border: none;
-                      border-radius: 50%;
-                      width: 40px;
-                      height: 40px;
-                      font-size: 20px;
-                      cursor: pointer;
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                    }
-                  </style>
-                </head>
-                <body>
-                  <button class="close-btn" onclick="window.close()">×</button>
-                  <img src="${imgData}" alt="Comprobante de pago" />
-                </body>
-              </html>
-            `);
-            newWindow.document.close();
-          } else {
-            toast({
-              title: "Error",
-              description: "No se pudo abrir la ventana de presentación. Verifique que no tenga bloqueadores de ventanas emergentes activados.",
-              variant: "destructive"
-            });
-          }
-        });
-      }).catch(() => {
-        toast({
-          title: "Error al presentar",
-          description: "No se pudo generar la imagen para presentación. Intente nuevamente.",
-          variant: "destructive"
-        });
-      });
+  const handlePresent = async () => {
+    const imgData = await exportVoucherAsImage(printRef.current, '');
+    if (imgData) {
+      presentVoucherImage(imgData);
     }
   };
 
@@ -180,185 +80,36 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   
   // If voucher printing is not allowed, show the alert message
   if (!allowVoucherPrint) {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
-          <DialogHeader className="pb-4">
-            <DialogTitle className="text-xl font-bold text-center text-red-600">
-              Importante: Pide al vendedor tu comprobante de pago
-            </DialogTitle>
-          </DialogHeader>
-          
-          <Alert variant="destructive" className="my-4">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle className="font-semibold">Important Notice</AlertTitle>
-            <AlertDescription className={`text-base leading-relaxed ${textColor}`}>
-              <p className="mb-4">
-                Su comprobante de pago está en revisión, es importante que le exija su comprobante de pago a su vendedor, este es su constancia de reclamo de premios; cualquier novedad comuníquese a los teléfonos de los organizadores que se encuentran al final de la página web.
-              </p>
-              <Button 
-                onClick={onClose} 
-                className="w-full bg-red-600 hover:bg-red-700 text-white"
-              >
-                Entendido
-              </Button>
-            </AlertDescription>
-          </Alert>
-        </DialogContent>
-      </Dialog>
-    );
+    return <AlertMessage isOpen={isOpen} onClose={onClose} textColor={textColor} />;
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
-        <DialogHeader className="pt-6 pb-4">
-          <Card className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0">
-            <div className="py-3 px-4">
-              <DialogTitle className="text-2xl font-bold text-center text-white">
-                COMPROBANTE DE PAGO
-              </DialogTitle>
-            </div>
-          </Card>
-        </DialogHeader>
+        <VoucherHeader />
         
         <ScrollArea className="max-h-[50vh] overflow-y-auto px-1 bg-background dark:bg-gray-900 rounded-lg border border-gray-300 dark:border-gray-700">
-          <div ref={printRef} className="print-content p-4">
-            <Card className="p-6 mb-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
-              <div className="flex flex-col space-y-4">
-                {/* Raffle Details */}
-                <div className="border-b border-gray-200 dark:border-gray-700 pb-4">
-                  <h3 className="font-bold text-xl mb-2 text-purple-700 dark:text-purple-400">
-                    {raffleDetails?.title || 'Rifa'}
-                  </h3>
-                  
-                  {/* Buyer Name - Added as requested */}
-                  {paymentData?.buyerName && (
-                    <div className="mb-2 text-md font-semibold text-gray-800 dark:text-gray-200">
-                      Cliente: {paymentData.buyerName}
-                    </div>
-                  )}
-                  
-                  {/* Reorganized layout with two columns */}
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-900 dark:text-gray-200">
-                    <div>
-                      <span className="font-semibold">Valor:</span>{' '}
-                      {raffleDetails?.price?.toFixed(2) || 0}
-                    </div>
-                    <div>
-                      <span className="font-semibold">Fecha Emisión:</span>{' '}
-                      <div className="text-xs">{formattedDate}</div>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Lotería:</span>{' '}
-                      {raffleDetails?.lottery || '-'}
-                    </div>
-                    <div>
-                      <span className="font-semibold">Fecha Sorteo:</span>{' '}
-                      <div className="text-xs">
-                        {raffleDetails?.dateLottery || '-'}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="font-semibold">Método de pago:</span>{' '}
-                      {paymentMethod}
-                    </div>
-                    <div>
-                      <span className="font-semibold">Núm. seleccionados:</span>{' '}
-                      {selectedNumbers.length}
-                    </div>
-                  </div>
-                </div>
-
-                {/* QR Code and Transaction Details in a side-by-side layout */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* QR Code */}
-                  <div className="flex justify-center items-center">
-                    <QRCodeSVG
-                      value={qrData}
-                      size={150}
-                      level="H"
-                      includeMargin={true}
-                    />
-                  </div>
-
-                  {/* Numbers box */}
-                  <div className="flex flex-col justify-center">
-                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-300 mb-1">Números comprados:</p>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {selectedNumbers.map((num) => (
-                        <span key={num} className="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded text-xs font-medium">
-                          {num}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Payment proof image when payment is by transfer */}
-                {paymentData?.paymentMethod === 'transfer' && paymentData?.paymentProof && typeof paymentData.paymentProof === 'string' && (
-                  <div className="border-t border-gray-300 dark:border-gray-700 my-2 pt-2">
-                    <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-300 mb-2">Comprobante de Transferencia</h3>
-                    <div className="flex justify-center">
-                      <img 
-                        src={paymentData.paymentProof} 
-                        alt="Comprobante de pago" 
-                        className="w-auto h-auto max-h-[150px] object-contain"
-                      />
-                    </div>
-                  </div>
-                )}
-                
-                <div className="border-t border-gray-300 dark:border-gray-700 mt-2 pt-4 text-center text-xs text-gray-500 dark:text-gray-400">
-                  <p>Este comprobante valida la compra de los números seleccionados.</p>
-                  <p>Guárdelo como referencia para futuras consultas.</p>
-                </div>
-                
-                {/* In-modal notification instead of toast */}
-                <Alert className="mt-4 bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800">
-                  <AlertTitle className="text-green-700 dark:text-green-400">Comprobante Disponible</AlertTitle>
-                  <AlertDescription className="text-green-600 dark:text-green-300">
-                    Su comprobante ha sido generado correctamente. Puede descargarlo o guardarlo como referencia.
-                  </AlertDescription>
-                </Alert>
-              </div>
-            </Card>
-          </div>
+          <VoucherContent 
+            printRef={printRef}
+            formattedDate={formattedDate}
+            paymentMethod={paymentMethod}
+            paymentData={paymentData}
+            selectedNumbers={selectedNumbers}
+            raffleDetails={raffleDetails}
+            qrData={qrData}
+            textColor={textColor}
+          />
         </ScrollArea>
         
-        <DialogFooter className="flex flex-row justify-between space-x-2 mt-4">
-          <Button 
-            type="button" 
-            className="flex-1 bg-purple-700 hover:bg-purple-800 text-white w-full sm:w-auto"
-            onClick={handleDownload}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Descargar
-          </Button>
-          
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handlePresent}
-            className="flex-1 bg-purple-500 hover:bg-purple-600 text-white w-full sm:w-auto mb-2 sm:mb-0"
-          >
-            <Maximize2 className="h-4 w-4 mr-2" />
-            Presentar
-          </Button>
-          
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            className="flex-1 bg-gray-400 hover:bg-gray-500 text-white w-full sm:w-auto mb-2 sm:mb-0"
-          >
-            <X className="h-4 w-4 mr-2" />
-            Cerrar
-          </Button>
-        </DialogFooter>
+        <VoucherActions 
+          onDownload={handleDownload}
+          onPresent={handlePresent}
+          onClose={onClose}
+        />
       </DialogContent>
     </Dialog>
   );
 };
 
 export default DigitalVoucher;
+export type { PaymentFormData };
