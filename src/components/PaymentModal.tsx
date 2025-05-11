@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -79,7 +79,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                       }
                     }}
                   >
-                    Confirma tu pagoX
+                    Confirma tu pago
                   </button>
                 </DialogTitle>                
                 
