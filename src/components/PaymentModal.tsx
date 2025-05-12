@@ -122,8 +122,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                   </button>
                 </DialogTitle>                
                 
-                <DialogClose className="absolute right-10 center rounded-sm bg-[#3d3d3d] hover:bg-[#1a1a1a] opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-white">
-                  <X className="h-4 w-4" />
+                <DialogClose className="absolute right-10 itens-center rounded-sm bg-[#3d3d3d] hover:bg-[#1a1a1a] opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-white">
+                  <X className="h-4 w-4 itens-center"/>
                   <span className="sr-only">Close</span>
                 </DialogClose>                                      
               </CardHeader>
