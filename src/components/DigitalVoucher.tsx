@@ -73,7 +73,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         const { data, error } = await supabase
           .from('raffle_numbers')
           .select('id')
-          .eq('number', number)
+          .eq('number', parseInt(number, 10)) // Fix: Parse the string to a number
           .single();
         
         if (error) {
