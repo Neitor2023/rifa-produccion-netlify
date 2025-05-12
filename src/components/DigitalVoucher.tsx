@@ -44,6 +44,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   const { toast } = useToast();
   const [raffleNumberId, setRaffleNumberId] = useState<string | null>(null);
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
+  const [isRaffleNumberRetrieved, setIsRaffleNumberRetrieved] = useState<boolean>(false);
   
   // Determine text color based on theme
   const textColor = theme === 'dark' ? 'text-white' : 'text-gray-800';
@@ -58,14 +59,14 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
 
   const paymentMethod = paymentData?.paymentMethod === 'cash' ? 'Efectivo' : 'Transferencia bancaria';
   
+  // Fetch the raffle number ID when the component mounts or when selectedNumbers changes
   useEffect(() => {
-    // Fetch the raffle number ID when the component mounts
     const fetchRaffleNumberId = async () => {
       if (selectedNumbers.length === 0 || !isOpen) return;
       
       try {
         // Get the first selected number to use for the receipt URL
-        const number = parseInt(selectedNumbers[0], 10);
+        const number = selectedNumbers[0];
         
         console.log('[DigitalVoucher.tsx] Buscando ID para número:', number);
         
@@ -82,6 +83,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         
         if (data) {
           setRaffleNumberId(data.id);
+          setIsRaffleNumberRetrieved(true);
           console.log('[DigitalVoucher.tsx] Raffle number ID fetched:', data.id);
         } else {
           console.error('[DigitalVoucher.tsx] No se encontró ID para el número:', number);
@@ -121,8 +123,8 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     if (imgData) {
       downloadVoucherImage(imgData, `comprobante_${formattedDate.replace(/\s+/g, '_')}.png`);
       
-      // Upload to storage if we have a raffle number ID
-      if (raffleDetails) {
+      // Upload to storage if we have a raffle number ID and raffle details
+      if (raffleDetails && raffleNumberId) {
         try {
           console.log('[DigitalVoucher.tsx] Iniciando proceso de guardar comprobante con ID:', raffleNumberId);
           const imageUrl = await uploadVoucherToStorage(imgData, raffleDetails.title, raffleNumberId);
@@ -154,8 +156,8 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     if (imgData) {
       presentVoucherImage(imgData);
       
-      // Upload to storage if we have a raffle number ID
-      if (raffleDetails) {
+      // Upload to storage if we have a raffle number ID and raffle details
+      if (raffleDetails && raffleNumberId) {
         try {
           console.log('[DigitalVoucher.tsx] Iniciando proceso de guardar comprobante con ID:', raffleNumberId);
           const imageUrl = await uploadVoucherToStorage(imgData, raffleDetails.title, raffleNumberId);

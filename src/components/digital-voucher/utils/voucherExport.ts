@@ -99,7 +99,7 @@ export const presentVoucherImage = (imgData: string): void => {
   }
 };
 
-// Improved upload function with better error handling and logging
+// Improved upload function with better error handling and bucket creation
 export const uploadVoucherToStorage = async (
   imgData: string, 
   raffleId: string, 
@@ -125,52 +125,66 @@ export const uploadVoucherToStorage = async (
     // Create a unique filename
     const fileName = `receipt_${raffleId}_${numberId}_${new Date().getTime()}.png`;
     
-    console.log('[DigitalVoucher.tsx] Verificando si existe el bucket paymentreceipturl');
-    
-    // First try to get the bucket to see if it exists
-    const { data: bucketData, error: bucketError } = await supabase.storage
-      .getBucket('paymentreceipturl');
-    
-    // Handle bucket creation if needed
-    if (bucketError) {
-      console.log('[DigitalVoucher.tsx] Error al obtener bucket:', bucketError.message);
+    // Try to upload file directly, if it fails due to missing bucket we'll create it
+    try {
+      console.log('[DigitalVoucher.tsx] Intentando subir archivo:', fileName);
       
-      if (bucketError.message.includes('The resource was not found')) {
-        console.log('[DigitalVoucher.tsx] El bucket no existe, se creará uno nuevo');
-        
-        // Create bucket with public access
-        const { error: createBucketError } = await supabase.storage.createBucket('paymentreceipturl', {
-          public: true
+      const { data, error: uploadError } = await supabase.storage
+        .from('paymentreceipturl')
+        .upload(fileName, blob, {
+          contentType: 'image/png',
+          upsert: true
         });
         
-        if (createBucketError) {
-          console.error('[DigitalVoucher.tsx] Error al crear bucket:', createBucketError.message);
-          throw new Error(`Error creating bucket: ${createBucketError.message}`);
+      if (uploadError) {
+        // Check if error is due to bucket not existing
+        if (uploadError.message.includes('The resource was not found') || 
+            uploadError.message.includes('Bucket not found')) {
+          
+          console.log('[DigitalVoucher.tsx] El bucket no existe, se creará uno nuevo');
+          
+          // Create bucket with public access
+          const { error: createBucketError } = await supabase.storage.createBucket('paymentreceipturl', {
+            public: true
+          });
+          
+          if (createBucketError) {
+            console.error('[DigitalVoucher.tsx] Error al crear bucket:', createBucketError.message);
+            throw new Error(`Error creating bucket: ${createBucketError.message}`);
+          }
+          
+          console.log('[DigitalVoucher.tsx] Bucket creado exitosamente, reintentando subida');
+          
+          // Try upload again
+          const { error: retryError } = await supabase.storage
+            .from('paymentreceipturl')
+            .upload(fileName, blob, {
+              contentType: 'image/png',
+              upsert: true
+            });
+            
+          if (retryError) {
+            console.error('[DigitalVoucher.tsx] Error en segundo intento de subida:', retryError);
+            throw new Error(`Error on retry upload: ${retryError.message}`);
+          }
+        } else {
+          // Other upload error
+          console.error('[DigitalVoucher.tsx] Error al subir archivo:', uploadError);
+          throw new Error(`Error uploading file: ${uploadError.message}`);
         }
-        
-        console.log('[DigitalVoucher.tsx] Bucket creado exitosamente');
-      } else {
-        // Other errors with bucket operations
-        throw new Error(`Error checking bucket: ${bucketError.message}`);
       }
-    }
-    
-    console.log('[DigitalVoucher.tsx] Subiendo archivo:', fileName);
-    
-    // Upload file
-    const { data, error: uploadError } = await supabase.storage
-      .from('paymentreceipturl')
-      .upload(fileName, blob, {
-        contentType: 'image/png',
-        upsert: true
-      });
+    } catch (bucketError: any) {
+      // If this isn't about bucket not found, rethrow
+      if (!bucketError.message?.includes('Bucket not found') && 
+          !bucketError.message?.includes('The resource was not found')) {
+        throw bucketError;
+      }
       
-    if (uploadError) {
-      console.error('[DigitalVoucher.tsx] Error al subir archivo:', uploadError);
-      throw new Error(`Error uploading file: ${uploadError.message}`);
+      // Otherwise we've handled it above
+      console.log('[DigitalVoucher.tsx] Manejo de error de bucket completado');
     }
     
-    // Get public URL
+    // Get public URL (do this regardless of the path taken above)
     const { data: urlData } = supabase.storage
       .from('paymentreceipturl')
       .getPublicUrl(fileName);
@@ -190,7 +204,7 @@ export const uploadVoucherToStorage = async (
       throw new Error(`Error updating raffle_numbers: ${updateError.message}`);
     }
     
-    console.log('[DigitalVoucher.tsx] Actualizando raffle_numbers.payment_receipt_url con:', imageUrl);
+    console.log('[DigitalVoucher.tsx] Actualización completada con éxito');
     return imageUrl;
     
   } catch (error) {
