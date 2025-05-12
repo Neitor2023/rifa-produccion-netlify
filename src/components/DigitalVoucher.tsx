@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -14,7 +14,8 @@ import AlertMessage from './digital-voucher/AlertMessage';
 import VoucherHeader from './digital-voucher/VoucherHeader';
 import VoucherContent from './digital-voucher/VoucherContent';
 import VoucherActions from './digital-voucher/VoucherActions';
-import { exportVoucherAsImage, downloadVoucherImage, presentVoucherImage } from './digital-voucher/utils/voucherExport';
+import { exportVoucherAsImage, downloadVoucherImage, presentVoucherImage, uploadVoucherToStorage } from './digital-voucher/utils/voucherExport';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DigitalVoucherProps {
   isOpen: boolean;
@@ -41,6 +42,8 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   const printRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
   const { toast } = useToast();
+  const [raffleNumberId, setRaffleNumberId] = useState<string | null>(null);
+  const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   
   // Determine text color based on theme
   const textColor = theme === 'dark' ? 'text-white' : 'text-gray-800';
@@ -54,11 +57,68 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   });
 
   const paymentMethod = paymentData?.paymentMethod === 'cash' ? 'Efectivo' : 'Transferencia bancaria';
+  
+  useEffect(() => {
+    // Fetch the raffle number ID when the component mounts
+    const fetchRaffleNumberId = async () => {
+      if (selectedNumbers.length === 0 || !isOpen) return;
+      
+      try {
+        // Get the first selected number to use for the receipt URL
+        const number = parseInt(selectedNumbers[0], 10);
+        
+        const { data, error } = await supabase
+          .from('raffle_numbers')
+          .select('id')
+          .eq('number', number)
+          .single();
+        
+        if (error) {
+          console.error('[DigitalVoucher.tsx] Error fetching raffle number ID:', error);
+          return;
+        }
+        
+        if (data) {
+          setRaffleNumberId(data.id);
+          console.log('[DigitalVoucher.tsx] Raffle number ID fetched:', data.id);
+        }
+      } catch (err) {
+        console.error('[DigitalVoucher.tsx] Error in fetchRaffleNumberId:', err);
+      }
+    };
+    
+    fetchRaffleNumberId();
+  }, [isOpen, selectedNumbers]);
+  
+  // Generate the receipt URL for the QR code
+  useEffect(() => {
+    if (raffleNumberId) {
+      // Use the current window's hostname or a default domain if needed
+      const domain = window.location.hostname || 'rifamax.com';
+      const protocol = window.location.protocol || 'https:';
+      const url = `${protocol}//${domain}/receipt/${raffleNumberId}`;
+      setReceiptUrl(url);
+      console.log('[DigitalVoucher.tsx] Receipt URL generated:', url);
+    }
+  }, [raffleNumberId]);
 
   const handleDownload = async () => {
     const imgData = await exportVoucherAsImage(printRef.current, `comprobante_${formattedDate.replace(/\s+/g, '_')}.png`);
     if (imgData) {
       downloadVoucherImage(imgData, `comprobante_${formattedDate.replace(/\s+/g, '_')}.png`);
+      
+      // Upload to storage if we have a raffle number ID
+      if (raffleNumberId && raffleDetails) {
+        try {
+          await uploadVoucherToStorage(imgData, raffleDetails.title, raffleNumberId);
+          toast({
+            title: "Comprobante guardado",
+            description: "El comprobante ha sido almacenado en el sistema.",
+          });
+        } catch (error) {
+          console.error('[DigitalVoucher.tsx] Error saving receipt to storage:', error);
+        }
+      }
     }
   };
   
@@ -66,17 +126,21 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     const imgData = await exportVoucherAsImage(printRef.current, '');
     if (imgData) {
       presentVoucherImage(imgData);
+      
+      // Upload to storage if we have a raffle number ID
+      if (raffleNumberId && raffleDetails) {
+        try {
+          await uploadVoucherToStorage(imgData, raffleDetails.title, raffleNumberId);
+          toast({
+            title: "Comprobante guardado",
+            description: "El comprobante ha sido almacenado en el sistema.",
+          });
+        } catch (error) {
+          console.error('[DigitalVoucher.tsx] Error saving receipt to storage:', error);
+        }
+      }
     }
   };
-
-  const qrData = raffleDetails ? JSON.stringify({
-    title: raffleDetails.title,
-    numbers: selectedNumbers,
-    price: raffleDetails.price,
-    lottery: raffleDetails.lottery,
-    dateLottery: raffleDetails.dateLottery,
-    timestamp: formattedDate
-  }) : '';
   
   // If voucher printing is not allowed, show the alert message
   if (!allowVoucherPrint) {
@@ -96,8 +160,9 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
             paymentData={paymentData}
             selectedNumbers={selectedNumbers}
             raffleDetails={raffleDetails}
-            qrData={qrData}
+            qrUrl={receiptUrl || 'https://rifamax.com'} // Use the generated receipt URL
             textColor={textColor}
+            numberId={raffleNumberId || undefined}
           />
         </ScrollArea>
         

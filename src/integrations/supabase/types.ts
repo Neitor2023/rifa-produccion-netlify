@@ -127,6 +127,7 @@ export type Database = {
           organization_name: string | null
           select_language: string | null
           updated_at: string | null
+          website_name: string | null
         }
         Insert: {
           admin_name?: string | null
@@ -149,6 +150,7 @@ export type Database = {
           organization_name?: string | null
           select_language?: string | null
           updated_at?: string | null
+          website_name?: string | null
         }
         Update: {
           admin_name?: string | null
@@ -171,6 +173,7 @@ export type Database = {
           organization_name?: string | null
           select_language?: string | null
           updated_at?: string | null
+          website_name?: string | null
         }
         Relationships: []
       }
@@ -352,6 +355,7 @@ export type Database = {
           participant_phone: string | null
           payment_approved: boolean | null
           payment_proof: string | null
+          payment_receipt_url: string | null
           raffle_id: string | null
           reservation_expires_at: string | null
           seller_id: string | null
@@ -369,6 +373,7 @@ export type Database = {
           participant_phone?: string | null
           payment_approved?: boolean | null
           payment_proof?: string | null
+          payment_receipt_url?: string | null
           raffle_id?: string | null
           reservation_expires_at?: string | null
           seller_id?: string | null
@@ -386,6 +391,7 @@ export type Database = {
           participant_phone?: string | null
           payment_approved?: boolean | null
           payment_proof?: string | null
+          payment_receipt_url?: string | null
           raffle_id?: string | null
           reservation_expires_at?: string | null
           seller_id?: string | null

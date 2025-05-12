@@ -1,5 +1,6 @@
 
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export const exportVoucherAsImage = async (
   content: HTMLDivElement | null,
@@ -8,6 +9,7 @@ export const exportVoucherAsImage = async (
   if (!content) return null;
   
   try {
+    console.log('[DigitalVoucher.tsx] Exportando comprobante a imagen');
     const html2canvas = (await import('html2canvas')).default;
     const canvas = await html2canvas(content, {
       scale: 2, // Higher scale for better quality
@@ -19,6 +21,7 @@ export const exportVoucherAsImage = async (
     const imgData = canvas.toDataURL('image/png');
     return imgData;
   } catch (error) {
+    console.error('[DigitalVoucher.tsx] Error al exportar comprobante:', error);
     toast({
       title: "Error al generar la imagen",
       description: "No se pudo crear la imagen del comprobante. Intente nuevamente.",
@@ -94,5 +97,90 @@ export const presentVoucherImage = (imgData: string): void => {
       description: "No se pudo abrir la ventana de presentación. Verifique que no tenga bloqueadores de ventanas emergentes activados.",
       variant: "destructive"
     });
+  }
+};
+
+// New function to upload receipt to Supabase Storage
+export const uploadVoucherToStorage = async (
+  imgData: string, 
+  raffleId: string, 
+  numberId: string
+): Promise<string | null> => {
+  try {
+    if (!imgData || !numberId) {
+      console.error('[DigitalVoucher.tsx] No se puede subir: falta la imagen o ID');
+      return null;
+    }
+
+    // Convert base64 to blob
+    const base64Data = imgData.split(',')[1];
+    const byteCharacters = atob(base64Data);
+    const byteArrays = [];
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteArrays.push(byteCharacters.charCodeAt(i));
+    }
+    const blob = new Blob([new Uint8Array(byteArrays)], { type: 'image/png' });
+    
+    // Create a unique filename
+    const fileName = `receipt_${raffleId}_${numberId}_${new Date().getTime()}.png`;
+    
+    // Check if the storage bucket exists, create it if it doesn't
+    const { data: bucketData, error: bucketError } = await supabase.storage
+      .getBucket('paymentreceipturl');
+    
+    if (bucketError && bucketError.code === 'PGRST116') {
+      // Bucket doesn't exist, create it
+      const { error: createBucketError } = await supabase.storage.createBucket('paymentreceipturl', {
+        public: true
+      });
+      
+      if (createBucketError) {
+        throw new Error(`Error creating bucket: ${createBucketError.message}`);
+      }
+    } else if (bucketError) {
+      throw new Error(`Error checking bucket: ${bucketError.message}`);
+    }
+    
+    // Upload file
+    const { data, error: uploadError } = await supabase.storage
+      .from('paymentreceipturl')
+      .upload(fileName, blob, {
+        contentType: 'image/png',
+        upsert: true
+      });
+      
+    if (uploadError) {
+      throw new Error(`Error uploading file: ${uploadError.message}`);
+    }
+    
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('paymentreceipturl')
+      .getPublicUrl(fileName);
+    
+    const imageUrl = urlData.publicUrl;
+    console.log('[DigitalVoucher.tsx] Imagen subida a Storage en paymentreceipturl:', imageUrl);
+    
+    // Update raffle_numbers table
+    const { error: updateError } = await supabase
+      .from('raffle_numbers')
+      .update({ payment_receipt_url: imageUrl })
+      .eq('id', numberId);
+    
+    if (updateError) {
+      throw new Error(`Error updating raffle_numbers: ${updateError.message}`);
+    }
+    
+    console.log('[DigitalVoucher.tsx] Actualizando raffle_numbers.payment_receipt_url con:', imageUrl);
+    return imageUrl;
+    
+  } catch (error) {
+    console.error('[DigitalVoucher.tsx] Error al subir comprobante:', error);
+    toast({
+      title: "Error al guardar el comprobante",
+      description: "No se pudo guardar el comprobante en el servidor. Intente nuevamente.",
+      variant: "destructive"
+    });
+    return null;
   }
 };

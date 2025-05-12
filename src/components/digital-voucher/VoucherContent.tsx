@@ -17,8 +17,9 @@ interface VoucherContentProps {
     lottery: string;
     dateLottery: string;
   };
-  qrData: string;
+  qrUrl: string; // Changed from qrData to qrUrl
   textColor: string;
+  numberId?: string; // Added to pass the raffle number id
 }
 
 const VoucherContent: React.FC<VoucherContentProps> = ({
@@ -28,8 +29,9 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
   paymentData,
   selectedNumbers,
   raffleDetails,
-  qrData,
-  textColor
+  qrUrl, // Changed from qrData to qrUrl
+  textColor,
+  numberId
 }) => {
   return (
     <div ref={printRef} className="print-content p-4">
@@ -84,7 +86,7 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
             {/* QR Code */}
             <div className="flex justify-center items-center">
               <QRCodeSVG
-                value={qrData}
+                value={qrUrl}
                 size={150}
                 level="H"
                 includeMargin={true}
