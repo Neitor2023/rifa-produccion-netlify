@@ -195,7 +195,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
                   </DialogClose>                  
                 </CardHeader>
               </Card>
-              <DialogDescription className="mt-4 px-2">
+              <DialogDescription className="text-black dark:text-white mt-4 px-2">
                 Ingrese su número de ( teléfono o cédula )
               </DialogDescription>
             </DialogHeader>
