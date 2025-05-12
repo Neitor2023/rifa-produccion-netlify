@@ -16,7 +16,7 @@ const ValidationMessage: React.FC<ValidationMessageProps> = ({
   
   return (
     <div className="space-y-1 mt-3">
-      <p className={`text-sm font-bold ${isValid ? 'text-black dark:text-white ' : 'text-red-500 dark:text-red-400'}`}>
+      <p className={`text-sm ${isValid ? 'text-black dark:text-white' : 'font-bold text-red-500 dark:text-red-400'}`}>
         {message}
       </p>
       {isValid && formattedNumber && (
