@@ -67,6 +67,8 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         // Get the first selected number to use for the receipt URL
         const number = parseInt(selectedNumbers[0], 10);
         
+        console.log('[DigitalVoucher.tsx] Buscando ID para número:', number);
+        
         const { data, error } = await supabase
           .from('raffle_numbers')
           .select('id')
@@ -81,6 +83,8 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         if (data) {
           setRaffleNumberId(data.id);
           console.log('[DigitalVoucher.tsx] Raffle number ID fetched:', data.id);
+        } else {
+          console.error('[DigitalVoucher.tsx] No se encontró ID para el número:', number);
         }
       } catch (err) {
         console.error('[DigitalVoucher.tsx] Error in fetchRaffleNumberId:', err);
@@ -103,18 +107,31 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   }, [raffleNumberId]);
 
   const handleDownload = async () => {
+    if (!raffleNumberId) {
+      console.error('[DigitalVoucher.tsx] No se puede descargar: raffleNumberId no disponible');
+      toast({
+        title: "Error",
+        description: "No se pudo identificar el número de la rifa. Intente nuevamente.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const imgData = await exportVoucherAsImage(printRef.current, `comprobante_${formattedDate.replace(/\s+/g, '_')}.png`);
     if (imgData) {
       downloadVoucherImage(imgData, `comprobante_${formattedDate.replace(/\s+/g, '_')}.png`);
       
       // Upload to storage if we have a raffle number ID
-      if (raffleNumberId && raffleDetails) {
+      if (raffleDetails) {
         try {
-          await uploadVoucherToStorage(imgData, raffleDetails.title, raffleNumberId);
-          toast({
-            title: "Comprobante guardado",
-            description: "El comprobante ha sido almacenado en el sistema.",
-          });
+          console.log('[DigitalVoucher.tsx] Iniciando proceso de guardar comprobante con ID:', raffleNumberId);
+          const imageUrl = await uploadVoucherToStorage(imgData, raffleDetails.title, raffleNumberId);
+          if (imageUrl) {
+            toast({
+              title: "Comprobante guardado",
+              description: "El comprobante ha sido almacenado en el sistema.",
+            });
+          }
         } catch (error) {
           console.error('[DigitalVoucher.tsx] Error saving receipt to storage:', error);
         }
@@ -123,18 +140,31 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   };
   
   const handlePresent = async () => {
+    if (!raffleNumberId) {
+      console.error('[DigitalVoucher.tsx] No se puede presentar: raffleNumberId no disponible');
+      toast({
+        title: "Error",
+        description: "No se pudo identificar el número de la rifa. Intente nuevamente.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const imgData = await exportVoucherAsImage(printRef.current, '');
     if (imgData) {
       presentVoucherImage(imgData);
       
       // Upload to storage if we have a raffle number ID
-      if (raffleNumberId && raffleDetails) {
+      if (raffleDetails) {
         try {
-          await uploadVoucherToStorage(imgData, raffleDetails.title, raffleNumberId);
-          toast({
-            title: "Comprobante guardado",
-            description: "El comprobante ha sido almacenado en el sistema.",
-          });
+          console.log('[DigitalVoucher.tsx] Iniciando proceso de guardar comprobante con ID:', raffleNumberId);
+          const imageUrl = await uploadVoucherToStorage(imgData, raffleDetails.title, raffleNumberId);
+          if (imageUrl) {
+            toast({
+              title: "Comprobante guardado",
+              description: "El comprobante ha sido almacenado en el sistema.",
+            });
+          }
         } catch (error) {
           console.error('[DigitalVoucher.tsx] Error saving receipt to storage:', error);
         }

@@ -61,7 +61,7 @@ const ReceiptPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="large" />
+        <LoadingSpinner message="Cargando comprobante..." size="large" />
       </div>
     );
   }
