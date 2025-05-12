@@ -128,7 +128,8 @@ export const uploadVoucherToStorage = async (
     const { data: bucketData, error: bucketError } = await supabase.storage
       .getBucket('paymentreceipturl');
     
-    if (bucketError && bucketError.code === 'PGRST116') {
+    // Fix: Changed how we check for bucket existence error
+    if (bucketError && bucketError.message.includes('The resource was not found')) {
       // Bucket doesn't exist, create it
       const { error: createBucketError } = await supabase.storage.createBucket('paymentreceipturl', {
         public: true
