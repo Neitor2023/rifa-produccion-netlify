@@ -81,7 +81,7 @@ const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, pr
                 <DialogTitle className="text-xl text-white font-bold text-center">
                   {prize.name}
                 </DialogTitle>
-                <DialogClose className="bg-[#3d3d3d] hover:bg-[#1a1a1a] absolute right-7 center rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-white">
+                <DialogClose className="bg-[#3d3d3d] hover:bg-[#1a1a1a] absolute right-7 itens-center rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-white">
                   <X className="h-4 w-4" />
                   <span className="sr-only">Close</span>
                 </DialogClose>                
