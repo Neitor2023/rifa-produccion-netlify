@@ -118,7 +118,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     {(isSubmitting || isSearching) && (
                       <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
                     )}
-                    Confirma tu pagoXYZ---
+                    Confirma tu pago
                   </button>
                 </DialogTitle>                
                 
