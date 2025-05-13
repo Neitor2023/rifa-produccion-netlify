@@ -6,7 +6,7 @@ import VentaBoletosMain from '@/components/raffle/VentaBoletosMain';
 import VentaBoletosModals from '@/components/raffle/VentaBoletosModals';
 
 const VentaBoletosContent: React.FC = () => {
-  // Custom hook to handle all content logic
+  // Gancho personalizado para manejar toda la lógica del contenido
   const {
     isLoading,
     organization,
@@ -22,7 +22,7 @@ const VentaBoletosContent: React.FC = () => {
     debugMode,
     allowVoucherPrint,
     
-    // Payment data
+    // Payment data - Datos de pago
     selectedNumbers,
     isPaymentModalOpen,
     setIsPaymentModalOpen,
@@ -30,17 +30,17 @@ const VentaBoletosContent: React.FC = () => {
     setIsVoucherOpen,
     paymentData,
     
-    // Handlers
+    // Handlers - Manipuladores
     handleReserveNumbers,
     handleProceedToPaymentWithButton,
     handleCompletePayment,
     getSoldNumbersCount,
     
-    // Button state
+    // Estado del botón
     clickedButton
   } = useVentaBoletosContent();
 
-  // Access buyer info from context
+  // Acceda a la información del comprador desde el contexto
   const { buyerInfo } = useBuyerInfo();
 
   return (
