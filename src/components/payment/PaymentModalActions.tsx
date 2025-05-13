@@ -47,7 +47,7 @@ export const PaymentModalActions = ({
 
   return (
     <>
-      <div className="flex justify-end space-x-2 pt-2 mt-2 sm:pt-4 sm:mt-4 border-t">
+      <div className="flex justify-end space-x-2 pt-2 mt-2 md:pt-4 md:mt-4 md:border-t">
         <Button
           type="button"
           variant="outline"
