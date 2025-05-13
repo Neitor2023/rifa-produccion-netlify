@@ -75,7 +75,7 @@ const VentaBoletosMain: React.FC<VentaBoletosMainProps> = ({
         {raffle?.description && (
           <Card className="mb-4 shadow-sm">
             <CardContent className="p-3">
-              <div className="whitespace-pre-line text-sm">
+              <div className="font-bold whitespace-pre-line text-sm">
                 {raffle.description}
               </div>
             </CardContent>
