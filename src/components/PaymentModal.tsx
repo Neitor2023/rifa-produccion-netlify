@@ -335,7 +335,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleCloseModal()}>
-      <DialogContent className="sm:max-w-md md:max-w-xl sm:min-h-[75vh] max-h-[90vh] flex flex-col bg-white/20 backdrop-blur-md rounded-xl border-0 shadow-xl">
+      <DialogContent className="sm:max-w-md md:max-w-xl sm:min-h-[85vh] max-h-[90vh] flex flex-col bg-white/20 backdrop-blur-md rounded-xl border-0 shadow-xl">
         <Card className="bg-transparent border-0 shadow-none">
           <DialogHeader className="pt-1 pb-1">
             <Card className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0">
@@ -351,7 +351,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     {(isSubmitting || isSearching) && (
                       <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
                     )}
-                    Confirma tu pago
+                    Confirma tu pagoX
                   </button>
                 </DialogTitle>                
                 
