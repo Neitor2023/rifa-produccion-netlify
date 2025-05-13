@@ -75,7 +75,7 @@ const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, pr
       <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
         <Card className="bg-background dark:bg-gray-900 border-0 shadow-none">
           <DialogHeader className="pt-1 pb-1">
-            <Card className="dark:bg-[#9b87f5] bg-[#7E69AB] shadow-md border-0">
+            <Card className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0">
               <CardHeader className="py-3 px-5 pt-1 pb-1">
                 <DialogTitle className="mr-4 text-lg text-white font-bold text-center">
                   {prize.name}
