@@ -30,7 +30,7 @@ interface PrizeDetailModalProps {
 const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, prize, prizeImages, organization }) => {
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
   
-  // Use either url_image or image_url depending on what's available
+  // Utilice url_image o image_url según lo que esté disponible
   const relevantImages = React.useMemo(() => {
     if (!prize || !prizeImages.length) return [];
     
@@ -47,7 +47,7 @@ const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, pr
     return filteredImages;
   }, [prize, prizeImages]);
 
-  // Reset current image index when prize changes
+  // Restablecer el índice de imágenes actual cuando cambia el premio
   React.useEffect(() => {
     setCurrentImageIndex(0);
   }, [prize]);
@@ -60,7 +60,7 @@ const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, pr
     setCurrentImageIndex(prev => (prev < relevantImages.length - 1 ? prev + 1 : 0));
   };
 
-  // Main image to display (from prize images or prize.url_image)
+  // Imagen principal a mostrar (from prize images or prize.url_image)
   const mainImageUrl = relevantImages.length > 0 
     ? relevantImages[currentImageIndex]?.displayUrl 
     : prize?.url_image;
@@ -72,7 +72,7 @@ const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, pr
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
+      <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col dark:bg-background bg-gray-900 rounded-xl border-0 shadow-xl">
        
         <Card className="bg-background dark:bg-gray-900 border-0 shadow-none">
           <DialogHeader className="pt-1 pb-1">
