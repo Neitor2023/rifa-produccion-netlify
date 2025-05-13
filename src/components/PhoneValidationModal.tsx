@@ -15,6 +15,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { X } from 'lucide-react';
 import PromotionalImage from '@/components/raffle/PromotionalImage';
 import { Organization } from '@/lib/constants/types';
+import { useNumberSelection } from '@/contexts/NumberSelectionContext';
 
 function usePhoneValidation(phone: string) {
   const [validation, setValidation] = useState({
@@ -100,6 +101,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   const [phone, setPhone] = useState('');
   const validation = usePhoneValidation(phone);
   const [isSearching, setIsSearching] = useState(false);
+  const { clearSelectionState } = useNumberSelection();
 
   const handleNumberSubmit = async () => {
     if (validation.isValid) {
@@ -159,7 +161,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
             sugerencia_producto: participant.sugerencia_producto
           }
         );
-        onClose();
+        handleModalClose(); // Use the common close handler
       } catch (error) {
         // Hide loading modal on error
         setIsSearching(false);
@@ -168,18 +170,25 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
     }
   };
 
+  // Unified modal close handler
+  const handleModalClose = (): void => {
+    clearSelectionState(); // Clear all number selections
+    console.log("PhoneValidationModal.tsx: Clearing selection state when modal is closed");
+    onClose();
+  };
+
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">          
-          <Card className="bg-background dark:bg-gray-900 border-0 shadow-none">
+      <Dialog open={isOpen} onOpenChange={(open) => !open && handleModalClose()}>
+        <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-white/20 backdrop-blur-md rounded-xl border-0 shadow-xl">          
+          <Card className="bg-transparent border-0 shadow-none">
             <DialogHeader className="pt-1 pb-1">
               <Card className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0">
                 <CardHeader className="py-3 px-4">
                   <DialogTitle
                     onClick={handleNumberSubmit}
-                    tabIndex={0}                  // lo hace focoable
-                    role="button"                 // semántica de “botón”
+                    tabIndex={0}                // lo hace focoable
+                    role="button"                 // semántica de "botón"
                     className="cursor-pointer text-lg text-white font-bold text-center"
                     onKeyDown={(e) => {           // captura Enter y Barra espaciadora
                       if (e.key === 'Enter' || e.key === ' ') {
@@ -202,7 +211,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 
             <Card className="border-0 shadow-sm mt-4 bg-transparent">
               <CardContent className="p-0">
-                <ScrollArea className="max-h-[50vh] overflow-y-auto px-1 bg-gray-400 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700">
+                <ScrollArea className="max-h-[50vh] overflow-y-auto px-1 bg-white/30 dark:bg-gray-800/30 backdrop-blur-sm rounded-lg border border-gray-300/50 dark:border-gray-700/50">
                   <div className="p-4">
                     <PhoneInputField
                       value={phone}
@@ -224,7 +233,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
             </Card>
 
             <ModalFooter
-              onCancel={onClose}
+              onCancel={handleModalClose}
               onValidate={handleNumberSubmit}
               isValid={validation.isValid}
             />

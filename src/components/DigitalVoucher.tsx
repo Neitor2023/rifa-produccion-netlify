@@ -16,6 +16,7 @@ import VoucherContent from './digital-voucher/VoucherContent';
 import VoucherActions from './digital-voucher/VoucherActions';
 import { exportVoucherAsImage, downloadVoucherImage, presentVoucherImage, uploadVoucherToStorage } from './digital-voucher/utils/voucherExport';
 import { supabase } from '@/integrations/supabase/client';
+import { useNumberSelection } from '@/contexts/NumberSelectionContext';
 
 interface DigitalVoucherProps {
   isOpen: boolean;
@@ -47,6 +48,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   const [raffleNumberId, setRaffleNumberId] = useState<string | null>(null);
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [isRaffleNumberRetrieved, setIsRaffleNumberRetrieved] = useState<boolean>(false);
+  const { clearSelectionState } = useNumberSelection();
   
   // Determine text color based on theme
   const textColor = theme === 'dark' ? 'text-white' : 'text-gray-800';
@@ -75,7 +77,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         const { data, error } = await supabase
           .from('raffle_numbers')
           .select('id')
-          .eq('number', parseInt(number)) // Parse string to number
+          .eq('number', parseInt(number, 10)) // Parse string to number
           .single();
         
         if (error) {
@@ -112,6 +114,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   
   // Handle the modal close event
   const handleCloseModal = (): void => {
+    clearSelectionState(); // Clear selections when modal is closed
     onClose();
     // Call the onVoucherClosed callback if provided
     if (onVoucherClosed) {
@@ -192,10 +195,10 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleCloseModal}>
-      <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] min-h-[75vh] sm:min-h-[70vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
+      <DialogContent className="sm:max-w-md md:max-w-xl min-h-[80vh] sm:min-h-[75vh] flex flex-col bg-white/20 backdrop-blur-md rounded-xl border-0 shadow-xl">
         <VoucherHeader />
         
-        <ScrollArea className="max-h-[65vh] overflow-y-auto px-1 bg-background dark:bg-gray-900 rounded-lg border border-gray-300 dark:border-gray-700 flex-grow">
+        <ScrollArea className="max-h-[65vh] overflow-y-auto px-1 bg-white/30 dark:bg-gray-800/30 backdrop-blur-sm rounded-lg border border-gray-300/50 dark:border-gray-700/50 flex-grow">
           <VoucherContent 
             printRef={printRef}
             formattedDate={formattedDate}

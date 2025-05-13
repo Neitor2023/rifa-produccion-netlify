@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { X } from 'lucide-react';
 
 interface VoucherHeaderProps {
-  // Removed lottery prop as it will be in the content now
+  // No props needed at this level since lottery moved to content
 }
 
 const VoucherHeader: React.FC<VoucherHeaderProps> = () => {

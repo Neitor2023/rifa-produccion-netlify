@@ -29,6 +29,7 @@ import { toast } from 'sonner';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
 import PromotionalImage from '@/components/raffle/PromotionalImage';
 import { Organization } from '@/lib/constants/types';
+import { useNumberSelection } from '@/contexts/NumberSelectionContext';
 
 const formSchema = z.object({
   buyerName: z.string().min(3, { message: "El nombre debe tener al menos 3 caracteres" }),
@@ -61,6 +62,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
       buyerCedula: '',
     },
   });
+  const { clearSelectionState } = useNumberSelection();
 
   const handleSubmit = (data: FormData) => {
     if (selectedNumbers.length === 0) {
@@ -92,10 +94,17 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     form.reset();
   };
 
+  // Unified modal close handler
+  const handleModalClose = (): void => {
+    clearSelectionState(); // Clear all number selections
+    console.log("ReservationModal.tsx: Clearing selection state when modal is closed");
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
-      <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">        
-        <Card className="bg-background dark:bg-gray-900 border-0 shadow-none">
+    <Dialog open={isOpen} onOpenChange={open => !open && handleModalClose()}>
+      <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-white/20 backdrop-blur-md rounded-xl border-0 shadow-xl">        
+        <Card className="bg-transparent border-0 shadow-none">
           <DialogHeader className="pt-1 pb-1">
             <Card className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0">
               <CardHeader className="pt-1 pb-1 py-3 px-4">
@@ -111,7 +120,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
           </DialogHeader>
           
           <CardContent className="p-0 mt-4">
-            <ScrollArea className="max-h-[50vh] overflow-y-auto px-1 bg-gray-400 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700">
+            <ScrollArea className="max-h-[50vh] overflow-y-auto px-1 bg-white/30 dark:bg-gray-800/30 backdrop-blur-sm rounded-lg border border-gray-300/50 dark:border-gray-700/50">
               <div className="p-4">
                 <DialogDescription className="mb-4 font-black">
                   Ingrese los datos de la persona que apartará los números: {selectedNumbers.join(', ')}
@@ -184,7 +193,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             <Button 
               type="button" 
               variant="outline" 
-              onClick={onClose} 
+              onClick={handleModalClose} 
               className="flex-1 sm:flex-none font-bold uppercase text-gray-800 dark:text-white hover:bg-[#9b87f5] hover:text-white dark:hover:text-gray-800"
             >
               Cancelar

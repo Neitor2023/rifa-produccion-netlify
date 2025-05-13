@@ -21,6 +21,7 @@ import { Organization } from '@/lib/constants/types';
 import { useNumberSelection } from '@/contexts/NumberSelectionContext';
 import { exportVoucherAsImage, uploadVoucherToStorage, updatePaymentReceiptUrlForNumbers } from './digital-voucher/utils/voucherExport';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -63,10 +64,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const { clearSelectionState } = useNumberSelection();
   const voucherRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
   
   // Function to automatically save the voucher for all purchased numbers
-  const saveVoucherForAllNumbers = async (paymentData: PaymentFormData): Promise<void> => {
-    if (selectedNumbers.length === 0) return;
+  const saveVoucherForAllNumbers = async (paymentData: PaymentFormData): Promise<string | null> => {
+    if (selectedNumbers.length === 0) return null;
     
     try {
       console.log('[PaymentModal.tsx] Starting automatic voucher saving for numbers:', selectedNumbers);
@@ -92,7 +94,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       
       if (numberIds.length === 0) {
         console.error('[PaymentModal.tsx] No valid number IDs found');
-        return;
+        return null;
       }
       
       // 2. Generate receipt content
@@ -127,11 +129,103 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         minute: '2-digit'
       });
       
-      // Simulate a receipt ref with our temp container
-      const mockReceiptRef = { current: tempReceiptContainer };
+      // Create the content for the voucher in the temporary container
+      tempReceiptContainer.innerHTML = `
+        <div class="print-content p-1">
+          <div class="p-6 mb-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
+            <div class="flex flex-col space-y-4">
+              <div class="border-b border-gray-200 dark:border-gray-700 pb-4">
+                <h3 class="font-bold text-xl mb-2 text-purple-700 dark:text-purple-400 text-center">
+                  ${raffleDetails.title}
+                </h3>
+                
+                ${raffleDetails.lottery ? `
+                <div class="w-full text-center font-semibold text-gray-700 dark:text-gray-300 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">
+                  ${raffleDetails.lottery}
+                </div>` : ''}
+                
+                ${paymentData.buyerName ? `
+                <div class="mb-2 text-md font-semibold text-gray-800 dark:text-gray-200">
+                  Cliente: ${paymentData.buyerName}
+                </div>` : ''}
+                
+                <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-900 dark:text-gray-200">
+                  <div>
+                    <span class="font-semibold">Valor:</span> 
+                    ${raffleDetails.price.toFixed(2)}
+                  </div>
+                  <div>
+                    <span class="font-semibold">Fecha Emisión:</span> 
+                    <div class="text-xs">${formattedDate}</div>
+                  </div>
+                  <div>
+                    <span class="font-semibold">Fecha Sorteo:</span> 
+                    <div class="text-xs">
+                      ${raffleDetails.dateLottery || '-'}
+                    </div>
+                  </div>
+                  <div>
+                    <span class="font-semibold">Método de pago:</span> 
+                    ${paymentData.paymentMethod === 'cash' ? 'Efectivo' : 'Transferencia bancaria'}
+                  </div>
+                  <div>
+                    <span class="font-semibold">Núm. seleccionados:</span> 
+                    ${selectedNumbers.length}
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex justify-center items-center">
+                  <!-- QR code placeholder -->
+                  <div style="width: 150px; height: 150px; background-color: #f0f0f0; display: flex; justify-content: center; align-items: center;">
+                    QR: ${receiptUrl}
+                  </div>
+                </div>
+
+                <div class="flex flex-col justify-center">
+                  <p class="text-sm font-semibold text-gray-800 dark:text-gray-300 mb-1">Números comprados:</p>
+                  <div class="flex flex-wrap gap-1 mt-1">
+                    ${selectedNumbers.map(num => `
+                      <span class="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded text-xs font-medium">
+                        ${num}
+                      </span>
+                    `).join('')}
+                  </div>
+                </div>
+              </div>
+              
+              ${paymentData.paymentMethod === 'transfer' && paymentData.paymentProof && typeof paymentData.paymentProof === 'string' ? `
+              <div class="border-t border-gray-300 dark:border-gray-700 my-2 pt-2">
+                <h3 class="font-semibold text-sm text-gray-800 dark:text-gray-300 mb-2">Comprobante de Transferencia</h3>
+                <div class="flex justify-center">
+                  <img 
+                    src="${paymentData.paymentProof}" 
+                    alt="Comprobante de pago" 
+                    class="w-auto h-auto max-h-[150px] object-contain"
+                  />
+                </div>
+              </div>` : ''}
+              
+              <div class="border-t border-gray-300 dark:border-gray-700 mt-2 pt-4 text-center text-xs text-gray-500 dark:text-gray-400">
+                <p>Este comprobante valida la compra de los números seleccionados.</p>
+                <p>Guárdelo como referencia para futuras consultas.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
       
       // Generate the receipt image
-      const imgData = await exportVoucherAsImage(mockReceiptRef.current, '');
+      const html2canvas = (await import('html2canvas')).default;
+      const canvas = await html2canvas(tempReceiptContainer, {
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        allowTaint: true
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
       
       // Clean up the temporary element
       document.body.removeChild(tempReceiptContainer);
@@ -152,12 +246,23 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           console.log('[PaymentModal.tsx] Updating all raffle numbers with receipt URL:', numberIds);
           
           // Update all raffle numbers with the same receipt URL
-          await updatePaymentReceiptUrlForNumbers(imageUrl, numberIds);
+          const updateSuccess = await updatePaymentReceiptUrlForNumbers(imageUrl, numberIds);
+          
+          if (updateSuccess) {
+            toast({
+              title: "Comprobante guardado automáticamente",
+              description: "El comprobante ha sido almacenado en el sistema para todos los números.",
+            });
+          }
+          
+          return imageUrl;
         }
       }
       
+      return null;
     } catch (error) {
       console.error('[PaymentModal.tsx] Error in saveVoucherForAllNumbers:', error);
+      return null;
     }
   };
   
@@ -201,11 +306,21 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       // Get the form data
       const formData = form.getValues();
       
-      // Auto-save the payment voucher for all numbers before submission
-      await saveVoucherForAllNumbers(formData);
+      // IMPORTANT: Auto-save the payment voucher for all numbers BEFORE submission
+      // This ensures vouchers are saved even if the user doesn't open/view the voucher modal
+      const imageUrl = await saveVoucherForAllNumbers(formData);
       
-      // Submit the form
+      // Submit the form to complete the payment process
       await handleSubmit();
+      
+      // Include the saved image URL with the form data
+      if (imageUrl) {
+        formData.paymentReceiptUrl = imageUrl;
+      }
+      
+      // Now onComplete with the updated form data
+      onComplete(formData);
+      
     } finally {
       setIsSearching(false);
     }
@@ -220,8 +335,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleCloseModal()}>
-      <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
-        <Card className="bg-background dark:bg-gray-900 border-0 shadow-none">
+      <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-white/20 backdrop-blur-md rounded-xl border-0 shadow-xl">
+        <Card className="bg-transparent border-0 shadow-none">
           <DialogHeader className="pt-1 pb-1">
             <Card className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0">
               <CardHeader className="py-3 px-4">

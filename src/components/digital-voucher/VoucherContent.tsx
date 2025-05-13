@@ -39,11 +39,11 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
         <div className="flex flex-col space-y-4">
           {/* Raffle Details */}
           <div className="border-b border-gray-200 dark:border-gray-700 pb-4">
-            <h3 className="font-bold text-xl mb-2 text-purple-700 dark:text-purple-400">
+            <h3 className="font-bold text-xl mb-2 text-purple-700 dark:text-purple-400 text-center">
               {raffleDetails?.title || 'Rifa'}
             </h3>
             
-            {/* Lottery name - moved here as requested */}
+            {/* Lottery name - moved here and centered */}
             {raffleDetails?.lottery && (
               <div className="w-full text-center font-semibold text-gray-700 dark:text-gray-300 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">
                 {raffleDetails.lottery}
