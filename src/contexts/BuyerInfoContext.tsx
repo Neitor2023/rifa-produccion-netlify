@@ -23,7 +23,7 @@ export const BuyerInfoProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 export const useBuyerInfo = () => {
   const context = useContext(BuyerInfoContext);
   if (!context) {
-    throw new Error('useBuyerInfo must be used within a BuyerInfoProvider');
+    throw new Error('useBuyerInfo debe utilizarse dentro de un BuyerInfoProvider');
   }
   return context;
 };
