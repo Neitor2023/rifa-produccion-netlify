@@ -149,16 +149,16 @@ export const usePaymentForm = ({
     // Validar los campos obligatorios según el contexto del botón
     const requiredFields = ['buyerName', 'buyerPhone', 'buyerCedula', 'paymentMethod'];
     
-    // Add fields based on button context
+    // Agregar campos según el contexto del botón
     if (clickedButton === 'Pagar') {
-      // For "Pagar Directo" we need all fields
+      // Para "Pagar Directo" necesitamos todos los campos
       requiredFields.push('buyerEmail', 'direccion');
     } else if (clickedButton === 'Pagar Apartados') {
-      // For "Pagar Apartados" we need email and direccion
+      // Para "Pagar Apartados" necesitamos correo electrónico y dirección.
       requiredFields.push('buyerEmail', 'direccion');
     }
     
-    // Check all required fields
+    // Verifique todos los campos obligatorios
     const missingFields = requiredFields.filter(field => 
       !data[field as keyof PaymentFormData] || 
       String(data[field as keyof PaymentFormData]).trim() === ''
@@ -178,12 +178,12 @@ export const usePaymentForm = ({
       }).join(', ');
       
       toast.error(`Por favor complete los siguientes campos: ${fieldNames}`);
-      await form.trigger(missingFields as any); // Trigger validation for specific fields
+      await form.trigger(missingFields as any); // Validación de activadores para campos específicos
       setIsSubmitting(false);
       return;
     }
     
-    // Check if payment method is transfer and needs proof
+    // Verificar si el método de pago es transferencia y necesita comprobante
     if (data.paymentMethod === "transfer" && !uploadedImage) {
       toast.error("Por favor suba un comprobante de pago");
       debugLog('Validation error', 'Missing payment proof for transfer');
@@ -191,7 +191,7 @@ export const usePaymentForm = ({
       return;
     }
     
-    // Check buyerData and complete with form data
+    // Verifique los datos del comprador y complételos con los datos del formulario
     let completeData = { ...data };
     
     if (uploadedImage) {
