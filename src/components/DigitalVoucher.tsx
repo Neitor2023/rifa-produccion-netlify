@@ -29,6 +29,7 @@ interface DigitalVoucherProps {
     lottery: string;
     dateLottery: string;
   };
+  onVoucherClosed?: () => void; // New prop to handle selection cleanup
 }
 
 const DigitalVoucher: React.FC<DigitalVoucherProps> = ({ 
@@ -37,7 +38,8 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   paymentData,
   selectedNumbers,
   allowVoucherPrint = true,
-  raffleDetails
+  raffleDetails,
+  onVoucherClosed
 }) => {
   const printRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
@@ -73,7 +75,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         const { data, error } = await supabase
           .from('raffle_numbers')
           .select('id')
-          .eq('number', parseInt(number, 10)) // Fix: Parse the string to a number
+          .eq('number', parseInt(number, 10)) // Convert string to number
           .single();
         
         if (error) {
@@ -107,6 +109,15 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
       console.log('[DigitalVoucher.tsx] Receipt URL generated:', url);
     }
   }, [raffleNumberId]);
+  
+  // Handle the modal close event
+  const handleCloseModal = () => {
+    onClose();
+    // Call the onVoucherClosed callback if provided
+    if (onVoucherClosed) {
+      onVoucherClosed();
+    }
+  };
 
   const handleDownload = async () => {
     if (!raffleNumberId) {
@@ -176,15 +187,15 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   
   // If voucher printing is not allowed, show the alert message
   if (!allowVoucherPrint) {
-    return <AlertMessage isOpen={isOpen} onClose={onClose} textColor={textColor} />;
+    return <AlertMessage isOpen={isOpen} onClose={handleCloseModal} textColor={textColor} />;
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
-        <VoucherHeader />
+    <Dialog open={isOpen} onOpenChange={handleCloseModal}>
+      <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] min-h-[70vh] sm:min-h-[60vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
+        <VoucherHeader lottery={raffleDetails?.lottery} />
         
-        <ScrollArea className="max-h-[50vh] overflow-y-auto px-1 bg-background dark:bg-gray-900 rounded-lg border border-gray-300 dark:border-gray-700">
+        <ScrollArea className="max-h-[60vh] overflow-y-auto px-1 bg-background dark:bg-gray-900 rounded-lg border border-gray-300 dark:border-gray-700 flex-grow">
           <VoucherContent 
             printRef={printRef}
             formattedDate={formattedDate}
@@ -201,7 +212,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         <VoucherActions 
           onDownload={handleDownload}
           onPresent={handlePresent}
-          onClose={onClose}
+          onClose={handleCloseModal}
         />
       </DialogContent>
     </Dialog>

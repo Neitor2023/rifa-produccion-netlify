@@ -5,6 +5,7 @@ import DigitalVoucher from '@/components/DigitalVoucher';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import { NumberSelectionProvider } from '@/contexts/NumberSelectionContext';
 import { Organization } from '@/lib/constants/types';
+import { useNumberSelection } from '@/contexts/NumberSelectionContext';
 
 interface RaffleModalsProps {
   isPaymentModalOpen: boolean;
@@ -45,6 +46,14 @@ const RaffleModals: React.FC<RaffleModalsProps> = ({
   organization
 }) => {
   console.log("RaffleModals.tsx: Rendering with isPaymentModalOpen=", isPaymentModalOpen);
+  const { clearSelectionState } = useNumberSelection();
+  
+  // Handle voucher close
+  const handleVoucherClose = () => {
+    console.log("RaffleModals.tsx: Clearing selection state when voucher is closed");
+    clearSelectionState();
+    setIsVoucherOpen(false);
+  };
   
   return (
     <>
@@ -62,11 +71,12 @@ const RaffleModals: React.FC<RaffleModalsProps> = ({
       
       <DigitalVoucher 
         isOpen={isVoucherOpen}
-        onClose={() => setIsVoucherOpen(false)}
+        onClose={handleVoucherClose}
         paymentData={paymentData}
         selectedNumbers={selectedNumbers}
         allowVoucherPrint={allowVoucherPrint}
         raffleDetails={raffleDetails}
+        onVoucherClosed={clearSelectionState}
       />
     </>
   );

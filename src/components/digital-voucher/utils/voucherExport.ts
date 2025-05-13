@@ -1,3 +1,4 @@
+
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -102,7 +103,7 @@ export const presentVoucherImage = (imgData: string): void => {
 // Improved upload function with better error handling and bucket creation
 export const uploadVoucherToStorage = async (
   imgData: string, 
-  raffleId: string, 
+  raffleTitle: string, 
   numberId: string
 ): Promise<string | null> => {
   try {
@@ -123,7 +124,7 @@ export const uploadVoucherToStorage = async (
     const blob = new Blob([new Uint8Array(byteArrays)], { type: 'image/png' });
     
     // Create a unique filename
-    const fileName = `receipt_${raffleId}_${numberId}_${new Date().getTime()}.png`;
+    const fileName = `receipt_${raffleTitle.replace(/\s+/g, '_')}_${numberId}_${new Date().getTime()}.png`;
     
     // Try to upload file directly, if it fails due to missing bucket we'll create it
     try {
@@ -192,7 +193,7 @@ export const uploadVoucherToStorage = async (
     const imageUrl = urlData.publicUrl;
     console.log('[DigitalVoucher.tsx] Imagen subida a Storage en paymentreceipturl:', imageUrl);
     
-    // Update raffle_numbers table
+    // Update all raffle_numbers for this purchase
     console.log('[DigitalVoucher.tsx] Actualizando raffle_numbers.payment_receipt_url para id:', numberId);
     const { error: updateError } = await supabase
       .from('raffle_numbers')
@@ -215,5 +216,43 @@ export const uploadVoucherToStorage = async (
       variant: "destructive"
     });
     return null;
+  }
+};
+
+// Function to update payment receipt URL for multiple numbers
+export const updatePaymentReceiptUrlForNumbers = async (
+  imageUrl: string,
+  numberIds: string[]
+): Promise<boolean> => {
+  try {
+    console.log('[voucherExport.ts] Updating payment_receipt_url for multiple numbers:', numberIds);
+    
+    const updatePromises = numberIds.map(async (id) => {
+      const { error } = await supabase
+        .from('raffle_numbers')
+        .update({ payment_receipt_url: imageUrl })
+        .eq('id', id);
+        
+      if (error) {
+        console.error(`[voucherExport.ts] Error updating receipt URL for number ID ${id}:`, error);
+        return false;
+      }
+      
+      return true;
+    });
+    
+    const results = await Promise.all(updatePromises);
+    const allSuccessful = results.every(Boolean);
+    
+    if (allSuccessful) {
+      console.log('[voucherExport.ts] Successfully updated receipt URL for all numbers');
+    } else {
+      console.error('[voucherExport.ts] Some updates failed');
+    }
+    
+    return allSuccessful;
+  } catch (error) {
+    console.error('[voucherExport.ts] Error in updatePaymentReceiptUrlForNumbers:', error);
+    return false;
   }
 };

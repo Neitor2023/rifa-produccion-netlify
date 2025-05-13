@@ -17,9 +17,9 @@ interface VoucherContentProps {
     lottery: string;
     dateLottery: string;
   };
-  qrUrl: string; // Changed from qrData to qrUrl
+  qrUrl: string;
   textColor: string;
-  numberId?: string; // Added to pass the raffle number id
+  numberId?: string;
 }
 
 const VoucherContent: React.FC<VoucherContentProps> = ({
@@ -29,7 +29,7 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
   paymentData,
   selectedNumbers,
   raffleDetails,
-  qrUrl, // Changed from qrData to qrUrl
+  qrUrl,
   textColor,
   numberId
 }) => {

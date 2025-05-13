@@ -16,7 +16,7 @@ const VoucherActions: React.FC<VoucherActionsProps> = ({
   onClose
 }) => {
   return (
-    <DialogFooter className="flex flex-row justify-between space-x-2 mt-1">
+    <DialogFooter className="flex flex-row justify-between space-x-2 mt-3">
       <Button 
         type="button" 
         className="flex-1 bg-purple-700 hover:bg-purple-800 text-white w-full sm:w-auto"
