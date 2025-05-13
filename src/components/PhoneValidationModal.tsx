@@ -140,7 +140,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           }
         }
 
-        // Hide loading modal
+        // Ocultar el modal de carga
         setIsSearching(false);
 
         if (!participant) {
@@ -161,7 +161,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
             sugerencia_producto: participant.sugerencia_producto
           }
         );
-        handleModalClose(); // Use the common close handler
+        handleModalClose(); // Utilice el controlador de cierre común
       } catch (error) {
         // Hide loading modal on error
         setIsSearching(false);
@@ -170,10 +170,10 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
     }
   };
 
-  // Unified modal close handler
+  // Controlador de cierre modal unificado
   const handleModalClose = (): void => {
-    clearSelectionState(); // Clear all number selections
-    console.log("PhoneValidationModal.tsx: Clearing selection state when modal is closed");
+    clearSelectionState(); // Borrar todas las selecciones de números
+    console.log("PhoneValidationModal.tsx: Borrar el estado de selección cuando el modal está cerrado");
     onClose();
   };
 
