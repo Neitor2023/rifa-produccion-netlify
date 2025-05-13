@@ -58,7 +58,7 @@ function AdditionalInfoSection({ form }: { form: UseFormReturn<PaymentFormData> 
               <FormLabel>Sugerencia de Producto</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="¿Qué productos le gustaría ver en futuras rifas?"
+                  placeholder="¿Qué premio le gustaría obtener en futuras rifas?"
                   className="resize-none"
                   {...field}
                   value={field.value || ''}

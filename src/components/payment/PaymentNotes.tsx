@@ -27,7 +27,7 @@ const PaymentNotes: React.FC<PaymentNotesProps> = ({ form }) => {
           <FormItem>
             <FormControl>
               <Textarea 
-                placeholder="¿Alguna nota o comentario adicional?" 
+                placeholder="¿Alguna nota o comentario adicional o si quieres ser vendedor(a)?" 
                 {...field}
                 className="resize-none"
               />
