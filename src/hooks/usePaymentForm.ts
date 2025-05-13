@@ -78,9 +78,9 @@ export const usePaymentForm = ({
     } else {
       debugLog('Modal opened', { buyerData, clickedButton });
       
-      // Clear image when modal is opened with "Pagar" button
+      // Imagen clara al abrir el modal con el botón "Pagar"
       if (clickedButton === "Pagar") {
-        console.log("PaymentModal - Modal opened with Pagar button, clearing previous image");
+        console.log("PaymentModal - Modal abierto con el botón Pagar, borrando la imagen anterior");
         setUploadedImage(null);
         setPreviewUrl(null);
       }
