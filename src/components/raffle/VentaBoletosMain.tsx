@@ -51,7 +51,7 @@ const VentaBoletosMain: React.FC<VentaBoletosMainProps> = ({
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       <div className="container px-4 py-4 max-w-3xl mx-auto">
-        {/* Header section with organization info and dark mode toggle */}
+        {/* Sección de encabezado con información de la organización y alternancia de modo oscuro */}
         <div className="mb-4">
           <Card className="shadow-md">
             <CardContent className="p-3">
@@ -62,7 +62,7 @@ const VentaBoletosMain: React.FC<VentaBoletosMainProps> = ({
           </Card>
         </div>
         
-        {/* Title card - MOVED UP from below */}
+        {/* Tarjeta de título - MOVIDA HACIA ARRIBA desde abajo */}
         <Card className="mb-4 shadow-sm">
           <CardContent className="p-3">
             <h1 className="text-xl sm:text-2xl font-bold text-center">
@@ -71,7 +71,7 @@ const VentaBoletosMain: React.FC<VentaBoletosMainProps> = ({
           </CardContent>
         </Card>
         
-        {/* Description - MOVED DOWN from above */}
+        {/* Descripción - MOVIDO HACIA ABAJO desde arriba */}
         {raffle?.description && (
           <Card className="mb-4 shadow-sm">
             <CardContent className="p-3">
@@ -82,7 +82,7 @@ const VentaBoletosMain: React.FC<VentaBoletosMainProps> = ({
           </Card>
         )}
         
-        {/* Seller Info */}
+        {/* Información del vendedor */}
         {seller && (
           <div className="mb-4">
             <SellerInfo 
@@ -94,7 +94,7 @@ const VentaBoletosMain: React.FC<VentaBoletosMainProps> = ({
           </div>
         )}
         
-        {/* Prize carousel and modal */}
+        {/* Carrusel de premios y modal */}
         {prizes && prizeImages && (
           <div className="mb-4">
             <RafflePrizesSection 
@@ -125,7 +125,7 @@ const VentaBoletosMain: React.FC<VentaBoletosMainProps> = ({
           />
         </div>
         
-        {/* Raffle info */}
+        {/* Información del sorteo */}
         <div className="mb-4">
           <RaffleInfoSection 
             raffle={raffle} 
@@ -134,12 +134,12 @@ const VentaBoletosMain: React.FC<VentaBoletosMainProps> = ({
           />
         </div>
 
-        {/* Promotional Image - MOVED UP */}
+        {/* Imagen promocional - MOVIDA HACIA ARRIBA */}
         {organization?.imagen_publicitaria && (
           <PromotionalImage imageUrl={organization.imagen_publicitaria} />
         )}
         
-        {/* Disclaimer Card - MOVED DOWN */}
+        {/* Tarjeta de descargo de responsabilidad: MOVIDA HACIA ABAJO */}
         <Card className="mb-8">
           <CardContent className="p-4">
             <div className="text-center text-xs italic">

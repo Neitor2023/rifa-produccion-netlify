@@ -70,11 +70,11 @@ export const NumberGridLegend: React.FC<NumberGridLegendProps> = ({
         </CardContent>
       </Card>
       
-      {/* Mini instructivo - added below the grid legend */}
+      {/* Mini instructivo - añadido debajo de la leyenda de la cuadrícula */}
       {mini_instructivo && (
         <Card className="mt-4 mb-4 shadow-sm">
           <CardContent className="p-3">
-            <div className="whitespace-pre-line text-sm">
+            <div className="font-bold whitespace-pre-line text-sm">
               {mini_instructivo}
             </div>
           </CardContent>
