@@ -122,7 +122,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
           <CardContent className="p-0 mt-4">
             <ScrollArea className="max-h-[50vh] overflow-y-auto px-1 bg-white/30 dark:bg-gray-800/30 backdrop-blur-sm rounded-lg border border-gray-300/50 dark:border-gray-700/50">
               <div className="p-4">
-                <DialogDescription className="mb-4 dark:font-black dark:text-white">
+                <DialogDescription className="mb-4 text-black dark:text-white">
                   Ingrese los datos de la persona que apartará los números: {selectedNumbers.join(', ')}
                 </DialogDescription>
                 
