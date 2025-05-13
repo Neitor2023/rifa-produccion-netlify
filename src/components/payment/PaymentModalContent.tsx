@@ -51,7 +51,7 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
   return (
     <Card className="border-0 shadow-sm mt-4 bg-transparent">
       <CardContent className="p-0">
-        <ScrollArea className="max-h-[50vh] overflow-y-auto px-1 bg-gray-400 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700">
+        <ScrollArea className="max-h-[70vh] overflow-y-auto px-1 bg-gray-400 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700">
           <div className="p-4">
             <Form {...form}>
               <form className="space-y-6">
