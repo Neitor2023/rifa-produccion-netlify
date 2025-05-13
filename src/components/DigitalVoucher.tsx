@@ -29,7 +29,7 @@ interface DigitalVoucherProps {
     lottery: string;
     dateLottery: string;
   };
-  onVoucherClosed?: () => void; // New prop to handle selection cleanup
+  onVoucherClosed?: () => void; // Prop to handle selection cleanup
 }
 
 const DigitalVoucher: React.FC<DigitalVoucherProps> = ({ 
@@ -63,7 +63,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   
   // Fetch the raffle number ID when the component mounts or when selectedNumbers changes
   useEffect(() => {
-    const fetchRaffleNumberId = async () => {
+    const fetchRaffleNumberId = async (): Promise<void> => {
       if (selectedNumbers.length === 0 || !isOpen) return;
       
       try {
@@ -75,7 +75,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         const { data, error } = await supabase
           .from('raffle_numbers')
           .select('id')
-          .eq('number', parseInt(number, 10)) // Convert string to number
+          .eq('number', parseInt(number)) // Parse string to number
           .single();
         
         if (error) {
@@ -111,7 +111,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   }, [raffleNumberId]);
   
   // Handle the modal close event
-  const handleCloseModal = () => {
+  const handleCloseModal = (): void => {
     onClose();
     // Call the onVoucherClosed callback if provided
     if (onVoucherClosed) {
@@ -119,7 +119,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     }
   };
 
-  const handleDownload = async () => {
+  const handleDownload = async (): Promise<void> => {
     if (!raffleNumberId) {
       console.error('[DigitalVoucher.tsx] No se puede descargar: raffleNumberId no disponible');
       toast({
@@ -152,7 +152,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     }
   };
   
-  const handlePresent = async () => {
+  const handlePresent = async (): Promise<void> => {
     if (!raffleNumberId) {
       console.error('[DigitalVoucher.tsx] No se puede presentar: raffleNumberId no disponible');
       toast({
@@ -192,10 +192,10 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleCloseModal}>
-      <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] min-h-[70vh] sm:min-h-[60vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
-        <VoucherHeader lottery={raffleDetails?.lottery} />
+      <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] min-h-[75vh] sm:min-h-[70vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
+        <VoucherHeader />
         
-        <ScrollArea className="max-h-[60vh] overflow-y-auto px-1 bg-background dark:bg-gray-900 rounded-lg border border-gray-300 dark:border-gray-700 flex-grow">
+        <ScrollArea className="max-h-[65vh] overflow-y-auto px-1 bg-background dark:bg-gray-900 rounded-lg border border-gray-300 dark:border-gray-700 flex-grow">
           <VoucherContent 
             printRef={printRef}
             formattedDate={formattedDate}

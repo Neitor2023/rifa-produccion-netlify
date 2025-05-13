@@ -43,6 +43,13 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
               {raffleDetails?.title || 'Rifa'}
             </h3>
             
+            {/* Lottery name - moved here as requested */}
+            {raffleDetails?.lottery && (
+              <div className="w-full text-center font-semibold text-gray-700 dark:text-gray-300 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">
+                {raffleDetails.lottery}
+              </div>
+            )}
+            
             {/* Buyer Name */}
             {paymentData?.buyerName && (
               <div className="mb-2 text-md font-semibold text-gray-800 dark:text-gray-200">
@@ -59,10 +66,6 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
               <div>
                 <span className="font-semibold">Fecha Emisión:</span>{' '}
                 <div className="text-xs">{formattedDate}</div>
-              </div>
-              <div>
-                <span className="font-semibold">Lotería:</span>{' '}
-                {raffleDetails?.lottery || '-'}
               </div>
               <div>
                 <span className="font-semibold">Fecha Sorteo:</span>{' '}

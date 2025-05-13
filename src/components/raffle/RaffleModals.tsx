@@ -48,8 +48,15 @@ const RaffleModals: React.FC<RaffleModalsProps> = ({
   console.log("RaffleModals.tsx: Rendering with isPaymentModalOpen=", isPaymentModalOpen);
   const { clearSelectionState } = useNumberSelection();
   
+  // Handle payment modal close
+  const handlePaymentModalClose = (): void => {
+    console.log("RaffleModals.tsx: Clearing selection state when payment modal is closed");
+    clearSelectionState();
+    setIsPaymentModalOpen(false);
+  };
+  
   // Handle voucher close
-  const handleVoucherClose = () => {
+  const handleVoucherClose = (): void => {
     console.log("RaffleModals.tsx: Clearing selection state when voucher is closed");
     clearSelectionState();
     setIsVoucherOpen(false);
@@ -59,7 +66,7 @@ const RaffleModals: React.FC<RaffleModalsProps> = ({
     <>
       <PaymentModal 
         isOpen={isPaymentModalOpen}
-        onClose={() => setIsPaymentModalOpen(false)}
+        onClose={handlePaymentModalClose}
         selectedNumbers={selectedNumbers}
         price={rafflePrice}
         onComplete={onCompletePayment}

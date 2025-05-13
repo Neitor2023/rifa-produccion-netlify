@@ -19,7 +19,7 @@ import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { Card, CardHeader } from "@/components/ui/card";
 import { Organization } from '@/lib/constants/types';
 import { useNumberSelection } from '@/contexts/NumberSelectionContext';
-import { exportVoucherAsImage, uploadVoucherToStorage } from './digital-voucher/utils/voucherExport';
+import { exportVoucherAsImage, uploadVoucherToStorage, updatePaymentReceiptUrlForNumbers } from './digital-voucher/utils/voucherExport';
 import { supabase } from '@/integrations/supabase/client';
 
 interface PaymentModalProps {
@@ -60,7 +60,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     clickedButton
   });
   
-  const [isSearching, setIsSearching] = useState(false);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
   const { clearSelectionState } = useNumberSelection();
   const voucherRef = useRef<HTMLDivElement>(null);
   
@@ -95,10 +95,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         return;
       }
       
-      // 2. Generate a receipt URL based on the first number
-      const domain = window.location.hostname || 'rifamax.com';
-      const protocol = window.location.protocol || 'https:';
-      const mainReceiptUrl = `${protocol}//${domain}/receipt/${numberIds[0]}`;
+      // 2. Generate receipt content
+      // Create a temporary div to render the receipt
+      const tempReceiptContainer = document.createElement('div');
+      tempReceiptContainer.style.position = 'absolute';
+      tempReceiptContainer.style.left = '-9999px';
+      document.body.appendChild(tempReceiptContainer);
       
       // 3. Prepare raffle details for the voucher
       const raffleDetails = {
@@ -108,16 +110,51 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         dateLottery: new Date().toLocaleDateString()
       };
       
-      // 4. Generate receipt image and save it for each number
-      // We'll just generate it once and upload the same image URL to all numbers
+      // 4. Generate receipt image
       console.log('[PaymentModal.tsx] Generating voucher image');
       
-      // We don't have the actual voucher DOM element yet, 
-      // so we'll do a batch update to all raffle_numbers once payment is complete
-      console.log('[PaymentModal.tsx] Will save receipt URL for all numbers:', numberIds);
+      // Generate a domain-based receipt URL using the first number ID
+      const domain = window.location.hostname || 'rifamax.com';
+      const protocol = window.location.protocol || 'https:';
+      const receiptUrl = `${protocol}//${domain}/receipt/${numberIds[0]}`;
       
-      // This function will be called by the payment completion handler
-      return;
+      // Create formatted date for the receipt
+      const formattedDate = new Date().toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      // Simulate a receipt ref with our temp container
+      const mockReceiptRef = { current: tempReceiptContainer };
+      
+      // Generate the receipt image
+      const imgData = await exportVoucherAsImage(mockReceiptRef.current, '');
+      
+      // Clean up the temporary element
+      document.body.removeChild(tempReceiptContainer);
+      
+      // If we have image data, upload it to storage and update all number records
+      if (imgData && raffleDetails) {
+        const firstNumberId = numberIds[0];
+        
+        console.log('[PaymentModal.tsx] Uploading receipt image for ID:', firstNumberId);
+        const imageUrl = await uploadVoucherToStorage(
+          imgData, 
+          raffleDetails.title,
+          firstNumberId
+        );
+        
+        if (imageUrl) {
+          console.log('[PaymentModal.tsx] Successfully uploaded receipt. URL:', imageUrl);
+          console.log('[PaymentModal.tsx] Updating all raffle numbers with receipt URL:', numberIds);
+          
+          // Update all raffle numbers with the same receipt URL
+          await updatePaymentReceiptUrlForNumbers(imageUrl, numberIds);
+        }
+      }
       
     } catch (error) {
       console.error('[PaymentModal.tsx] Error in saveVoucherForAllNumbers:', error);
@@ -126,7 +163,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   
   // Check if form is valid based on required fields
   const formValues = form.getValues();
-  const isFormValid = () => {
+  const isFormValid = (): boolean => {
     // Default required fields
     const requiredFields = ['buyerName', 'buyerPhone', 'buyerCedula', 'paymentMethod'];
     
@@ -151,7 +188,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     );
   };
 
-  const submissionHandler = async () => {
+  const submissionHandler = async (): Promise<void> => {
     setIsSearching(true);
     try {
       if (!isFormValid()) {
@@ -164,7 +201,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       // Get the form data
       const formData = form.getValues();
       
-      // We'll save this voucher during the payment completion process
+      // Auto-save the payment voucher for all numbers before submission
       await saveVoucherForAllNumbers(formData);
       
       // Submit the form
@@ -175,7 +212,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   };
 
   // Handle the modal close to clear selections
-  const handleCloseModal = () => {
+  const handleCloseModal = (): void => {
     console.log("[PaymentModal.tsx] Closing payment modal and clearing selections");
     clearSelectionState();
     onClose();

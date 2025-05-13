@@ -103,7 +103,7 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       )}
       
       <Card className="p-2 sm:p-4 mb-4 overflow-x-auto">
-        <div className="w-full overflow-x-auto scale-105 transform origin-top-left my-2">
+        <div className="w-full overflow-x-auto scale-110 transform origin-top-left my-3">
           <GridLayout
             numbers={numbers}
             selectedNumbers={selectedNumbers}

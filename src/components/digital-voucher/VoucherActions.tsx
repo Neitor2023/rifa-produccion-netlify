@@ -22,7 +22,7 @@ const VoucherActions: React.FC<VoucherActionsProps> = ({
         className="flex-1 bg-purple-700 hover:bg-purple-800 text-white w-full sm:w-auto"
         onClick={onDownload}
       >
-      <Download className="h-4 w-4 mr-2" />
+        <Download className="h-4 w-4 mr-2" />
         Descargar
       </Button>
       
