@@ -105,7 +105,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 
   const handleNumberSubmit = async () => {
     if (validation.isValid) {
-      // Show loading modal
+      // Mostrar modo de carga
       setIsSearching(true);
       
       const isNumericOnly = /^\d+$/.test(phone);
@@ -163,7 +163,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         );
         handleModalClose(); // Utilice el controlador de cierre común
       } catch (error) {
-        // Hide loading modal on error
+        // Ocultar el modal de carga en caso de error
         setIsSearching(false);
         toast.error("Error durante la validación. Por favor intente nuevamente.");
       }
