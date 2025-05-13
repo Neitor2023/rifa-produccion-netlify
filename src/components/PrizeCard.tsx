@@ -20,7 +20,7 @@ const PrizeCard: React.FC<PrizeCardProps> = ({ prize, onViewDetails }) => {
 
   return (
     <Card className="overflow-hidden">
-      <div className="bg-white relative">
+      <div className="relative">
         {/* Using 4:5 aspect ratio as specified */}
         <AspectRatio ratio={4/5}>
           <SafeImage 
