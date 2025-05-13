@@ -66,14 +66,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const voucherRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   
-  // Function to automatically save the voucher for all purchased numbers
+  // Función para guardar automáticamente el voucher para todos los números comprados
   const saveVoucherForAllNumbers = async (paymentData: PaymentFormData): Promise<string | null> => {
     if (selectedNumbers.length === 0) return null;
     
     try {
-      console.log('[PaymentModal.tsx] Starting automatic voucher saving for numbers:', selectedNumbers);
+      console.log('[PaymentModal.tsx] Iniciando el guardado automático de cupones para números:', selectedNumbers);
       
-      // 1. First, get the IDs for all selected numbers
+      // 1. Primero, obtenga los ID de todos los números seleccionados
       const promises = selectedNumbers.map(async (numStr) => {
         const num = parseInt(numStr, 10);
         const { data, error } = await supabase
@@ -83,7 +83,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           .single();
           
         if (error) {
-          console.error(`[PaymentModal.tsx] Error fetching ID for number ${numStr}:`, error);
+          console.error(`[PaymentModal.tsx] Error al obtener la identificación para el número ${numStr}:`, error);
           return null;
         }
         
@@ -97,14 +97,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         return null;
       }
       
-      // 2. Generate receipt content
-      // Create a temporary div to render the receipt
+      // 2. Generar contenido del recibo
+      // Crea un div temporal para representar el recibo
       const tempReceiptContainer = document.createElement('div');
       tempReceiptContainer.style.position = 'absolute';
       tempReceiptContainer.style.left = '-9999px';
       document.body.appendChild(tempReceiptContainer);
       
-      // 3. Prepare raffle details for the voucher
+      // 3. Preparar los detalles del sorteo para el cupón
       const raffleDetails = {
         title: organization?.organization_name || 'Rifa',
         price: price,
