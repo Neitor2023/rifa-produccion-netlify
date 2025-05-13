@@ -115,12 +115,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       // 4. Generate receipt image
       console.log('[PaymentModal.tsx] Generating voucher image');
       
-      // Generate a domain-based receipt URL using the first number ID
+      // Genere una URL de recibo basada en dominio utilizando el ID del primer número
       const domain = window.location.hostname || 'rifamax.com';
       const protocol = window.location.protocol || 'https:';
       const receiptUrl = `${protocol}//${domain}/receipt/${numberIds[0]}`;
       
-      // Create formatted date for the receipt
+      // Crear fecha formateada para el recibo
       const formattedDate = new Date().toLocaleDateString('es-ES', {
         year: 'numeric',
         month: 'long', 
@@ -129,7 +129,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         minute: '2-digit'
       });
       
-      // Create the content for the voucher in the temporary container
+      // Crea el contenido para el voucher en el contenedor temporal
       tempReceiptContainer.innerHTML = `
         <div class="print-content p-1">
           <div class="p-6 mb-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
@@ -216,7 +216,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         </div>
       `;
       
-      // Generate the receipt image
+      // Generar la imagen del recibo
       const html2canvas = (await import('html2canvas')).default;
       const canvas = await html2canvas(tempReceiptContainer, {
         scale: 2,
@@ -227,10 +227,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       
       const imgData = canvas.toDataURL('image/png');
       
-      // Clean up the temporary element
+      // Limpiar el elemento temporal
       document.body.removeChild(tempReceiptContainer);
       
-      // If we have image data, upload it to storage and update all number records
+      // Si tenemos datos de imágenes, cárguelos en el almacenamiento y actualice todos los registros numéricos
       if (imgData && raffleDetails) {
         const firstNumberId = numberIds[0];
         
@@ -245,7 +245,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           console.log('[PaymentModal.tsx] Successfully uploaded receipt. URL:', imageUrl);
           console.log('[PaymentModal.tsx] Updating all raffle numbers with receipt URL:', numberIds);
           
-          // Update all raffle numbers with the same receipt URL
+          // Actualizar todos los números de la rifa con la misma URL de recibo
           const updateSuccess = await updatePaymentReceiptUrlForNumbers(imageUrl, numberIds);
           
           if (updateSuccess) {
@@ -266,10 +266,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     }
   };
   
-  // Check if form is valid based on required fields
+  // Compruebe si el formulario es válido según los campos obligatorios
   const formValues = form.getValues();
   const isFormValid = (): boolean => {
-    // Default required fields
+    //Campos obligatorios predeterminados
     const requiredFields = ['buyerName', 'buyerPhone', 'buyerCedula', 'paymentMethod'];
     
     // Add fields based on button context
