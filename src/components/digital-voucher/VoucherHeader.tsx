@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 
 const VoucherHeader: React.FC = () => {
   return (
-    <DialogHeader className="pt-6 pb-4">
+    <DialogHeader className="pt-1 pb-1">
       <Card className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0">
         <div className="py-3 px-4">
           <DialogTitle className="text-2xl font-bold text-center text-white">
