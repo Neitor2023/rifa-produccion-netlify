@@ -272,21 +272,21 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     //Campos obligatorios predeterminados
     const requiredFields = ['buyerName', 'buyerPhone', 'buyerCedula', 'paymentMethod'];
     
-    // Add fields based on button context
+    // Agregar campos según el contexto del botón
     if (clickedButton === 'Pagar') {
-      // For "Pagar Directo" we need all fields
+      // Para "Pagar Directo" necesitamos todos los campos
       requiredFields.push('buyerEmail', 'direccion');
     } else if (clickedButton === 'Pagar Apartados') {
-      // For "Pagar Apartados" we need email and direccion
+      // Para "Pagar Apartados" necesitamos correo electrónico y dirección.
       requiredFields.push('buyerEmail', 'direccion');
     }
     
-    // Check if payment method is transfer and needs proof
+    // Verificar si el método de pago es transferencia y necesita comprobante
     if (formValues.paymentMethod === 'transfer' && !previewUrl) {
       return false;
     }
     
-    // Check all required fields
+    // Verifique todos los campos obligatorios
     return requiredFields.every(field => 
       formValues[field as keyof PaymentFormData] && 
       String(formValues[field as keyof PaymentFormData]).trim() !== ''
@@ -298,27 +298,27 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     try {
       if (!isFormValid()) {
         console.log("Form validation failed");
-        form.trigger(); // Trigger validation to show error messages
+        form.trigger(); // Validación de disparadores para mostrar mensajes de error
         setIsSearching(false);
         return;
       }
       
-      // Get the form data
+      // Obtener los datos del formulario
       const formData = form.getValues();
       
-      // IMPORTANT: Auto-save the payment voucher for all numbers BEFORE submission
-      // This ensures vouchers are saved even if the user doesn't open/view the voucher modal
+      // IMPORTANTE: Guarde automáticamente el comprobante de pago para todos los números ANTES del envío
+      // Esto garantiza que los cupones se guarden incluso si el usuario no abre o ve el modal del cupón.
       const imageUrl = await saveVoucherForAllNumbers(formData);
       
-      // Submit the form to complete the payment process
+      // Envíe el formulario para completar el proceso de pago
       await handleSubmit();
       
-      // Include the saved image URL with the form data
+      // Incluya la URL de la imagen guardada con los datos del formulario
       if (imageUrl) {
         formData.paymentReceiptUrl = imageUrl;
       }
       
-      // Now onComplete with the updated form data
+      // Ahora onComplete con los datos del formulario actualizado
       onComplete(formData);
       
     } finally {
@@ -326,9 +326,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     }
   };
 
-  // Handle the modal close to clear selections
+  // Manejar el modal cerca de borrar selecciones
   const handleCloseModal = (): void => {
-    console.log("[PaymentModal.tsx] Closing payment modal and clearing selections");
+    console.log("[PaymentModal.tsx] Cerrar modalidad de pago y compensar selecciones");
     clearSelectionState();
     onClose();
   };
