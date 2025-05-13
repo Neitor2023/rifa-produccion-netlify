@@ -60,7 +60,7 @@ const VentaBoletosContent: React.FC = () => {
         debugMode={debugMode}
         handleReserveNumbers={handleReserveNumbers}
         handleProceedToPaymentWithButton={handleProceedToPaymentWithButton}
-        // Fix: Wrap getSoldNumbersCount to match expected signature
+        // Corrección: Ajuste getSoldNumbersCount para que coincida con la firma esperada
         getSoldNumbersCount={() => getSoldNumbersCount(seller?.id || '')}
       />
       
