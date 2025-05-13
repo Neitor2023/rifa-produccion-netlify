@@ -34,7 +34,7 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
   numberId
 }) => {
   return (
-    <div ref={printRef} className="print-content p-4">
+    <div ref={printRef} className="print-content p-1">
       <Card className="p-6 mb-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
         <div className="flex flex-col space-y-4">
           {/* Raffle Details */}

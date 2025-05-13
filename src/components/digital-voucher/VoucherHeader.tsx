@@ -9,7 +9,7 @@ const VoucherHeader: React.FC = () => {
       <Card className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0">
         <div className="py-3 px-4">
           <DialogTitle className="text-2xl font-bold text-center text-white">
-            COMPROBANTE DE PAGO
+            Comprobante de pago
           </DialogTitle>
         </div>
       </Card>
