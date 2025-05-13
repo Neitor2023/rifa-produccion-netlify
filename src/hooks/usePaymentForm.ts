@@ -39,7 +39,7 @@ export const usePaymentForm = ({
       sugerenciaProducto: "",
       reporteSospechoso: "",
     },
-    mode: "onChange" // Validate on change for better user feedback
+    mode: "onChange" // Validar el cambio para obtener mejores comentarios de los usuarios
   });
 
   const debugLog = (context: string, data: any) => {
@@ -48,7 +48,7 @@ export const usePaymentForm = ({
     }
   };
   
-  // Update form values when buyerData changes
+  // Actualizar los valores del formulario cuando cambian los datos del comprador
   useEffect(() => {
     debugLog("Modal is open", { isOpen, buyerData });
     
@@ -71,7 +71,7 @@ export const usePaymentForm = ({
     }
   }, [buyerData, form, isOpen]);
 
-  // Reset form and image when modal opens or closes
+  // Restablecer formulario e imagen cuando se abre o se cierra el modal
   useEffect(() => {
     if (!isOpen) {
       resetForm();
@@ -85,7 +85,7 @@ export const usePaymentForm = ({
         setPreviewUrl(null);
       }
       
-      // Update form with buyerData when modal opens
+      // Actualizar el formulario con los datos del comprador cuando se abre el modal
       if (buyerData) {
         debugLog("Modal opened, updating form with buyer data", buyerData);
         form.setValue('buyerName', buyerData.name || "");
@@ -140,13 +140,13 @@ export const usePaymentForm = ({
       type: uploadedImage.type
     } : 'No hay imagen cargada');
     
-    // Get the current form values
+    // Obtener los valores del formulario actual
     const data = form.getValues();
     
     setIsSubmitting(true);
     debugLog('Form submit - data', data);
     
-    // Validate required fields based on the button context
+    // Validar los campos obligatorios según el contexto del botón
     const requiredFields = ['buyerName', 'buyerPhone', 'buyerCedula', 'paymentMethod'];
     
     // Add fields based on button context
