@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Dialog, 
@@ -320,6 +321,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       const formData = form.getValues();
       
       console.log(`[PaymentModal.tsx] Processing submission with button type: ${clickedButton}`);
+      
+      // Ensure payment proof is included in the form data if it exists
+      if (previewUrl && formData.paymentMethod === 'transfer') {
+        formData.paymentProof = previewUrl;
+      }
       
       // IMPORTANTE: Guarde automáticamente el comprobante de pago para todos los números ANTES del envío
       // Esto garantiza que los cupones se guarden incluso si el usuario no abre o ve el modal del cupón.

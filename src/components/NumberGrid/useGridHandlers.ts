@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,6 +20,8 @@ interface UseGridHandlersProps {
   debugMode?: boolean;
   reservationDays?: number;
   lotteryDate?: Date;
+  totalNumbers?: number;
+  soldNumbersCount?: number;
 }
 
 export const useGridHandlers = ({
@@ -28,7 +31,9 @@ export const useGridHandlers = ({
   onProceedToPayment,
   debugMode = false,
   reservationDays,
-  lotteryDate
+  lotteryDate,
+  totalNumbers,
+  soldNumbersCount = 0
 }: UseGridHandlersProps) => {
   // States for modals
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
@@ -98,12 +103,30 @@ export const useGridHandlers = ({
     
     if (status !== 'available') return;
     
+    // Calculate maximum available numbers
+    const maxAvailableNumbers = raffleSeller.cant_max;
+    
+    // Calculate remaining available numbers based on total numbers (if provided) or seller max
+    const remainingAvailable = totalNumbers 
+      ? Math.min(maxAvailableNumbers, totalNumbers - soldNumbersCount) 
+      : maxAvailableNumbers;
+      
+    if (debugMode) {
+      console.log('NumberGrid: Available numbers calculation:', {
+        totalNumbers,
+        soldNumbersCount,
+        maxAvailableNumbers,
+        remainingAvailable
+      });
+    }
+    
     setSelectedNumbers(prev => {
       if (prev.includes(number)) {
         return prev.filter(n => n !== number);
       } else {
-        if (prev.length >= raffleSeller.cant_max) {
-          toast.error(`No puedes seleccionar más de ${raffleSeller.cant_max} números`);
+        // Check if adding this number would exceed the maximum allowed
+        if (prev.length >= remainingAvailable) {
+          toast.error(`Se ha superado la cantidad de números permitidos del vendedor, por favor finalice su selección de números.`);
           return prev;
         }
         return [...prev, number];

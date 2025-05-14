@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
@@ -16,6 +15,8 @@ import { X } from 'lucide-react';
 import PromotionalImage from '@/components/raffle/PromotionalImage';
 import { Organization } from '@/lib/constants/types';
 import { useNumberSelection } from '@/contexts/NumberSelectionContext';
+import { Button } from "@/components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 function usePhoneValidation(phone: string) {
   const [validation, setValidation] = useState({
@@ -101,7 +102,11 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   const [phone, setPhone] = useState('');
   const validation = usePhoneValidation(phone);
   const [isSearching, setIsSearching] = useState(false);
-  const { clearSelectionState } = useNumberSelection();
+  const { clearSelectionState, setSelectedNumbers } = useNumberSelection();
+  const [isNoReservedNumbersDialogOpen, setIsNoReservedNumbersDialogOpen] = useState(false);
+  const [isNumberNotInReservedDialogOpen, setIsNumberNotInReservedDialogOpen] = useState(false);
+  const [reservedNumbers, setReservedNumbers] = useState<string[]>([]);
+  const [participantFound, setParticipantFound] = useState<ValidatedBuyerInfo | null>(null);
 
   const handleNumberSubmit = async () => {
     if (validation.isValid) {
@@ -140,33 +145,79 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           }
         }
 
-        // Ocultar el modal de carga
-        setIsSearching(false);
-
+        // Verificar si se encontró un participante
         if (!participant) {
+          setIsSearching(false);
           toast.error(`❌ Participante no encontrado con el dato ingresado: ${cleanedPhone}`);
           return;
         }
 
-        // Retorna SIEMPRE UN OBJETO COMPLETO para el flujo posterior
-        onPhoneValidationSuccess(
-          participant.phone || cleanedPhone,
-          participant.id,
-          {
-            id: participant.id,
-            name: participant.name,
-            phone: participant.phone || cleanedPhone,
-            cedula: participant.cedula,
-            direccion: participant.direccion,
-            sugerencia_producto: participant.sugerencia_producto
-          }
+        // Verificar si el participante tiene números reservados
+        const { data: reservedNumbersData } = await supabase
+          .from('raffle_numbers')
+          .select('number')
+          .eq('participant_id', participant.id)
+          .eq('status', 'reserved')
+          .eq('raffle_id', raffleId)
+          .eq('seller_id', raffleSellerId);
+
+        // Ocultar el modal de carga
+        setIsSearching(false);
+
+        // Si no tiene números reservados, mostrar mensaje y bloquear
+        if (!reservedNumbersData || reservedNumbersData.length === 0) {
+          setIsNoReservedNumbersDialogOpen(true);
+          return;
+        }
+
+        // Convertir los números reservados a strings con formato padStart(2, '0')
+        const formattedReservedNumbers = reservedNumbersData.map(item => 
+          String(item.number).padStart(2, '0')
         );
-        handleModalClose(); // Utilice el controlador de cierre común
+        
+        setReservedNumbers(formattedReservedNumbers);
+        setParticipantFound(participant);
+
+        // Verificar si el número seleccionado está entre los reservados
+        if (selectedNumber && !formattedReservedNumbers.includes(selectedNumber)) {
+          setIsNumberNotInReservedDialogOpen(true);
+          return;
+        }
+
+        // Si todo está bien, continuar con el proceso normal
+        proceedWithValidatedParticipant(participant);
+
       } catch (error) {
         // Ocultar el modal de carga en caso de error
         setIsSearching(false);
         toast.error("Error durante la validación. Por favor intente nuevamente.");
       }
+    }
+  };
+
+  // Función para proceder con el participante validado
+  const proceedWithValidatedParticipant = (participant: ValidatedBuyerInfo) => {
+    onPhoneValidationSuccess(
+      participant.phone || formatPhoneNumber(phone),
+      participant.id,
+      {
+        id: participant.id,
+        name: participant.name,
+        phone: participant.phone || formatPhoneNumber(phone),
+        cedula: participant.cedula,
+        direccion: participant.direccion,
+        sugerencia_producto: participant.sugerencia_producto
+      }
+    );
+    handleModalClose();
+  };
+
+  // Función para continuar con los números reservados
+  const continueWithReservedNumbers = () => {
+    if (participantFound && reservedNumbers.length > 0) {
+      setSelectedNumbers(reservedNumbers);
+      setIsNumberNotInReservedDialogOpen(false);
+      proceedWithValidatedParticipant(participantFound);
     }
   };
 
@@ -240,6 +291,60 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
           </Card>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog for no reserved numbers */}
+      <AlertDialog 
+        open={isNoReservedNumbersDialogOpen} 
+        onOpenChange={setIsNoReservedNumbersDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>No hay números reservados</AlertDialogTitle>
+            <AlertDialogDescription>
+              El participante no tiene números reservados. Intente con otro número.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction 
+              onClick={() => {
+                setIsNoReservedNumbersDialogOpen(false);
+                handleModalClose();
+              }}
+            >
+              Entendido
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dialog for number not in reserved list */}
+      <AlertDialog 
+        open={isNumberNotInReservedDialogOpen} 
+        onOpenChange={setIsNumberNotInReservedDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Número no reservado</AlertDialogTitle>
+            <AlertDialogDescription>
+              Su número seleccionado no existe en sus números reservados en la base de datos. 
+              ¿Desea seguir el pago con sus números reservados?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex justify-between">
+            <AlertDialogCancel 
+              onClick={() => {
+                setIsNumberNotInReservedDialogOpen(false);
+                handleModalClose();
+              }}
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={continueWithReservedNumbers}>
+              Continuar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Loading Modal */}
       <LoadingModal 

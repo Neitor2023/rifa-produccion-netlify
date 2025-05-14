@@ -1,121 +1,111 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { ValidatedBuyerInfo } from '@/types/participant';
 
-export const useNumberAvailability = ({ 
+interface UseNumberAvailabilityProps {
+  raffleNumbers: any[];
+  raffleSeller: any;
+  setValidatedBuyerData?: (data: ValidatedBuyerInfo | null) => void;
+  debugMode?: boolean;
+}
+
+export function useNumberAvailability({ 
   raffleNumbers, 
   raffleSeller,
   setValidatedBuyerData,
-  debugMode 
-}) => {
+  debugMode = false
+}: UseNumberAvailabilityProps) {
   const debugLog = (context: string, data: any) => {
     if (debugMode) {
-      console.log(`[DEBUG - Disponibilidad de números - ${context}]:`, data);
+      console.log(`[DEBUG - NumberAvailability - ${context}]:`, data);
     }
   };
 
   /**
-  * Comprueba si los números seleccionados están disponibles para la compra.
-  * @param numbers Matriz de números a comprobar.
-  * @returns Matriz de números no disponibles.
-  */
-  
+   * Check if the provided numbers are available for selection
+   */
   const checkNumbersAvailability = async (numbers: string[]): Promise<string[]> => {
-    debugLog('Checking numbers availability', numbers);
+    debugLog('checkNumbersAvailability', { numbers });
     
-    const unavailableNumbers: string[] = [];
-    
-    for (const numStr of numbers) {
-      const numberAsInt = parseInt(numStr, 10); // Convert string to integer for comparison
-      const existingNumber = raffleNumbers?.find(n => n.number === numberAsInt);
+    try {
+      const unavailableNumbers: string[] = [];
+
+      // Convert input strings to integers for proper comparison
+      const numbersAsInts = numbers.map(num => parseInt(num, 10));
       
-      if (existingNumber) {
-        debugLog('Found existing number', {
-          number: numStr,
-          status: existingNumber.status,
-          sellerId: existingNumber.seller_id,
-          currentSellerId: raffleSeller?.seller_id
-        });
-        
-        // Verificar si el estado no está disponible o reservado por este vendedor
-        if (existingNumber.status === 'sold' || 
-            (existingNumber.status === 'reserved' && existingNumber.seller_id !== raffleSeller?.seller_id)) {
-          unavailableNumbers.push(numStr);
+      debugLog('checkNumbersAvailability - converted numbers', { numbersAsInts });
+      
+      // Check availability against the database (latest status)
+      const { data: dbNumbers, error } = await supabase
+        .from('raffle_numbers')
+        .select('number, status')
+        .eq('raffle_id', raffleSeller.raffle_id)
+        .in('number', numbersAsInts);
+      
+      if (error) {
+        debugLog('checkNumbersAvailability - database error', { error });
+        throw error;
+      }
+      
+      debugLog('checkNumbersAvailability - database results', { dbNumbers });
+      
+      if (dbNumbers && dbNumbers.length > 0) {
+        // Check each number in our input against database records
+        for (const numStr of numbers) {
+          const numInt = parseInt(numStr, 10);
+          
+          // Find if this number exists in the database
+          const dbNumRecord = dbNumbers.find(n => n.number === numInt);
+          
+          // If the number exists in DB and its status is not available
+          if (dbNumRecord && dbNumRecord.status !== 'available' && dbNumRecord.status !== 'reserved') {
+            debugLog('checkNumbersAvailability - found unavailable number', { 
+              number: numStr, 
+              status: dbNumRecord.status 
+            });
+            unavailableNumbers.push(numStr);
+          }
         }
       }
-    }
-    
-    debugLog('Unavailable numbers', unavailableNumbers);
-    return unavailableNumbers;
-  };
-  
-  /**
-   * Checks if any of the selected numbers already have a participant
-   * If so, uses that participant's data for the transaction
-   * @param numbers Array of numbers to check
-   */
-  const checkReservedNumbersParticipant = async (numbers: string[]) => {
-    debugLog('Checking reserved numbers for participant', numbers);
-    
-    let participant = null;
-    let participantNumbers = null;
-    
-    // Look for numbers that are reserved by this seller
-    const reservedNumbers = raffleNumbers?.filter(n => 
-      numbers.includes(n.number.toString()) && 
-      n.status === 'reserved' && 
-      n.seller_id === raffleSeller?.seller_id &&
-      n.participant_id
-    );
-    
-    if (reservedNumbers && reservedNumbers.length > 0) {
-      debugLog('Found reserved numbers with participant', reservedNumbers);
-      
-      // Get the first number's participant
-      const participantId = reservedNumbers[0].participant_id;
-      
-      // Load participant data
-      const { data: participantData, error: participantError } = await supabase
-        .from('participants')
-        .select('id, name, phone, cedula, direccion, sugerencia_producto')
-        .eq('id', participantId)
-        .maybeSingle();
-      
-      if (participantError) {
-        console.error('Error fetching participant:', participantError);
-      } else if (participantData) {
-        participant = participantData;
-        participantNumbers = reservedNumbers;
-        
-        // Set buyer data if participant exists
-        setValidatedBuyerData({
-          name: participant.name,
-          phone: participant.phone,
-          cedula: participant.cedula,
-          direccion: participant.direccion,
-          sugerencia_producto: participant.sugerencia_producto
-        });
-        
-        debugLog('Set validated buyer data from participant', participant);
+
+      // Also check against the local raffle numbers state
+      if (raffleNumbers && raffleNumbers.length > 0) {
+        for (const numStr of numbers) {
+          const numInt = parseInt(numStr, 10);
+          
+          // If this number wasn't already found unavailable in DB check
+          if (!unavailableNumbers.includes(numStr)) {
+            const localNumber = raffleNumbers.find(n => {
+              const currNumInt = typeof n.number === 'string' ? parseInt(n.number, 10) : n.number;
+              return currNumInt === numInt;
+            });
+            
+            if (localNumber && 
+                localNumber.status !== 'available' && 
+                localNumber.status !== 'reserved') {
+              debugLog('checkNumbersAvailability - found locally unavailable number', { 
+                number: numStr, 
+                status: localNumber.status 
+              });
+              
+              // Avoid adding duplicates
+              if (!unavailableNumbers.includes(numStr)) {
+                unavailableNumbers.push(numStr);
+              }
+            }
+          }
+        }
       }
-    } else {
-      // If not found in reservation, check if any of these numbers are already sold
-      // (shouldn't happen, but just in case)
-      const soldNumbers = raffleNumbers?.filter(n => 
-        numbers.includes(n.number.toString()) && 
-        n.status === 'sold' && 
-        n.participant_id
-      );
-      
-      if (soldNumbers && soldNumbers.length > 0) {
-        debugLog('Warning: Some of the selected numbers are already sold', soldNumbers);
-      }
+
+      debugLog('checkNumbersAvailability - result', { unavailableNumbers });
+      return unavailableNumbers;
+    } catch (error) {
+      console.error('Error checking numbers availability:', error);
+      throw error;
     }
-    
-    return { participant, participantNumbers };
   };
 
   return {
     checkNumbersAvailability,
-    checkReservedNumbersParticipant
   };
-};
+}

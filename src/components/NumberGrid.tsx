@@ -88,7 +88,9 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     onProceedToPayment,
     debugMode,
     reservationDays,
-    lotteryDate
+    lotteryDate,
+    totalNumbers, // Pass totalNumbers to useGridHandlers
+    soldNumbersCount // Pass soldNumbersCount to useGridHandlers
   });
 
   return (
@@ -103,7 +105,8 @@ const NumberGrid: React.FC<NumberGridProps> = ({
       )}
       
       <Card className="p-2 sm:p-4 mb-4 overflow-x-auto">
-        <div className="w-full overflow-x-auto scale-110 transform origin-top-left my-3">
+        {/* Slightly reduce the scale from 1.1 to 1.05 to make the grid smaller */}
+        <div className="w-full overflow-x-auto scale-105 transform origin-top-left my-3">
           <GridLayout
             numbers={numbers}
             selectedNumbers={selectedNumbers}

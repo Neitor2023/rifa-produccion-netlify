@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -115,6 +116,13 @@ export function usePaymentProcessor({
       // Convert strings to integers for database query
       const numberInts = numbers.map(num => parseInt(num, 10));
       
+      debugLog("verifyNumbersNotSoldByOthers", {
+        numbers,
+        numberInts,
+        raffleId,
+        sellerId: raffleSeller?.seller_id || SELLER_ID
+      });
+      
       // Check if any of these numbers are sold by another seller
       const { data: soldByOthers, error } = await supabase
         .from('raffle_numbers')
@@ -128,11 +136,18 @@ export function usePaymentProcessor({
         throw error;
       }
       
+      debugLog("verifyNumbersNotSoldByOthers - query result", { soldByOthers });
+      
       if (soldByOthers && soldByOthers.length > 0) {
         // Filter to only include numbers sold by other sellers
         const soldByOtherSellers = soldByOthers.filter(
           item => item.seller_id !== (raffleSeller?.seller_id || SELLER_ID)
         );
+        
+        debugLog("verifyNumbersNotSoldByOthers - filtered result", { 
+          soldByOtherSellers,
+          currentSellerId: raffleSeller?.seller_id || SELLER_ID
+        });
         
         if (soldByOtherSellers && soldByOtherSellers.length > 0) {
           const soldNumbers = soldByOtherSellers.map(item => item.number).join(', ');
@@ -174,7 +189,7 @@ export function usePaymentProcessor({
         }
       }
 
-      // Check availability with fixed number comparison
+      // Check availability with proper number type conversion
       const unavailableNumbers = await checkNumbersAvailability(numbers);
       if (unavailableNumbers.length > 0) {
         toast.error(`Numbers ${unavailableNumbers.join(', ')} are not available`);

@@ -49,6 +49,8 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [isRaffleNumberRetrieved, setIsRaffleNumberRetrieved] = useState<boolean>(false);
   const { clearSelectionState } = useNumberSelection();
+  const [allRaffleNumberIds, setAllRaffleNumberIds] = useState<string[]>([]);
+  const [participantId, setParticipantId] = useState<string | null>(null);
   
   // Determine text color based on theme
   const textColor = theme === 'dark' ? 'text-white' : 'text-gray-800';
@@ -63,42 +65,85 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
 
   const paymentMethod = paymentData?.paymentMethod === 'cash' ? 'Efectivo' : 'Transferencia bancaria';
   
-  // Fetch the raffle number ID when the component mounts or when selectedNumbers changes
+  // Fetch all raffle number IDs and participant ID when the component mounts or when selectedNumbers changes
   useEffect(() => {
-    const fetchRaffleNumberId = async (): Promise<void> => {
+    const fetchRaffleNumberIds = async (): Promise<void> => {
       if (selectedNumbers.length === 0 || !isOpen) return;
       
       try {
-        // Get the first selected number to use for the receipt URL
-        const number = selectedNumbers[0];
+        console.log('[DigitalVoucher.tsx] Buscando IDs para números:', selectedNumbers);
         
-        console.log('[DigitalVoucher.tsx] Buscando ID para número:', number);
+        // Convert selected numbers to integers for proper database comparison
+        const selectedNumberInts = selectedNumbers.map(num => parseInt(num, 10));
+        
+        // Query to get IDs of all selected numbers
+        const { data, error } = await supabase
+          .from('raffle_numbers')
+          .select('id, number, participant_id')
+          .in('number', selectedNumberInts);
+        
+        if (error) {
+          console.error('[DigitalVoucher.tsx] Error fetching raffle number IDs:', error);
+          return;
+        }
+        
+        if (data && data.length > 0) {
+          const ids = data.map(item => item.id);
+          setAllRaffleNumberIds(ids);
+          
+          // Set first ID for receipt URL generation
+          setRaffleNumberId(ids[0]);
+          
+          // Store participant ID for further fetching of related numbers
+          if (data[0].participant_id) {
+            setParticipantId(data[0].participant_id);
+          }
+          
+          setIsRaffleNumberRetrieved(true);
+          console.log('[DigitalVoucher.tsx] Raffle number IDs fetched:', ids);
+        } else {
+          console.error('[DigitalVoucher.tsx] No se encontraron IDs para los números seleccionados');
+        }
+      } catch (err) {
+        console.error('[DigitalVoucher.tsx] Error in fetchRaffleNumberIds:', err);
+      }
+    };
+    
+    fetchRaffleNumberIds();
+  }, [isOpen, selectedNumbers]);
+  
+  // Fetch all numbers belonging to the participant
+  useEffect(() => {
+    const fetchAllParticipantNumbers = async () => {
+      if (!participantId) return;
+      
+      try {
+        console.log('[DigitalVoucher.tsx] Buscando todos los números del participante:', participantId);
         
         const { data, error } = await supabase
           .from('raffle_numbers')
           .select('id')
-          .eq('number', parseInt(number, 10)) // Parse string to number
-          .single();
-        
+          .eq('participant_id', participantId)
+          .eq('status', 'sold');
+          
         if (error) {
-          console.error('[DigitalVoucher.tsx] Error fetching raffle number ID:', error);
+          console.error('[DigitalVoucher.tsx] Error fetching participant numbers:', error);
           return;
         }
         
-        if (data) {
-          setRaffleNumberId(data.id);
-          setIsRaffleNumberRetrieved(true);
-          console.log('[DigitalVoucher.tsx] Raffle number ID fetched:', data.id);
-        } else {
-          console.error('[DigitalVoucher.tsx] No se encontró ID para el número:', number);
+        if (data && data.length > 0) {
+          // Add any additional number IDs that weren't in the initial selection
+          const allIds = [...new Set([...allRaffleNumberIds, ...data.map(item => item.id)])];
+          setAllRaffleNumberIds(allIds);
+          console.log('[DigitalVoucher.tsx] All participant number IDs:', allIds);
         }
       } catch (err) {
-        console.error('[DigitalVoucher.tsx] Error in fetchRaffleNumberId:', err);
+        console.error('[DigitalVoucher.tsx] Error fetching participant numbers:', err);
       }
     };
     
-    fetchRaffleNumberId();
-  }, [isOpen, selectedNumbers]);
+    fetchAllParticipantNumbers();
+  }, [participantId, allRaffleNumberIds]);
   
   // Generate the receipt URL for the QR code
   useEffect(() => {
@@ -137,21 +182,52 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     if (imgData) {
       downloadVoucherImage(imgData, `comprobante_${formattedDate.replace(/\s+/g, '_')}.png`);
       
-      // Upload to storage if we have a raffle number ID and raffle details
-      if (raffleDetails && raffleNumberId) {
+      // Upload to storage for all participant numbers
+      if (raffleDetails && allRaffleNumberIds.length > 0) {
         try {
-          console.log('[DigitalVoucher.tsx] Iniciando proceso de guardar comprobante con ID:', raffleNumberId);
+          console.log('[DigitalVoucher.tsx] Iniciando proceso de guardar comprobante para todos los números del participante');
           const imageUrl = await uploadVoucherToStorage(imgData, raffleDetails.title, raffleNumberId);
+          
           if (imageUrl) {
-            toast({
-              title: "Comprobante guardado",
-              description: "El comprobante ha sido almacenado en el sistema.",
-            });
+            // Update all numbers with the same receipt URL
+            const updateSuccess = await updateAllParticipantNumbersWithReceipt(imageUrl, allRaffleNumberIds);
+            
+            if (updateSuccess) {
+              toast({
+                title: "Comprobante guardado",
+                description: `El comprobante ha sido almacenado para todos los números (${allRaffleNumberIds.length}).`,
+              });
+            }
           }
         } catch (error) {
           console.error('[DigitalVoucher.tsx] Error saving receipt to storage:', error);
         }
       }
+    }
+  };
+  
+  // Function to update all participant's numbers with the receipt URL
+  const updateAllParticipantNumbersWithReceipt = async (imageUrl: string, numberIds: string[]): Promise<boolean> => {
+    if (!imageUrl || numberIds.length === 0) return false;
+    
+    try {
+      console.log('[DigitalVoucher.tsx] Updating payment_receipt_url for all numbers:', numberIds);
+      
+      const { error } = await supabase
+        .from('raffle_numbers')
+        .update({ payment_receipt_url: imageUrl })
+        .in('id', numberIds);
+        
+      if (error) {
+        console.error('[DigitalVoucher.tsx] Error updating payment_receipt_url:', error);
+        return false;
+      }
+      
+      console.log('[DigitalVoucher.tsx] Successfully updated payment_receipt_url for all numbers');
+      return true;
+    } catch (error) {
+      console.error('[DigitalVoucher.tsx] Error in updateAllParticipantNumbersWithReceipt:', error);
+      return false;
     }
   };
   
@@ -170,16 +246,22 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     if (imgData) {
       presentVoucherImage(imgData);
       
-      // Upload to storage if we have a raffle number ID and raffle details
-      if (raffleDetails && raffleNumberId) {
+      // Upload to storage for all participant numbers
+      if (raffleDetails && allRaffleNumberIds.length > 0) {
         try {
-          console.log('[DigitalVoucher.tsx] Iniciando proceso de guardar comprobante con ID:', raffleNumberId);
+          console.log('[DigitalVoucher.tsx] Iniciando proceso de guardar comprobante para todos los números del participante');
           const imageUrl = await uploadVoucherToStorage(imgData, raffleDetails.title, raffleNumberId);
+          
           if (imageUrl) {
-            toast({
-              title: "Comprobante guardado",
-              description: "El comprobante ha sido almacenado en el sistema.",
-            });
+            // Update all numbers with the same receipt URL
+            const updateSuccess = await updateAllParticipantNumbersWithReceipt(imageUrl, allRaffleNumberIds);
+            
+            if (updateSuccess) {
+              toast({
+                title: "Comprobante guardado",
+                description: `El comprobante ha sido almacenado para todos los números (${allRaffleNumberIds.length}).`,
+              });
+            }
           }
         } catch (error) {
           console.error('[DigitalVoucher.tsx] Error saving receipt to storage:', error);
