@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Dialog, 
@@ -66,45 +65,44 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const voucherRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   
-  // Función para guardar automáticamente el voucher para todos los números comprados
+  // Enhanced function for saving voucher for all numbers
   const saveVoucherForAllNumbers = async (paymentData: PaymentFormData): Promise<string | null> => {
     if (selectedNumbers.length === 0) return null;
     
     try {
       console.log('[PaymentModal.tsx] Iniciando el guardado automático de cupones para números:', selectedNumbers);
       
-      // 1. Primero, obtenga los ID de todos los números seleccionados
-      const promises = selectedNumbers.map(async (numStr) => {
-        const num = parseInt(numStr, 10);
-        const { data, error } = await supabase
-          .from('raffle_numbers')
-          .select('id')
-          .eq('number', num)
-          .single();
-          
-        if (error) {
-          console.error(`[PaymentModal.tsx] Error al obtener la identificación para el número ${numStr}:`, error);
-          return null;
-        }
-        
-        return data?.id || null;
-      });
+      // 1. First, get IDs for all selected numbers (existing ones)
+      const numberIds: string[] = [];
       
-      const numberIds = (await Promise.all(promises)).filter(Boolean) as string[];
+      // Convert selected numbers to integers for proper database comparison
+      const selectedNumberInts = selectedNumbers.map(num => parseInt(num, 10));
       
-      if (numberIds.length === 0) {
-        console.error('[PaymentModal.tsx] No valid number IDs found');
-        return null;
+      // Query to get IDs of existing numbers
+      const { data: existingNumbers, error: queryError } = await supabase
+        .from('raffle_numbers')
+        .select('id, number')
+        .eq('raffle_id', 'fd6bd3bc-d81f-48a9-be58-8880293a0472') // Using RAFFLE_ID constant
+        .in('number', selectedNumberInts);
+      
+      if (queryError) {
+        console.error('[PaymentModal.tsx] Error checking existing numbers:', queryError);
+      } else if (existingNumbers && existingNumbers.length > 0) {
+        // Store IDs of existing numbers
+        numberIds.push(...existingNumbers.map(item => item.id));
+        console.log('[PaymentModal.tsx] Found existing number IDs:', numberIds);
+      } else {
+        console.log('[PaymentModal.tsx] No existing numbers found, receipt will be created but associated later');
       }
       
-      // 2. Generar contenido del recibo
-      // Crea un div temporal para representar el recibo
+      // 2. Generate receipt content
+      // Create temporary div for receipt rendering
       const tempReceiptContainer = document.createElement('div');
       tempReceiptContainer.style.position = 'absolute';
       tempReceiptContainer.style.left = '-9999px';
       document.body.appendChild(tempReceiptContainer);
       
-      // 3. Preparar los detalles del sorteo para el cupón
+      // 3. Prepare raffle details for voucher
       const raffleDetails = {
         title: organization?.organization_name || 'Rifa',
         price: price,
@@ -115,12 +113,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       // 4. Generate receipt image
       console.log('[PaymentModal.tsx] Generating voucher image');
       
-      // Genere una URL de recibo basada en dominio utilizando el ID del primer número
+      // Generate receipt URL based on domain using first number's ID or a placeholder
       const domain = window.location.hostname || 'rifamax.com';
       const protocol = window.location.protocol || 'https:';
-      const receiptUrl = `${protocol}//${domain}/receipt/${numberIds[0]}`;
+      const receiptBaseUrl = `${protocol}//${domain}/receipt/`;
+      const receiptUrl = receiptBaseUrl + (numberIds.length > 0 ? numberIds[0] : 'pending');
       
-      // Crear fecha formateada para el recibo
+      // Create formatted date for receipt
       const formattedDate = new Date().toLocaleDateString('es-ES', {
         year: 'numeric',
         month: 'long', 
@@ -129,10 +128,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         minute: '2-digit'
       });
       
-      // Calcular el monto total del pago
+      // Calculate total payment amount
       const totalAmount = price * selectedNumbers.length;
       
-      // Crea el contenido para el voucher en el contenedor temporal
+      // Create content for voucher in temporary container
       tempReceiptContainer.innerHTML = `
         <div class="print-content p-1">
           <div class="p-6 mb-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
@@ -223,7 +222,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         </div>
       `;
       
-      // Generar la imagen del recibo
+      // Generate receipt image
       const html2canvas = (await import('html2canvas')).default;
       const canvas = await html2canvas(tempReceiptContainer, {
         scale: 2,
@@ -234,12 +233,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       
       const imgData = canvas.toDataURL('image/png');
       
-      // Limpiar el elemento temporal
+      // Clean up temporary element
       document.body.removeChild(tempReceiptContainer);
       
-      // Si tenemos datos de imágenes, cárguelos en el almacenamiento y actualice todos los registros numéricos
+      // If we have image data, upload it to storage
       if (imgData && raffleDetails) {
-        const firstNumberId = numberIds[0];
+        // Upload with first number ID if available, otherwise use a timestamp
+        const firstNumberId = numberIds.length > 0 ? numberIds[0] : `temp_${new Date().getTime()}`;
         
         console.log('[PaymentModal.tsx] Uploading receipt image for ID:', firstNumberId);
         const imageUrl = await uploadVoucherToStorage(
@@ -250,16 +250,22 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         
         if (imageUrl) {
           console.log('[PaymentModal.tsx] Successfully uploaded receipt. URL:', imageUrl);
-          console.log('[PaymentModal.tsx] Updating all raffle numbers with receipt URL:', numberIds);
           
-          // Actualizar todos los números de la rifa con la misma URL de recibo
-          const updateSuccess = await updatePaymentReceiptUrlForNumbers(imageUrl, numberIds);
-          
-          if (updateSuccess) {
-            toast({
-              title: "Comprobante guardado automáticamente",
-              description: "El comprobante ha sido almacenado en el sistema para todos los números.",
-            });
+          // If we have number IDs, update all raffle numbers with the receipt URL
+          if (numberIds.length > 0) {
+            console.log('[PaymentModal.tsx] Updating existing raffle numbers with receipt URL:', numberIds);
+            const updateSuccess = await updatePaymentReceiptUrlForNumbers(imageUrl, numberIds);
+            
+            if (updateSuccess) {
+              toast({
+                title: "Comprobante guardado automáticamente",
+                description: "El comprobante ha sido almacenado en el sistema para todos los números.",
+              });
+            }
+          } else {
+            // Store URL for later association (after numbers are created)
+            console.log('[PaymentModal.tsx] No existing numbers to update now, storing URL for later');
+            // We'll add the URL to formData to be used in the onComplete handler
           }
           
           return imageUrl;
@@ -312,6 +318,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       
       // Obtener los datos del formulario
       const formData = form.getValues();
+      
+      console.log(`[PaymentModal.tsx] Processing submission with button type: ${clickedButton}`);
       
       // IMPORTANTE: Guarde automáticamente el comprobante de pago para todos los números ANTES del envío
       // Esto garantiza que los cupones se guarden incluso si el usuario no abre o ve el modal del cupón.

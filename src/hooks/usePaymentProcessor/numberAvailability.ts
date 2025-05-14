@@ -24,8 +24,17 @@ export const useNumberAvailability = ({
     const unavailableNumbers: string[] = [];
     
     for (const numStr of numbers) {
-      const existingNumber = raffleNumbers?.find(n => n.number === numStr);
+      const numberAsInt = parseInt(numStr, 10); // Convert string to integer for comparison
+      const existingNumber = raffleNumbers?.find(n => n.number === numberAsInt);
+      
       if (existingNumber) {
+        debugLog('Found existing number', {
+          number: numStr,
+          status: existingNumber.status,
+          sellerId: existingNumber.seller_id,
+          currentSellerId: raffleSeller?.seller_id
+        });
+        
         // Check if status is not available or reserved by this seller
         if (existingNumber.status === 'sold' || 
             (existingNumber.status === 'reserved' && existingNumber.seller_id !== raffleSeller?.seller_id)) {
@@ -51,7 +60,7 @@ export const useNumberAvailability = ({
     
     // Look for numbers that are reserved by this seller
     const reservedNumbers = raffleNumbers?.filter(n => 
-      numbers.includes(n.number) && 
+      numbers.includes(n.number.toString()) && 
       n.status === 'reserved' && 
       n.seller_id === raffleSeller?.seller_id &&
       n.participant_id
@@ -91,7 +100,7 @@ export const useNumberAvailability = ({
       // If not found in reservation, check if any of these numbers are already sold
       // (shouldn't happen, but just in case)
       const soldNumbers = raffleNumbers?.filter(n => 
-        numbers.includes(n.number) && 
+        numbers.includes(n.number.toString()) && 
         n.status === 'sold' && 
         n.participant_id
       );

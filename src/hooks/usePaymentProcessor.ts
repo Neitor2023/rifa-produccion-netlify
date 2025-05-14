@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -104,19 +103,25 @@ export function usePaymentProcessor({
     }
   };
 
-  // Verify if numbers are already sold by other sellers
+  // Enhanced function for verifying numbers not sold by other sellers
   const verifyNumbersNotSoldByOthers = async (numbers: string[]): Promise<boolean> => {
     console.log("🔍 usePaymentProcessor: Verificando si los números están vendidos por otros vendedores:", numbers);
     
     try {
+      if (!numbers || numbers.length === 0) {
+        return true;
+      }
+      
+      // Convert strings to integers for database query
+      const numberInts = numbers.map(num => parseInt(num, 10));
+      
       // Check if any of these numbers are sold by another seller
       const { data: soldByOthers, error } = await supabase
         .from('raffle_numbers')
-        .select('number')
+        .select('number, seller_id')
         .eq('raffle_id', raffleId)
-        .in('number', numbers.map(num => parseInt(num)))
-        .eq('status', 'sold')
-        .neq('seller_id', raffleSeller?.seller_id || SELLER_ID);
+        .in('number', numberInts)
+        .eq('status', 'sold');
       
       if (error) {
         console.error("❌ usePaymentProcessor: Error al verificar números vendidos:", error);
@@ -124,9 +129,16 @@ export function usePaymentProcessor({
       }
       
       if (soldByOthers && soldByOthers.length > 0) {
-        const soldNumbers = soldByOthers.map(item => item.number).join(', ');
-        toast.error(`Número(s) ${soldNumbers} ya han sido vendidos por otro vendedor. Por favor elija otros números.`);
-        return false;
+        // Filter to only include numbers sold by other sellers
+        const soldByOtherSellers = soldByOthers.filter(
+          item => item.seller_id !== (raffleSeller?.seller_id || SELLER_ID)
+        );
+        
+        if (soldByOtherSellers && soldByOtherSellers.length > 0) {
+          const soldNumbers = soldByOtherSellers.map(item => item.number).join(', ');
+          toast.error(`Número(s) ${soldNumbers} ya han sido vendidos por otro vendedor. Por favor elija otros números.`);
+          return false;
+        }
       }
       
       return true;
@@ -162,6 +174,7 @@ export function usePaymentProcessor({
         }
       }
 
+      // Check availability with fixed number comparison
       const unavailableNumbers = await checkNumbersAvailability(numbers);
       if (unavailableNumbers.length > 0) {
         toast.error(`Numbers ${unavailableNumbers.join(', ')} are not available`);
