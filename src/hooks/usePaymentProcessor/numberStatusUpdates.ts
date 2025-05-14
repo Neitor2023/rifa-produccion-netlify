@@ -36,7 +36,7 @@ export const updateNumbersToSold = async ({
     throw new Error('No se encontraron datos del participante');
   }
 
-  // Ensure phone is in international format
+  // Asegúrese de que el teléfono esté en formato internacional
   const formattedPhone = formatPhoneNumber(participantData.phone);
 
   const updatePromises = numbers.map(async (numStr) => {

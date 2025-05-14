@@ -9,15 +9,16 @@ export const useNumberAvailability = ({
 }) => {
   const debugLog = (context: string, data: any) => {
     if (debugMode) {
-      console.log(`[DEBUG - NumberAvailability - ${context}]:`, data);
+      console.log(`[DEBUG - Disponibilidad de números - ${context}]:`, data);
     }
   };
 
   /**
-   * Checks if selected numbers are available for purchase
-   * @param numbers Array of numbers to check
-   * @returns Array of unavailable numbers
-   */
+  * Comprueba si los números seleccionados están disponibles para la compra.
+  * @param numbers Matriz de números a comprobar.
+  * @returns Matriz de números no disponibles.
+  */
+  
   const checkNumbersAvailability = async (numbers: string[]): Promise<string[]> => {
     debugLog('Checking numbers availability', numbers);
     
@@ -35,7 +36,7 @@ export const useNumberAvailability = ({
           currentSellerId: raffleSeller?.seller_id
         });
         
-        // Check if status is not available or reserved by this seller
+        // Verificar si el estado no está disponible o reservado por este vendedor
         if (existingNumber.status === 'sold' || 
             (existingNumber.status === 'reserved' && existingNumber.seller_id !== raffleSeller?.seller_id)) {
           unavailableNumbers.push(numStr);
