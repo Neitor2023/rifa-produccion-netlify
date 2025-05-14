@@ -123,16 +123,16 @@ export const useCompletePayment = ({
         return;
       }
       
-      // Upload payment proof if provided
+      // Cargue el comprobante de pago si lo hay
       const paymentProofUrl = await uploadPaymentProof(formData.paymentProof);
       
-      // Create a new object with the sellerId property for process participant
+      // Cree un nuevo objeto con la propiedad sellerId para el participante del proceso
       const enrichedFormData = {
         ...formData,
         sellerId: raffleSeller.seller_id
       };
       
-      // Process participant information
+      // Procesar información del participante
       let participantId: string | null = await processParticipant(enrichedFormData);
       
       if (!participantId) {
@@ -140,10 +140,10 @@ export const useCompletePayment = ({
         return;
       }
 
-      // IMPROVED: Verify availability again before updating to prevent race conditions
+      // MEJORADO: Verifique la disponibilidad nuevamente antes de actualizar para evitar condiciones de carrera
       console.log("Verificando disponibilidad de números antes de actualizar:", selectedNumbers);
       
-      // Convert to integers for proper database comparison
+      // Convertir a números enteros para una comparación adecuada de bases de datos
       const numberInts = selectedNumbers.map(num => parseInt(num, 10));
       
       const { data: currentNumberStatus, error: statusError } = await supabase
@@ -158,7 +158,7 @@ export const useCompletePayment = ({
         return;
       }
       
-      // Check if any numbers are sold by other sellers
+      // Comprueba si hay números vendidos por otros vendedores.
       const soldByOtherSellers = currentNumberStatus?.filter(n => 
         n.status === 'sold' && n.seller_id !== raffleSeller.seller_id
       ) || [];
@@ -169,7 +169,7 @@ export const useCompletePayment = ({
         return;
       }
       
-      // Proceed with update only for numbers that are not sold or are sold by this seller
+      // Proceder con la actualización solo para los números que no se venden o son vendidos por este vendedor
       const availableNumbers = selectedNumbers.filter(num => {
         const numInt = parseInt(num, 10);
         const existingNumber = currentNumberStatus?.find(n => n.number === numInt);
@@ -185,10 +185,10 @@ export const useCompletePayment = ({
         return;
       }
       
-      // Proceed with the update for available numbers
+      // Proceder con la actualización de los números disponibles
       for (const number of availableNumbers) {
         const numberInt = parseInt(number, 10);
-        // Check if the number already exists in the raffle_numbers table
+        // Comprueba si el número ya existe en la tabla raffle_numbers
         const { data: existingNumber, error: queryError } = await supabase
           .from('raffle_numbers')
           .select('id, status, seller_id')
@@ -197,11 +197,11 @@ export const useCompletePayment = ({
           .maybeSingle();
         
         if (queryError) {
-          console.error(`Error checking if number ${number} exists:`, queryError);
+          console.error(`Error comprobando si el número ${number} exists:`, queryError);
           continue;
         }
         
-        // Only update if the number is not sold by another seller
+        // Solo actualizar si el número no es vendido por otro vendedor
         if (existingNumber && existingNumber.status === 'sold' && existingNumber.seller_id !== raffleSeller.seller_id) {
           console.log(`Número ${number} ya está vendido por otro vendedor, omitiendo actualización.`);
           continue;
@@ -218,7 +218,7 @@ export const useCompletePayment = ({
         };
         
         if (existingNumber) {
-          // Number exists, update it
+          // El número existe, actualízalo
           console.log(`Number ${number} exists, updating record with ID: ${existingNumber.id}`);
           const { error: updateError } = await supabase
             .from('raffle_numbers')
@@ -229,7 +229,7 @@ export const useCompletePayment = ({
             console.error(`Error updating number ${number}:`, updateError);
           }
         } else {
-          // Number doesn't exist, insert it
+          // El número no existe, insértelo
           console.log(`Number ${number} doesn't exist, creating new record`);
           const { error: insertError } = await supabase
             .from('raffle_numbers')
@@ -241,7 +241,7 @@ export const useCompletePayment = ({
             });
           
           if (insertError) {
-            console.error(`Error inserting number ${number}:`, insertError);
+            console.error(`Error insertando numero ${number}:`, insertError);
           }
         }
       }
