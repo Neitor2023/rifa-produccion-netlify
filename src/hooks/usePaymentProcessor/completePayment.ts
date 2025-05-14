@@ -32,7 +32,7 @@ export const useCompletePayment = ({
   debugMode
 }: UseCompletePaymentProps) => {
 
-  // Improved number verification function that consistently uses numeric comparison
+  // Función de verificación de números mejorada que utiliza consistentemente la comparación numérica
   const verifyNumbersAvailability = async (numbers: string[]): Promise<{
     available: boolean;
     unavailableNumbers: { number: string; sellerId: string }[];
@@ -44,10 +44,10 @@ export const useCompletePayment = ({
         return { available: true, unavailableNumbers: [] };
       }
       
-      // Convert strings to integers for database query
+      // Convertir cadenas en números enteros para consultas de bases de datos
       const numberInts = numbers.map(num => parseInt(num, 10));
       
-      // Check if any of the numbers are already sold by any seller
+      // Comprueba si alguno de los números ya está vendido por algún vendedor
       const { data: existingNumbers, error } = await supabase
         .from('raffle_numbers')
         .select('number, seller_id, status')
@@ -60,12 +60,12 @@ export const useCompletePayment = ({
         throw error;
       }
       
-      // Filter to only numbers sold by other sellers
+      // Filtrar solo los números vendidos por otros vendedores
       const soldByOtherSellers = existingNumbers?.filter(
         item => item.seller_id !== raffleSeller?.seller_id
       ) || [];
       
-      // If any number is sold by other sellers, return false and the list
+      // Si algún número es vendido por otros vendedores, devuelve falso y la lista
       if (soldByOtherSellers.length > 0) {
         const unavailableNumbers = soldByOtherSellers.map(n => ({ 
           number: n.number.toString(), 
@@ -102,24 +102,24 @@ export const useCompletePayment = ({
     
     try {
       if (debugMode) {
-        console.log('Complete Payment - starting', {
+        console.log('Pago completo - comenzando', {
           selectedNumbers,
           formData,
           sellerId: raffleSeller.seller_id
         });
       }
       
-      // First, verify number availability across all sellers
+      // Primero, verifique la disponibilidad del número entre todos los vendedores
       const { available, unavailableNumbers } = await verifyNumbersAvailability(selectedNumbers);
       
       if (!available) {
-        // Format the list of unavailable numbers for display
+        // Formatear la lista de números no disponibles para su visualización
         const unavailableList = unavailableNumbers.map(item => item.number).join(', ');
         
-        // Show error toast with clear message
+        // Mostrar mensaje de error con un mensaje claro
         toast.error(`Número(s) ${unavailableList} ya han sido vendidos por otro vendedor. Por favor elija otros números.`);
         
-        // Return early to prevent further processing
+        // Regrese temprano para evitar un mayor procesamiento
         return;
       }
       
