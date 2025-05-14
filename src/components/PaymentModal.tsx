@@ -129,6 +129,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         minute: '2-digit'
       });
       
+      // Calcular el monto total del pago
+      const totalAmount = price * selectedNumbers.length;
+      
       // Crea el contenido para el voucher en el contenedor temporal
       tempReceiptContainer.innerHTML = `
         <div class="print-content p-1">
@@ -151,8 +154,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 
                 <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-900 dark:text-gray-200">
                   <div>
-                    <span class="font-semibold">Valor:</span> 
+                    <span class="font-semibold">Valor por número:</span> 
                     ${raffleDetails.price.toFixed(2)}
+                  </div>
+                  <div>
+                    <span class="font-semibold">Total a pagar:</span> 
+                    <span class="font-bold">${totalAmount.toFixed(2)}</span>
                   </div>
                   <div>
                     <span class="font-semibold">Fecha Emisión:</span> 

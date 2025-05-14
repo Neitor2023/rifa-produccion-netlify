@@ -32,6 +32,46 @@ export const useCompletePayment = ({
   debugMode
 }: UseCompletePaymentProps) => {
 
+  // Verify number availability across all sellers
+  const verifyNumbersAvailability = async (numbers: string[]): Promise<{
+    available: boolean;
+    unavailableNumbers: { number: string; sellerId: string }[];
+  }> => {
+    try {
+      console.log("🔍 Verificando disponibilidad de números en TODOS los vendedores:", numbers);
+      
+      // Check if any of the numbers are already sold by any seller
+      const { data: existingNumbers, error } = await supabase
+        .from('raffle_numbers')
+        .select('number, seller_id, status')
+        .eq('raffle_id', raffleId)
+        .in('number', numbers.map(num => parseInt(num)))
+        .eq('status', 'sold');
+      
+      if (error) {
+        console.error('Error verificando disponibilidad de números:', error);
+        throw error;
+      }
+      
+      // If any number is sold, return false and the list of unavailable numbers
+      if (existingNumbers && existingNumbers.length > 0) {
+        const unavailableNumbers = existingNumbers.map(n => ({ 
+          number: n.number.toString(), 
+          sellerId: n.seller_id 
+        }));
+        
+        console.log("❌ Números ya vendidos:", unavailableNumbers);
+        return { available: false, unavailableNumbers };
+      }
+      
+      console.log("✅ Todos los números están disponibles");
+      return { available: true, unavailableNumbers: [] };
+    } catch (error) {
+      console.error('Error en verifyNumbersAvailability:', error);
+      throw error;
+    }
+  };
+
   const handleCompletePayment = async (formData: PaymentFormData) => {
     console.log("🔄 handleCompletePayment called with data:", {
       buyerName: formData.buyerName,
@@ -57,6 +97,21 @@ export const useCompletePayment = ({
         });
       }
       
+      // First, verify number availability across all sellers
+      const { available, unavailableNumbers } = await verifyNumbersAvailability(selectedNumbers);
+      
+      if (!available) {
+        // Format the list of unavailable numbers for display
+        const unavailableList = unavailableNumbers.map(item => item.number).join(', ');
+        
+        // Show error toast with clear message
+        toast.error(`Número(s) ${unavailableList} ya han sido vendidos por otro vendedor. Por favor elija otros números.`);
+        
+        // Return early to prevent further processing
+        return;
+      }
+      
+      // Upload payment proof if provided
       const paymentProofUrl = await uploadPaymentProof(formData.paymentProof);
       
       // Create a new object with the sellerId property for process participant
@@ -65,6 +120,7 @@ export const useCompletePayment = ({
         sellerId: raffleSeller.seller_id
       };
       
+      // Process participant information
       let participantId: string | null = await processParticipant(enrichedFormData);
       
       if (!participantId) {
@@ -72,15 +128,13 @@ export const useCompletePayment = ({
         return;
       }
 
-      // CAMBIO IMPORTANTE: Primero verificar qué números realmente están disponibles 
-      // para prevenir sobrescribir números ya vendidos
+      // IMPROVED: Verify availability again before updating to prevent race conditions
       console.log("Verificando disponibilidad de números antes de actualizar:", selectedNumbers);
       
       const { data: currentNumberStatus, error: statusError } = await supabase
         .from('raffle_numbers')
-        .select('number, status')
+        .select('number, status, seller_id')
         .eq('raffle_id', raffleId)
-        .eq('seller_id', raffleSeller.seller_id)
         .in('number', selectedNumbers.map(num => parseInt(num)));
       
       if (statusError) {
@@ -89,27 +143,40 @@ export const useCompletePayment = ({
         return;
       }
       
-      // Filtrar para excluir números ya vendidos
-      const soldNumbers = currentNumberStatus?.filter(n => n.status === 'sold').map(n => n.number.toString()) || [];
-      const numbersToUpdate = selectedNumbers.filter(num => !soldNumbers.includes(num));
+      // Check if any numbers are sold by other sellers
+      const soldByOtherSellers = currentNumberStatus?.filter(n => 
+        n.status === 'sold' && n.seller_id !== raffleSeller.seller_id
+      ) || [];
       
-      console.log("Números ya vendidos (se excluirán):", soldNumbers);
-      console.log("Números que se actualizarán:", numbersToUpdate);
+      if (soldByOtherSellers.length > 0) {
+        const unavailableList = soldByOtherSellers.map(item => item.number).join(', ');
+        toast.error(`Número(s) ${unavailableList} ya han sido vendidos por otro vendedor. Por favor elija otros números.`);
+        return;
+      }
       
-      if (numbersToUpdate.length === 0) {
+      // Proceed with update only for numbers that are not sold or are sold by this seller
+      const availableNumbers = selectedNumbers.filter(num => {
+        const existingNumber = currentNumberStatus?.find(n => n.number === parseInt(num));
+        return !existingNumber || 
+              (existingNumber.status !== 'sold') || 
+              (existingNumber.status === 'sold' && existingNumber.seller_id === raffleSeller.seller_id);
+      });
+      
+      console.log("Números disponibles para actualizar:", availableNumbers);
+      
+      if (availableNumbers.length === 0) {
         toast.error('Todos los números seleccionados ya están vendidos');
         return;
       }
       
-      // Proceder con la actualización solo para los números disponibles
-      for (const number of numbersToUpdate) {
+      // Proceed with the update for available numbers
+      for (const number of availableNumbers) {
         // Check if the number already exists in the raffle_numbers table
         const { data: existingNumber, error: queryError } = await supabase
           .from('raffle_numbers')
-          .select('id, status')
+          .select('id, status, seller_id')
           .eq('raffle_id', raffleId)
           .eq('number', parseInt(number))
-          .eq('seller_id', raffleSeller.seller_id)
           .maybeSingle();
         
         if (queryError) {
@@ -117,9 +184,9 @@ export const useCompletePayment = ({
           continue;
         }
         
-        // Solo actualizar si el número no está vendido
-        if (existingNumber && existingNumber.status === 'sold') {
-          console.log(`Número ${number} ya está vendido, omitiendo actualización.`);
+        // Only update if the number is not sold by another seller
+        if (existingNumber && existingNumber.status === 'sold' && existingNumber.seller_id !== raffleSeller.seller_id) {
+          console.log(`Número ${number} ya está vendido por otro vendedor, omitiendo actualización.`);
           continue;
         }
         
@@ -134,13 +201,12 @@ export const useCompletePayment = ({
         };
         
         if (existingNumber) {
-          // Number exists and is not sold, update it
-          console.log(`Number ${number} exists but not sold, updating record with ID: ${existingNumber.id}`);
+          // Number exists, update it
+          console.log(`Number ${number} exists, updating record with ID: ${existingNumber.id}`);
           const { error: updateError } = await supabase
             .from('raffle_numbers')
             .update(updateData)
-            .eq('id', existingNumber.id)
-            .neq('status', 'sold'); // Condición adicional para evitar actualizar números vendidos
+            .eq('id', existingNumber.id);
           
           if (updateError) {
             console.error(`Error updating number ${number}:`, updateError);

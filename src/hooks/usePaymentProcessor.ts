@@ -104,6 +104,39 @@ export function usePaymentProcessor({
     }
   };
 
+  // Verify if numbers are already sold by other sellers
+  const verifyNumbersNotSoldByOthers = async (numbers: string[]): Promise<boolean> => {
+    console.log("🔍 usePaymentProcessor: Verificando si los números están vendidos por otros vendedores:", numbers);
+    
+    try {
+      // Check if any of these numbers are sold by another seller
+      const { data: soldByOthers, error } = await supabase
+        .from('raffle_numbers')
+        .select('number')
+        .eq('raffle_id', raffleId)
+        .in('number', numbers.map(num => parseInt(num)))
+        .eq('status', 'sold')
+        .neq('seller_id', raffleSeller?.seller_id || SELLER_ID);
+      
+      if (error) {
+        console.error("❌ usePaymentProcessor: Error al verificar números vendidos:", error);
+        throw error;
+      }
+      
+      if (soldByOthers && soldByOthers.length > 0) {
+        const soldNumbers = soldByOthers.map(item => item.number).join(', ');
+        toast.error(`Número(s) ${soldNumbers} ya han sido vendidos por otro vendedor. Por favor elija otros números.`);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("❌ usePaymentProcessor: Error en verifyNumbersNotSoldByOthers:", error);
+      toast.error("Error al verificar disponibilidad de números");
+      return false;
+    }
+  };
+
   const handleProceedToPayment = async (numbers: string[], participantData?: any, clickedButton?: string) => {
     console.log("💰 usePaymentProcessor: handleProceedToPayment called with:", {
       numbers,
@@ -119,6 +152,14 @@ export function usePaymentProcessor({
     try {
       if (!(await validateSellerMaxNumbers(numbers.length))) {
         return;
+      }
+
+      // For "Pagar Directo", we need to verify that numbers are not sold by other sellers
+      if (clickedButton === "Pagar") {
+        const notSoldByOthers = await verifyNumbersNotSoldByOthers(numbers);
+        if (!notSoldByOthers) {
+          return;
+        }
       }
 
       const unavailableNumbers = await checkNumbersAvailability(numbers);

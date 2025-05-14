@@ -33,6 +33,9 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
   textColor,
   numberId
 }) => {
+  // Calculate total amount
+  const totalAmount = raffleDetails?.price ? raffleDetails.price * selectedNumbers.length : 0;
+
   return (
     <div ref={printRef} className="print-content p-1">
       <Card className="p-6 mb-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
@@ -60,8 +63,12 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
             {/* Reorganized layout with two columns */}
             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-900 dark:text-gray-200">
               <div>
-                <span className="font-semibold">Valor:</span>{' '}
+                <span className="font-semibold">Valor por número:</span>{' '}
                 {raffleDetails?.price?.toFixed(2) || 0}
+              </div>
+              <div>
+                <span className="font-semibold">Total pagado:</span>{' '}
+                <span className="font-bold">{totalAmount.toFixed(2)}</span>
               </div>
               <div>
                 <span className="font-semibold">Fecha Emisión:</span>{' '}
