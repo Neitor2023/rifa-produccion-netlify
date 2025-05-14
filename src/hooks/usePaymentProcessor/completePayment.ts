@@ -297,13 +297,13 @@ export const useCompletePayment = ({
           });
 
         if (fraudError) {
-          console.error('Error saving fraud report:', fraudError);
+          console.error('Error guardar informe de fraude:', fraudError);
         }
       } else {
-        console.log("⚠️ Fraud report already exists for this participant, skipping duplicate insert");
+        console.log("⚠️ Ya existe un informe de fraude para este participante, omitiendo la inserción duplicada");
       }
     } catch (error) {
-      console.error('Error handling fraud report:', error);
+      console.error('Error manejo de informe de fraude:', error);
     }
   };
 
