@@ -1,4 +1,3 @@
-
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -22,8 +21,7 @@ export const exportVoucherAsImage = async (
     return imgData;
   } catch (error) {
     console.error('[DigitalVoucher.tsx] Error al exportar comprobante:', error);
-    toast({
-      title: "Error al generar la imagen",
+    toast("Error al generar la imagen", {
       description: "No se pudo crear la imagen del comprobante. Intente nuevamente.",
       variant: "destructive"
     });
@@ -37,8 +35,7 @@ export const downloadVoucherImage = (imgData: string, fileName: string): void =>
   link.href = imgData;
   link.click();
   
-  toast({
-    title: "¡Descarga exitosa!",
+  toast("¡Descarga exitosa!", {
     description: "El comprobante ha sido guardado en tus descargas.",
   });
 };
@@ -92,8 +89,7 @@ export const presentVoucherImage = (imgData: string): void => {
     `);
     newWindow.document.close();
   } else {
-    toast({
-      title: "Error",
+    toast("Error", {
       description: "No se pudo abrir la ventana de presentación. Verifique que no tenga bloqueadores de ventanas emergentes activados.",
       variant: "destructive"
     });
@@ -210,8 +206,7 @@ export const uploadVoucherToStorage = async (
     
   } catch (error) {
     console.error('[DigitalVoucher.tsx] Error al subir comprobante:', error);
-    toast({
-      title: "Error al guardar el comprobante",
+    toast("Error al guardar el comprobante", {
       description: "No se pudo guardar el comprobante en el servidor. Intente nuevamente.",
       variant: "destructive"
     });

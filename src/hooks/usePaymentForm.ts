@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { paymentFormSchema, PaymentFormData } from '@/schemas/paymentFormSchema';
+import { PaymentFormSchema, PaymentFormData } from '@/schemas/paymentFormSchema';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import { toast } from 'sonner';
 
@@ -26,7 +25,7 @@ export const usePaymentForm = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   
   const form = useForm<PaymentFormData>({
-    resolver: zodResolver(paymentFormSchema),
+    resolver: zodResolver(PaymentFormSchema),
     defaultValues: {
       buyerName: "",
       buyerPhone: "",

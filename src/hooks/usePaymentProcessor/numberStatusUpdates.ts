@@ -74,8 +74,18 @@ export const updateNumbersToSold = async ({
       // Buscar si el número existe en la base de datos
       const existingNumber = raffleNumbers.find(n => n.number === numStr);
 
-      const commonData = {
-        status: 'sold' as const,
+      const commonData: {
+        status: 'sold';
+        seller_id: any;
+        participant_id: string;
+        payment_approved: boolean;
+        reservation_expires_at: null;
+        participant_name: string;
+        participant_phone: string;
+        participant_cedula: string;
+        payment_proof?: string;
+      } = {
+        status: 'sold',
         seller_id: raffleSeller.seller_id,
         participant_id: participantId,
         payment_approved: true,

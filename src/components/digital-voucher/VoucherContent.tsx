@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { QRCode } from 'react-qrcode';
+import { QRCodeSVG } from 'qrcode.react';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 
 interface VoucherContentProps {
@@ -90,9 +90,9 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex justify-center items-center">
               <div className="h-[150px] w-[150px] bg-white p-2 rounded-lg">
-                <QRCode 
+                <QRCodeSVG 
                   value={qrUrl || 'https://rifamax.com'} 
-                  style={{ width: '100%', height: '100%' }}
+                  size={140}
                 />
                 {numberId && (
                   <div className="text-center text-xs text-gray-500 mt-1">

@@ -7,7 +7,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { useTheme } from '@/components/ThemeProvider';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 // Import the refactored components
 import AlertMessage from './digital-voucher/AlertMessage';
@@ -44,7 +44,6 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
 }) => {
   const printRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
-  const { toast } = useToast();
   const [raffleNumberId, setRaffleNumberId] = useState<string | null>(null);
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [isRaffleNumberRetrieved, setIsRaffleNumberRetrieved] = useState<boolean>(false);
@@ -278,10 +277,8 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     try {
       if (!paymentData) {
         console.error("❌ Error: No hay datos de pago disponibles para generar el comprobante");
-        toast({
-          title: "Error al generar comprobante",
-          description: "Datos insuficientes.",
-          variant: "destructive"
+        toast("Error al generar comprobante", {
+          description: "Datos insuficientes."
         });
         return;
       }
@@ -294,24 +291,19 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         await updatePaymentReceiptUrlForAllNumbers(voucherUrl);
         
         console.log("✅ Comprobante descargado y guardado con éxito");
-        toast({
-          title: "Comprobante descargado",
-          description: "Comprobante guardado con éxito",
+        toast("Comprobante descargado", {
+          description: "Comprobante guardado con éxito"
         });
       } else {
         console.error("❌ Error al guardar el comprobante de pago");
-        toast({
-          title: "Error",
-          description: "Error al guardar el comprobante de pago",
-          variant: "destructive"
+        toast("Error", {
+          description: "Error al guardar el comprobante de pago"
         });
       }
     } catch (error) {
       console.error("❌ Error en handleDownload:", error);
-      toast({
-        title: "Error",
-        description: "Error al generar o guardar el comprobante",
-        variant: "destructive"
+      toast("Error", {
+        description: "Error al generar o guardar el comprobante"
       });
     }
   };
@@ -344,10 +336,8 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   const handlePresent = async (): Promise<void> => {
     if (!raffleNumberId) {
       console.error('[DigitalVoucher.tsx] No se puede presentar: raffleNumberId no disponible');
-      toast({
-        title: "Error",
-        description: "No se pudo identificar el número de la rifa. Intente nuevamente.",
-        variant: "destructive"
+      toast("Error", {
+        description: "No se pudo identificar el número de la rifa. Intente nuevamente."
       });
       return;
     }
@@ -367,9 +357,8 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
             const updateSuccess = await updateAllParticipantNumbersWithReceipt(imageUrl, allRaffleNumberIds);
             
             if (updateSuccess) {
-              toast({
-                title: "Comprobante guardado",
-                description: `El comprobante ha sido almacenado para todos los números (${allRaffleNumberIds.length}).`,
+              toast("Comprobante guardado", {
+                description: `El comprobante ha sido almacenado para todos los números (${allRaffleNumberIds.length}).`
               });
             }
           }
