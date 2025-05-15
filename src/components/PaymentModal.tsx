@@ -20,7 +20,7 @@ import { Organization } from '@/lib/constants/types';
 import { useNumberSelection } from '@/contexts/NumberSelectionContext';
 import { exportVoucherAsImage, uploadVoucherToStorage, updatePaymentReceiptUrlForNumbers } from './digital-voucher/utils/voucherExport';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -63,7 +63,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const { clearSelectionState } = useNumberSelection();
   const voucherRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
   
   // Enhanced function for saving voucher for all numbers
   const saveVoucherForAllNumbers = async (paymentData: PaymentFormData): Promise<string | null> => {
@@ -271,10 +270,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             const updateSuccess = await updatePaymentReceiptUrlForNumbers(imageUrl, numberIds);
             
             if (updateSuccess) {
-              toast({
-                title: "Comprobante guardado automáticamente",
-                description: "El comprobante ha sido almacenado en el sistema para todos los números."
-              });
+              // Fix toast format
+              toast("Comprobante guardado automáticamente: El comprobante ha sido almacenado en el sistema para todos los números.");
             }
           } else {
             // Store URL for later association (after numbers are created)

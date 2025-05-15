@@ -1,6 +1,6 @@
-
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { ToastVariant } from '@/lib/constants';
 
 export const exportVoucherAsImage = async (
   content: HTMLDivElement | null,
@@ -22,11 +22,8 @@ export const exportVoucherAsImage = async (
     return imgData;
   } catch (error) {
     console.error('[DigitalVoucher.tsx] Error al exportar comprobante:', error);
-    toast({
-      title: "Error al generar la imagen",
-      description: "No se pudo crear la imagen del comprobante. Intente nuevamente.",
-      variant: "destructive"
-    });
+    // Fix for toast format - use string format instead of object
+    toast("Error al generar la imagen: No se pudo crear la imagen del comprobante. Intente nuevamente.");
     return null;
   }
 };
@@ -37,10 +34,8 @@ export const downloadVoucherImage = (imgData: string, fileName: string): void =>
   link.href = imgData;
   link.click();
   
-  toast({
-    title: "¡Descarga exitosa!",
-    description: "El comprobante ha sido guardado en tus descargas.",
-  });
+  // Fix for toast format
+  toast("¡Descarga exitosa! El comprobante ha sido guardado en tus descargas.");
 };
 
 export const presentVoucherImage = (imgData: string): void => {
@@ -92,11 +87,8 @@ export const presentVoucherImage = (imgData: string): void => {
     `);
     newWindow.document.close();
   } else {
-    toast({
-      title: "Error",
-      description: "No se pudo abrir la ventana de presentación. Verifique que no tenga bloqueadores de ventanas emergentes activados.",
-      variant: "destructive"
-    });
+    // Fix for toast format
+    toast("Error: No se pudo abrir la ventana de presentación. Verifique que no tenga bloqueadores de ventanas emergentes activados.");
   }
 };
 
@@ -210,11 +202,8 @@ export const uploadVoucherToStorage = async (
     
   } catch (error) {
     console.error('[DigitalVoucher.tsx] Error al subir comprobante:', error);
-    toast({
-      title: "Error al guardar el comprobante",
-      description: "No se pudo guardar el comprobante en el servidor. Intente nuevamente.",
-      variant: "destructive"
-    });
+    // Fix for toast format
+    toast("Error al guardar el comprobante: No se pudo guardar el comprobante en el servidor. Intente nuevamente.");
     return null;
   }
 };

@@ -1,16 +1,15 @@
 
-import { toast } from "sonner";
-import type { ExternalToast } from "sonner";
+import { toast as sonnerToast } from "sonner";
 
-export { toast };
-export type { ExternalToast };
+// Re-export the sonner toast function as our toast
+export const toast = sonnerToast;
 
-// This is a wrapper around sonner's toast that provides a compatible interface
-// with the shadcn toast component
-export function useToast() {
+// Re-export useToast hook
+export const useToast = () => {
   return {
-    toast,
-    // Create a mock toasts array to satisfy the Toaster component
-    toasts: []
+    toast: sonnerToast,
   };
-}
+};
+
+// Export the sonner toast types
+export type { ExternalToast } from "sonner";
