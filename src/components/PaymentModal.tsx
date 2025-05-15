@@ -127,7 +127,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       // 4. Generate receipt image
       console.log('[PaymentModal.tsx] Generating voucher image');
       
-      // Generate receipt URL based on domain using first number's ID or a placeholder
+      // Generar URL de recibo según el dominio usando el ID del primer número o un marcador de posición
       const domain = window.location.hostname || 'rifamax.com';
       const protocol = window.location.protocol || 'https:';
       const receiptBaseUrl = `${protocol}//${domain}/receipt/`;
