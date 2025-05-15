@@ -81,7 +81,7 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
                 {paymentMethod}
               </div>
               <div>
-                <span className="font-semibold">Núm. seleccionados:</span> 
+                <span className="font-semibold">Cant. de Núms. seleccionados:</span> 
                 {selectedNumbers.length}
               </div>
             </div>
