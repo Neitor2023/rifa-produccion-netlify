@@ -1,19 +1,22 @@
 
-import { PaymentFormData } from '@/types/payment';
-import { supabase } from '@/integrations/supabase/client';
+import { PaymentFormData } from '@/schemas/paymentFormSchema';
+import { toast } from 'sonner';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 interface UseCompletePaymentProps {
-  raffleSeller: { seller_id: string };
+  raffleSeller: {
+    seller_id: string;
+  };
   raffleId: string;
   selectedNumbers: string[];
   refetchRaffleNumbers: () => Promise<any>;
   setPaymentData: (data: PaymentFormData | null) => void;
   setIsPaymentModalOpen: (isOpen: boolean) => void;
   setIsVoucherOpen: (isOpen: boolean) => void;
-  allowVoucherPrint?: boolean;
+  allowVoucherPrint: boolean;
   uploadPaymentProof: (paymentProof: File | string | null) => Promise<string | null>;
   processParticipant: (data: PaymentFormData) => Promise<string | null>;
-  supabase: any;
+  supabase: SupabaseClient;
   debugMode?: boolean;
 }
 
@@ -25,227 +28,259 @@ export function useCompletePayment({
   setPaymentData,
   setIsPaymentModalOpen,
   setIsVoucherOpen,
-  allowVoucherPrint = true,
+  allowVoucherPrint,
   uploadPaymentProof,
   processParticipant,
   supabase,
-  debugMode = false
+  debugMode = false,
 }: UseCompletePaymentProps) {
-
-  const handleCompletePayment = async (formData: PaymentFormData) => {
+  const debugLog = (context: string, data: any) => {
     if (debugMode) {
-      console.log("💲 completePayment.ts: Completing payment with data:", formData);
+      console.log(`[DEBUG - CompletePayment - ${context}]:`, data);
     }
+  };
 
+  const handleCompletePayment = async (data: PaymentFormData) => {
     try {
-      // 1. Upload payment proof if provided (for transfer)
-      let paymentProofUrl = null;
-      if (formData.paymentMethod === 'transfer' && formData.paymentProof) {
-        paymentProofUrl = await uploadPaymentProof(formData.paymentProof);
-        
-        if (debugMode) {
-          console.log("📄 completePayment.ts: Payment proof URL:", paymentProofUrl);
-        }
+      // Validar que raffleId esté definido
+      if (!raffleId) {
+        console.error("❌ Error: raffleId está undefined en handleCompletePayment. Abortando ejecución.");
+        toast.error("Error de validación: ID de rifa no disponible.");
+        return;
       }
       
-      // 2. Verify numbers are not sold by other sellers (should already be done prior, but double-check)
-      const canProceed = await verifyNumbersAvailability(selectedNumbers);
-      if (!canProceed) {
-        console.error("❌ completePayment.ts: Numbers are not available, aborting payment");
+      // Validar que los números estén definidos y no estén vacíos
+      if (!selectedNumbers || selectedNumbers.length === 0) {
+        console.error("❌ Error: selectedNumbers está vacío en handleCompletePayment. Abortando ejecución.");
+        toast.error("Error de validación: No hay números seleccionados.");
         return;
       }
 
-      // 3. Create or update participant
-      const participantId = await processParticipant(formData);
-      
+      debugLog('handleCompletePayment', { data, selectedNumbers });
+
+      // 1. Verify numbers are still available
+      const unavailableNumbers = await verifyNumbersAvailability(selectedNumbers);
+      if (unavailableNumbers.length > 0) {
+        toast.error(`Algunos números ya no están disponibles: ${unavailableNumbers.join(', ')}`);
+        await refetchRaffleNumbers();
+        setIsPaymentModalOpen(false);
+        return;
+      }
+
+      // 2. Upload payment proof if provided
+      let paymentProofUrl: string | null = null;
+      if (data.paymentMethod === 'transfer' && data.paymentProof) {
+        paymentProofUrl = await uploadPaymentProof(data.paymentProof);
+        debugLog('paymentProofUrl', paymentProofUrl);
+      }
+
+      // 3. Process participant and get participant_id
+      const participantId = await processParticipant(data);
       if (!participantId) {
-        console.error("❌ completePayment.ts: Failed to process participant");
+        toast.error('Error al procesar datos del participante');
+        setIsPaymentModalOpen(false);
         return;
       }
 
-      if (debugMode) {
-        console.log("👤 completePayment.ts: Participant ID:", participantId);
-      }
+      debugLog('participantId', participantId);
 
       // 4. Update numbers to sold status
-      await updateNumbersToSold(selectedNumbers, participantId, paymentProofUrl || formData.paymentReceiptUrl);
+      const updateSuccess = await updateNumbersToSold(
+        selectedNumbers,
+        participantId,
+        paymentProofUrl,
+        raffleId,
+        raffleSeller.seller_id
+      );
 
-      // 5. Set payment data for voucher/receipt
-      setPaymentData(formData);
+      if (!updateSuccess) {
+        toast.error('Error al actualizar el estado de los números');
+        setIsPaymentModalOpen(false);
+        return;
+      }
 
-      // 6. Close payment modal
+      // 5. Set payment data for voucher
+      setPaymentData(data);
+
+      // Close payment modal
       setIsPaymentModalOpen(false);
 
-      // 7. Refresh numbers
-      await refetchRaffleNumbers();
-
-      // 8. Show voucher if allowed
+      // 6. Show voucher if allowed
       if (allowVoucherPrint) {
         setIsVoucherOpen(true);
       }
 
-      if (debugMode) {
-        console.log("✅ completePayment.ts: Payment completed successfully");
-      }
+      // 7. Refresh raffle numbers
+      await refetchRaffleNumbers();
+
+      toast.success('¡Pago completado con éxito!');
     } catch (error) {
-      console.error("❌ completePayment.ts: Error completing payment:", error);
-      throw error;
+      console.error('Error completing payment:', error);
+      toast.error('Error al procesar el pago. Por favor intente de nuevo.');
+      setIsPaymentModalOpen(false);
     }
   };
 
-  /**
-   * Verify that the numbers are still available before completing the payment
-   */
-  const verifyNumbersAvailability = async (numbers: string[]): Promise<boolean> => {
-    if (debugMode) {
-      console.log("🔍 completePayment.ts: Verifying numbers availability:", numbers);
-    }
-
+  const verifyNumbersAvailability = async (numbers: string[]): Promise<string[]> => {
     try {
+      // Validar que raffleId esté definido
+      if (!raffleId) {
+        console.error("❌ Error: raffleId está undefined en verifyNumbersAvailability. Abortando ejecución.");
+        throw new Error("ID de rifa no disponible");
+      }
+      
+      debugLog('verifyNumbersAvailability', { numbers, raffleId });
+      
       // Convert strings to integers for database query
       const numberInts = numbers.map(num => parseInt(num, 10));
       
-      // Check for numbers that are already sold
-      const { data: soldNumbers, error } = await supabase
+      // Check if any of these numbers are already sold or reserved
+      const { data: unavailableData, error } = await supabase
         .from('raffle_numbers')
-        .select('number, status, seller_id')
+        .select('number, status')
         .eq('raffle_id', raffleId)
         .in('number', numberInts)
-        .eq('status', 'sold');
+        .in('status', ['sold']);
       
       if (error) {
-        console.error("❌ completePayment.ts: Error checking sold numbers:", error);
+        console.error('Error checking number availability:', error);
         throw error;
       }
       
-      if (debugMode) {
-        console.log("🔢 completePayment.ts: Sold numbers check:", soldNumbers);
-      }
+      // Map unavailable numbers back to string format
+      const unavailableNumbers = unavailableData?.map(item => 
+        String(item.number).padStart(2, '0')
+      ) || [];
       
-      if (soldNumbers && soldNumbers.length > 0) {
-        // Filter to only include numbers sold by other sellers
-        const soldByOtherSellers = soldNumbers.filter(
-          item => item.seller_id !== raffleSeller.seller_id
-        );
-        
-        if (soldByOtherSellers.length > 0) {
-          const unavailableNumbers = soldByOtherSellers.map(n => n.number).join(', ');
-          console.error(`❌ completePayment.ts: Numbers ${unavailableNumbers} are sold by other sellers`);
-          return false;
-        }
-      }
+      debugLog('unavailableNumbers', unavailableNumbers);
       
-      return true;
+      return unavailableNumbers;
     } catch (error) {
-      console.error("❌ completePayment.ts: Error verifying numbers availability:", error);
-      return false;
+      console.error('Error in verifyNumbersAvailability:', error);
+      toast.error('Error al verificar disponibilidad de números');
+      return [];
     }
   };
 
-  /**
-   * Update the numbers' status to sold
-   */
   const updateNumbersToSold = async (
-    numbers: string[], 
+    numbers: string[],
     participantId: string, 
-    paymentProofUrl: string | null
-  ) => {
-    if (debugMode) {
-      console.log("📝 completePayment.ts: Updating numbers to sold:", {
-        numbers,
-        participantId,
-        paymentProofUrl
-      });
-    }
-    
+    paymentProofUrl: string | null,
+    raffleId: string,
+    sellerId: string
+  ): Promise<boolean> => {
     try {
-      // Get participant data for filling fields
-      const { data: participantData } = await supabase
-        .from('participants')
-        .select('name, phone, email, cedula, direccion')
-        .eq('id', participantId)
-        .single();
-        
-      if (!participantData) {
-        throw new Error('No participant data found');
+      // Validar que todos los parámetros estén definidos
+      if (!raffleId) {
+        console.error("❌ Error: raffleId está undefined en updateNumbersToSold");
+        throw new Error("ID de rifa no disponible");
       }
       
-      // Process each number individually
-      for (const numStr of numbers) {
+      if (!sellerId) {
+        console.error("❌ Error: sellerId está undefined en updateNumbersToSold");
+        throw new Error("ID de vendedor no disponible");
+      }
+      
+      if (!participantId) {
+        console.error("❌ Error: participantId está undefined en updateNumbersToSold");
+        throw new Error("ID de participante no disponible");
+      }
+      
+      debugLog('updateNumbersToSold', { 
+        numbers, 
+        participantId, 
+        paymentProofUrl,
+        raffleId,
+        sellerId
+      });
+      
+      // Process each number separately to handle both updates and inserts
+      const updatePromises = numbers.map(async (numStr) => {
         const numInt = parseInt(numStr, 10);
         
-        // Check if this number already exists
+        // Check if this number already exists for this raffle
         const { data: existingNumber, error: checkError } = await supabase
           .from('raffle_numbers')
-          .select('id, status, participant_id')
+          .select('id, status, seller_id')
           .eq('raffle_id', raffleId)
           .eq('number', numInt)
           .maybeSingle();
           
         if (checkError) {
-          console.error(`❌ completePayment.ts: Error checking number ${numStr}:`, checkError);
-          continue;
+          console.error(`Error checking if number ${numStr} exists:`, checkError);
+          return false;
         }
         
-        const commonData = {
-          status: 'sold' as const,
-          seller_id: raffleSeller.seller_id,
+        const updateData = {
+          status: 'sold',
+          seller_id: sellerId,
           participant_id: participantId,
-          payment_proof: paymentProofUrl,
-          payment_approved: true,
-          reservation_expires_at: null,
-          participant_name: participantData.name,
-          participant_phone: participantData.phone,
-          participant_cedula: participantData.cedula
+          updated_at: new Date().toISOString(),
+          reservation_expires_at: null
         };
         
+        // Add payment proof if provided
+        if (paymentProofUrl) {
+          updateData['payment_proof'] = paymentProofUrl;
+        }
+        
+        // If number exists, update it
         if (existingNumber) {
-          // Update existing number
-          if (debugMode) {
-            console.log(`🔄 completePayment.ts: Updating number ${numStr}:`, commonData);
+          debugLog(`Number ${numStr} exists, updating`, existingNumber);
+          
+          // Check if number is already sold
+          if (existingNumber.status === 'sold') {
+            console.error(`Number ${numStr} is already sold`);
+            return false;
           }
           
           const { error: updateError } = await supabase
             .from('raffle_numbers')
-            .update(commonData)
+            .update(updateData)
             .eq('id', existingNumber.id);
             
           if (updateError) {
-            console.error(`❌ completePayment.ts: Error updating number ${numStr}:`, updateError);
+            console.error(`Error updating number ${numStr}:`, updateError);
+            return false;
           }
         } else {
-          // Insert new number
-          const insertData = {
-            ...commonData,
-            raffle_id: raffleId,
-            number: numInt
-          };
-          
-          if (debugMode) {
-            console.log(`➕ completePayment.ts: Inserting number ${numStr}:`, insertData);
-          }
+          // If number doesn't exist, insert it
+          debugLog(`Number ${numStr} doesn't exist, inserting new record`);
           
           const { error: insertError } = await supabase
             .from('raffle_numbers')
-            .insert(insertData);
+            .insert({
+              ...updateData,
+              raffle_id: raffleId,
+              number: numInt,
+              created_at: new Date().toISOString()
+            });
             
           if (insertError) {
-            console.error(`❌ completePayment.ts: Error inserting number ${numStr}:`, insertError);
+            console.error(`Error inserting number ${numStr}:`, insertError);
+            return false;
           }
         }
+        
+        return true;
+      });
+      
+      // Wait for all updates to complete
+      const results = await Promise.all(updatePromises);
+      
+      // Check if all updates were successful
+      const allSuccessful = results.every(result => result === true);
+      
+      if (!allSuccessful) {
+        console.error('Some numbers could not be updated or inserted');
       }
       
-      if (debugMode) {
-        console.log("✅ completePayment.ts: All numbers updated to sold");
-      }
-      
+      return allSuccessful;
     } catch (error) {
-      console.error("❌ completePayment.ts: Error updating numbers to sold:", error);
-      throw error;
+      console.error('Error in updateNumbersToSold:', error);
+      return false;
     }
   };
 
-  return {
-    handleCompletePayment
-  };
+  return { handleCompletePayment };
 }

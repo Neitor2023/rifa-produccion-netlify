@@ -15,8 +15,8 @@ interface UseGridHandlersProps {
     active: boolean;
     cant_max: number;
   };
-  onReserve: (numbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula?: string) => Promise<void>;
-  onProceedToPayment: (numbers: string[], participantData?: ValidatedBuyerInfo, clickedButton?: string) => Promise<void>;
+  onReserve: (selectedNumbers: string[], buyerPhone?: string, buyerName?: string, buyerCedula?: string) => Promise<void>;
+  onProceedToPayment: (selectedNumbers: string[], participantData?: ValidatedBuyerInfo, clickedButton?: string) => Promise<void>;
   debugMode?: boolean;
   reservationDays?: number;
   lotteryDate?: Date;
@@ -65,7 +65,7 @@ export const useGridHandlers = ({
     
     const reservedNumbers = numbers.filter(n => n.status === 'reserved');
     if (reservedNumbers.length === 0) {
-      toast.warning('No reserved numbers to pay');
+      toast.warning('No hay números reservados para pagar');
       setShowReservedMessage(false);
       return;
     }
@@ -107,9 +107,18 @@ export const useGridHandlers = ({
     const maxAvailableNumbers = raffleSeller.cant_max;
     
     // Calculate remaining available numbers based on total numbers (if provided) or seller max
-    const remainingAvailable = totalNumbers 
-      ? Math.min(maxAvailableNumbers, totalNumbers - soldNumbersCount) 
-      : maxAvailableNumbers;
+    let remainingAvailable: number;
+    
+    // If totalNumbers is provided, calculate how many numbers are actually available
+    if (totalNumbers && typeof totalNumbers === 'number') {
+      // Calculate how many numbers are still available for sale
+      const availableNumbers = Math.max(0, totalNumbers - soldNumbersCount);
+      // Take the minimum between available numbers and max seller numbers
+      remainingAvailable = Math.min(maxAvailableNumbers, availableNumbers);
+    } else {
+      // Fallback to just use the seller maximum
+      remainingAvailable = maxAvailableNumbers;
+    }
       
     if (debugMode) {
       console.log('NumberGrid: Available numbers calculation:', {
@@ -136,7 +145,7 @@ export const useGridHandlers = ({
   
   const handleReserve = () => {
     if (selectedNumbers.length === 0) {
-      toast.error('Select at least one number to reserve');
+      toast.error('Seleccione al menos un número para reservar');
       return;
     }
     setIsReservationModalOpen(true);
@@ -151,7 +160,7 @@ export const useGridHandlers = ({
     }
     
     if (!data.buyerName || !data.buyerPhone) {
-      toast.error('Name and phone are required');
+      toast.error('Nombre y teléfono son requeridos');
       return;
     }
     
@@ -207,13 +216,26 @@ export const useGridHandlers = ({
       console.log(`NumberGrid: handleProceedToPayment called with button type: ${buttonType}`);
     }
     
+    // Validar que raffle_id esté definido
+    if (!raffleSeller.raffle_id) {
+      console.error("❌ Error: raffle_id está undefined en raffleSeller. Abortando ejecución.");
+      toast.error("Error en la identificación de la rifa. Por favor, intente de nuevo.");
+      return;
+    }
+    
     setClickedPaymentButton(buttonType);
     
     if (selectedNumbers.length === 0) {
-      toast.error('Select at least one number to pay');
+      toast.error('Seleccione al menos un número para pagar');
       return;
     }
-    await onProceedToPayment(selectedNumbers, undefined, buttonType);
+    
+    try {
+      await onProceedToPayment(selectedNumbers, undefined, buttonType);
+    } catch (error) {
+      console.error("❌ Error al proceder al pago:", error);
+      toast.error("Error al procesar el pago. Por favor, intente de nuevo.");
+    }
   };
   
   const handleValidationSuccess = async (
@@ -221,6 +243,13 @@ export const useGridHandlers = ({
     participantId: string,
     buyerInfo?: ValidatedBuyerInfo
   ) => {
+    // Validar que participantId esté definido
+    if (!participantId) {
+      console.error("❌ Error: participantId está undefined. Abortando ejecución.");
+      toast.error("Error en la validación. Por favor, intente de nuevo.");
+      return;
+    }
+    
     if (buyerInfo) {
       if (debugMode) {
         console.log("NumberGrid: Received validated buyer information:", {
@@ -240,49 +269,72 @@ export const useGridHandlers = ({
     // After validation success, automatically close the reserved message
     setShowReservedMessage(false);
     
-    if (participantId && buyerInfo) {
-      await onProceedToPayment(selectedNumbers, buyerInfo, clickedPaymentButton);
-    } else {
-      await handleNumberValidation(validatedNumber);
+    try {
+      if (participantId && buyerInfo) {
+        await onProceedToPayment(selectedNumbers, buyerInfo, clickedPaymentButton);
+      } else {
+        await handleNumberValidation(validatedNumber);
+      }
+    } catch (error) {
+      console.error("❌ Error al proceder después de la validación:", error);
+      toast.error("Error al procesar después de la validación. Por favor, intente de nuevo.");
     }
   };
   
   const handleParticipantValidation = async (participantId: string) => {
+    // Validar que raffle_id y seller_id estén definidos
+    if (!raffleSeller.raffle_id) {
+      console.error("❌ Error: raffle_id está undefined en raffleSeller. Abortando ejecución.");
+      toast.error("Error en la identificación de la rifa. Por favor, intente de nuevo.");
+      return;
+    }
+    
+    if (!raffleSeller.seller_id) {
+      console.error("❌ Error: seller_id está undefined en raffleSeller. Abortando ejecución.");
+      toast.error("Error en la identificación del vendedor. Por favor, intente de nuevo.");
+      return;
+    }
+    
     if (debugMode) {
       console.log('NumberGrid: Querying Supabase for reserved numbers with participant ID:', participantId);
     }
     
-    const { data: reservedNumbers, error } = await supabase
-      .from('raffle_numbers')
-      .select('number')
-      .eq('participant_id', participantId)
-      .eq('status', 'reserved')
-      .eq('raffle_id', raffleSeller.raffle_id)
-      .eq('seller_id', raffleSeller.seller_id);
-    
-    if (error) {
-      console.error('NumberGrid: Error al obtener números reservados:', error);
-      toast.error('Error al buscar números reservados');
-      return;
-    }
-    
-    if (reservedNumbers && reservedNumbers.length > 0) {
-      const allReservedNumbers = reservedNumbers.map(n => 
-        n.number.toString().padStart(2, '0')
-      );
+    try {
+      const { data: reservedNumbers, error } = await supabase
+        .from('raffle_numbers')
+        .select('number')
+        .eq('participant_id', participantId)
+        .eq('status', 'reserved')
+        .eq('raffle_id', raffleSeller.raffle_id)
+        .eq('seller_id', raffleSeller.seller_id);
       
-      if (debugMode) {
-        console.log('NumberGrid: Números reservados encontrados:', allReservedNumbers);
+      if (error) {
+        console.error('NumberGrid: Error al obtener números reservados:', error);
+        toast.error('Error al buscar números reservados');
+        return;
       }
       
-      toast.success(`${allReservedNumbers.length} number(s) found`);
-      await onProceedToPayment(allReservedNumbers);
-    } else {
-      if (debugMode) {
-        console.log('NumberGrid: No se encontraron números reservados con consulta directa');
+      if (reservedNumbers && reservedNumbers.length > 0) {
+        const allReservedNumbers = reservedNumbers.map(n => 
+          n.number.toString().padStart(2, '0')
+        );
+        
+        if (debugMode) {
+          console.log('NumberGrid: Números reservados encontrados:', allReservedNumbers);
+        }
+        
+        toast.success(`${allReservedNumbers.length} número(s) encontrado(s)`);
+        await onProceedToPayment(allReservedNumbers);
+      } else {
+        if (debugMode) {
+          console.log('NumberGrid: No se encontraron números reservados con consulta directa');
+        }
+        
+        toast.error('❗ No se encontraron números reservados para este participante.');
       }
-      
-      toast.error('❗ No se encontraron números reservados para este participante.');
+    } catch (error) {
+      console.error("❌ Error al validar participante:", error);
+      toast.error("Error al buscar números reservados. Por favor, intente de nuevo.");
     }
   };
   
@@ -290,12 +342,18 @@ export const useGridHandlers = ({
     const number = numbers.find(n => n.number === validatedNumber && n.status === 'reserved');
     
     if (!number) {
-      toast.error('Number not found');
+      toast.error('Número no encontrado');
       return;
     }
     
-    toast.success('Validation successful');
-    await onProceedToPayment([validatedNumber]);
+    toast.success('Validación exitosa');
+    
+    try {
+      await onProceedToPayment([validatedNumber]);
+    } catch (error) {
+      console.error("❌ Error al proceder al pago después de validación:", error);
+      toast.error("Error al procesar el pago. Por favor, intente de nuevo.");
+    }
   };
   
   return {

@@ -44,13 +44,24 @@ const ValidationModals: React.FC<ValidationModalsProps> = ({
   selectedNumbers,
   organization
 }) => {
+  // Validar que raffleId y raffleSellerId estén definidos
+  if (!raffleId && isPhoneModalOpen) {
+    console.error("❌ Error: raffleId está undefined en ValidationModals. No se puede mostrar el modal de validación.");
+    return null;
+  }
+
+  if (!raffleSellerId && isPhoneModalOpen) {
+    console.error("❌ Error: raffleSellerId está undefined en ValidationModals. No se puede mostrar el modal de validación.");
+    return null;
+  }
+
   return (
     <>
       <PhoneValidationModal 
         isOpen={isPhoneModalOpen}
         onClose={() => setIsPhoneModalOpen(false)}
         onPhoneValidationSuccess={handleValidationSuccess}
-        selectedNumber={selectedReservedNumber}
+        selectedNumber={selectedReservedNumber || undefined}
         raffleNumbers={raffleNumbers}
         raffleSellerId={raffleSellerId}
         raffleId={raffleId}

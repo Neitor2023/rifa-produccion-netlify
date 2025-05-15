@@ -37,6 +37,17 @@ const RaffleNumberGridSection: React.FC<RaffleNumberGridSectionProps> = ({
   totalNumbers,
   mini_instructivo
 }) => {
+  // Validar que raffleId y sellerId estén definidos
+  if (!raffleId) {
+    console.error("❌ Error: raffleId está undefined en RaffleNumberGridSection. No se puede continuar.");
+    return <div className="text-red-600 p-4 bg-red-100 rounded-md">Error: ID de rifa no disponible. Por favor recargue la página.</div>;
+  }
+
+  if (!sellerId) {
+    console.error("❌ Error: sellerId está undefined en RaffleNumberGridSection. No se puede continuar.");
+    return <div className="text-red-600 p-4 bg-red-100 rounded-md">Error: ID de vendedor no disponible. Por favor recargue la página.</div>;
+  }
+
   const formattedNumbers = formatNumbersForGrid(raffleNumbers);
   
   return (

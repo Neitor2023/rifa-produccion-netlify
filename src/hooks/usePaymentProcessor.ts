@@ -42,6 +42,14 @@ export function usePaymentProcessor({
   reservationDays,
   lotteryDate
 }: UsePaymentProcessorProps) {
+  // Validar que raffleId esté definido
+  if (!raffleId) {
+    console.error("❌ Error crítico: raffleId está undefined en usePaymentProcessor");
+    // Usar el valor de RAFFLE_ID como fallback
+    raffleId = RAFFLE_ID;
+    console.log("⚠️ Usando RAFFLE_ID de constantes como fallback:", RAFFLE_ID);
+  }
+
   const { selectedNumbers, setSelectedNumbers } = useSelection();
   const { isPaymentModalOpen, setIsPaymentModalOpen, isVoucherOpen, setIsVoucherOpen } = useModalState();
   const { paymentData, setPaymentData } = usePayment();
@@ -113,6 +121,13 @@ export function usePaymentProcessor({
         return true;
       }
       
+      // Validar que raffleId esté definido
+      if (!raffleId) {
+        console.error("❌ Error: raffleId está undefined en verifyNumbersNotSoldByOthers. Abortando ejecución.");
+        toast.error("Error de validación: ID de rifa no disponible.");
+        return false;
+      }
+      
       // Convert strings to integers for database query
       const numberInts = numbers.map(num => parseInt(num, 10));
       
@@ -164,15 +179,27 @@ export function usePaymentProcessor({
     }
   };
 
-  const handleProceedToPayment = async (numbers: string[], participantData?: any, clickedButton?: string) => {
+  const handleProceedToPayment = async (numbers: string[], participantData?: ValidatedBuyerInfo, clickedButton?: string) => {
     console.log("💰 usePaymentProcessor: handleProceedToPayment called with:", {
       numbers,
-      participantData,
+      participantData: participantData ? {
+        id: participantData.id,
+        name: participantData.name,
+        // Omit sensitive data from logs
+      } : undefined,
       clickedButton
     });
 
-    if (numbers.length === 0) {
-      toast.error('Select at least one number to buy');
+    // Validar que los números estén definidos y no estén vacíos
+    if (!numbers || numbers.length === 0) {
+      toast.error('Seleccione al menos un número para comprar');
+      return;
+    }
+    
+    // Validar que raffleId esté definido
+    if (!raffleId) {
+      console.error("❌ Error: raffleId está undefined en handleProceedToPayment. Abortando ejecución.");
+      toast.error("Error de validación: ID de rifa no disponible.");
       return;
     }
 
@@ -192,7 +219,7 @@ export function usePaymentProcessor({
       // Check availability with proper number type conversion
       const unavailableNumbers = await checkNumbersAvailability(numbers);
       if (unavailableNumbers.length > 0) {
-        toast.error(`Numbers ${unavailableNumbers.join(', ')} are not available`);
+        toast.error(`Los números ${unavailableNumbers.join(', ')} no están disponibles`);
         return;
       }
       
@@ -207,18 +234,37 @@ export function usePaymentProcessor({
       
     } catch (error) {
       console.error('usePaymentProcessor: ❌ Error proceeding to payment:', error);
-      toast.error('Error processing payment');
+      toast.error('Error al procesar el pago');
     }
   };
 
   const handlePayReservedNumbers = async (numbers: string[], participantData: ValidatedBuyerInfo) => {
     console.log("💰 usePaymentProcessor: handlePayReservedNumbers called with:", {
       numbers,
-      participantData
+      participantData: participantData ? {
+        id: participantData.id,
+        name: participantData.name,
+        // Omit sensitive data from logs
+      } : undefined
     });
 
-    if (numbers.length === 0) {
-      toast.error('No numbers selected to pay');
+    // Validar que los números estén definidos y no estén vacíos
+    if (!numbers || numbers.length === 0) {
+      toast.error('No se han seleccionado números para pagar');
+      return;
+    }
+    
+    // Validar que participantData esté definido
+    if (!participantData) {
+      console.error("❌ Error: participantData está undefined en handlePayReservedNumbers");
+      toast.error("Error de validación: datos del participante no disponibles");
+      return;
+    }
+    
+    // Validar que raffleId esté definido
+    if (!raffleId) {
+      console.error("❌ Error: raffleId está undefined en handlePayReservedNumbers. Abortando ejecución.");
+      toast.error("Error de validación: ID de rifa no disponible.");
       return;
     }
 
@@ -231,7 +277,7 @@ export function usePaymentProcessor({
       debugLog("usePaymentProcessor: Payment modal opened with validated data:", participantData);
     } catch (error) {
       console.error('usePaymentProcessor: ❌ Error proceeding to payment of reserved numbers:', error);
-      toast.error('Error processing payment of reserved numbers');
+      toast.error('Error al procesar el pago de números reservados');
     }
   };
 

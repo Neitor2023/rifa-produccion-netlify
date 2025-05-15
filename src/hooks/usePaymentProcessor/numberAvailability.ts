@@ -1,19 +1,23 @@
 
+import { ValidatedBuyerInfo } from "@/types/participant";
 import { supabase } from '@/integrations/supabase/client';
-import { ValidatedBuyerInfo } from '@/types/participant';
+import { toast } from 'sonner';
 
 interface UseNumberAvailabilityProps {
-  raffleNumbers: any[];
-  raffleSeller: any;
+  raffleNumbers?: any[];
+  raffleSeller: {
+    id?: string;
+    seller_id?: string;
+  } | null;
   setValidatedBuyerData?: (data: ValidatedBuyerInfo | null) => void;
   debugMode?: boolean;
 }
 
-export function useNumberAvailability({ 
-  raffleNumbers, 
+export function useNumberAvailability({
+  raffleNumbers = [],
   raffleSeller,
   setValidatedBuyerData,
-  debugMode = false
+  debugMode = false,
 }: UseNumberAvailabilityProps) {
   const debugLog = (context: string, data: any) => {
     if (debugMode) {
@@ -21,87 +25,62 @@ export function useNumberAvailability({
     }
   };
 
-  /**
-   * Check if the provided numbers are available for selection
-   */
+  // Enhanced function for checking number availability
   const checkNumbersAvailability = async (numbers: string[]): Promise<string[]> => {
-    debugLog('checkNumbersAvailability', { numbers });
-    
     try {
-      const unavailableNumbers: string[] = [];
-
-      // Convert input strings to integers for proper comparison
-      const numbersAsInts = numbers.map(num => parseInt(num, 10));
-      
-      debugLog('checkNumbersAvailability - converted numbers', { numbersAsInts });
-      
-      // Check availability against the database (latest status)
-      const { data: dbNumbers, error } = await supabase
-        .from('raffle_numbers')
-        .select('number, status')
-        .eq('raffle_id', raffleSeller.raffle_id)
-        .in('number', numbersAsInts);
-      
-      if (error) {
-        debugLog('checkNumbersAvailability - database error', { error });
-        throw error;
+      // Validar que raffleSeller y raffleNumbers estén definidos
+      if (!raffleSeller) {
+        console.error("❌ Error: raffleSeller está undefined en checkNumbersAvailability");
+        throw new Error("Información del vendedor no disponible");
       }
       
-      debugLog('checkNumbersAvailability - database results', { dbNumbers });
+      if (!raffleNumbers || raffleNumbers.length === 0) {
+        console.error("❌ Error: raffleNumbers está vacío en checkNumbersAvailability");
+        throw new Error("Información de números no disponible");
+      }
+
+      debugLog("checkNumbersAvailability-input", { numbers });
+
+      // Convert string numbers to integers for proper comparison
+      const numberInts = numbers.map(numStr => parseInt(numStr, 10));
       
-      if (dbNumbers && dbNumbers.length > 0) {
-        // Check each number in our input against database records
-        for (const numStr of numbers) {
-          const numInt = parseInt(numStr, 10);
-          
-          // Find if this number exists in the database
-          const dbNumRecord = dbNumbers.find(n => n.number === numInt);
-          
-          // If the number exists in DB and its status is not available
-          if (dbNumRecord && dbNumRecord.status !== 'available' && dbNumRecord.status !== 'reserved') {
-            debugLog('checkNumbersAvailability - found unavailable number', { 
-              number: numStr, 
-              status: dbNumRecord.status 
-            });
+      // Filter raffle numbers to find unavailable ones
+      const unavailableNumbers: string[] = [];
+      
+      for (const numStr of numbers) {
+        const numInt = parseInt(numStr, 10);
+        
+        // Find matching number in raffleNumbers
+        const matchingNumber = raffleNumbers.find(n => 
+          // Compare as integers to avoid string/number comparison issues
+          n.number === numInt || 
+          // Also check string representation (padded)
+          n.number === numStr ||
+          // Check if string representation of the integer matches
+          String(n.number) === String(numInt)
+        );
+        
+        // If number exists and status is not 'available'
+        if (matchingNumber && matchingNumber.status !== 'available') {
+          // If status is 'reserved', check if reserved by this seller
+          if (matchingNumber.status === 'reserved') {
+            // Only add to unavailable if reserved by different seller
+            if (matchingNumber.seller_id !== raffleSeller.seller_id) {
+              unavailableNumbers.push(numStr);
+            }
+          } else {
+            // If sold or any other status, it's unavailable
             unavailableNumbers.push(numStr);
           }
         }
       }
-
-      // Also check against the local raffle numbers state
-      if (raffleNumbers && raffleNumbers.length > 0) {
-        for (const numStr of numbers) {
-          const numInt = parseInt(numStr, 10);
-          
-          // If this number wasn't already found unavailable in DB check
-          if (!unavailableNumbers.includes(numStr)) {
-            const localNumber = raffleNumbers.find(n => {
-              const currNumInt = typeof n.number === 'string' ? parseInt(n.number, 10) : n.number;
-              return currNumInt === numInt;
-            });
-            
-            if (localNumber && 
-                localNumber.status !== 'available' && 
-                localNumber.status !== 'reserved') {
-              debugLog('checkNumbersAvailability - found locally unavailable number', { 
-                number: numStr, 
-                status: localNumber.status 
-              });
-              
-              // Avoid adding duplicates
-              if (!unavailableNumbers.includes(numStr)) {
-                unavailableNumbers.push(numStr);
-              }
-            }
-          }
-        }
-      }
-
-      debugLog('checkNumbersAvailability - result', { unavailableNumbers });
+      
+      debugLog("checkNumbersAvailability-result", { unavailableNumbers });
       return unavailableNumbers;
     } catch (error) {
-      console.error('Error checking numbers availability:', error);
-      throw error;
+      console.error("Error checking number availability:", error);
+      toast.error("Error al verificar disponibilidad de números");
+      return [];
     }
   };
 

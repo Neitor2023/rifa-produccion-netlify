@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import { 
   Dialog, 
@@ -167,42 +166,77 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     }
   };
 
-  const handleDownload = async (): Promise<void> => {
-    if (!raffleNumberId) {
-      console.error('[DigitalVoucher.tsx] No se puede descargar: raffleNumberId no disponible');
-      toast({
-        title: "Error",
-        description: "No se pudo identificar el número de la rifa. Intente nuevamente.",
-        variant: "destructive"
-      });
-      return;
+  // Add this function to the component, before the return statement
+  const updatePaymentReceiptUrlForAllNumbers = async (voucherUrl: string, paymentData: PaymentFormData) => {
+    if (!voucherUrl || !paymentData || !paymentData.participantId) {
+      console.error("❌ Error: Datos insuficientes para actualizar comprobante de pago");
+      return false;
     }
-
-    const imgData = await exportVoucherAsImage(printRef.current, `comprobante_${formattedDate.replace(/\s+/g, '_')}.png`);
-    if (imgData) {
-      downloadVoucherImage(imgData, `comprobante_${formattedDate.replace(/\s+/g, '_')}.png`);
-      
-      // Upload to storage for all participant numbers
-      if (raffleDetails && allRaffleNumberIds.length > 0) {
-        try {
-          console.log('[DigitalVoucher.tsx] Iniciando proceso de guardar comprobante para todos los números del participante');
-          const imageUrl = await uploadVoucherToStorage(imgData, raffleDetails.title, raffleNumberId);
-          
-          if (imageUrl) {
-            // Update all numbers with the same receipt URL
-            const updateSuccess = await updateAllParticipantNumbersWithReceipt(imageUrl, allRaffleNumberIds);
-            
-            if (updateSuccess) {
-              toast({
-                title: "Comprobante guardado",
-                description: `El comprobante ha sido almacenado para todos los números (${allRaffleNumberIds.length}).`,
-              });
-            }
-          }
-        } catch (error) {
-          console.error('[DigitalVoucher.tsx] Error saving receipt to storage:', error);
-        }
+    
+    try {
+      // Find all sold numbers for this participant
+      const { data: soldNumbers, error: fetchError } = await supabase
+        .from('raffle_numbers')
+        .select('id')
+        .eq('participant_id', paymentData.participantId)
+        .eq('status', 'sold');
+        
+      if (fetchError) {
+        console.error("❌ Error al buscar números vendidos:", fetchError);
+        return false;
       }
+      
+      if (!soldNumbers || soldNumbers.length === 0) {
+        console.error("❌ No se encontraron números vendidos para actualizar el recibo");
+        return false;
+      }
+      
+      console.log(`📋 Actualizando recibo de pago para ${soldNumbers.length} números vendidos`);
+      
+      // Update all records with the payment receipt URL
+      const { error: updateError } = await supabase
+        .from('raffle_numbers')
+        .update({ payment_receipt_url: voucherUrl })
+        .in('id', soldNumbers.map(n => n.id));
+        
+      if (updateError) {
+        console.error("❌ Error al actualizar recibo de pago:", updateError);
+        return false;
+      }
+      
+      console.log("✅ Recibo de pago actualizado con éxito para todos los números");
+      return true;
+    } catch (error) {
+      console.error("❌ Error al actualizar recibo de pago:", error);
+      return false;
+    }
+  };
+
+  // Modify the handleDownload function to save the voucher for all numbers
+  const handleDownload = async () => {
+    try {
+      if (!paymentData) {
+        console.error("❌ Error: No hay datos de pago disponibles para generar el comprobante");
+        toast.error("Error al generar comprobante. Datos insuficientes.");
+        return;
+      }
+      
+      // Generate and save the voucher
+      const voucherUrl = await SaveVoucherForAllNumbers(selectedNumbers, paymentData);
+      
+      if (voucherUrl) {
+        // Update all sold numbers with this receipt URL
+        await updatePaymentReceiptUrlForAllNumbers(voucherUrl, paymentData);
+        
+        console.log("✅ Comprobante descargado y guardado con éxito");
+        toast.success("Comprobante descargado y guardado con éxito");
+      } else {
+        console.error("❌ Error al guardar el comprobante de pago");
+        toast.error("Error al guardar el comprobante de pago");
+      }
+    } catch (error) {
+      console.error("❌ Error en handleDownload:", error);
+      toast.error("Error al generar o guardar el comprobante");
     }
   };
   
