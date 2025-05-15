@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Dialog, 
@@ -20,7 +21,7 @@ import { Organization } from '@/lib/constants/types';
 import { useNumberSelection } from '@/contexts/NumberSelectionContext';
 import { exportVoucherAsImage, uploadVoucherToStorage, updatePaymentReceiptUrlForNumbers } from './digital-voucher/utils/voucherExport';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface PaymentModalProps {
   isOpen: boolean;

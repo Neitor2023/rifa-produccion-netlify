@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
+import { toast } from 'sonner';
 
 interface UpdateNumbersToSoldProps {
   numbers: string[];
@@ -67,10 +68,48 @@ export const updateNumbersToSold = async ({
     // Asegúrese de que el teléfono esté en formato internacional
     const formattedPhone = formatPhoneNumber(participantData.phone);
 
-    // Para los números especificados, solo actualizar los que pertenecen al participante actual
-    // o los que son nuevos para este participante
+    // Primero, verifica si alguno de los números ya existe y pertenece a otro participante
+    const numbersInts = numbers.map(numStr => parseInt(numStr, 10));
+    const { data: existingNumbers, error: checkError } = await supabase
+      .from('raffle_numbers')
+      .select('number, participant_id')
+      .eq('raffle_id', raffleId)
+      .in('number', numbersInts);
+
+    if (checkError) {
+      console.error('❌ Error al verificar la existencia de números:', checkError);
+      throw new Error('Error al verificar la disponibilidad de números');
+    }
+
+    // Verificar si algún número ya pertenece a otro participante
+    const conflictingNumbers = existingNumbers
+      ?.filter(n => n.participant_id !== participantId)
+      .map(n => n.number.toString());
+
+    if (conflictingNumbers && conflictingNumbers.length > 0) {
+      console.error('❌ Números ya reservados por otro participante:', conflictingNumbers);
+      toast(`Error: Los números ${conflictingNumbers.join(', ')} ya han sido reservados o vendidos por otro participante. Por favor elija otros números.`);
+      // Devuelve los números conflictivos para que la UI pueda manejar apropiadamente
+      return { success: false, conflictingNumbers };
+    }
+
+    // Preparar conjunto de números ya existentes para el participante actual (para evitar duplicados)
+    const existingParticipantNumbers = new Set(
+      existingNumbers
+        ?.filter(n => n.participant_id === participantId)
+        .map(n => n.number.toString())
+    );
+
+    // Para los números especificados, procesar según corresponda
     const updatePromises = numbers.map(async (numStr) => {
       const num = parseInt(numStr, 10);
+      
+      // Si el número ya existe para este participante, omitir la actualización
+      if (existingParticipantNumbers.has(num.toString())) {
+        console.log(`✅ Número ${numStr} ya pertenece al participante ${participantId}, omitiendo actualización`);
+        return;
+      }
+      
       // Buscar si el número existe en la base de datos
       const existingNumber = raffleNumbers.find(n => n.number === numStr);
 
@@ -143,6 +182,7 @@ export const updateNumbersToSold = async ({
 
     await Promise.all(updatePromises);
     console.log("✅ Todos los números actualizados/insertados al estado vendido");
+    return { success: true };
   } catch (error) {
     console.error("❌ Error en updateNumbersToSold:", error);
     throw error;

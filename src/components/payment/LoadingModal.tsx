@@ -1,26 +1,24 @@
 
 import React from 'react';
-import { 
-  Dialog, 
-  DialogContent,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { LoaderCircle } from 'lucide-react';
 
 interface LoadingModalProps {
   isOpen: boolean;
-  message?: string;
 }
 
-const LoadingModal: React.FC<LoadingModalProps> = ({ 
-  isOpen,
-  message = 'Procesando comprobante de pago, por favor espere...' 
-}) => {
+const LoadingModal: React.FC<LoadingModalProps> = ({ isOpen }) => {
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] flex flex-col items-center justify-center bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
-        <div className="flex flex-col items-center justify-center py-8 px-4">
-          <LoaderCircle className="h-12 w-12 text-[#9b87f5] animate-spin mb-4" />
-          <p className="text-lg font-medium text-center">{message}</p>
+      <DialogContent className="sm:max-w-md bg-white/80 backdrop-blur-md rounded-xl border-0 shadow-xl p-8" hideCloseButton>
+        <div className="flex flex-col items-center justify-center text-center gap-4 py-6">
+          <LoaderCircle className="h-12 w-12 animate-spin text-[#9b87f5]" />
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Procesando pago</h3>
+            <p className="text-sm text-gray-600">
+              Por favor espere mientras procesamos su solicitud...
+            </p>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

@@ -169,7 +169,7 @@ export function useCompletePayment({
           toast.warning("No se encontraron números reservados para este participante");
         } else {
           console.log("✅ Updating payment status for numbers:", validNumbersToUpdate);
-          await updateNumbersToSold({
+          const result = await updateNumbersToSold({
             numbers: validNumbersToUpdate, 
             participantId, 
             paymentProofUrl, 
@@ -177,11 +177,17 @@ export function useCompletePayment({
             raffleSeller,
             raffleId
           });
+          
+          // Handle conflict cases
+          if (result && !result.success && result.conflictingNumbers && result.conflictingNumbers.length > 0) {
+            toast.error(`Estos números ya pertenecen a otro participante: ${result.conflictingNumbers.join(', ')}. Por favor elija otros números.`);
+            return;
+          }
         }
       } else {
         // For "Pagar Directo", proceed with selected numbers
         console.log("💵 'Pagar Directo' flow - using selected numbers:", selectedNumbers);
-        await updateNumbersToSold({
+        const result = await updateNumbersToSold({
           numbers: selectedNumbers, 
           participantId, 
           paymentProofUrl, 
@@ -189,6 +195,12 @@ export function useCompletePayment({
           raffleSeller,
           raffleId
         });
+        
+        // Handle conflict cases
+        if (result && !result.success && result.conflictingNumbers && result.conflictingNumbers.length > 0) {
+          toast.error(`Estos números ya pertenecen a otro participante: ${result.conflictingNumbers.join(', ')}. Por favor elija otros números.`);
+          return;
+        }
       }
       
       // 5. Save suspicious activity report if provided (fix for issues 1.1 and 2.3)
