@@ -14,7 +14,8 @@ export const paymentFormSchema = z.object({
   direccion: z.string().optional(),
   sugerenciaProducto: z.string().optional(),
   reporteSospechoso: z.string().optional(),
-  paymentReceiptUrl: z.string().optional(), // Add this field to the schema
+  paymentReceiptUrl: z.string().optional(),
+  participantId: z.string().optional() // Added this field to the schema
 });
 
 export type PaymentFormData = z.infer<typeof paymentFormSchema>;

@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import { 
   Dialog, 
@@ -13,7 +14,7 @@ import AlertMessage from './digital-voucher/AlertMessage';
 import VoucherHeader from './digital-voucher/VoucherHeader';
 import VoucherContent from './digital-voucher/VoucherContent';
 import VoucherActions from './digital-voucher/VoucherActions';
-import { exportVoucherAsImage, downloadVoucherImage, presentVoucherImage, uploadVoucherToStorage } from './digital-voucher/utils/voucherExport';
+import { exportVoucherAsImage, downloadVoucherImage, presentVoucherImage, uploadVoucherToStorage, updatePaymentReceiptUrlForNumbers } from './digital-voucher/utils/voucherExport';
 import { supabase } from '@/integrations/supabase/client';
 import { useNumberSelection } from '@/contexts/NumberSelectionContext';
 
@@ -212,31 +213,83 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     }
   };
 
+  // Function to save the voucher for all numbers
+  const saveVoucherForAllNumbers = async (selectedNumbers: string[], paymentData: PaymentFormData): Promise<string | null> => {
+    try {
+      if (!printRef.current || !raffleDetails) {
+        console.error("❌ Error: No hay referencia al voucher o detalles de la rifa");
+        return null;
+      }
+      
+      // Generate the voucher image
+      const imgData = await exportVoucherAsImage(printRef.current, '');
+      if (!imgData) {
+        console.error("❌ Error: No se pudo generar la imagen del comprobante");
+        return null;
+      }
+      
+      // Download the image locally
+      downloadVoucherImage(imgData, `comprobante_${raffleDetails.title.replace(/\s+/g, '_')}.png`);
+      
+      // If we have a raffleNumberId, upload to storage
+      if (raffleNumberId) {
+        const imageUrl = await uploadVoucherToStorage(imgData, raffleDetails.title, raffleNumberId);
+        
+        if (imageUrl && allRaffleNumberIds.length > 1) {
+          // Update all participant's numbers with the receipt URL
+          await updatePaymentReceiptUrlForNumbers(imageUrl, allRaffleNumberIds);
+        }
+        
+        return imageUrl;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error("❌ Error en saveVoucherForAllNumbers:", error);
+      return null;
+    }
+  };
+
   // Modify the handleDownload function to save the voucher for all numbers
   const handleDownload = async () => {
     try {
       if (!paymentData) {
         console.error("❌ Error: No hay datos de pago disponibles para generar el comprobante");
-        toast.error("Error al generar comprobante. Datos insuficientes.");
+        toast({
+          title: "Error al generar comprobante",
+          description: "Datos insuficientes.",
+          variant: "destructive"
+        });
         return;
       }
       
       // Generate and save the voucher
-      const voucherUrl = await SaveVoucherForAllNumbers(selectedNumbers, paymentData);
+      const voucherUrl = await saveVoucherForAllNumbers(selectedNumbers, paymentData);
       
       if (voucherUrl) {
         // Update all sold numbers with this receipt URL
         await updatePaymentReceiptUrlForAllNumbers(voucherUrl, paymentData);
         
         console.log("✅ Comprobante descargado y guardado con éxito");
-        toast.success("Comprobante descargado y guardado con éxito");
+        toast({
+          title: "Comprobante descargado",
+          description: "Comprobante guardado con éxito",
+        });
       } else {
         console.error("❌ Error al guardar el comprobante de pago");
-        toast.error("Error al guardar el comprobante de pago");
+        toast({
+          title: "Error",
+          description: "Error al guardar el comprobante de pago",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error("❌ Error en handleDownload:", error);
-      toast.error("Error al generar o guardar el comprobante");
+      toast({
+        title: "Error",
+        description: "Error al generar o guardar el comprobante",
+        variant: "destructive"
+      });
     }
   };
   

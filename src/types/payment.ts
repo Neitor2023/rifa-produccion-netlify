@@ -11,5 +11,6 @@ export interface PaymentFormData {
   sugerenciaProducto?: string;
   reporteSospechoso?: string;
   sellerId?: string;
-  paymentReceiptUrl?: string; // Add this field to store the receipt URL
+  paymentReceiptUrl?: string;
+  participantId?: string; // Added this field
 }
