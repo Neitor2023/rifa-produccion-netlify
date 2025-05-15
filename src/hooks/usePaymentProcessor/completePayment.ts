@@ -59,7 +59,7 @@ export function useCompletePayment({
       debugLog('handleCompletePayment', { data, selectedNumbers });
 
       // 1. Verify numbers are still available
-      const unavailableNumbers = await verifyNumbersAvailability(selectedNumbers);
+      const unavailableNumbers = await verifyNumbersAvailability(selectedNumbers, raffleId);
       if (unavailableNumbers.length > 0) {
         toast.error(`Algunos números ya no están disponibles: ${unavailableNumbers.join(', ')}`);
         await refetchRaffleNumbers();
@@ -121,7 +121,7 @@ export function useCompletePayment({
     }
   };
 
-  const verifyNumbersAvailability = async (numbers: string[]): Promise<string[]> => {
+  const verifyNumbersAvailability = async (numbers: string[], raffleId: string): Promise<string[]> => {
     try {
       // Validar que raffleId esté definido
       if (!raffleId) {
