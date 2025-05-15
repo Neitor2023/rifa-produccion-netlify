@@ -343,6 +343,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       if (previewUrl && formData.paymentMethod === 'transfer') {
         formData.paymentProof = previewUrl;
       }
+
+      // Store suspicious activity report in the form data (Fix for issues 1.1 and 2.3)
+      const reporteSospechoso = form.getValues('reporteSospechoso');
+      if (reporteSospechoso && reporteSospechoso.trim() !== '') {
+        formData.reporteSospechoso = reporteSospechoso.trim();
+        console.log("[PaymentModal.tsx] Suspicious activity report added to form data:", reporteSospechoso);
+      }
       
       // IMPORTANTE: Guarde automáticamente el comprobante de pago para todos los números ANTES del envío
       // Esto garantiza que los cupones se guarden incluso si el usuario no abre o ve el modal del cupón.

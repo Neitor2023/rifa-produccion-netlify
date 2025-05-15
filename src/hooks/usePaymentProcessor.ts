@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { ValidatedBuyerInfo } from '@/types/participant';

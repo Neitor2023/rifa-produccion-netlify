@@ -1,98 +1,15 @@
 
-import { useEffect } from 'react';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { UseFormReturn } from "react-hook-form";
+import React from 'react';
+import { UseFormReturn } from 'react-hook-form';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { ValidatedBuyerInfo } from '@/types/participant';
-import PaymentMethodFields from './PaymentMethodFields';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import PaymentUploadZone from './PaymentUploadZone';
-import PaymentNotes from './PaymentNotes';
-import SuspiciousActivityReport from './SuspiciousActivityReport';
-import BuyerInfoFields from './BuyerInfoFields';
-import EditableBuyerFields from './EditableBuyerFields';
-
-function AdditionalInfoSection({ form }: { form: UseFormReturn<PaymentFormData> }) {
-  return (
-    <div>
-      <h3 className="text-base font-medium text-gray-800 dark:text-white mb-3">Información Adicional</h3>
-      <div className="grid grid-cols-1 gap-4">
-        <FormField
-          control={form.control}
-          name="buyerEmail"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input placeholder="Ingrese su email" type="email" {...field} value={field.value || ''} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="direccion"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Dirección</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Ingrese su dirección"
-                  {...field}
-                  value={field.value || ''}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="sugerenciaProducto"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Sugerencia de Producto</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="¿Qué premio le gustaría obtener en futuras rifas?"
-                  className="resize-none"
-                  {...field}
-                  value={field.value || ''}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-    </div>
-  );
-}
-
-function HiddenBuyerFields({ form, readOnlyData }: { form: UseFormReturn<PaymentFormData>; readOnlyData?: ValidatedBuyerInfo | null }) {
-  useEffect(() => {
-    if (readOnlyData) {
-      if (readOnlyData.name)
-        form.setValue("buyerName", readOnlyData.name);
-      if (readOnlyData.phone)
-        form.setValue("buyerPhone", readOnlyData.phone);
-      if (readOnlyData.cedula)
-        form.setValue("buyerCedula", readOnlyData.cedula);
-      if (readOnlyData.email)
-        form.setValue("buyerEmail", readOnlyData.email);
-      if (readOnlyData.direccion)
-        form.setValue("direccion", readOnlyData.direccion);
-      if (readOnlyData.sugerencia_producto)
-        form.setValue("sugerenciaProducto", readOnlyData.sugerencia_producto);
-    }
-  }, [readOnlyData, form]);
-
-  return null;
-}
+import { Separator } from '@/components/ui/separator';
 
 interface PaymentFormFieldsProps {
   form: UseFormReturn<PaymentFormData>;
@@ -102,58 +19,230 @@ interface PaymentFormFieldsProps {
   onFileRemove: () => void;
 }
 
-const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
-  form,
+const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ 
+  form, 
   readOnlyData,
   previewUrl,
   onFileUpload,
   onFileRemove
 }) => {
-  const watchedPaymentMethod = form.watch('paymentMethod');
-
-  useEffect(() => {
-    if (readOnlyData && form) {
-      console.log("Setting form values with readOnlyData:", readOnlyData);
-      if (readOnlyData.name)
-        form.setValue("buyerName", readOnlyData.name);
-      if (readOnlyData.phone)
-        form.setValue("buyerPhone", readOnlyData.phone);
-      if (readOnlyData.cedula)
-        form.setValue("buyerCedula", readOnlyData.cedula);
-      if (readOnlyData.email)
-        form.setValue("buyerEmail", readOnlyData.email);
-      if (readOnlyData.direccion)
-        form.setValue("direccion", readOnlyData.direccion);
-      if (readOnlyData.sugerencia_producto)
-        form.setValue("sugerenciaProducto", readOnlyData.sugerencia_producto);
-    }
-  }, [readOnlyData, form]);
-
+  // Determine if buyer information is pre-filled and should be read-only
+  const hasReadOnlyData = Boolean(readOnlyData);
+  
   return (
     <>
-      {readOnlyData ? (
-        <>
-          <BuyerInfoFields buyerData={readOnlyData} />
-          <HiddenBuyerFields form={form} readOnlyData={readOnlyData} />
-        </>
-      ) : (
-        <EditableBuyerFields form={form} />
-      )}
-
-      <AdditionalInfoSection form={form} />
-      <PaymentNotes form={form} />
-      <SuspiciousActivityReport form={form} />
-      
-      {/* Relocated PaymentUploadZone to appear before PaymentMethodFields when transferencia is selected */}
-      {watchedPaymentMethod === "transfer" && (
-        <PaymentUploadZone
-          previewUrl={previewUrl}
-          onFileUpload={onFileUpload}
-          onFileRemove={onFileRemove}
+      <div className="space-y-4 bg-white/50 dark:bg-gray-800/50 p-4 rounded-md shadow-sm">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Información del Comprador</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="buyerName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base font-medium text-gray-800 dark:text-white">
+                  Nombre <span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Nombre completo"
+                    className="border-gray-300 dark:border-gray-600"
+                    {...field}
+                    readOnly={hasReadOnlyData}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="buyerPhone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base font-medium text-gray-800 dark:text-white">
+                  Teléfono <span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Número de teléfono"
+                    className="border-gray-300 dark:border-gray-600"
+                    {...field}
+                    readOnly={hasReadOnlyData}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+                
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="buyerCedula"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base font-medium text-gray-800 dark:text-white">
+                  Cédula <span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Número de cédula"
+                    className="border-gray-300 dark:border-gray-600"
+                    {...field}
+                    readOnly={hasReadOnlyData}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="buyerEmail"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base font-medium text-gray-800 dark:text-white">
+                  Correo electrónico <span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    placeholder="tucorreo@ejemplo.com"
+                    className="border-gray-300 dark:border-gray-600"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        <FormField
+          control={form.control}
+          name="direccion"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base font-medium text-gray-800 dark:text-white">
+                Dirección <span className="text-red-500">*</span>
+              </FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Ingrese su dirección completa"
+                  className="resize-none border-gray-300 dark:border-gray-600"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      )}
-      
-      <PaymentMethodFields form={form} />
+        
+        <FormField
+          control={form.control}
+          name="sugerenciaProducto"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base font-medium text-gray-800 dark:text-white">
+                Sugerencia de Producto
+              </FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="¿Hay algún producto que le gustaría ver en nuestra próxima rifa?"
+                  className="resize-none border-gray-300 dark:border-gray-600"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="space-y-4 bg-white/50 dark:bg-gray-800/50 p-4 rounded-md shadow-sm">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Método de Pago</h3>
+        
+        <FormField
+          control={form.control}
+          name="paymentMethod"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  className="flex flex-col space-y-1"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="cash" id="cash" />
+                    <Label htmlFor="cash" className="text-base text-gray-800 dark:text-white">Efectivo</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="transfer" id="transfer" />
+                    <Label htmlFor="transfer" className="text-base text-gray-800 dark:text-white">Transferencia bancaria</Label>
+                  </div>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        {form.watch('paymentMethod') === 'transfer' && (
+          <PaymentUploadZone
+            previewUrl={previewUrl}
+            onFileUpload={onFileUpload}
+            onFileRemove={onFileRemove}
+          />
+        )}
+
+        <Separator className="my-4" />
+
+        {/* Added: reporteSospechoso field */}
+        <FormField
+          control={form.control}
+          name="reporteSospechoso"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base font-medium text-gray-800 dark:text-white">
+                Reporte de actividad sospechosa
+              </FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Indique aquí si notó alguna actividad sospechosa o irregularidad"
+                  className="resize-none border-gray-300 dark:border-gray-600"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="nota"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base font-medium text-gray-800 dark:text-white">
+                Nota adicional
+              </FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Alguna nota adicional para este pago"
+                  className="resize-none border-gray-300 dark:border-gray-600"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
     </>
   );
 };

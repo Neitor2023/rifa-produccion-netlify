@@ -1,23 +1,25 @@
 
 import { z } from 'zod';
 
-export const paymentFormSchema = z.object({
-  buyerName: z.string().min(3, { message: "Nombre debe tener al menos 3 caracteres" }),
-  buyerPhone: z.string().min(10, { message: "Teléfono debe tener al menos 10 caracteres" }),
-  buyerEmail: z.string().email({ message: "Email inválido" }).optional().or(z.literal('')),
-  buyerCedula: z.string().min(5, { message: "Cédula/DNI debe tener al menos 5 caracteres" }),
-  paymentMethod: z.enum(["cash", "transfer"], { 
-    required_error: "Seleccione un método de pago" 
+// Define the schema for payment form validation
+export const PaymentFormSchema = z.object({
+  buyerName: z.string().min(1, { message: "Nombre es requerido" }),
+  buyerPhone: z.string().min(1, { message: "Teléfono es requerido" }),
+  buyerCedula: z.string().min(1, { message: "Cédula es requerida" }),
+  buyerEmail: z.string().email({ message: "Correo electrónico no válido" }).optional().or(z.literal('')),
+  direccion: z.string().min(1, { message: "Dirección es requerida" }).optional().or(z.literal('')),
+  sugerenciaProducto: z.string().optional().or(z.literal('')),
+  paymentMethod: z.enum(["cash", "transfer"], {
+    required_error: "Seleccione un método de pago",
   }),
-  paymentProof: z.any().optional(),
-  nota: z.string().optional(),
-  direccion: z.string().optional(),
-  sugerenciaProducto: z.string().optional(),
-  reporteSospechoso: z.string().optional(),
+  paymentProof: z.any().optional(), // File object or string URL
+  nota: z.string().optional().or(z.literal('')),
+  reporteSospechoso: z.string().optional().or(z.literal('')),
+  sellerId: z.string().optional(),
+  participantId: z.string().optional(),
+  clickedButtonType: z.string().optional(),
   paymentReceiptUrl: z.string().optional(),
-  participantId: z.string().optional(), // Field to store the participant ID
-  sellerId: z.string().optional(), // Field to store the seller ID
-  clickedButtonType: z.string().optional() // Field to identify which button was clicked
 });
 
-export type PaymentFormData = z.infer<typeof paymentFormSchema>;
+// Export the interface based on the schema
+export type PaymentFormData = z.infer<typeof PaymentFormSchema>;

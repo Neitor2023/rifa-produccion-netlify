@@ -1,9 +1,7 @@
 
 import React from 'react';
-import { QRCodeSVG } from 'qrcode.react';
-import { Card } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { PaymentFormData } from '@/components/PaymentModal';
+import { QRCode } from 'react-qrcode';
+import { PaymentFormData } from '@/schemas/paymentFormSchema';
 
 interface VoucherContentProps {
   printRef: React.RefObject<HTMLDivElement>;
@@ -20,6 +18,7 @@ interface VoucherContentProps {
   qrUrl: string;
   textColor: string;
   numberId?: string;
+  paymentProofImage?: string | null;  // Added paymentProofImage prop
 }
 
 const VoucherContent: React.FC<VoucherContentProps> = ({
@@ -31,84 +30,86 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
   raffleDetails,
   qrUrl,
   textColor,
-  numberId
+  numberId,
+  paymentProofImage  // Add the new prop
 }) => {
-  // Calculate total amount
-  const totalAmount = raffleDetails?.price ? raffleDetails.price * selectedNumbers.length : 0;
+  // Calculate total to display
+  const totalAmount = raffleDetails ? (raffleDetails.price * selectedNumbers.length) : 0;
 
   return (
     <div ref={printRef} className="print-content p-1">
-      <Card className="p-6 mb-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
+      <div className="p-6 mb-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
         <div className="flex flex-col space-y-4">
-          {/* Raffle Details */}
           <div className="border-b border-gray-200 dark:border-gray-700 pb-4">
             <h3 className="font-bold text-xl mb-2 text-purple-700 dark:text-purple-400 text-center">
-              {raffleDetails?.title || 'Rifa'}
+              {raffleDetails?.title || 'Comprobante de Rifa'}
             </h3>
             
-            {/* Lottery name - moved here and centered */}
-            {raffleDetails?.lottery && (
+            {raffleDetails?.lottery ? (
               <div className="w-full text-center font-semibold text-gray-700 dark:text-gray-300 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">
                 {raffleDetails.lottery}
               </div>
-            )}
+            ) : null}
             
-            {/* Buyer Name */}
-            {paymentData?.buyerName && (
+            {paymentData?.buyerName ? (
               <div className="mb-2 text-md font-semibold text-gray-800 dark:text-gray-200">
                 Cliente: {paymentData.buyerName}
               </div>
-            )}
+            ) : null}
             
-            {/* Reorganized layout with two columns */}
             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-900 dark:text-gray-200">
               <div>
-                <span className="font-semibold">Valor por número:</span>{' '}
-                {raffleDetails?.price?.toFixed(2) || 0}
+                <span className="font-semibold">Valor por número:</span> 
+                {raffleDetails ? raffleDetails.price.toFixed(2) : '0.00'}
               </div>
               <div>
-                <span className="font-semibold">Total pagado:</span>{' '}
+                <span className="font-semibold">Total a pagar:</span> 
                 <span className="font-bold">{totalAmount.toFixed(2)}</span>
               </div>
               <div>
-                <span className="font-semibold">Fecha Emisión:</span>{' '}
+                <span className="font-semibold">Fecha Emisión:</span> 
                 <div className="text-xs">{formattedDate}</div>
               </div>
               <div>
-                <span className="font-semibold">Fecha Sorteo:</span>{' '}
+                <span className="font-semibold">Fecha Sorteo:</span> 
                 <div className="text-xs">
                   {raffleDetails?.dateLottery || '-'}
                 </div>
               </div>
               <div>
-                <span className="font-semibold">Método de pago:</span>{' '}
+                <span className="font-semibold">Método de pago:</span> 
                 {paymentMethod}
               </div>
               <div>
-                <span className="font-semibold">Núm. seleccionados:</span>{' '}
+                <span className="font-semibold">Núm. seleccionados:</span> 
                 {selectedNumbers.length}
               </div>
             </div>
           </div>
 
-          {/* QR Code and Transaction Details in a side-by-side layout */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* QR Code */}
             <div className="flex justify-center items-center">
-              <QRCodeSVG
-                value={qrUrl}
-                size={150}
-                level="H"
-                includeMargin={true}
-              />
+              <div className="h-[150px] w-[150px] bg-white p-2 rounded-lg">
+                <QRCode 
+                  value={qrUrl || 'https://rifamax.com'} 
+                  style={{ width: '100%', height: '100%' }}
+                />
+                {numberId && (
+                  <div className="text-center text-xs text-gray-500 mt-1">
+                    {numberId.slice(0, 8)}
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Numbers box */}
             <div className="flex flex-col justify-center">
               <p className="text-sm font-semibold text-gray-800 dark:text-gray-300 mb-1">Números comprados:</p>
               <div className="flex flex-wrap gap-1 mt-1">
-                {selectedNumbers.map((num) => (
-                  <span key={num} className="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded text-xs font-medium">
+                {selectedNumbers.map(num => (
+                  <span 
+                    key={num}
+                    className="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded text-xs font-medium"
+                  >
                     {num}
                   </span>
                 ))}
@@ -116,13 +117,13 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
             </div>
           </div>
           
-          {/* Payment proof image when payment is by transfer */}
-          {paymentData?.paymentMethod === 'transfer' && paymentData?.paymentProof && typeof paymentData.paymentProof === 'string' && (
+          {/* Fixed 1.3: Include payment proof image */}
+          {paymentProofImage && (
             <div className="border-t border-gray-300 dark:border-gray-700 my-2 pt-2">
               <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-300 mb-2">Comprobante de Transferencia</h3>
               <div className="flex justify-center">
                 <img 
-                  src={paymentData.paymentProof} 
+                  src={paymentProofImage} 
                   alt="Comprobante de pago" 
                   className="w-auto h-auto max-h-[150px] object-contain"
                 />
@@ -134,16 +135,8 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
             <p>Este comprobante valida la compra de los números seleccionados.</p>
             <p>Guárdelo como referencia para futuras consultas.</p>
           </div>
-          
-          {/* In-modal notification instead of toast */}
-          <Alert className="mt-4 bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800">
-            <AlertTitle className="text-green-700 dark:text-green-400">Comprobante Disponible</AlertTitle>
-            <AlertDescription className="text-green-600 dark:text-green-300">
-              Su comprobante ha sido generado correctamente. Puede descargarlo o guardarlo como referencia.
-            </AlertDescription>
-          </Alert>
         </div>
-      </Card>
+      </div>
     </div>
   );
 };
