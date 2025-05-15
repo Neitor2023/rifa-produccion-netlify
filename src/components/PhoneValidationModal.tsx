@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
@@ -300,10 +299,10 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
                 <CardHeader className="py-3 px-4">
                   <DialogTitle
                     onClick={handleNumberSubmit}
-                    tabIndex={0}                // lo hace focoable
-                    role="button"                 // semántica de "botón"
+                    tabIndex={0}                
+                    role="button"                 
                     className="cursor-pointer text-lg text-white font-bold text-center"
-                    onKeyDown={(e) => {           // captura Enter y Barra espaciadora
+                    onKeyDown={(e) => {           
                       if (e.key === 'Enter' || e.key === ' ') {
                         handleNumberSubmit()
                       }
