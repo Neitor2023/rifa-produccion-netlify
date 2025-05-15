@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Dialog, 
@@ -274,7 +273,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             if (updateSuccess) {
               toast({
                 title: "Comprobante guardado automáticamente",
-                description: "El comprobante ha sido almacenado en el sistema para todos los números.",
+                description: "El comprobante ha sido almacenado en el sistema para todos los números."
               });
             }
           } else {
