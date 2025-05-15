@@ -18,7 +18,7 @@ interface VoucherContentProps {
   qrUrl: string;
   textColor: string;
   numberId?: string;
-  paymentProofImage?: string | null;  // Added paymentProofImage prop
+  paymentProofImage?: string | null;
 }
 
 const VoucherContent: React.FC<VoucherContentProps> = ({
@@ -31,7 +31,7 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
   qrUrl,
   textColor,
   numberId,
-  paymentProofImage  // Add the new prop
+  paymentProofImage
 }) => {
   // Calculate total to display
   const totalAmount = raffleDetails ? (raffleDetails.price * selectedNumbers.length) : 0;
@@ -117,7 +117,7 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
             </div>
           </div>
           
-          {/* Fixed 1.3: Include payment proof image */}
+          {/* Include payment proof image if available */}
           {paymentProofImage && (
             <div className="border-t border-gray-300 dark:border-gray-700 my-2 pt-2">
               <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-300 mb-2">Comprobante de Transferencia</h3>

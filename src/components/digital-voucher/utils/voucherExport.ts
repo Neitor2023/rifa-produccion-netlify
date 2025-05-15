@@ -1,6 +1,5 @@
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { ToastVariant } from '@/lib/constants';
 
 export const exportVoucherAsImage = async (
   content: HTMLDivElement | null,
@@ -22,8 +21,7 @@ export const exportVoucherAsImage = async (
     return imgData;
   } catch (error) {
     console.error('[DigitalVoucher.tsx] Error al exportar comprobante:', error);
-    // Fix for toast format - use string format instead of object
-    toast("Error al generar la imagen: No se pudo crear la imagen del comprobante. Intente nuevamente.");
+    toast.error("No se pudo crear la imagen del comprobante. Intente nuevamente.");
     return null;
   }
 };
@@ -34,8 +32,7 @@ export const downloadVoucherImage = (imgData: string, fileName: string): void =>
   link.href = imgData;
   link.click();
   
-  // Fix for toast format
-  toast("¡Descarga exitosa! El comprobante ha sido guardado en tus descargas.");
+  toast.success("¡Descarga exitosa! El comprobante ha sido guardado en tus descargas.");
 };
 
 export const presentVoucherImage = (imgData: string): void => {
@@ -87,8 +84,7 @@ export const presentVoucherImage = (imgData: string): void => {
     `);
     newWindow.document.close();
   } else {
-    // Fix for toast format
-    toast("Error: No se pudo abrir la ventana de presentación. Verifique que no tenga bloqueadores de ventanas emergentes activados.");
+    toast.error("No se pudo abrir la ventana de presentación. Verifique que no tenga bloqueadores de ventanas emergentes activados.");
   }
 };
 
@@ -185,7 +181,7 @@ export const uploadVoucherToStorage = async (
     const imageUrl = urlData.publicUrl;
     console.log('[DigitalVoucher.tsx] Imagen subida a Storage en paymentreceipturl:', imageUrl);
     
-    // Update all raffle_numbers for this purchase
+    // Update the single raffle number with the receipt URL
     console.log('[DigitalVoucher.tsx] Actualizando raffle_numbers.payment_receipt_url para id:', numberId);
     const { error: updateError } = await supabase
       .from('raffle_numbers')
@@ -202,8 +198,7 @@ export const uploadVoucherToStorage = async (
     
   } catch (error) {
     console.error('[DigitalVoucher.tsx] Error al subir comprobante:', error);
-    // Fix for toast format
-    toast("Error al guardar el comprobante: No se pudo guardar el comprobante en el servidor. Intente nuevamente.");
+    toast.error("No se pudo guardar el comprobante en el servidor. Intente nuevamente.");
     return null;
   }
 };

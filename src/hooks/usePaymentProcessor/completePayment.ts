@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { updateNumbersToSold } from './numberStatusUpdates';
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface UseCompletePaymentProps {
   raffleSeller: {
@@ -87,6 +88,7 @@ export function useCompletePayment({
     console.log("✅ usePaymentProcessor: handleCompletePayment iniciado con datos:", {
       numbers: selectedNumbers?.length || 0,
       paymentMethod: data.paymentMethod,
+      clickedButtonType: data.clickedButtonType
     });
 
     try {
@@ -125,7 +127,7 @@ export function useCompletePayment({
       }
       
       // 3. Process participant data
-      // Ensure seller_id is set (fix for issue 2.1)
+      // Ensure seller_id is set
       data.sellerId = raffleSeller.seller_id;
       debugLog('handleCompletePayment - Setting seller_id', { sellerId: data.sellerId });
       
@@ -139,7 +141,6 @@ export function useCompletePayment({
       debugLog('handleCompletePayment - Participant processed', { participantId });
 
       // 4. Update numbers to sold - only for current participant's numbers or new numbers
-      // Fix for issue 1.4 and 2.2
       console.log("🔢 Actualizando números a estado 'vendido'");
       const clickedButton = data.clickedButtonType || "";
       
@@ -161,12 +162,15 @@ export function useCompletePayment({
         }
         
         // Use only the numbers actually reserved by this participant
-        const validNumbersToUpdate = reservedNumbers.map(item => item.number.toString());
+        const validNumbersToUpdate = reservedNumbers.map(item => 
+          item.number.toString().padStart(2, '0')
+        );
         
         // If no reserved numbers found, warn user
         if (validNumbersToUpdate.length === 0) {
           console.warn("⚠️ No reserved numbers found for this participant");
           toast.warning("No se encontraron números reservados para este participante");
+          return;
         } else {
           console.log("✅ Updating payment status for numbers:", validNumbersToUpdate);
           const result = await updateNumbersToSold({
@@ -180,7 +184,7 @@ export function useCompletePayment({
           
           // Handle conflict cases
           if (result && !result.success && result.conflictingNumbers && result.conflictingNumbers.length > 0) {
-            toast.error(`Estos números ya pertenecen a otro participante: ${result.conflictingNumbers.join(', ')}. Por favor elija otros números.`);
+            handleNumberConflict(result.conflictingNumbers);
             return;
           }
         }
@@ -198,12 +202,12 @@ export function useCompletePayment({
         
         // Handle conflict cases
         if (result && !result.success && result.conflictingNumbers && result.conflictingNumbers.length > 0) {
-          toast.error(`Estos números ya pertenecen a otro participante: ${result.conflictingNumbers.join(', ')}. Por favor elija otros números.`);
+          handleNumberConflict(result.conflictingNumbers);
           return;
         }
       }
       
-      // 5. Save suspicious activity report if provided (fix for issues 1.1 and 2.3)
+      // 5. Save suspicious activity report if provided
       if (data.reporteSospechoso && data.reporteSospechoso.trim() !== '') {
         console.log("🚨 Guardando reporte de actividad sospechosa");
         await saveSuspiciousActivityReport(
@@ -219,7 +223,7 @@ export function useCompletePayment({
       // Set payment data for the voucher and close payment modal
       const completePaymentData = {
         ...data,
-        participantId // Add participantId to the payment data (fix for TypeScript error)
+        participantId
       };
       
       setPaymentData(completePaymentData);
@@ -236,6 +240,23 @@ export function useCompletePayment({
       console.error("❌ Error al completar el pago:", error);
       toast.error("Error al procesar el pago. Por favor intente nuevamente.");
     }
+  };
+
+  const handleNumberConflict = (conflictingNumbers: string[]) => {
+    toast.error(
+      `Estos números ya pertenecen a otro participante: ${conflictingNumbers.join(', ')}. Por favor elija otros números.`,
+      {
+        duration: 6000,
+        action: {
+          label: "Entendido",
+          onClick: () => {
+            // Close any open modals and reset state
+            setIsPaymentModalOpen(false);
+            refetchRaffleNumbers();
+          }
+        }
+      }
+    );
   };
 
   const verifyNumbersAvailability = async (numbers: string[], raffleId: string): Promise<string[]> => {
@@ -261,10 +282,10 @@ export function useCompletePayment({
         return [];
       }
       
-      // Check which numbers are unavailable (not available or not sold by current seller)
+      // Check which numbers are unavailable (sold or not sold by current seller)
       const unavailableNumbers = existingNumbers
         .filter(n => n.status === 'sold' || (n.status === 'reserved' && n.seller_id !== raffleSeller.seller_id))
-        .map(n => n.number.toString());
+        .map(n => n.number.toString().padStart(2, '0'));
       
       return unavailableNumbers;
     } catch (error) {

@@ -72,7 +72,7 @@ export const updateNumbersToSold = async ({
     const numbersInts = numbers.map(numStr => parseInt(numStr, 10));
     const { data: existingNumbers, error: checkError } = await supabase
       .from('raffle_numbers')
-      .select('number, participant_id')
+      .select('number, participant_id, status')
       .eq('raffle_id', raffleId)
       .in('number', numbersInts);
 
@@ -83,7 +83,7 @@ export const updateNumbersToSold = async ({
 
     // Verificar si algún número ya pertenece a otro participante
     const conflictingNumbers = existingNumbers
-      ?.filter(n => n.participant_id !== participantId)
+      ?.filter(n => n.participant_id !== participantId && n.status === 'sold')
       .map(n => n.number.toString());
 
     if (conflictingNumbers && conflictingNumbers.length > 0) {
@@ -94,25 +94,25 @@ export const updateNumbersToSold = async ({
     }
 
     // Preparar conjunto de números ya existentes para el participante actual (para evitar duplicados)
-    const existingParticipantNumbers = new Set(
-      existingNumbers
-        ?.filter(n => n.participant_id === participantId)
-        .map(n => n.number.toString())
-    );
+    const existingParticipantNumbers = existingNumbers
+      ?.filter(n => n.participant_id === participantId)
+      .map(n => n.number.toString()) || [];
+    
+    const existingParticipantNumbersSet = new Set(existingParticipantNumbers);
+
+    console.log(`✅ Números ya existentes para el participante ${participantId}:`, existingParticipantNumbers);
 
     // Para los números especificados, procesar según corresponda
     const updatePromises = numbers.map(async (numStr) => {
       const num = parseInt(numStr, 10);
       
-      // Si el número ya existe para este participante, omitir la actualización
-      if (existingParticipantNumbers.has(num.toString())) {
-        console.log(`✅ Número ${numStr} ya pertenece al participante ${participantId}, omitiendo actualización`);
+      // Si el número ya existe para este participante con status "sold", omitir la actualización
+      if (existingParticipantNumbersSet.has(num.toString()) && 
+          existingNumbers.find(n => n.number.toString() === num.toString() && n.status === 'sold')) {
+        console.log(`✅ Número ${numStr} ya vendido al participante ${participantId}, omitiendo actualización`);
         return;
       }
       
-      // Buscar si el número existe en la base de datos
-      const existingNumber = raffleNumbers.find(n => n.number === numStr);
-
       const commonData: {
         status: 'sold';
         seller_id: any;
@@ -130,37 +130,37 @@ export const updateNumbersToSold = async ({
         payment_approved: true,
         reservation_expires_at: null,
         participant_name: participantData.name,
-        participant_phone: formattedPhone, // Use formatted phone number
+        participant_phone: formattedPhone, 
         participant_cedula: participantData.cedula
       };
 
-      // Fix for issue 2.2: Correctly handle proof vs. receipt
+      // Store payment proof in the correct field
       if (paymentProofUrl) {
-        // Store the payment proof in the payment_proof field, not payment_receipt_url
         commonData.payment_proof = paymentProofUrl;
       }
 
-      if (existingNumber) {
-        // **Actualizar** registro existente
-        console.log(`🔄 Actualizando número ${numStr}:`, commonData);
-        
-        // Check if the number belongs to the current participant if in "Pagar Apartados" flow
-        if (existingNumber.status === 'reserved' && existingNumber.participant_id !== participantId) {
-          console.warn(`⚠️ Número ${numStr} está reservado por otro participante, se omite la actualización`);
-          return; // Skip updating this number
-        }
+      // Buscar si el número existe en la base de datos para este participante
+      const existingNumber = existingNumbers?.find(n => 
+        n.number.toString() === numStr && n.participant_id === participantId
+      );
 
+      if (existingNumber) {
+        // Actualizar registro existente
+        console.log(`🔄 Actualizando número ${numStr} para el participante ${participantId}:`, commonData);
+        
         const { error } = await supabase
           .from('raffle_numbers')
           .update(commonData)
-          .eq('id', existingNumber.id);
+          .eq('raffle_id', raffleId)
+          .eq('number', num)
+          .eq('participant_id', participantId);
           
         if (error) {
           console.error(`Error actualizando número ${numStr}:`, error);
           throw error;
         }
       } else {
-        // **Insertar** nuevo registro si no existía
+        // Insertar nuevo registro si no existía
         const insertData = {
           ...commonData,
           raffle_id: raffleId,
