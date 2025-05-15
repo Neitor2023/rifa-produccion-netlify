@@ -1,8 +1,7 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
-import { updateRaffleNumbersToSold } from './numberStatusUpdates';
+import { updateNumbersToSold } from './numberStatusUpdates';
 
 interface UseCompletePaymentProps {
   raffleSeller: {
@@ -169,12 +168,26 @@ export function useCompletePayment({
           toast.warning("No se encontraron números reservados para este participante");
         } else {
           console.log("✅ Updating payment status for numbers:", validNumbersToUpdate);
-          await updateRaffleNumbersToSold(validNumbersToUpdate, participantId, paymentProofUrl, raffleId, raffleSeller.seller_id);
+          await updateNumbersToSold({
+            numbers: validNumbersToUpdate, 
+            participantId, 
+            paymentProofUrl, 
+            raffleNumbers: [], // Passing empty array as it's not used in this context
+            raffleSeller,
+            raffleId
+          });
         }
       } else {
         // For "Pagar Directo", proceed with selected numbers
         console.log("💵 'Pagar Directo' flow - using selected numbers:", selectedNumbers);
-        await updateRaffleNumbersToSold(selectedNumbers, participantId, paymentProofUrl, raffleId, raffleSeller.seller_id);
+        await updateNumbersToSold({
+          numbers: selectedNumbers, 
+          participantId, 
+          paymentProofUrl, 
+          raffleNumbers: [], // Passing empty array as it's not used in this context
+          raffleSeller,
+          raffleId
+        });
       }
       
       // 5. Save suspicious activity report if provided (fix for issues 1.1 and 2.3)
@@ -247,96 +260,6 @@ export function useCompletePayment({
     }
   };
   
-  const updateRaffleNumbersToSold = async (
-    numbers: string[],
-    participantId: string,
-    paymentProofUrl: string | null,
-    raffleId: string,
-    sellerId: string
-  ): Promise<void> => {
-    try {
-      console.log("🔵 Actualizando números a vendidos:", {
-        numbers,
-        participantId,
-        hasProof: !!paymentProofUrl
-      });
-
-      // Get participant data to fill fields
-      const { data: participantData } = await supabase
-        .from('participants')
-        .select('name, phone, email, cedula, direccion')
-        .eq('id', participantId)
-        .single();
-
-      if (!participantData) {
-        throw new Error('No se encontraron datos del participante');
-      }
-
-      const updatePromises = numbers.map(async (numStr) => {
-        // First check if this number exists
-        const { data: existingNumber, error: checkError } = await supabase
-          .from('raffle_numbers')
-          .select('id, status')
-          .eq('raffle_id', raffleId)
-          .eq('number', parseInt(numStr, 10))
-          .maybeSingle();
-
-        if (checkError) {
-          console.error(`Error verificando número ${numStr}:`, checkError);
-          throw checkError;
-        }
-
-        const commonData = {
-          status: 'sold' as const,
-          seller_id: sellerId,
-          participant_id: participantId,
-          payment_proof: paymentProofUrl,
-          payment_approved: true,
-          reservation_expires_at: null,
-          participant_name: participantData.name,
-          participant_phone: participantData.phone,
-          participant_cedula: participantData.cedula
-        };
-
-        if (existingNumber) {
-          // Update existing record
-          console.log(`🔄 Actualizando número ${numStr}:`, commonData);
-          const { error } = await supabase
-            .from('raffle_numbers')
-            .update(commonData)
-            .eq('id', existingNumber.id);
-            
-          if (error) {
-            console.error(`Error actualizando número ${numStr}:`, error);
-            throw error;
-          }
-        } else {
-          // Insert new record if it didn't exist
-          const insertData = {
-            ...commonData,
-            raffle_id: raffleId,
-            number: parseInt(numStr, 10),
-          };
-          console.log(`🆕 Insertando nuevo número ${numStr}:`, insertData);
-          const { error } = await supabase
-            .from('raffle_numbers')
-            .insert(insertData);
-            
-          if (error) {
-            console.error(`Error insertando número ${numStr}:`, error);
-            throw error;
-          }
-        }
-      });
-
-      await Promise.all(updatePromises);
-      console.log("✅ Todos los números actualizados/insertados al estado vendido");
-    } catch (error) {
-      console.error("❌ Error in updateRaffleNumbersToSold:", error);
-      throw error;
-    }
-  };
-
   return {
     handleCompletePayment
   };

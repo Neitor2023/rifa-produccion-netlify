@@ -16,13 +16,16 @@ import { useReservationHandling } from './usePaymentProcessor/reservationHandlin
 import { useCompletePayment } from './usePaymentProcessor/completePayment';
 import { SELLER_ID, RAFFLE_ID } from '@/lib/constants';
 
+// Define a complete seller type to ensure we always pass a fully-formed seller object
+interface CompleteSeller {
+  id: string;
+  seller_id: string;
+  cant_max: number;
+  active: boolean;
+}
+
 interface UsePaymentProcessorProps {
-  raffleSeller: {
-    id: string;
-    seller_id: string;
-    cant_max: number;
-    active: boolean;
-  } | null;
+  raffleSeller: CompleteSeller | null;
   raffleId: string;
   raffleNumbers: any[];
   refetchRaffleNumbers: () => Promise<any>;
@@ -50,30 +53,38 @@ export function usePaymentProcessor({
     console.log("⚠️ Usando RAFFLE_ID de constantes como fallback:", RAFFLE_ID);
   }
 
+  // Create a default complete seller object if one isn't provided
+  const completeSeller: CompleteSeller = raffleSeller || {
+    id: 'default',
+    seller_id: SELLER_ID,
+    cant_max: 100, // Default maximum
+    active: true,
+  };
+
   const { selectedNumbers, setSelectedNumbers } = useSelection();
   const { isPaymentModalOpen, setIsPaymentModalOpen, isVoucherOpen, setIsVoucherOpen } = useModalState();
   const { paymentData, setPaymentData } = usePayment();
-  const { validateSellerMaxNumbers, getSoldNumbersCount } = useSellerValidation(raffleSeller, raffleNumbers, debugMode);
+  const { validateSellerMaxNumbers, getSoldNumbersCount } = useSellerValidation(completeSeller, raffleNumbers, debugMode);
   
   // Use the context instead of local state
   const { buyerInfo, setBuyerInfo } = useBuyerInfo();
   
   const { checkNumbersAvailability } = useNumberAvailability({ 
     raffleNumbers, 
-    raffleSeller, 
+    raffleSeller: completeSeller, 
     setValidatedBuyerData: setBuyerInfo, 
     debugMode 
   });
   
   const { uploadPaymentProof, processParticipant } = usePaymentCompletion({
-    raffleSeller,
+    raffleSeller: completeSeller,
     raffleId,
     setValidatedBuyerData: setBuyerInfo,
     debugMode
   });
   
   const { handleReserveNumbers } = useReservationHandling({
-    raffleSeller,
+    raffleSeller: completeSeller,
     raffleId,
     raffleNumbers,
     refetchRaffleNumbers,
@@ -86,13 +97,12 @@ export function usePaymentProcessor({
   const { findOrCreateParticipant } = useParticipantManager({ 
     raffleId, 
     debugMode, 
-    // Use the constant SELLER_ID as default seller ID
-    raffleSeller: raffleSeller || { seller_id: SELLER_ID },
+    raffleSeller: completeSeller,
     setValidatedBuyerData: setBuyerInfo
   });
 
   const { handleCompletePayment } = useCompletePayment({
-    raffleSeller: raffleSeller || { seller_id: SELLER_ID }, // Use SELLER_ID as fallback
+    raffleSeller: completeSeller,
     raffleId,
     selectedNumbers,
     refetchRaffleNumbers,
