@@ -5,7 +5,7 @@ import {
   DialogContent, 
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { PaymentFormData } from './PaymentModal';
+import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { useTheme } from '@/components/ThemeProvider';
 import { useToast } from '@/hooks/use-toast';
 
@@ -76,11 +76,27 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         // Convert selected numbers to integers for proper database comparison
         const selectedNumberInts = selectedNumbers.map(num => parseInt(num, 10));
         
-        // Query to get IDs of all selected numbers
-        const { data, error } = await supabase
+        // Determine if we need to filter by participant ID based on the button type
+        const isPayingReserved = paymentData?.clickedButtonType === "Pagar Apartados";
+        const currentParticipantId = paymentData?.participantId || null;
+        
+        console.log('[DigitalVoucher.tsx] Flow type:', isPayingReserved ? 'Pagar Apartados' : 'Pagar Directo');
+        console.log('[DigitalVoucher.tsx] Current participant ID:', currentParticipantId);
+        
+        // Base query
+        let query = supabase
           .from('raffle_numbers')
           .select('id, number, participant_id')
           .in('number', selectedNumberInts);
+          
+        // If paying reserved numbers, filter by participant ID
+        if (isPayingReserved && currentParticipantId) {
+          query = query.eq('participant_id', currentParticipantId);
+          console.log('[DigitalVoucher.tsx] Filtering by participant ID:', currentParticipantId);
+        }
+        
+        // Execute query
+        const { data, error } = await query;
         
         if (error) {
           console.error('[DigitalVoucher.tsx] Error fetching raffle number IDs:', error);
@@ -101,6 +117,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
           
           setIsRaffleNumberRetrieved(true);
           console.log('[DigitalVoucher.tsx] Raffle number IDs fetched:', ids);
+          console.log('[DigitalVoucher.tsx] Participant ID set to:', data[0].participant_id);
         } else {
           console.error('[DigitalVoucher.tsx] No se encontraron IDs para los números seleccionados');
         }
@@ -110,12 +127,14 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     };
     
     fetchRaffleNumberIds();
-  }, [isOpen, selectedNumbers]);
+  }, [isOpen, selectedNumbers, paymentData]);
   
   // Fetch all numbers belonging to the participant
   useEffect(() => {
     const fetchAllParticipantNumbers = async () => {
-      if (!participantId) return;
+      // Only fetch all participant numbers if we're in "Pagar Directo" flow
+      // For "Pagar Apartados" we already filtered by participant ID
+      if (!participantId || paymentData?.clickedButtonType === "Pagar Apartados") return;
       
       try {
         console.log('[DigitalVoucher.tsx] Buscando todos los números del participante:', participantId);
@@ -143,7 +162,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     };
     
     fetchAllParticipantNumbers();
-  }, [participantId, allRaffleNumberIds]);
+  }, [participantId, allRaffleNumberIds, paymentData]);
   
   // Generate the receipt URL for the QR code
   useEffect(() => {
@@ -168,41 +187,61 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   };
 
   // Add this function to the component, before the return statement
-  const updatePaymentReceiptUrlForAllNumbers = async (voucherUrl: string, paymentData: PaymentFormData) => {
+  const updatePaymentReceiptUrlForAllNumbers = async (voucherUrl: string): Promise<boolean> => {
     if (!voucherUrl || !paymentData || !paymentData.participantId) {
       console.error("❌ Error: Datos insuficientes para actualizar comprobante de pago");
       return false;
     }
     
     try {
-      // Find all sold numbers for this participant
-      const { data: soldNumbers, error: fetchError } = await supabase
-        .from('raffle_numbers')
-        .select('id')
-        .eq('participant_id', paymentData.participantId)
-        .eq('status', 'sold');
+      // For "Pagar Apartados" flow, only update numbers in the allRaffleNumberIds array
+      if (paymentData.clickedButtonType === "Pagar Apartados") {
+        console.log(`📋 Actualizando recibo para números específicos: ${allRaffleNumberIds.length} números`);
         
-      if (fetchError) {
-        console.error("❌ Error al buscar números vendidos:", fetchError);
-        return false;
-      }
-      
-      if (!soldNumbers || soldNumbers.length === 0) {
-        console.error("❌ No se encontraron números vendidos para actualizar el recibo");
-        return false;
-      }
-      
-      console.log(`📋 Actualizando recibo de pago para ${soldNumbers.length} números vendidos`);
-      
-      // Update all records with the payment receipt URL
-      const { error: updateError } = await supabase
-        .from('raffle_numbers')
-        .update({ payment_receipt_url: voucherUrl })
-        .in('id', soldNumbers.map(n => n.id));
+        if (allRaffleNumberIds.length === 0) {
+          return false;
+        }
         
-      if (updateError) {
-        console.error("❌ Error al actualizar recibo de pago:", updateError);
-        return false;
+        const { error } = await supabase
+          .from('raffle_numbers')
+          .update({ payment_receipt_url: voucherUrl })
+          .in('id', allRaffleNumberIds);
+          
+        if (error) {
+          console.error("❌ Error al actualizar recibo de pago:", error);
+          return false;
+        }
+      } else {
+        // For "Pagar Directo" flow, update all sold numbers for this participant
+        console.log("📋 Actualizando recibo para todos los números del participante");
+        
+        const { data: soldNumbers, error: fetchError } = await supabase
+          .from('raffle_numbers')
+          .select('id')
+          .eq('participant_id', paymentData.participantId)
+          .eq('status', 'sold');
+          
+        if (fetchError) {
+          console.error("❌ Error al buscar números vendidos:", fetchError);
+          return false;
+        }
+        
+        if (!soldNumbers || soldNumbers.length === 0) {
+          console.error("❌ No se encontraron números vendidos para actualizar el recibo");
+          return false;
+        }
+        
+        console.log(`📋 Actualizando recibo de pago para ${soldNumbers.length} números vendidos`);
+        
+        const { error: updateError } = await supabase
+          .from('raffle_numbers')
+          .update({ payment_receipt_url: voucherUrl })
+          .in('id', soldNumbers.map(n => n.id));
+          
+        if (updateError) {
+          console.error("❌ Error al actualizar recibo de pago:", updateError);
+          return false;
+        }
       }
       
       console.log("✅ Recibo de pago actualizado con éxito para todos los números");
@@ -214,10 +253,10 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   };
 
   // Function to save the voucher for all numbers
-  const saveVoucherForAllNumbers = async (selectedNumbers: string[], paymentData: PaymentFormData): Promise<string | null> => {
+  const saveVoucherForAllNumbers = async (): Promise<string | null> => {
     try {
-      if (!printRef.current || !raffleDetails) {
-        console.error("❌ Error: No hay referencia al voucher o detalles de la rifa");
+      if (!printRef.current || !raffleDetails || !paymentData) {
+        console.error("❌ Error: No hay referencia al voucher, detalles de la rifa o datos de pago");
         return null;
       }
       
@@ -264,11 +303,11 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
       }
       
       // Generate and save the voucher
-      const voucherUrl = await saveVoucherForAllNumbers(selectedNumbers, paymentData);
+      const voucherUrl = await saveVoucherForAllNumbers();
       
       if (voucherUrl) {
         // Update all sold numbers with this receipt URL
-        await updatePaymentReceiptUrlForAllNumbers(voucherUrl, paymentData);
+        await updatePaymentReceiptUrlForAllNumbers(voucherUrl);
         
         console.log("✅ Comprobante descargado y guardado con éxito");
         toast({

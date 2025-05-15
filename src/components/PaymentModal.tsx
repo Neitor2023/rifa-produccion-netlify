@@ -82,7 +82,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       // Query to get IDs of existing numbers
       const { data: existingNumbers, error: queryError } = await supabase
         .from('raffle_numbers')
-        .select('id, number')
+        .select('id, number, participant_id')
         .eq('raffle_id', 'fd6bd3bc-d81f-48a9-be58-8880293a0472') // Using RAFFLE_ID constant
         .in('number', selectedNumberInts);
       
@@ -92,6 +92,20 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         // Store IDs of existing numbers
         numberIds.push(...existingNumbers.map(item => item.id));
         console.log('[PaymentModal.tsx] Found existing number IDs:', numberIds);
+        
+        // If this is the "Pagar Apartados" flow, filter only for current participant's numbers
+        if (clickedButton === "Pagar Apartados" && paymentData.participantId) {
+          console.log('[PaymentModal.tsx] Filtering numbers for participant:', paymentData.participantId);
+          const participantNumberIds = existingNumbers
+            .filter(item => item.participant_id === paymentData.participantId)
+            .map(item => item.id);
+            
+          if (participantNumberIds.length > 0) {
+            numberIds.length = 0; // Clear the array
+            numberIds.push(...participantNumberIds); // Add only participant's numbers
+            console.log('[PaymentModal.tsx] Filtered to participant number IDs:', numberIds);
+          }
+        }
       } else {
         console.log('[PaymentModal.tsx] No existing numbers found, receipt will be created but associated later');
       }
@@ -321,6 +335,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       const formData = form.getValues();
       
       console.log(`[PaymentModal.tsx] Processing submission with button type: ${clickedButton}`);
+      
+      // Store the button type in the form data for later use
+      formData.clickedButtonType = clickedButton;
       
       // Ensure payment proof is included in the form data if it exists
       if (previewUrl && formData.paymentMethod === 'transfer') {

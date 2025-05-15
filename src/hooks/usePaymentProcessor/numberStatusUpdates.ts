@@ -47,6 +47,7 @@ export const updateNumbersToSold = async ({
       seller_id: raffleSeller.seller_id,
       participant_id: participantId,
       payment_proof: paymentProofUrl || existingNumber?.payment_proof || null,
+      payment_receipt_url: paymentProofUrl || existingNumber?.payment_receipt_url || null, // Set payment_receipt_url to the same value as payment_proof if not already set
       payment_approved: true,
       reservation_expires_at: null,
       participant_name: participantData.name,
