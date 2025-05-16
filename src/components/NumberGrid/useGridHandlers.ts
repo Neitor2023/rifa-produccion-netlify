@@ -107,13 +107,14 @@ export const useGridHandlers = ({
     const maxAvailableNumbers = raffleSeller.cant_max;
 toast.success(
   <div>
-    🔍 Validando con:<br/>
-    {/* aquí podrías agregar un nombre o teléfono dinámicamente */}
+    {"🔍 Validando con:"}<br/>
+    {/* Aquí podrías agregar dinámicamente un nombre o número */}
   </div>,
   {
-    duration: 10000 // este toast concreto dura 10 segundos
+    duration: 10000
   }
 );
+
     
     // Calcule los números restantes disponibles según los números totales (si se proporcionan) o el máximo del vendedor
     let remainingAvailable: number;
