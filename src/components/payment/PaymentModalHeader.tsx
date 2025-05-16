@@ -1,21 +1,30 @@
 
 import React from 'react';
-import {
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Card, CardHeader } from "@/components/ui/card";
+import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-export const PaymentModalHeader = () => {
+interface PaymentModalHeaderProps {
+  onClose?: () => void;
+}
+
+export const PaymentModalHeader: React.FC<PaymentModalHeaderProps> = ({ onClose }) => {
   return (
-    <DialogHeader className="pt-6">
-      <Card className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0">
-        <CardHeader className="py-3 px-4">
-          <DialogTitle className="text-xl text-white font-bold text-center">
-            Completa Los Datos Para Continuar
-          </DialogTitle>
-        </CardHeader>
-      </Card>
+    <DialogHeader className="relative pb-2 border-b border-gray-200 dark:border-gray-700">
+      <DialogTitle className="text-lg font-bold text-gray-800 dark:text-white">
+        Completar Pago
+      </DialogTitle>
+      {onClose && (
+        <Button 
+          type="button"
+          variant="ghost" 
+          className="absolute right-0 top-0 rounded-full w-8 h-8 p-0" 
+          onClick={onClose}
+        >
+          <X className="h-5 w-5 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" />
+          <span className="sr-only">Cerrar</span>
+        </Button>
+      )}
     </DialogHeader>
   );
 };
