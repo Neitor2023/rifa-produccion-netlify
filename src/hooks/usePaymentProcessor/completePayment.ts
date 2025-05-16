@@ -3,7 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { updateNumbersToSold } from './numberStatusUpdates';
-import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { getSellerUuidFromCedula } from '../useRaffleData/useSellerIdMapping';
 
 interface UseCompletePaymentProps {
@@ -214,8 +213,11 @@ export function useCompletePayment({
       const verificationResult = await verifyNumbersNotSoldByOthers(selectedNumbers);
       if (!verificationResult.success && verificationResult.conflictingNumbers && verificationResult.conflictingNumbers.length > 0) {
         console.error("❌ Conflicto de venta simultánea detectado. Números afectados:", verificationResult.conflictingNumbers);
-        handleNumberConflict(verificationResult.conflictingNumbers);
-        return;
+        // Instead of using toast, we'll let the parent component handle displaying the conflict modal
+        return { 
+          success: false, 
+          conflictingNumbers: verificationResult.conflictingNumbers 
+        };
       }
 
       // 2. Upload payment proof if payment method is transfer
@@ -295,8 +297,10 @@ export function useCompletePayment({
           
           // Handle conflict cases
           if (result && !result.success && result.conflictingNumbers && result.conflictingNumbers.length > 0) {
-            handleNumberConflict(result.conflictingNumbers);
-            return;
+            return {
+              success: false,
+              conflictingNumbers: result.conflictingNumbers
+            };
           }
         }
       } else {
@@ -322,8 +326,10 @@ export function useCompletePayment({
           .map(n => n.number.toString().padStart(2, '0'));
           
         if (conflictingNumbers && conflictingNumbers.length > 0) {
-          handleNumberConflict(conflictingNumbers);
-          return;
+          return {
+            success: false,
+            conflictingNumbers
+          };
         }
         
         // Proceed with the update
@@ -341,8 +347,10 @@ export function useCompletePayment({
         
         // Handle conflict cases
         if (result && !result.success && result.conflictingNumbers && result.conflictingNumbers.length > 0) {
-          handleNumberConflict(result.conflictingNumbers);
-          return;
+          return {
+            success: false,
+            conflictingNumbers: result.conflictingNumbers
+          };
         }
       }
       
@@ -375,27 +383,13 @@ export function useCompletePayment({
       } else {
         toast.success("Pago completado exitosamente");
       }
+      
+      return { success: true };
     } catch (error) {
       console.error("❌ Error al completar el pago:", error);
       toast.error("Error al procesar el pago. Por favor intente nuevamente.");
+      return { success: false };
     }
-  };
-
-  const handleNumberConflict = (conflictingNumbers: string[]) => {
-    toast.error(
-      `Uno o más de los números seleccionados ya han sido vendidos por otro vendedor: ${conflictingNumbers.join(', ')}. Por favor elija otros números.`,
-      {
-        duration: 6000,
-        action: {
-          label: "Entendido",
-          onClick: () => {
-            // Close any open modals and reset state
-            setIsPaymentModalOpen(false);
-            refetchRaffleNumbers();
-          }
-        }
-      }
-    );
   };
 
   const verifyNumbersAvailability = async (numbers: string[], raffleId: string): Promise<string[]> => {
