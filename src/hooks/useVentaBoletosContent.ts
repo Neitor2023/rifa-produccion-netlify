@@ -52,6 +52,11 @@ export function useVentaBoletosContent() {
     isVoucherOpen,
     setIsVoucherOpen,
     paymentData,
+    isConflictModalOpen,
+    setIsConflictModalOpen,
+    conflictingNumbers,
+    setConflictingNumbers,
+    handleConflictModalClose,
     handleReserveNumbers,
     handleProceedToPayment,
     handlePayReservedNumbers,
@@ -122,6 +127,9 @@ export function useVentaBoletosContent() {
     isVoucherOpen,
     setIsVoucherOpen,
     paymentData,
+    isConflictModalOpen,
+    conflictingNumbers,
+    handleConflictModalClose,
     
     // Handlers
     handleReserveNumbers,

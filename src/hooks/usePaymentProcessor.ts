@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -65,6 +66,10 @@ export function usePaymentProcessor({
   const { paymentData, setPaymentData } = usePayment();
   const { validateSellerMaxNumbers, getSoldNumbersCount } = useSellerValidation(completeSeller, raffleNumbers, debugMode);
   
+  // State for number conflict modal
+  const [isConflictModalOpen, setIsConflictModalOpen] = useState(false);
+  const [conflictingNumbers, setConflictingNumbers] = useState<string[]>([]);
+  
   // Use the context instead of local state
   const { buyerInfo, setBuyerInfo } = useBuyerInfo();
   
@@ -100,7 +105,7 @@ export function usePaymentProcessor({
     setValidatedBuyerData: setBuyerInfo
   });
 
-  const { handleCompletePayment } = useCompletePayment({
+  const { handleCompletePayment, verifyNumbersNotSoldByOthers } = useCompletePayment({
     raffleSeller: completeSeller,
     raffleId,
     selectedNumbers,
@@ -121,71 +126,12 @@ export function usePaymentProcessor({
     }
   };
 
-  // Enhanced function for verifying numbers not sold by other sellers
-  const verifyNumbersNotSoldByOthers = async (numbers: string[]): Promise<boolean> => {
-    console.log("🔍 usePaymentProcessor: Verificando si los números están vendidos por otros vendedores:", numbers);
-    
-    try {
-      if (!numbers || numbers.length === 0) {
-        return true;
-      }
-      
-      // Validar que raffleId esté definido
-      if (!raffleId) {
-        console.error("❌ Error: raffleId está undefined en verifyNumbersNotSoldByOthers. Abortando ejecución.");
-        toast.error("Error de validación: ID de rifa no disponible.");
-        return false;
-      }
-      
-      // Convert strings to integers for database query
-      const numberInts = numbers.map(num => parseInt(num, 10));
-      
-      debugLog("verifyNumbersNotSoldByOthers", {
-        numbers,
-        numberInts,
-        raffleId,
-        sellerId: raffleSeller?.seller_id || SELLER_ID
-      });
-      
-      // Check if any of these numbers are sold by another seller
-      const { data: soldByOthers, error } = await supabase
-        .from('raffle_numbers')
-        .select('number, seller_id')
-        .eq('raffle_id', raffleId)
-        .in('number', numberInts)
-        .eq('status', 'sold');
-      
-      if (error) {
-        console.error("❌ usePaymentProcessor: Error al verificar números vendidos:", error);
-        throw error;
-      }
-      
-      debugLog("verifyNumbersNotSoldByOthers - query result", { soldByOthers });
-      
-      if (soldByOthers && soldByOthers.length > 0) {
-        // Filter to only include numbers sold by other sellers
-        const soldByOtherSellers = soldByOthers.filter(
-          item => item.seller_id !== (raffleSeller?.seller_id || SELLER_ID)
-        );
-        
-        debugLog("verifyNumbersNotSoldByOthers - filtered result", { 
-          soldByOtherSellers,
-          currentSellerId: raffleSeller?.seller_id || SELLER_ID
-        });
-        
-        if (soldByOtherSellers && soldByOtherSellers.length > 0) {
-          const soldNumbers = soldByOtherSellers.map(item => item.number).join(', ');
-          toast.error(`Número(s) ${soldNumbers} ya han sido vendidos por otro vendedor. Por favor elija otros números.`);
-          return false;
-        }
-      }
-      
-      return true;
-    } catch (error) {
-      console.error("❌ usePaymentProcessor: Error en verifyNumbersNotSoldByOthers:", error);
-      toast.error("Error al verificar disponibilidad de números");
-      return false;
-    }
+  const handleConflictModalClose = () => {
+    setIsConflictModalOpen(false);
+    setConflictingNumbers([]);
+    setSelectedNumbers([]);
+    setIsPaymentModalOpen(false);
+    refetchRaffleNumbers();
   };
 
   const handleProceedToPayment = async (numbers: string[], participantData?: ValidatedBuyerInfo, clickedButton?: string) => {
@@ -219,8 +165,14 @@ export function usePaymentProcessor({
 
       // For "Pagar Directo", we need to verify that numbers are not sold by other sellers
       if (clickedButton === "Pagar") {
-        const notSoldByOthers = await verifyNumbersNotSoldByOthers(numbers);
-        if (!notSoldByOthers) {
+        const verificationResult = await verifyNumbersNotSoldByOthers(numbers);
+        if (!verificationResult.success) {
+          if (verificationResult.conflictingNumbers && verificationResult.conflictingNumbers.length > 0) {
+            setConflictingNumbers(verificationResult.conflictingNumbers);
+            setIsConflictModalOpen(true);
+          } else {
+            toast.error(`Los números seleccionados no están disponibles. Por favor elija otros números.`);
+          }
           return;
         }
       }
@@ -228,7 +180,8 @@ export function usePaymentProcessor({
       // Check availability with proper number type conversion
       const unavailableNumbers = await checkNumbersAvailability(numbers);
       if (unavailableNumbers.length > 0) {
-        toast.error(`Los números ${unavailableNumbers.join(', ')} no están disponibles`);
+        setConflictingNumbers(unavailableNumbers);
+        setIsConflictModalOpen(true);
         return;
       }
       
@@ -278,6 +231,18 @@ export function usePaymentProcessor({
     }
 
     try {
+      // Verify numbers are still available and not sold by others
+      const verificationResult = await verifyNumbersNotSoldByOthers(numbers);
+      if (!verificationResult.success) {
+        if (verificationResult.conflictingNumbers && verificationResult.conflictingNumbers.length > 0) {
+          setConflictingNumbers(verificationResult.conflictingNumbers);
+          setIsConflictModalOpen(true);
+        } else {
+          toast.error(`Los números reservados ya no están disponibles. Por favor elija otros números.`);
+        }
+        return;
+      }
+      
       setBuyerInfo(participantData);
       setSelectedNumbers(numbers);
       
@@ -299,6 +264,11 @@ export function usePaymentProcessor({
     setIsVoucherOpen,
     paymentData,
     setPaymentData,
+    isConflictModalOpen,
+    setIsConflictModalOpen,
+    conflictingNumbers,
+    setConflictingNumbers,
+    handleConflictModalClose,
     debugMode,
     handleReserveNumbers,
     handleProceedToPayment,

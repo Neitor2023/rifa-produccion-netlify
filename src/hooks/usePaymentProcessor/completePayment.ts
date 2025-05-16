@@ -99,6 +99,76 @@ export function useCompletePayment({
     }
   };
 
+  // New function to verify numbers are still available and not sold by other sellers
+  const verifyNumbersNotSoldByOthers = async (numbers: string[]): Promise<{success: boolean; conflictingNumbers?: string[]}> => {
+    console.log("🔍 Verificando si los números han sido vendidos por otros vendedores:", numbers);
+    
+    try {
+      if (!numbers || numbers.length === 0) {
+        return { success: true };
+      }
+      
+      // Validar que raffleId esté definido
+      if (!raffleId) {
+        console.error("❌ Error: raffleId está undefined en verifyNumbersNotSoldByOthers. Abortando ejecución.");
+        return { success: false, conflictingNumbers: [] };
+      }
+      
+      // Convert strings to integers for database query
+      const numberInts = numbers.map(num => parseInt(num, 10));
+      
+      debugLog("verifyNumbersNotSoldByOthers - input data", {
+        numbers,
+        numberInts,
+        raffleId,
+        sellerIdInRequest: raffleSeller?.seller_id
+      });
+      
+      // Check if any of these numbers are sold by another seller
+      const { data: soldNumbers, error } = await supabase
+        .from('raffle_numbers')
+        .select('number, seller_id, status')
+        .eq('raffle_id', raffleId)
+        .in('number', numberInts);
+      
+      if (error) {
+        console.error("❌ Error al verificar números vendidos:", error);
+        return { success: false, conflictingNumbers: [] };
+      }
+      
+      debugLog("verifyNumbersNotSoldByOthers - query result", { soldNumbers });
+      
+      if (soldNumbers && soldNumbers.length > 0) {
+        // Find numbers that are sold (by any seller) or reserved by other sellers
+        const conflictingItems = soldNumbers.filter(
+          item => item.status === 'sold' || 
+                 (item.status === 'reserved' && 
+                  item.seller_id !== raffleSeller?.seller_id)
+        );
+        
+        // Extract just the numbers from the conflicting items
+        const conflictingNumbers = conflictingItems.map(item => 
+          String(item.number).padStart(2, '0')
+        );
+        
+        debugLog("verifyNumbersNotSoldByOthers - conflicts found", { 
+          conflictingItems,
+          conflictingNumbers,
+          currentSellerId: raffleSeller?.seller_id
+        });
+        
+        if (conflictingNumbers && conflictingNumbers.length > 0) {
+          return { success: false, conflictingNumbers };
+        }
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error("❌ Error en verifyNumbersNotSoldByOthers:", error);
+      return { success: false, conflictingNumbers: [] };
+    }
+  };
+
   const handleCompletePayment = async (data: PaymentFormData) => {
     console.log("✅ usePaymentProcessor: handleCompletePayment iniciado con datos:", {
       numbers: selectedNumbers?.length || 0,
@@ -139,14 +209,15 @@ export function useCompletePayment({
         }
       }
 
-      // 1. Verify numbers are still available
-      const unavailableNumbers = await verifyNumbersAvailability(selectedNumbers, raffleId);
-      if (unavailableNumbers.length > 0) {
-        toast.error(`Algunos números ya no están disponibles: ${unavailableNumbers.join(', ')}`);
-        await refetchRaffleNumbers();
+      // CRITICAL VALIDATION: Check if any numbers have been sold by other sellers
+      // This must be performed before any database operations
+      const verificationResult = await verifyNumbersNotSoldByOthers(selectedNumbers);
+      if (!verificationResult.success && verificationResult.conflictingNumbers && verificationResult.conflictingNumbers.length > 0) {
+        console.error("❌ Conflicto de venta simultánea detectado. Números afectados:", verificationResult.conflictingNumbers);
+        handleNumberConflict(verificationResult.conflictingNumbers);
         return;
       }
-      
+
       // 2. Upload payment proof if payment method is transfer
       let paymentProofUrl: string | null = null;
       if (data.paymentMethod === 'transfer') {
@@ -312,7 +383,7 @@ export function useCompletePayment({
 
   const handleNumberConflict = (conflictingNumbers: string[]) => {
     toast.error(
-      `Estos números ya pertenecen a otro participante: ${conflictingNumbers.join(', ')}. Por favor elija otros números.`,
+      `Uno o más de los números seleccionados ya han sido vendidos por otro vendedor: ${conflictingNumbers.join(', ')}. Por favor elija otros números.`,
       {
         duration: 6000,
         action: {
@@ -363,6 +434,7 @@ export function useCompletePayment({
   };
   
   return {
-    handleCompletePayment
+    handleCompletePayment,
+    verifyNumbersNotSoldByOthers
   };
 }

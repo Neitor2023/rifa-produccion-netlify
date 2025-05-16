@@ -29,6 +29,9 @@ const VentaBoletosContent: React.FC = () => {
     isVoucherOpen,
     setIsVoucherOpen,
     paymentData,
+    isConflictModalOpen,
+    conflictingNumbers,
+    handleConflictModalClose,
     
     // Handlers - Manipuladores
     handleReserveNumbers,
@@ -85,6 +88,9 @@ const VentaBoletosContent: React.FC = () => {
         } : undefined}
         clickedButton={clickedButton}
         organization={organization}
+        isConflictModalOpen={isConflictModalOpen}
+        conflictingNumbers={conflictingNumbers}
+        onConflictModalClose={handleConflictModalClose}
       />
     </>
   );

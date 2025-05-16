@@ -1,6 +1,7 @@
 
 import React from 'react';
 import RaffleModals from '@/components/raffle/RaffleModals';
+import NumberConflictModal from '@/components/NumberConflictModal';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { Organization } from '@/lib/constants/types';
@@ -25,6 +26,9 @@ interface VentaBoletosModalsProps {
   };
   clickedButton?: string;
   organization?: Organization | null;
+  isConflictModalOpen?: boolean;
+  conflictingNumbers?: string[];
+  onConflictModalClose?: () => void;
 }
 
 const VentaBoletosModals: React.FC<VentaBoletosModalsProps> = ({
@@ -41,25 +45,37 @@ const VentaBoletosModals: React.FC<VentaBoletosModalsProps> = ({
   allowVoucherPrint,
   raffleDetails,
   clickedButton,
-  organization
+  organization,
+  isConflictModalOpen = false,
+  conflictingNumbers = [],
+  onConflictModalClose = () => {}
 }) => {
   return (
-    <RaffleModals 
-      isPaymentModalOpen={isPaymentModalOpen}
-      setIsPaymentModalOpen={setIsPaymentModalOpen}
-      isVoucherOpen={isVoucherOpen}
-      setIsVoucherOpen={setIsVoucherOpen}
-      selectedNumbers={selectedNumbers}
-      rafflePrice={rafflePrice}
-      paymentData={paymentData}
-      onCompletePayment={onCompletePayment}
-      buyerInfo={buyerInfo}
-      debugMode={debugMode}
-      allowVoucherPrint={allowVoucherPrint}
-      raffleDetails={raffleDetails}
-      clickedButton={clickedButton}
-      organization={organization}
-    />
+    <>
+      <RaffleModals 
+        isPaymentModalOpen={isPaymentModalOpen}
+        setIsPaymentModalOpen={setIsPaymentModalOpen}
+        isVoucherOpen={isVoucherOpen}
+        setIsVoucherOpen={setIsVoucherOpen}
+        selectedNumbers={selectedNumbers}
+        rafflePrice={rafflePrice}
+        paymentData={paymentData}
+        onCompletePayment={onCompletePayment}
+        buyerInfo={buyerInfo}
+        debugMode={debugMode}
+        allowVoucherPrint={allowVoucherPrint}
+        raffleDetails={raffleDetails}
+        clickedButton={clickedButton}
+        organization={organization}
+      />
+      
+      {/* Conflict modal for simultaneous sales issues */}
+      <NumberConflictModal 
+        isOpen={isConflictModalOpen}
+        conflictingNumbers={conflictingNumbers}
+        onClose={onConflictModalClose}
+      />
+    </>
   );
 };
 
