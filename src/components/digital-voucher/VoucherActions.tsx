@@ -6,15 +6,26 @@ import { Download, X, Maximize2 } from 'lucide-react';
 
 interface VoucherActionsProps {
   onDownload: () => void;
-  onPresent: () => void;
+  onPresent?: () => void; // Changed from onPresent to match usage in DigitalVoucher
+  onView?: () => void;    // Added to match usage in DigitalVoucher
   onClose: () => void;
 }
 
 const VoucherActions: React.FC<VoucherActionsProps> = ({
   onDownload,
   onPresent,
+  onView,
   onClose
 }) => {
+  // Use either onPresent or onView based on which one is provided
+  const handlePresentClick = () => {
+    if (onView) {
+      onView();
+    } else if (onPresent) {
+      onPresent();
+    }
+  };
+
   return (
     <DialogFooter className="flex flex-row justify-between space-x-2 mt-3">
       <Button 
@@ -29,7 +40,7 @@ const VoucherActions: React.FC<VoucherActionsProps> = ({
       <Button
         type="button"
         variant="outline"
-        onClick={onPresent}
+        onClick={handlePresentClick}
         className="flex-1 bg-purple-500 hover:bg-purple-600 text-white w-full sm:w-auto mb-2 sm:mb-0"
       >
         <Maximize2 className="h-4 w-4 mr-2" />
