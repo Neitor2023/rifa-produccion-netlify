@@ -111,16 +111,18 @@ export const useGridHandlers = ({
     
     // Si se proporciona totalNumbers, calcule cuántos números están realmente disponibles
     if (totalNumbers && typeof totalNumbers === 'number') {
+      // Calcula cuántos números quedan todavía disponibles para la venta
+      const availableNumbers = Math.max(0, totalNumbers - soldNumbersCount);
 toast.success(
   `Validando disponibilidad:\n
   - Máximo permitido: ${maxAvailableNumbers}\n
   - number: ${number}\n
   - Números totales: ${totalNumbers}\n
+  - Números disponibles: ${availableNumbers}\n
   - Restantes disponibles: ${remainingAvailable}`,
   { duration: 10000 }
 );      
-      // Calcula cuántos números quedan todavía disponibles para la venta
-      const availableNumbers = Math.max(0, totalNumbers - soldNumbersCount);
+      
       // Tome el mínimo entre los números disponibles y el número máximo de vendedores
       remainingAvailable = Math.min(maxAvailableNumbers, availableNumbers);
     } else {
