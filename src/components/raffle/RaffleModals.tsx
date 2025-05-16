@@ -65,7 +65,8 @@ const RaffleModals: React.FC<RaffleModalsProps> = ({
           isOpen={isVoucherOpen} 
           onClose={() => setIsVoucherOpen(false)}
           paymentData={paymentData}
-          raffleData={raffleDetails}
+          raffleDetails={raffleDetails}
+          selectedNumbers={selectedNumbers}
           organization={organization}
         />
       )}

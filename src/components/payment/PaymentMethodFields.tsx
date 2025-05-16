@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   FormField,
@@ -15,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { UseFormReturn } from "react-hook-form";
-import { PaymentFormData } from '../PaymentModal';
+import { PaymentFormData } from '@/schemas/paymentFormSchema';
 
 interface PaymentMethodFieldsProps {
   form: UseFormReturn<PaymentFormData>;

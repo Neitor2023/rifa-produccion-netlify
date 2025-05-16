@@ -25,6 +25,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useNumberSelection } from '@/contexts/NumberSelectionContext';
 import { RAFFLE_ID, SELLER_ID } from '@/lib/constants';
+import { Organization } from '@/lib/constants/types';
 
 interface DigitalVoucherProps {
   isOpen: boolean;
@@ -38,6 +39,7 @@ interface DigitalVoucherProps {
     lottery: string;
     dateLottery: string;
   };
+  organization?: Organization | null;
   onVoucherClosed?: () => void;
 }
 
