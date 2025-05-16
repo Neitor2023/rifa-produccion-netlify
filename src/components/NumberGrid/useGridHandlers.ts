@@ -108,14 +108,15 @@ export const useGridHandlers = ({
 toast.success(
   (
     <div>
-      {"🔍 Validando con:"}<br />
+      🔍 Validando con:<br />
       {/* Aquí podrías agregar dinámicamente un nombre o número */}
     </div>
   ),
   {
-    duration: 10000
+    duration: 10000,
   }
 );
+
 
     
     // Calcule los números restantes disponibles según los números totales (si se proporcionan) o el máximo del vendedor
