@@ -103,20 +103,20 @@ export const useGridHandlers = ({
     
     if (status !== 'available') return;
     
-    // Calculate maximum available numbers
+    // Calcular el número máximo disponible
     const maxAvailableNumbers = raffleSeller.cant_max;
     
-    // Calculate remaining available numbers based on total numbers (if provided) or seller max
+    // Calcule los números restantes disponibles según los números totales (si se proporcionan) o el máximo del vendedor
     let remainingAvailable: number;
     
-    // If totalNumbers is provided, calculate how many numbers are actually available
+    // Si se proporciona totalNumbers, calcule cuántos números están realmente disponibles
     if (totalNumbers && typeof totalNumbers === 'number') {
-      // Calculate how many numbers are still available for sale
+      // Calcula cuántos números quedan todavía disponibles para la venta
       const availableNumbers = Math.max(0, totalNumbers - soldNumbersCount);
-      // Take the minimum between available numbers and max seller numbers
+      // Tome el mínimo entre los números disponibles y el número máximo de vendedores
       remainingAvailable = Math.min(maxAvailableNumbers, availableNumbers);
     } else {
-      // Fallback to just use the seller maximum
+      // Recurre a utilizar únicamente el máximo del vendedor
       remainingAvailable = maxAvailableNumbers;
     }
       
