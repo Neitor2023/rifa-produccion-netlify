@@ -172,7 +172,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
               </FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Indique aquí si notó alguna actividad sospechosa o irregularidad con el vendedor(a) o la pagina web"
+                  placeholder="Indique aquí si notó alguna actividad sospechosa o irregularidad con la pagina web o vendedores(as)"
                   className="resize-none border-gray-300 dark:border-gray-600"
                   {...field}
                 />
