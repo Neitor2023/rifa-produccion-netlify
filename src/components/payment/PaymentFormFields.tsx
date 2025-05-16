@@ -205,7 +205,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
                 
       </div>
 
-      <div className="space-y-4 bg-white/50 dark:bg-gray-800/50 p-4 rounded-md shadow-sm">
+      <div className="space-y-4 bg-white/50 dark:bg-gray-400/50 p-4 rounded-md shadow-sm">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Método de Pago</h3>
 
         {form.watch('paymentMethod') === 'transfer' && (
