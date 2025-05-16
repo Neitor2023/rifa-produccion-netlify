@@ -192,7 +192,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
               </FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Alguna nota adicional para este pago"
+                  placeholder="¿Alguna nota o comentarioQ adicional?\n¿Comenta si quieres ser vendedor(a)?\n¿Si quieres publicar?"
                   className="resize-none border-gray-300 dark:border-gray-600"
                   {...field}
                 />
