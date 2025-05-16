@@ -182,7 +182,27 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
             </FormItem>
           )}
         />
-        
+
+        <FormField
+          control={form.control}
+          name="nota"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base font-medium text-gray-800 dark:text-white">
+                Nota adicional
+              </FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Alguna nota adicional para este pago"
+                  className="resize-none border-gray-300 dark:border-gray-600"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+                
       </div>
 
       <div className="space-y-4 bg-white/50 dark:bg-gray-800/50 p-4 rounded-md shadow-sm">
@@ -226,25 +246,6 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
         <Separator className="my-4" />
 
         
-        <FormField
-          control={form.control}
-          name="nota"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-base font-medium text-gray-800 dark:text-white">
-                Nota adicional
-              </FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Alguna nota adicional para este pago"
-                  className="resize-none border-gray-300 dark:border-gray-600"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
       </div>
     </>
   );
