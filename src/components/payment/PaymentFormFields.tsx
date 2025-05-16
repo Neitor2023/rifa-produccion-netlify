@@ -9,7 +9,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import PaymentUploadZone from './PaymentUploadZone';
-import { Separator } from '@/components/ui/separator';
 
 interface PaymentFormFieldsProps {
   form: UseFormReturn<PaymentFormData>;
@@ -31,7 +30,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
   
   return (
     <>
-      <div className="space-y-4 bg-white/50 dark:bg-gray-800/50 p-4 rounded-md shadow-sm">
+      <div className="space-y-4 bg-white/50 dark:bg-gray-400/50 p-4 rounded-md shadow-sm">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Información del Comprador</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -240,8 +239,7 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
               <FormMessage />
             </FormItem>
           )}
-        />        
-        <Separator className="my-4" />        
+        />             
       </div>
     </>
   );
