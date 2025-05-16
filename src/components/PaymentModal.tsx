@@ -19,7 +19,7 @@ import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { Card, CardHeader } from "@/components/ui/card";
 import { Organization } from '@/lib/constants/types';
 import { useNumberSelection } from '@/contexts/NumberSelectionContext';
-import { exportVoucherAsImage, uploadVoucherToStorage, updatePaymentReceiptUrlForNumbers } from './digital-voucher/utils/voucherExport';
+import { exportVoucherAsImage, uploadVoucherToStorage, updatePaymentReceiptUrlForNumbers, updatePaymentReceiptUrlForParticipant } from './digital-voucher/utils/voucherExport';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -72,51 +72,45 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     try {
       console.log('[PaymentModal.tsx] Iniciando el guardado automático de cupones para números:', selectedNumbers);
       
-      // 1. First, get IDs for all selected numbers (existing ones)
-      const numberIds: string[] = [];
+      // 1. Check participant ID
+      if (!paymentData.participantId) {
+        console.error('[PaymentModal.tsx] Error: Missing participant ID');
+        return null;
+      }
+      
+      // 2. Get raffle ID
+      const raffleId = 'fd6bd3bc-d81f-48a9-be58-8880293a0472'; // Using RAFFLE_ID constant
+      
+      // 3. Determine which numbers to include based on clickedButton
+      let participantNumberIds: string[] = [];
+      let participantNumberValues: string[] = [];
       
       // Convert selected numbers to integers for proper database comparison
       const selectedNumberInts = selectedNumbers.map(num => parseInt(num, 10));
       
-      // Query to get IDs of existing numbers
-      const { data: existingNumbers, error: queryError } = await supabase
+      // Query to get IDs of the participant's numbers (not ALL numbers)
+      const { data: participantNumbers, error: queryError } = await supabase
         .from('raffle_numbers')
-        .select('id, number, participant_id')
-        .eq('raffle_id', 'fd6bd3bc-d81f-48a9-be58-8880293a0472') // Using RAFFLE_ID constant
-        .in('number', selectedNumberInts);
+        .select('id, number')
+        .eq('raffle_id', raffleId)
+        .eq('participant_id', paymentData.participantId);
       
       if (queryError) {
-        console.error('[PaymentModal.tsx] Error checking existing numbers:', queryError);
-      } else if (existingNumbers && existingNumbers.length > 0) {
-        // Store IDs of existing numbers
-        numberIds.push(...existingNumbers.map(item => item.id));
-        console.log('[PaymentModal.tsx] Found existing number IDs:', numberIds);
+        console.error('[PaymentModal.tsx] Error fetching participant numbers:', queryError);
+      } else if (participantNumbers && participantNumbers.length > 0) {
+        // Store only this participant's numbers
+        participantNumberIds = participantNumbers.map(item => item.id);
+        participantNumberValues = participantNumbers.map(item => 
+          item.number.toString().padStart(2, '0')
+        );
         
-        // If this is the "Pagar Apartados" flow, filter only for current participant's numbers
-        if (clickedButton === "Pagar Apartados" && paymentData.participantId) {
-          console.log('[PaymentModal.tsx] Filtering numbers for participant:', paymentData.participantId);
-          const participantNumberIds = existingNumbers
-            .filter(item => item.participant_id === paymentData.participantId)
-            .map(item => item.id);
-            
-          if (participantNumberIds.length > 0) {
-            numberIds.length = 0; // Clear the array
-            numberIds.push(...participantNumberIds); // Add only participant's numbers
-            console.log('[PaymentModal.tsx] Filtered to participant number IDs:', numberIds);
-          }
-        }
+        console.log('[PaymentModal.tsx] Found participant numbers:', participantNumberValues);
+        console.log('[PaymentModal.tsx] Found participant number IDs:', participantNumberIds);
       } else {
-        console.log('[PaymentModal.tsx] No existing numbers found, receipt will be created but associated later');
+        console.log('[PaymentModal.tsx] No existing numbers found for this participant');
       }
       
-      // 2. Generate receipt content
-      // Create temporary div for receipt rendering
-      const tempReceiptContainer = document.createElement('div');
-      tempReceiptContainer.style.position = 'absolute';
-      tempReceiptContainer.style.left = '-9999px';
-      document.body.appendChild(tempReceiptContainer);
-      
-      // 3. Prepare raffle details for voucher
+      // 4. Prepare raffle details for voucher
       const raffleDetails = {
         title: organization?.organization_name || 'Rifa',
         price: price,
@@ -124,16 +118,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         dateLottery: new Date().toLocaleDateString()
       };
       
-      // 4. Generate receipt image
-      console.log('[PaymentModal.tsx] Generating voucher image');
-      
-      // Generar URL de recibo según el dominio usando el ID del primer número o un marcador de posición
-      const domain = window.location.hostname || 'rifamax.com';
-      const protocol = window.location.protocol || 'https:';
-      const receiptBaseUrl = `${protocol}//${domain}/receipt/`;
-      const receiptUrl = receiptBaseUrl + (numberIds.length > 0 ? numberIds[0] : 'pending');
-      
-      // Create formatted date for receipt
+      // 5. Create formatted date for receipt
       const formattedDate = new Date().toLocaleDateString('es-ES', {
         year: 'numeric',
         month: 'long', 
@@ -142,10 +127,36 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         minute: '2-digit'
       });
       
-      // Calculate total payment amount
-      const totalAmount = price * selectedNumbers.length;
+      // 6. Generate receipt content
+      // Create temporary div for receipt rendering
+      const tempReceiptContainer = document.createElement('div');
+      tempReceiptContainer.style.position = 'absolute';
+      tempReceiptContainer.style.left = '-9999px';
+      document.body.appendChild(tempReceiptContainer);
       
-      // Create content for voucher in temporary container
+      // Generate receipt URL
+      const domain = window.location.hostname || 'rifamax.com';
+      const protocol = window.location.protocol || 'https:';
+      const receiptBaseUrl = `${protocol}//${domain}/receipt/`;
+      const receiptUrl = receiptBaseUrl + (participantNumberIds.length > 0 ? participantNumberIds[0] : 'pending');
+      
+      // Determine numbers to display in the voucher based on the button clicked
+      let numbersToDisplay: string[] = [];
+      
+      if (clickedButton === "Pagar Apartados" && participantNumberValues.length > 0) {
+        // For "Pagar Apartados", use the participant's numbers from the database
+        numbersToDisplay = participantNumberValues;
+        console.log('[PaymentModal.tsx] Using participant numbers for voucher:', numbersToDisplay);
+      } else {
+        // For "Pagar Directo", use the selected numbers
+        numbersToDisplay = selectedNumbers;
+        console.log('[PaymentModal.tsx] Using selected numbers for voucher:', numbersToDisplay);
+      }
+      
+      // Calculate total payment amount based on the actual number of numbers shown
+      const totalAmount = price * numbersToDisplay.length;
+      
+      // 7. Create content for voucher in temporary container
       tempReceiptContainer.innerHTML = `
         <div class="print-content p-1">
           <div class="p-6 mb-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
@@ -190,7 +201,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                   </div>
                   <div>
                     <span class="font-semibold">Núm. seleccionados:</span> 
-                    ${selectedNumbers.length}
+                    ${numbersToDisplay.length}
                   </div>
                 </div>
               </div>
@@ -206,7 +217,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 <div class="flex flex-col justify-center">
                   <p class="text-sm font-semibold text-gray-800 dark:text-gray-300 mb-1">Números comprados:</p>
                   <div class="flex flex-wrap gap-1 mt-1">
-                    ${selectedNumbers.map(num => `
+                    ${numbersToDisplay.map(num => `
                       <span class="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded text-xs font-medium">
                         ${num}
                       </span>
@@ -236,7 +247,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         </div>
       `;
       
-      // Generate receipt image
+      // 8. Generate receipt image
       const html2canvas = (await import('html2canvas')).default;
       const canvas = await html2canvas(tempReceiptContainer, {
         scale: 2,
@@ -250,10 +261,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       // Clean up temporary element
       document.body.removeChild(tempReceiptContainer);
       
-      // If we have image data, upload it to storage
+      // 9. If we have image data, upload it to storage
       if (imgData && raffleDetails) {
         // Upload with first number ID if available, otherwise use a timestamp
-        const firstNumberId = numberIds.length > 0 ? numberIds[0] : `temp_${new Date().getTime()}`;
+        const firstNumberId = participantNumberIds.length > 0 ? 
+          participantNumberIds[0] : `temp_${new Date().getTime()}_${paymentData.participantId}`;
         
         console.log('[PaymentModal.tsx] Uploading receipt image for ID:', firstNumberId);
         const imageUrl = await uploadVoucherToStorage(
@@ -265,19 +277,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         if (imageUrl) {
           console.log('[PaymentModal.tsx] Successfully uploaded receipt. URL:', imageUrl);
           
-          // If we have number IDs, update all raffle numbers with the receipt URL
-          if (numberIds.length > 0) {
-            console.log('[PaymentModal.tsx] Updating existing raffle numbers with receipt URL:', numberIds);
-            const updateSuccess = await updatePaymentReceiptUrlForNumbers(imageUrl, numberIds);
-            
-            if (updateSuccess) {
-              // Fix toast format
-              toast("Comprobante guardado automáticamente: El comprobante ha sido almacenado en el sistema para todos los números.");
-            }
-          } else {
-            // Store URL for later association (after numbers are created)
-            console.log('[PaymentModal.tsx] No existing numbers to update now, storing URL for later');
-            // We'll add the URL to formData to be used in the onComplete handler
+          // 10. Update payment_receipt_url only for this participant's numbers
+          const updateSuccess = await updatePaymentReceiptUrlForParticipant(
+            imageUrl, 
+            paymentData.participantId, 
+            raffleId
+          );
+          
+          if (updateSuccess) {
+            toast.success("Comprobante guardado automáticamente.");
           }
           
           return imageUrl;
@@ -341,7 +349,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         formData.paymentProof = previewUrl;
       }
 
-      // Store suspicious activity report in the form data (Fix for issues 1.1 and 2.3)
+      // Store suspicious activity report in the form data
       const reporteSospechoso = form.getValues('reporteSospechoso');
       if (reporteSospechoso && reporteSospechoso.trim() !== '') {
         formData.reporteSospechoso = reporteSospechoso.trim();
@@ -350,17 +358,17 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       
       // IMPORTANTE: Guarde automáticamente el comprobante de pago para todos los números ANTES del envío
       // Esto garantiza que los cupones se guarden incluso si el usuario no abre o ve el modal del cupón.
-      const imageUrl = await saveVoucherForAllNumbers(formData);
-      
-      // Envíe el formulario para completar el proceso de pago
       await handleSubmit();
+      
+      // After finishing the form submission, generate and save the voucher
+      const imageUrl = await saveVoucherForAllNumbers(formData);
       
       // Incluya la URL de la imagen guardada con los datos del formulario
       if (imageUrl) {
         formData.paymentReceiptUrl = imageUrl;
       }
       
-      // Ahora onComplete con los datos del formulario actualizado
+      // Now complete the payment process with the updated form data
       onComplete(formData);
       
     } finally {

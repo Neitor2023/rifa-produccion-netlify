@@ -150,7 +150,7 @@ export function useCompletePayment({
         // Get numbers that are reserved by this participant
         const { data: reservedNumbers, error } = await supabase
           .from('raffle_numbers')
-          .select('number')
+          .select('number, id')
           .eq('participant_id', participantId)
           .eq('status', 'reserved')
           .eq('raffle_id', raffleId);
@@ -162,9 +162,9 @@ export function useCompletePayment({
         }
         
         // Use only the numbers actually reserved by this participant
-        const validNumbersToUpdate = reservedNumbers.map(item => 
+        const validNumbersToUpdate = reservedNumbers?.map(item => 
           item.number.toString().padStart(2, '0')
-        );
+        ) || [];
         
         // If no reserved numbers found, warn user
         if (validNumbersToUpdate.length === 0) {
@@ -173,6 +173,11 @@ export function useCompletePayment({
           return;
         } else {
           console.log("✅ Updating payment status for numbers:", validNumbersToUpdate);
+          
+          // Get IDs for updating receipt URL later
+          const numberIdsToUpdate = reservedNumbers?.map(item => item.id) || [];
+          
+          // Update status to 'sold' for these numbers
           const result = await updateNumbersToSold({
             numbers: validNumbersToUpdate, 
             participantId, 
@@ -191,6 +196,31 @@ export function useCompletePayment({
       } else {
         // For "Pagar Directo", proceed with selected numbers
         console.log("💵 'Pagar Directo' flow - using selected numbers:", selectedNumbers);
+        
+        // Before updating, check if any of these numbers are already owned by other participants
+        const { data: existingNumbers, error: checkError } = await supabase
+          .from('raffle_numbers')
+          .select('number, participant_id, status')
+          .eq('raffle_id', raffleId)
+          .in('number', selectedNumbers.map(num => parseInt(num, 10)));
+          
+        if (checkError) {
+          console.error("❌ Error checking existing numbers:", checkError);
+          toast.error("Error al verificar disponibilidad de números");
+          return;
+        }
+        
+        // Check if any number belongs to another participant
+        const conflictingNumbers = existingNumbers
+          ?.filter(n => n.participant_id !== participantId && (n.status === 'sold' || n.status === 'reserved'))
+          .map(n => n.number.toString().padStart(2, '0'));
+          
+        if (conflictingNumbers && conflictingNumbers.length > 0) {
+          handleNumberConflict(conflictingNumbers);
+          return;
+        }
+        
+        // Proceed with the update
         const result = await updateNumbersToSold({
           numbers: selectedNumbers, 
           participantId, 
@@ -273,7 +303,7 @@ export function useCompletePayment({
       
       const { data: existingNumbers, error } = await supabase
         .from('raffle_numbers')
-        .select('number, status, seller_id')
+        .select('number, status, seller_id, participant_id')
         .eq('raffle_id', raffleId)
         .in('number', numbersInts);
       
@@ -284,8 +314,8 @@ export function useCompletePayment({
       
       // Check which numbers are unavailable (sold or not sold by current seller)
       const unavailableNumbers = existingNumbers
-        .filter(n => n.status === 'sold' || (n.status === 'reserved' && n.seller_id !== raffleSeller.seller_id))
-        .map(n => n.number.toString().padStart(2, '0'));
+        ?.filter(n => n.status === 'sold' || (n.status === 'reserved' && n.seller_id !== raffleSeller.seller_id))
+        .map(n => n.number.toString().padStart(2, '0')) || [];
       
       return unavailableNumbers;
     } catch (error) {

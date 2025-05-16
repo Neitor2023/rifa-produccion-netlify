@@ -33,7 +33,7 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
   numberId,
   paymentProofImage
 }) => {
-  // Calculate total to display
+  // Calculate total to display based on the actual number of selected numbers
   const totalAmount = raffleDetails ? (raffleDetails.price * selectedNumbers.length) : 0;
 
   return (
@@ -81,7 +81,7 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
                 {paymentMethod}
               </div>
               <div>
-                <span className="font-semibold">Cant. de Núms. seleccionados:</span> 
+                <span className="font-semibold">Núm. seleccionados:</span> 
                 {selectedNumbers.length}
               </div>
             </div>

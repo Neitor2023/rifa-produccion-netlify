@@ -1,3 +1,4 @@
+
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -181,19 +182,6 @@ export const uploadVoucherToStorage = async (
     const imageUrl = urlData.publicUrl;
     console.log('[DigitalVoucher.tsx] Imagen subida a Storage en paymentreceipturl:', imageUrl);
     
-    // Update the single raffle number with the receipt URL
-    console.log('[DigitalVoucher.tsx] Actualizando raffle_numbers.payment_receipt_url para id:', numberId);
-    const { error: updateError } = await supabase
-      .from('raffle_numbers')
-      .update({ payment_receipt_url: imageUrl })
-      .eq('id', numberId);
-    
-    if (updateError) {
-      console.error('[DigitalVoucher.tsx] Error al actualizar raffle_numbers:', updateError);
-      throw new Error(`Error updating raffle_numbers: ${updateError.message}`);
-    }
-    
-    console.log('[DigitalVoucher.tsx] Actualización completada con éxito');
     return imageUrl;
     
   } catch (error) {
@@ -210,6 +198,11 @@ export const updatePaymentReceiptUrlForNumbers = async (
 ): Promise<boolean> => {
   try {
     console.log('[voucherExport.ts] Updating payment_receipt_url for multiple numbers:', numberIds);
+    
+    if (!numberIds || numberIds.length === 0) {
+      console.warn('[voucherExport.ts] No number IDs provided to update');
+      return false;
+    }
     
     const updatePromises = numberIds.map(async (id) => {
       const { error } = await supabase
@@ -237,6 +230,41 @@ export const updatePaymentReceiptUrlForNumbers = async (
     return allSuccessful;
   } catch (error) {
     console.error('[voucherExport.ts] Error in updatePaymentReceiptUrlForNumbers:', error);
+    return false;
+  }
+};
+
+// Update payment receipt URL only for specific participant's numbers
+export const updatePaymentReceiptUrlForParticipant = async (
+  imageUrl: string,
+  participantId: string,
+  raffleId: string
+): Promise<boolean> => {
+  try {
+    console.log('[voucherExport.ts] Updating payment_receipt_url for participant:', participantId);
+    
+    if (!participantId || !raffleId || !imageUrl) {
+      console.error('[voucherExport.ts] Missing required parameters');
+      return false;
+    }
+    
+    // Update only records that belong to this participant and raffle
+    const { error } = await supabase
+      .from('raffle_numbers')
+      .update({ payment_receipt_url: imageUrl })
+      .eq('participant_id', participantId)
+      .eq('raffle_id', raffleId)
+      .eq('status', 'sold'); // Only update sold numbers
+      
+    if (error) {
+      console.error('[voucherExport.ts] Error updating receipt URL for participant:', error);
+      return false;
+    }
+    
+    console.log('[voucherExport.ts] Successfully updated receipt URLs for participant');
+    return true;
+  } catch (error) {
+    console.error('[voucherExport.ts] Error in updatePaymentReceiptUrlForParticipant:', error);
     return false;
   }
 };

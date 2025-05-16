@@ -74,39 +74,21 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
       try {
         console.log('[DigitalVoucher.tsx] Buscando IDs para participante:', paymentData.participantId);
         
-        // Determine if we're in "Pagar Apartados" flow
-        const isPayingReserved = paymentData?.clickedButtonType === "Pagar Apartados";
+        // Store participant ID for later use
         const currentParticipantId = paymentData?.participantId;
-        
-        console.log('[DigitalVoucher.tsx] Flow type:', isPayingReserved ? 'Pagar Apartados' : 'Pagar Directo');
-        console.log('[DigitalVoucher.tsx] Current participant ID:', currentParticipantId);
+        setParticipantId(currentParticipantId);
         
         if (!currentParticipantId) {
           console.error('[DigitalVoucher.tsx] Missing participant ID, cannot fetch numbers');
           return;
         }
         
-        setParticipantId(currentParticipantId);
-        
-        // Start query to get this participant's numbers
-        let query = supabase
+        // FIX: Only fetch numbers that belong to the current participant
+        // For "Pagar Apartados" flow, get sold or reserved numbers for this participant
+        const { data, error } = await supabase
           .from('raffle_numbers')
-          .select('id, number, participant_id, payment_proof')
+          .select('id, number, participant_id, payment_proof, status')
           .eq('participant_id', currentParticipantId);
-        
-        // In "Pagar Apartados" flow, only get sold numbers that were previously reserved
-        if (isPayingReserved) {
-          query = query.eq('status', 'sold');
-        } else {
-          // For "Pagar Directo" flow, only get numbers we're currently processing
-          const numbersInts = selectedNumbers.map(numStr => parseInt(numStr, 10));
-          if (numbersInts.length > 0) {
-            query = query.in('number', numbersInts);
-          }
-        }
-        
-        // Execute query
-        const { data, error } = await query;
         
         if (error) {
           console.error('[DigitalVoucher.tsx] Error fetching raffle number IDs:', error);
@@ -129,18 +111,40 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
           
           setPaymentProofImage(proofImage);
           
+          // Get IDs only for the current participant's numbers
           const ids = data.map(item => item.id);
-          const nums = data.map(item => item.number.toString().padStart(2, '0'));
+          
+          // Get numbers only for the current participant
+          // FIX: For "Pagar Apartados", only get numbers that were previously reserved and are now sold
+          // Filter according to the button clicked
+          let filteredData = data;
+          const isPayingReserved = paymentData?.clickedButtonType === "Pagar Apartados";
+          
+          if (isPayingReserved) {
+            // For "Pagar Apartados" flow, only get numbers that were previously reserved and now sold
+            filteredData = data.filter(item => item.status === 'sold');
+            console.log('[DigitalVoucher.tsx] Filtered to sold numbers for "Pagar Apartados" flow:', 
+              filteredData.map(item => item.number));
+          } else {
+            // For "Pagar Directo" flow, match with selected numbers
+            const numbersInts = selectedNumbers.map(numStr => parseInt(numStr, 10));
+            filteredData = data.filter(item => numbersInts.includes(Number(item.number)));
+            console.log('[DigitalVoucher.tsx] Filtered to selected numbers for direct payment:', 
+              filteredData.map(item => item.number));
+          }
+          
+          const nums = filteredData.map(item => item.number.toString().padStart(2, '0'));
           
           setAllRaffleNumberIds(ids);
           
-          // Only show this participant's numbers in the voucher
+          // Set the numbers to display in the voucher
           if (nums.length > 0) {
             setParticipantNumbers(nums);
             console.log('[DigitalVoucher.tsx] Using participant numbers from DB:', nums);
           } else {
+            // Fallback to selected numbers if we couldn't find any numbers in DB
             setParticipantNumbers(selectedNumbers);
-            console.log('[DigitalVoucher.tsx] Using selected numbers:', selectedNumbers);
+            console.log('[DigitalVoucher.tsx] Using selected numbers as fallback:', selectedNumbers);
           }
           
           // Set first ID for receipt URL generation
@@ -203,17 +207,18 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         return false;
       }
       
+      // FIX: Only update numbers that belong to the current participant
       const { error } = await supabase
         .from('raffle_numbers')
         .update({ payment_receipt_url: voucherUrl })
-        .in('id', allRaffleNumberIds);
+        .eq('participant_id', paymentData.participantId);
         
       if (error) {
         console.error("❌ Error al actualizar recibo de pago:", error);
         return false;
       }
       
-      console.log(`✅ Recibo de pago actualizado con éxito para ${allRaffleNumberIds.length} números`);
+      console.log(`✅ Recibo de pago actualizado con éxito para los números del participante: ${paymentData.participantId}`);
       return true;
     } catch (error) {
       console.error("❌ Error al actualizar recibo de pago:", error);
@@ -243,100 +248,38 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
       if (raffleNumberId) {
         const imageUrl = await uploadVoucherToStorage(imgData, raffleDetails.title, raffleNumberId);
         
-        if (imageUrl && allRaffleNumberIds.length > 1) {
-          // Update all participant's numbers with the receipt URL
-          await updatePaymentReceiptUrlForNumbers(imageUrl, allRaffleNumberIds);
+        if (imageUrl) {
+          // Update only this participant's numbers with the receipt URL
+          await updatePaymentReceiptUrlForAllNumbers(imageUrl);
+          return imageUrl;
         }
-        
-        return imageUrl;
       }
       
       return null;
     } catch (error) {
-      console.error("❌ Error en saveVoucherForAllNumbers:", error);
+      console.error("❌ Error al guardar el voucher:", error);
+      toast.error("Error al guardar el comprobante. Intente nuevamente.");
       return null;
     }
   };
-
-  // Modify the handleDownload function to save the voucher for all numbers
-  const handleDownload = async () => {
-    try {
-      if (!paymentData) {
-        console.error("❌ Error: No hay datos de pago disponibles para generar el comprobante");
-        toast.error("Error al generar comprobante: Datos insuficientes.");
-        return;
-      }
-      
-      // Generate and save the voucher
-      const voucherUrl = await saveVoucherForAllNumbers();
-      
-      if (voucherUrl) {
-        // Update all sold numbers with this receipt URL
-        await updatePaymentReceiptUrlForAllNumbers(voucherUrl);
-        
-        console.log("✅ Comprobante descargado y guardado con éxito");
-        toast.success("Comprobante guardado con éxito");
-      } else {
-        console.error("❌ Error al guardar el comprobante de pago");
-        toast.error("Error al guardar el comprobante de pago");
-      }
-    } catch (error) {
-      console.error("❌ Error en handleDownload:", error);
-      toast.error("Error al generar o guardar el comprobante");
-    }
-  };
-  
-  const handlePresent = async (): Promise<void> => {
-    if (!raffleNumberId) {
-      console.error('[DigitalVoucher.tsx] No se puede presentar: raffleNumberId no disponible');
-      toast.error("No se pudo identificar el número de la rifa. Intente nuevamente.");
-      return;
-    }
-
-    const imgData = await exportVoucherAsImage(printRef.current, '');
-    if (imgData) {
-      presentVoucherImage(imgData);
-      
-      // Upload to storage for all participant numbers
-      if (raffleDetails && allRaffleNumberIds.length > 0) {
-        try {
-          console.log('[DigitalVoucher.tsx] Iniciando proceso de guardar comprobante para todos los números del participante');
-          const imageUrl = await uploadVoucherToStorage(imgData, raffleDetails.title, raffleNumberId);
-          
-          if (imageUrl) {
-            // Update all numbers with the same receipt URL
-            const updateSuccess = await updatePaymentReceiptUrlForAllNumbers(imageUrl);
-            
-            if (updateSuccess) {
-              toast.success(`El comprobante ha sido almacenado para todos los números (${allRaffleNumberIds.length}).`);
-            }
-          }
-        } catch (error) {
-          console.error('[DigitalVoucher.tsx] Error saving receipt to storage:', error);
-        }
-      }
-    }
-  };
-  
-  // If voucher printing is not allowed, show the alert message
-  if (!allowVoucherPrint) {
-    return <AlertMessage isOpen={isOpen} onClose={handleCloseModal} textColor={textColor} />;
-  }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleCloseModal}>
-      <DialogContent className="sm:max-w-md md:max-w-xl min-h-[80vh] sm:min-h-[75vh] flex flex-col bg-white/20 backdrop-blur-md rounded-xl border-0 shadow-xl">
-        <VoucherHeader />
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleCloseModal()}>
+      <DialogContent className="sm:max-w-md md:max-w-xl lg:max-w-2xl min-h-[85vh] max-h-[90vh] flex flex-col bg-white/20 backdrop-blur-md rounded-xl border-0">
+        <VoucherHeader 
+          onClose={handleCloseModal}
+          onSaveVoucher={saveVoucherForAllNumbers}
+        />
         
-        <ScrollArea className="max-h-[65vh] overflow-y-auto px-1 bg-white/30 dark:bg-gray-800/30 backdrop-blur-sm rounded-lg border border-gray-300/50 dark:border-gray-700/50 flex-grow">
+        <ScrollArea className="flex-1 overflow-y-auto p-4">
           <VoucherContent 
             printRef={printRef}
             formattedDate={formattedDate}
             paymentMethod={paymentMethod}
             paymentData={paymentData}
-            selectedNumbers={participantNumbers || selectedNumbers}
+            selectedNumbers={participantNumbers} // Using participant's numbers
             raffleDetails={raffleDetails}
-            qrUrl={receiptUrl || 'https://rifamax.com'} 
+            qrUrl={receiptUrl || ''}
             textColor={textColor}
             numberId={raffleNumberId || undefined}
             paymentProofImage={paymentProofImage}
@@ -344,9 +287,23 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         </ScrollArea>
         
         <VoucherActions 
-          onDownload={handleDownload}
-          onPresent={handlePresent}
           onClose={handleCloseModal}
+          onDownload={() => {
+            if (printRef.current) {
+              exportVoucherAsImage(printRef.current, 'comprobante')
+                .then(imgData => {
+                  if (imgData) downloadVoucherImage(imgData, `comprobante_${new Date().getTime()}.png`);
+                });
+            }
+          }}
+          onView={() => {
+            if (printRef.current) {
+              exportVoucherAsImage(printRef.current, 'comprobante')
+                .then(imgData => {
+                  if (imgData) presentVoucherImage(imgData);
+                });
+            }
+          }}
         />
       </DialogContent>
     </Dialog>
@@ -354,4 +311,3 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
 };
 
 export default DigitalVoucher;
-export type { PaymentFormData };

@@ -12,6 +12,11 @@ interface UpdateNumbersToSoldProps {
   raffleId: string;
 }
 
+interface UpdateResult {
+  success: boolean;
+  conflictingNumbers?: string[];
+}
+
 export const updateNumbersToSold = async ({
   numbers,
   participantId,
@@ -19,7 +24,7 @@ export const updateNumbersToSold = async ({
   raffleNumbers,
   raffleSeller,
   raffleId
-}: UpdateNumbersToSoldProps) => {
+}: UpdateNumbersToSoldProps): Promise<UpdateResult> => {
   console.log("🔵 numberStatusUpdates.ts: Actualización de números a vendidos:", {
     numbers,
     participantId,
@@ -81,38 +86,21 @@ export const updateNumbersToSold = async ({
       throw new Error('Error al verificar la disponibilidad de números');
     }
 
-    // Verificar si algún número ya pertenece a otro participante
+    // Verificar si algún número ya pertenece a otro participante con estado "sold"
     const conflictingNumbers = existingNumbers
       ?.filter(n => n.participant_id !== participantId && n.status === 'sold')
       .map(n => n.number.toString());
 
     if (conflictingNumbers && conflictingNumbers.length > 0) {
       console.error('❌ Números ya reservados por otro participante:', conflictingNumbers);
-      toast(`Error: Los números ${conflictingNumbers.join(', ')} ya han sido reservados o vendidos por otro participante. Por favor elija otros números.`);
-      // Devuelve los números conflictivos para que la UI pueda manejar apropiadamente
       return { success: false, conflictingNumbers };
     }
 
-    // Preparar conjunto de números ya existentes para el participante actual (para evitar duplicados)
-    const existingParticipantNumbers = existingNumbers
-      ?.filter(n => n.participant_id === participantId)
-      .map(n => n.number.toString()) || [];
-    
-    const existingParticipantNumbersSet = new Set(existingParticipantNumbers);
-
-    console.log(`✅ Números ya existentes para el participante ${participantId}:`, existingParticipantNumbers);
-
-    // Para los números especificados, procesar según corresponda
+    // Para cada número especificado, actualizar o insertar según corresponda
     const updatePromises = numbers.map(async (numStr) => {
       const num = parseInt(numStr, 10);
       
-      // Si el número ya existe para este participante con status "sold", omitir la actualización
-      if (existingParticipantNumbersSet.has(num.toString()) && 
-          existingNumbers.find(n => n.number.toString() === num.toString() && n.status === 'sold')) {
-        console.log(`✅ Número ${numStr} ya vendido al participante ${participantId}, omitiendo actualización`);
-        return;
-      }
-      
+      // Datos comunes para actualización o inserción
       const commonData: {
         status: 'sold';
         seller_id: any;
@@ -122,7 +110,8 @@ export const updateNumbersToSold = async ({
         participant_name: string;
         participant_phone: string;
         participant_cedula: string;
-        payment_proof?: string;
+        payment_proof?: string;  // For the transfer proof image
+        payment_receipt_url?: string;  // For the generated receipt
       } = {
         status: 'sold',
         seller_id: raffleSeller.seller_id,
@@ -134,18 +123,18 @@ export const updateNumbersToSold = async ({
         participant_cedula: participantData.cedula
       };
 
-      // Store payment proof in the correct field
+      // Store payment proof in the correct field if available
       if (paymentProofUrl) {
         commonData.payment_proof = paymentProofUrl;
       }
-
-      // Buscar si el número existe en la base de datos para este participante
+      
+      // Check if this number already exists for this participant
       const existingNumber = existingNumbers?.find(n => 
-        n.number.toString() === numStr && n.participant_id === participantId
+        n.number === num && n.participant_id === participantId
       );
-
+      
       if (existingNumber) {
-        // Actualizar registro existente
+        // Update existing record for this participant
         console.log(`🔄 Actualizando número ${numStr} para el participante ${participantId}:`, commonData);
         
         const { error } = await supabase
@@ -156,11 +145,29 @@ export const updateNumbersToSold = async ({
           .eq('participant_id', participantId);
           
         if (error) {
-          console.error(`Error actualizando número ${numStr}:`, error);
-          throw error;
+          // If it's a unique constraint violation, the number might already exist
+          if (error.code === '23505') {
+            console.warn(`⚠️ Número ${numStr} ya existe, verificando propietario`);
+            
+            // Check if it's owned by another participant
+            const { data: ownerCheck } = await supabase
+              .from('raffle_numbers')
+              .select('participant_id')
+              .eq('raffle_id', raffleId)
+              .eq('number', num)
+              .single();
+              
+            if (ownerCheck && ownerCheck.participant_id !== participantId) {
+              console.error(`❌ El número ${numStr} ya pertenece a otro participante: ${ownerCheck.participant_id}`);
+              return { number: numStr, conflict: true };
+            }
+          } else {
+            console.error(`❌ Error actualizando número ${numStr}:`, error);
+            return { number: numStr, error };
+          }
         }
       } else {
-        // Insertar nuevo registro si no existía
+        // Insert new record if it didn't exist
         const insertData = {
           ...commonData,
           raffle_id: raffleId,
@@ -169,18 +176,64 @@ export const updateNumbersToSold = async ({
         
         console.log(`🆕 Insertando nuevo número ${numStr}:`, insertData);
         
-        const { error } = await supabase
-          .from('raffle_numbers')
-          .insert(insertData);
-          
-        if (error) {
-          console.error(`Error insertando número ${numStr}:`, error);
-          throw error;
+        try {
+          const { error } = await supabase
+            .from('raffle_numbers')
+            .insert(insertData);
+            
+          if (error) {
+            // If it's a unique constraint violation, the number might already exist
+            if (error.code === '23505') {
+              console.warn(`⚠️ Intento de inserción duplicada para número ${numStr}, verificando propietario`);
+              
+              // Check if it's owned by another participant
+              const { data: ownerCheck } = await supabase
+                .from('raffle_numbers')
+                .select('participant_id')
+                .eq('raffle_id', raffleId)
+                .eq('number', num)
+                .single();
+                
+              if (ownerCheck && ownerCheck.participant_id !== participantId) {
+                console.error(`❌ El número ${numStr} ya pertenece a otro participante: ${ownerCheck.participant_id}`);
+                return { number: numStr, conflict: true };
+              } else if (ownerCheck && ownerCheck.participant_id === participantId) {
+                // Already owned by this participant, update instead
+                console.log(`🔄 El número ${numStr} ya pertenece a este participante, actualizando`);
+                
+                const { error: updateError } = await supabase
+                  .from('raffle_numbers')
+                  .update(commonData)
+                  .eq('raffle_id', raffleId)
+                  .eq('number', num);
+                  
+                if (updateError) {
+                  console.error(`❌ Error actualizando número ${numStr}:`, updateError);
+                  return { number: numStr, error: updateError };
+                }
+              }
+            } else {
+              console.error(`❌ Error insertando número ${numStr}:`, error);
+              return { number: numStr, error };
+            }
+          }
+        } catch (insertError) {
+          console.error(`❌ Excepción al insertar número ${numStr}:`, insertError);
+          return { number: numStr, error: insertError };
         }
       }
+      
+      return { number: numStr, success: true };
     });
 
-    await Promise.all(updatePromises);
+    // Execute all updates and check for conflicts
+    const results = await Promise.all(updatePromises);
+    const conflicts = results.filter(r => r && 'conflict' in r && r.conflict).map(r => r.number);
+    
+    if (conflicts.length > 0) {
+      return { success: false, conflictingNumbers: conflicts };
+    }
+    
     console.log("✅ Todos los números actualizados/insertados al estado vendido");
     return { success: true };
   } catch (error) {
