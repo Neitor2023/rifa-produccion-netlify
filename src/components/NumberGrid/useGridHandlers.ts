@@ -105,27 +105,14 @@ export const useGridHandlers = ({
     
     // Calcular el número máximo disponible
     const maxAvailableNumbers = raffleSeller.cant_max;
-toast.success(
-  <>
-    <div>
-      <p>
-        {"Validando con: "}
-        <strong>{maxAvailableNumbers}</strong> número(s) disponibles
-      </p>
-    </div>
-  </>,
-  {
-    duration: 10000,
-  }
-);
-
-
-
-
-
     
     // Calcule los números restantes disponibles según los números totales (si se proporcionan) o el máximo del vendedor
     let remainingAvailable: number;
+    
+toast.success(
+  `Validando disponibilidad:\n- Máximo permitido: ${maxAvailableNumbers}\n- Restantes disponibles: ${remainingAvailable}`,
+  { duration: 10000 }
+);
     
     // Si se proporciona totalNumbers, calcule cuántos números están realmente disponibles
     if (totalNumbers && typeof totalNumbers === 'number') {
