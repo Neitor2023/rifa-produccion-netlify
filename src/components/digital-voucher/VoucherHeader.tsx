@@ -16,7 +16,7 @@ const VoucherHeader: React.FC<VoucherHeaderProps> = ({ onClose, onSaveVoucher })
                 <CardHeader className="py-3 px-4">
     
     {/*<div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">*/}
-    <DialogTitle className="text-xl font-bold bg-[#9b87f5] dark:bg-[#7E69AB]">
+    <DialogTitle className="text-xl font-bold ">
         
         Comprobante
       </DialogTitle>
