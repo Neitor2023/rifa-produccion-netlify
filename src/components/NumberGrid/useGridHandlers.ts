@@ -106,10 +106,12 @@ export const useGridHandlers = ({
     // Calcular el número máximo disponible
     const maxAvailableNumbers = raffleSeller.cant_max;
 toast.success(
-  <div>
-    {"🔍 Validando con:"}<br/>
-    {/* Aquí podrías agregar dinámicamente un nombre o número */}
-  </div>,
+  (
+    <div>
+      {"🔍 Validando con:"}<br />
+      {/* Aquí podrías agregar dinámicamente un nombre o número */}
+    </div>
+  ),
   {
     duration: 10000
   }
