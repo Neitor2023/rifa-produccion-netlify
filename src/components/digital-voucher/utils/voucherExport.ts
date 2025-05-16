@@ -1,4 +1,3 @@
-
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -191,7 +190,7 @@ export const uploadVoucherToStorage = async (
   }
 };
 
-// Function to update payment receipt URL for multiple numbers
+// Update payment receipt URL for multiple numbers
 export const updatePaymentReceiptUrlForNumbers = async (
   imageUrl: string,
   numberIds: string[]
@@ -238,7 +237,8 @@ export const updatePaymentReceiptUrlForNumbers = async (
 export const updatePaymentReceiptUrlForParticipant = async (
   imageUrl: string,
   participantId: string,
-  raffleId: string
+  raffleId: string,
+  sellerId?: string
 ): Promise<boolean> => {
   try {
     console.log('[voucherExport.ts] Updating payment_receipt_url for participant:', participantId);
@@ -248,23 +248,93 @@ export const updatePaymentReceiptUrlForParticipant = async (
       return false;
     }
     
-    // Update only records that belong to this participant and raffle
-    const { error } = await supabase
+    // Create the query to update only records belonging to this participant and raffle
+    let query = supabase
       .from('raffle_numbers')
       .update({ payment_receipt_url: imageUrl })
       .eq('participant_id', participantId)
-      .eq('raffle_id', raffleId)
-      .eq('status', 'sold'); // Only update sold numbers
+      .eq('raffle_id', raffleId);
+      
+    // If seller_id is provided, add it to the filter
+    if (sellerId) {
+      query = query.eq('seller_id', sellerId);
+    }
+
+    // Execute the update
+    const { error, count } = await query;
       
     if (error) {
       console.error('[voucherExport.ts] Error updating receipt URL for participant:', error);
       return false;
     }
     
-    console.log('[voucherExport.ts] Successfully updated receipt URLs for participant');
+    console.log(`[voucherExport.ts] Successfully updated receipt URLs for participant. Records updated: ${count || 'unknown'}`);
     return true;
   } catch (error) {
     console.error('[voucherExport.ts] Error in updatePaymentReceiptUrlForParticipant:', error);
     return false;
+  }
+};
+
+// New function to ensure automatic saving of receipt for selected numbers
+export const ensureReceiptSavedForParticipant = async (
+  voucherRef: React.RefObject<HTMLDivElement>,
+  raffleDetails: {
+    title: string;
+    price?: number;
+    lottery?: string;
+    dateLottery?: string;
+  } | undefined,
+  participantId: string,
+  raffleId: string,
+  sellerId?: string
+): Promise<string | null> => {
+  try {
+    console.log('[voucherExport.ts] Starting automatic receipt saving for participant:', participantId);
+    
+    if (!voucherRef.current || !raffleDetails || !participantId) {
+      console.error('[voucherExport.ts] Missing required data for receipt generation');
+      return null;
+    }
+    
+    // Generate the voucher image
+    const imgData = await exportVoucherAsImage(voucherRef.current, '');
+    if (!imgData) {
+      console.error('[voucherExport.ts] Failed to generate voucher image');
+      return null;
+    }
+    
+    // Create a unique identifier for this receipt
+    const receiptId = `receipt_${new Date().getTime()}_${participantId}`;
+    
+    // Upload the image to storage
+    const imageUrl = await uploadVoucherToStorage(imgData, raffleDetails.title || 'Rifa', receiptId);
+    if (!imageUrl) {
+      console.error('[voucherExport.ts] Failed to upload voucher image');
+      return null;
+    }
+    
+    // Update the receipt URL for this participant's numbers
+    const updateSuccess = await updatePaymentReceiptUrlForParticipant(
+      imageUrl,
+      participantId,
+      raffleId,
+      sellerId
+    );
+    
+    if (updateSuccess) {
+      console.log('[voucherExport.ts] Successfully saved receipt for participant:', participantId);
+      toast.success('Comprobante guardado automáticamente', {
+        id: 'receipt-saved-toast',
+        duration: 3000
+      });
+      return imageUrl;
+    } else {
+      console.error('[voucherExport.ts] Failed to update receipt URL for participant');
+      return null;
+    }
+  } catch (error) {
+    console.error('[voucherExport.ts] Error in ensureReceiptSavedForParticipant:', error);
+    return null;
   }
 };

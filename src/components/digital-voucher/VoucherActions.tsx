@@ -1,62 +1,42 @@
 
 import React from 'react';
-import { DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Download, X, Maximize2 } from 'lucide-react';
+import { Download, X, Eye } from 'lucide-react';
 
-interface VoucherActionsProps {
-  onDownload: () => void;
-  onPresent?: () => void; // Changed from onPresent to match usage in DigitalVoucher
-  onView?: () => void;    // Added to match usage in DigitalVoucher
+export interface VoucherActionsProps {
   onClose: () => void;
+  onDownload: () => void;
+  onView: () => void;
 }
 
-const VoucherActions: React.FC<VoucherActionsProps> = ({
-  onDownload,
-  onPresent,
-  onView,
-  onClose
-}) => {
-  // Use either onPresent or onView based on which one is provided
-  const handlePresentClick = () => {
-    if (onView) {
-      onView();
-    } else if (onPresent) {
-      onPresent();
-    }
-  };
-
+const VoucherActions: React.FC<VoucherActionsProps> = ({ onClose, onDownload, onView }) => {
   return (
-    <DialogFooter className="flex flex-row justify-between space-x-2 mt-3">
-      <Button 
-        type="button" 
-        className="flex-1 bg-purple-700 hover:bg-purple-800 text-white w-full sm:w-auto"
+    <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-2">
+      <Button
+        variant="outline"
+        onClick={onView}
+        className="flex items-center gap-1"
+      >
+        <Eye className="h-4 w-4" />
+        <span>Ver</span>
+      </Button>
+      <Button
+        variant="outline"
         onClick={onDownload}
+        className="flex items-center gap-1 text-blue-600 hover:text-white hover:bg-blue-600 border-blue-600"
       >
-        <Download className="h-4 w-4 mr-2" />
-        Descargar
+        <Download className="h-4 w-4" />
+        <span>Descargar</span>
       </Button>
-      
       <Button
-        type="button"
-        variant="outline"
-        onClick={handlePresentClick}
-        className="flex-1 bg-purple-500 hover:bg-purple-600 text-white w-full sm:w-auto mb-2 sm:mb-0"
-      >
-        <Maximize2 className="h-4 w-4 mr-2" />
-        Presentar
-      </Button>
-      
-      <Button
-        type="button"
-        variant="outline"
+        variant="default"
         onClick={onClose}
-        className="flex-1 bg-gray-400 hover:bg-gray-500 text-white w-full sm:w-auto mb-2 sm:mb-0"
+        className="flex items-center gap-1"
       >
-        <X className="h-4 w-4 mr-2" />
-        Cerrar
+        <X className="h-4 w-4" />
+        <span>Cerrar</span>
       </Button>
-    </DialogFooter>
+    </div>
   );
 };
 

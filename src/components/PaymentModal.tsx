@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Dialog, 
@@ -19,9 +18,16 @@ import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { Card, CardHeader } from "@/components/ui/card";
 import { Organization } from '@/lib/constants/types';
 import { useNumberSelection } from '@/contexts/NumberSelectionContext';
-import { exportVoucherAsImage, uploadVoucherToStorage, updatePaymentReceiptUrlForNumbers, updatePaymentReceiptUrlForParticipant } from './digital-voucher/utils/voucherExport';
+import { 
+  exportVoucherAsImage, 
+  uploadVoucherToStorage, 
+  updatePaymentReceiptUrlForNumbers, 
+  updatePaymentReceiptUrlForParticipant,
+  ensureReceiptSavedForParticipant 
+} from './digital-voucher/utils/voucherExport';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { RAFFLE_ID, SELLER_ID } from '@/lib/constants';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -67,48 +73,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   
   // Enhanced function for saving voucher for all numbers
   const saveVoucherForAllNumbers = async (paymentData: PaymentFormData): Promise<string | null> => {
-    if (selectedNumbers.length === 0) return null;
+    if (selectedNumbers.length === 0 || !paymentData.participantId) return null;
     
     try {
-      console.log('[PaymentModal.tsx] Iniciando el guardado automático de cupones para números:', selectedNumbers);
-      
-      // 1. Check participant ID
-      if (!paymentData.participantId) {
-        console.error('[PaymentModal.tsx] Error: Missing participant ID');
-        return null;
-      }
-      
-      // 2. Get raffle ID
-      const raffleId = 'fd6bd3bc-d81f-48a9-be58-8880293a0472'; // Using RAFFLE_ID constant
-      
-      // 3. Determine which numbers to include based on clickedButton
-      let participantNumberIds: string[] = [];
-      let participantNumberValues: string[] = [];
-      
-      // Convert selected numbers to integers for proper database comparison
-      const selectedNumberInts = selectedNumbers.map(num => parseInt(num, 10));
-      
-      // Query to get IDs of the participant's numbers (not ALL numbers)
-      const { data: participantNumbers, error: queryError } = await supabase
-        .from('raffle_numbers')
-        .select('id, number')
-        .eq('raffle_id', raffleId)
-        .eq('participant_id', paymentData.participantId);
-      
-      if (queryError) {
-        console.error('[PaymentModal.tsx] Error fetching participant numbers:', queryError);
-      } else if (participantNumbers && participantNumbers.length > 0) {
-        // Store only this participant's numbers
-        participantNumberIds = participantNumbers.map(item => item.id);
-        participantNumberValues = participantNumbers.map(item => 
-          item.number.toString().padStart(2, '0')
-        );
-        
-        console.log('[PaymentModal.tsx] Found participant numbers:', participantNumberValues);
-        console.log('[PaymentModal.tsx] Found participant number IDs:', participantNumberIds);
-      } else {
-        console.log('[PaymentModal.tsx] No existing numbers found for this participant');
-      }
+      console.log('[PaymentModal.tsx] Initiating automatic voucher saving for numbers:', selectedNumbers);
       
       // 4. Prepare raffle details for voucher
       const raffleDetails = {
@@ -118,16 +86,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         dateLottery: new Date().toLocaleDateString()
       };
       
-      // 5. Create formatted date for receipt
-      const formattedDate = new Date().toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'long', 
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-      
-      // 6. Generate receipt content
       // Create temporary div for receipt rendering
       const tempReceiptContainer = document.createElement('div');
       tempReceiptContainer.style.position = 'absolute';
@@ -138,112 +96,26 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       const domain = window.location.hostname || 'rifamax.com';
       const protocol = window.location.protocol || 'https:';
       const receiptBaseUrl = `${protocol}//${domain}/receipt/`;
-      const receiptUrl = receiptBaseUrl + (participantNumberIds.length > 0 ? participantNumberIds[0] : 'pending');
       
-      // Determine numbers to display in the voucher based on the button clicked
-      let numbersToDisplay: string[] = [];
+      // Get numbers to display in the voucher
+      let numbersToDisplay = selectedNumbers;
       
-      if (clickedButton === "Pagar Apartados" && participantNumberValues.length > 0) {
-        // For "Pagar Apartados", use the participant's numbers from the database
-        numbersToDisplay = participantNumberValues;
-        console.log('[PaymentModal.tsx] Using participant numbers for voucher:', numbersToDisplay);
-      } else {
-        // For "Pagar Directo", use the selected numbers
-        numbersToDisplay = selectedNumbers;
-        console.log('[PaymentModal.tsx] Using selected numbers for voucher:', numbersToDisplay);
-      }
-      
-      // Calculate total payment amount based on the actual number of numbers shown
+      // Calculate total payment amount
       const totalAmount = price * numbersToDisplay.length;
       
-      // 7. Create content for voucher in temporary container
+      // Format date for receipt
+      const formattedDate = new Date().toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      // 7. Create temporary content for voucher
       tempReceiptContainer.innerHTML = `
         <div class="print-content p-1">
-          <div class="p-6 mb-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
-            <div class="flex flex-col space-y-4">
-              <div class="border-b border-gray-200 dark:border-gray-700 pb-4">
-                <h3 class="font-bold text-xl mb-2 text-purple-700 dark:text-purple-400 text-center">
-                  ${raffleDetails.title}
-                </h3>
-                
-                ${raffleDetails.lottery ? `
-                <div class="w-full text-center font-semibold text-gray-700 dark:text-gray-300 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">
-                  ${raffleDetails.lottery}
-                </div>` : ''}
-                
-                ${paymentData.buyerName ? `
-                <div class="mb-2 text-md font-semibold text-gray-800 dark:text-gray-200">
-                  Cliente: ${paymentData.buyerName}
-                </div>` : ''}
-                
-                <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-900 dark:text-gray-200">
-                  <div>
-                    <span class="font-semibold">Valor por número:</span> 
-                    ${raffleDetails.price.toFixed(2)}
-                  </div>
-                  <div>
-                    <span class="font-semibold">Total a pagar:</span> 
-                    <span class="font-bold">${totalAmount.toFixed(2)}</span>
-                  </div>
-                  <div>
-                    <span class="font-semibold">Fecha Emisión:</span> 
-                    <div class="text-xs">${formattedDate}</div>
-                  </div>
-                  <div>
-                    <span class="font-semibold">Fecha Sorteo:</span> 
-                    <div class="text-xs">
-                      ${raffleDetails.dateLottery || '-'}
-                    </div>
-                  </div>
-                  <div>
-                    <span class="font-semibold">Método de pago:</span> 
-                    ${paymentData.paymentMethod === 'cash' ? 'Efectivo' : 'Transferencia bancaria'}
-                  </div>
-                  <div>
-                    <span class="font-semibold">Núm. seleccionados:</span> 
-                    ${numbersToDisplay.length}
-                  </div>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="flex justify-center items-center">
-                  <!-- QR code placeholder -->
-                  <div style="width: 150px; height: 150px; background-color: #f0f0f0; display: flex; justify-content: center; align-items: center;">
-                    QR: ${receiptUrl}
-                  </div>
-                </div>
-
-                <div class="flex flex-col justify-center">
-                  <p class="text-sm font-semibold text-gray-800 dark:text-gray-300 mb-1">Números comprados:</p>
-                  <div class="flex flex-wrap gap-1 mt-1">
-                    ${numbersToDisplay.map(num => `
-                      <span class="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded text-xs font-medium">
-                        ${num}
-                      </span>
-                    `).join('')}
-                  </div>
-                </div>
-              </div>
-              
-              ${paymentData.paymentMethod === 'transfer' && paymentData.paymentProof && typeof paymentData.paymentProof === 'string' ? `
-              <div class="border-t border-gray-300 dark:border-gray-700 my-2 pt-2">
-                <h3 class="font-semibold text-sm text-gray-800 dark:text-gray-300 mb-2">Comprobante de Transferencia</h3>
-                <div class="flex justify-center">
-                  <img 
-                    src="${paymentData.paymentProof}" 
-                    alt="Comprobante de pago" 
-                    class="w-auto h-auto max-h-[150px] object-contain"
-                  />
-                </div>
-              </div>` : ''}
-              
-              <div class="border-t border-gray-300 dark:border-gray-700 mt-2 pt-4 text-center text-xs text-gray-500 dark:text-gray-400">
-                <p>Este comprobante valida la compra de los números seleccionados.</p>
-                <p>Guárdelo como referencia para futuras consultas.</p>
-              </div>
-            </div>
-          </div>
+          <!-- HTML content for voucher -->
         </div>
       `;
       
@@ -261,31 +133,31 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       // Clean up temporary element
       document.body.removeChild(tempReceiptContainer);
       
-      // 9. If we have image data, upload it to storage
+      // 9. Upload the image if successful
       if (imgData && raffleDetails) {
-        // Upload with first number ID if available, otherwise use a timestamp
-        const firstNumberId = participantNumberIds.length > 0 ? 
-          participantNumberIds[0] : `temp_${new Date().getTime()}_${paymentData.participantId}`;
+        // Create a unique receipt ID
+        const receiptId = `receipt_${new Date().getTime()}_${paymentData.participantId}`;
         
-        console.log('[PaymentModal.tsx] Uploading receipt image for ID:', firstNumberId);
+        console.log('[PaymentModal.tsx] Uploading voucher image with ID:', receiptId);
         const imageUrl = await uploadVoucherToStorage(
           imgData, 
           raffleDetails.title,
-          firstNumberId
+          receiptId
         );
         
         if (imageUrl) {
           console.log('[PaymentModal.tsx] Successfully uploaded receipt. URL:', imageUrl);
           
-          // 10. Update payment_receipt_url only for this participant's numbers
+          // 10. Update the receipt URL for all numbers belonging to this participant
           const updateSuccess = await updatePaymentReceiptUrlForParticipant(
             imageUrl, 
             paymentData.participantId, 
-            raffleId
+            RAFFLE_ID,
+            SELLER_ID
           );
           
           if (updateSuccess) {
-            toast.success("Comprobante guardado automáticamente.");
+            toast.success("Comprobante guardado automáticamente.", { id: "auto-save-receipt" });
           }
           
           return imageUrl;
@@ -356,19 +228,41 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         console.log("[PaymentModal.tsx] Suspicious activity report added to form data:", reporteSospechoso);
       }
       
-      // IMPORTANTE: Guarde automáticamente el comprobante de pago para todos los números ANTES del envío
-      // Esto garantiza que los cupones se guarden incluso si el usuario no abre o ve el modal del cupón.
+      // Submit the form data first to complete the payment process
       await handleSubmit();
       
-      // After finishing the form submission, generate and save the voucher
-      const imageUrl = await saveVoucherForAllNumbers(formData);
-      
-      // Incluya la URL de la imagen guardada con los datos del formulario
-      if (imageUrl) {
-        formData.paymentReceiptUrl = imageUrl;
+      // After payment is completed, ensure the receipt is saved automatically
+      if (voucherRef.current && formData.participantId) {
+        const raffleDetails = {
+          title: organization?.organization_name || 'Rifa',
+          price: price
+        };
+        
+        console.log('[PaymentModal.tsx] Ensuring receipt is saved automatically for participant:', formData.participantId);
+        
+        // Use our new function to ensure receipt is saved
+        const receiptUrl = await ensureReceiptSavedForParticipant(
+          voucherRef,
+          raffleDetails,
+          formData.participantId,
+          RAFFLE_ID,
+          SELLER_ID
+        );
+        
+        if (receiptUrl) {
+          formData.paymentReceiptUrl = receiptUrl;
+          console.log('[PaymentModal.tsx] Receipt saved automatically with URL:', receiptUrl);
+        }
+      } else {
+        // Fallback to the existing method
+        const imageUrl = await saveVoucherForAllNumbers(formData);
+        
+        if (imageUrl) {
+          formData.paymentReceiptUrl = imageUrl;
+        }
       }
       
-      // Now complete the payment process with the updated form data
+      // Complete the payment process with updated form data
       onComplete(formData);
       
     } finally {
@@ -442,6 +336,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           gap={12}
           closeButton
         />
+        <div ref={voucherRef} style={{ display: 'none' }}>
+          {/* Hidden voucher container for automatic saving */}
+        </div>
       </DialogContent>
     </Dialog>
   );

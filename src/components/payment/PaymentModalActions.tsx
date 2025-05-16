@@ -32,7 +32,7 @@ export const PaymentModalActions = ({
   };
   
   const handleSubmit = (e: React.MouseEvent) => {
-    // Add a debug log to track when the button is clicked
+    // Add debug logging when the button is clicked
     console.log("PaymentModalActions.tsx: Completar Pago button clicked");
     
     // Show loading modal
@@ -69,7 +69,11 @@ export const PaymentModalActions = ({
         </Button>
       </div>
 
-      <LoadingModal isOpen={isLoadingModalOpen} />
+      <LoadingModal 
+        isOpen={isLoadingModalOpen} 
+        title="Procesando pago"
+        message="Por favor espere mientras se guarda el comprobante y se actualiza la información..."
+      />
     </>
   );
 };
