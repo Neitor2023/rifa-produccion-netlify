@@ -24,12 +24,10 @@ const PaymentUploadZone: React.FC<PaymentUploadZoneProps> = ({
         
         <div className="flex flex-col items-center p-4 border-2 border-dashed rounded-md">
           <div className="space-y-2 text-center">
-            <Upload
-              onChange={onFileUpload}
-              className="mx-auto h-8 w-8 text-black dark:text-white"
-            />
-            <div className="text-gray-500">
+            
+            <div>
               <label htmlFor="file-upload" className="relative cursor-pointer font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                <Upload className="mx-auto h-8 w-8 text-black dark:text-white" />                                
                 <span>Suba una imagen del comprobante</span>
                 <Input
                   id="file-upload"
