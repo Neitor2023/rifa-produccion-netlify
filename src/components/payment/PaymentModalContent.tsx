@@ -55,7 +55,7 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
           <div className="p-4">
             <Form {...form}>
               <form className="space-y-6">
-                {/* PaymentSummary is still included but renders an empty div now */}
+                {/* PaymentSummary todavía está incluido, pero ahora muestra un div vacío */}
                 <PaymentSummary 
                   selectedNumbers={selectedNumbers}
                   price={price}
@@ -73,7 +73,7 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
               </form>
             </Form>
             
-            {/* Display promotional image at the end if available */}
+            {/* Mostrar imagen promocional al final si está disponible */}
             {organization?.imagen_publicitaria && (
               <PromotionalImage imageUrl={organization.imagen_publicitaria} />
             )}
