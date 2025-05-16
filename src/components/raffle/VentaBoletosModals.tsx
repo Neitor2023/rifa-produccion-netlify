@@ -14,7 +14,7 @@ interface VentaBoletosModalsProps {
   selectedNumbers: string[];
   rafflePrice: number;
   paymentData: PaymentFormData | null;
-  onCompletePayment: (data: PaymentFormData) => Promise<void>;
+  onCompletePayment: (data: PaymentFormData) => Promise<{ success: boolean; conflictingNumbers?: string[] } | void>;
   buyerInfo: ValidatedBuyerInfo | null;
   debugMode: boolean;
   allowVoucherPrint: boolean;

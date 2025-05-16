@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { LoaderCircle } from "lucide-react";
 import { useNumberSelection } from '@/contexts/NumberSelectionContext';
@@ -20,6 +20,13 @@ export const PaymentModalActions = ({
 }: PaymentModalActionsProps) => {
   const { clearSelectionState } = useNumberSelection();
   const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false);
+  
+  // Close loading modal when isSubmitting becomes false
+  useEffect(() => {
+    if (!isSubmitting && isLoadingModalOpen) {
+      setIsLoadingModalOpen(false);
+    }
+  }, [isSubmitting, isLoadingModalOpen]);
 
   const handleCancel = () => {
     console.log("PaymentModalActions.tsx: Cancel button clicked");

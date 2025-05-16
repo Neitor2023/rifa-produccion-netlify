@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { useRaffleData } from '@/hooks/useRaffleData';
 import { usePaymentProcessor } from '@/hooks/usePaymentProcessor';
 import { useBuyerInfo } from '@/contexts/BuyerInfoContext';
 import { SELLER_ID, RAFFLE_ID } from '@/lib/constants';
+import { PaymentFormData } from '@/schemas/paymentFormSchema';
 
 export function useVentaBoletosContent() {
   // State for the clicked button
@@ -93,6 +93,21 @@ export function useVentaBoletosContent() {
     await handleProceedToPayment(numbers, participantData, buttonType);
   };
 
+  // Let's wrap handleCompletePayment to handle the return value and update our local state
+  const wrappedHandleCompletePayment = async (data: PaymentFormData) => {
+    const result = await handleCompletePayment(data);
+    
+    // If we have a result with conflicting numbers, update our conflict state
+    if (result && !result.success && result.conflictingNumbers && result.conflictingNumbers.length > 0) {
+      setConflictingNumbers(result.conflictingNumbers);
+      setIsConflictModalOpen(true);
+      return result;
+    }
+    
+    // Otherwise, return the result as is
+    return result;
+  };
+
   // Log buyer info when it changes
   useEffect(() => {
     console.log("useVentaBoletosContent.ts: buyerInfo:", buyerInfo ? {
@@ -134,7 +149,7 @@ export function useVentaBoletosContent() {
     // Handlers
     handleReserveNumbers,
     handleProceedToPaymentWithButton,
-    handleCompletePayment,
+    handleCompletePayment: wrappedHandleCompletePayment,
     getSoldNumbersCount,
     
     // Button state

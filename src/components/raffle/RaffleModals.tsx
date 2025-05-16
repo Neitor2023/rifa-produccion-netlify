@@ -1,11 +1,10 @@
 
 import React from 'react';
-import PaymentModal, { PaymentFormData } from '@/components/PaymentModal';
-import DigitalVoucher from '@/components/DigitalVoucher';
 import { ValidatedBuyerInfo } from '@/types/participant';
-import { NumberSelectionProvider } from '@/contexts/NumberSelectionContext';
+import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { Organization } from '@/lib/constants/types';
-import { useNumberSelection } from '@/contexts/NumberSelectionContext';
+import PaymentModal from '@/components/PaymentModal';
+import DigitalVoucher from '@/components/DigitalVoucher';
 
 interface RaffleModalsProps {
   isPaymentModalOpen: boolean;
@@ -15,10 +14,10 @@ interface RaffleModalsProps {
   selectedNumbers: string[];
   rafflePrice: number;
   paymentData: PaymentFormData | null;
-  onCompletePayment: (data: PaymentFormData) => Promise<void>;
+  onCompletePayment: (data: PaymentFormData) => Promise<{ success: boolean; conflictingNumbers?: string[] } | void>;
   buyerInfo: ValidatedBuyerInfo | null;
-  debugMode: boolean;
-  allowVoucherPrint: boolean;
+  debugMode?: boolean;
+  allowVoucherPrint?: boolean;
   raffleDetails?: {
     title: string;
     price: number;
@@ -39,52 +38,37 @@ const RaffleModals: React.FC<RaffleModalsProps> = ({
   paymentData,
   onCompletePayment,
   buyerInfo,
-  debugMode,
-  allowVoucherPrint,
+  debugMode = false,
+  allowVoucherPrint = true,
   raffleDetails,
   clickedButton,
   organization
 }) => {
-  console.log("RaffleModals.tsx: Rendering with isPaymentModalOpen=", isPaymentModalOpen);
-  const { clearSelectionState } = useNumberSelection();
-  
-  // Handle payment modal close
-  const handlePaymentModalClose = (): void => {
-    console.log("RaffleModals.tsx: Clearing selection state when payment modal is closed");
-    clearSelectionState();
-    setIsPaymentModalOpen(false);
-  };
-  
-  // Handle voucher close
-  const handleVoucherClose = (): void => {
-    console.log("RaffleModals.tsx: Clearing selection state when voucher is closed");
-    clearSelectionState();
-    setIsVoucherOpen(false);
-  };
-  
   return (
     <>
+      {/* Payment Modal */}
       <PaymentModal 
         isOpen={isPaymentModalOpen}
-        onClose={handlePaymentModalClose}
+        onClose={() => setIsPaymentModalOpen(false)}
         selectedNumbers={selectedNumbers}
         price={rafflePrice}
-        onComplete={onCompletePayment}
-        buyerData={buyerInfo}
+        onCompletePayment={onCompletePayment}
+        buyerInfo={buyerInfo}
         debugMode={debugMode}
         clickedButton={clickedButton}
         organization={organization}
       />
       
-      <DigitalVoucher 
-        isOpen={isVoucherOpen}
-        onClose={handleVoucherClose}
-        paymentData={paymentData}
-        selectedNumbers={selectedNumbers}
-        allowVoucherPrint={allowVoucherPrint}
-        raffleDetails={raffleDetails}
-        onVoucherClosed={clearSelectionState}
-      />
+      {/* Digital Voucher */}
+      {allowVoucherPrint && (
+        <DigitalVoucher 
+          isOpen={isVoucherOpen} 
+          onClose={() => setIsVoucherOpen(false)}
+          paymentData={paymentData}
+          raffleData={raffleDetails}
+          organization={organization}
+        />
+      )}
     </>
   );
 };
