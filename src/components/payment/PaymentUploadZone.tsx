@@ -22,7 +22,7 @@ const PaymentUploadZone: React.FC<PaymentUploadZoneProps> = ({
           Comprobante de Pago <span className="text-red-500">*</span>
         </label>
         
-        <div className="flex flex-col items-center p-4 border-2 border-dashed rounded-md text-black">
+        <div className="flex flex-col items-center p-4 border-2 border-dashed rounded-md ">
           <div className="space-y-2 text-center">
             
             <div className="text-gray-500">
