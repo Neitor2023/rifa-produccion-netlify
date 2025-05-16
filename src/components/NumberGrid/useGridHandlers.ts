@@ -118,6 +118,7 @@ toast.success(
   - Máximo permitido: ${maxAvailableNumbers}\n
   - number: ${number}\n
   - Números totales: ${totalNumbers}\n
+  - Números soldNumbersCount: ${soldNumbersCount}\n
   - Números disponibles: ${availableNumbers}\n
   - Restantes disponibles: ${remainingAvailable}`,
   { duration: 10000 }
