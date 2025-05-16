@@ -228,24 +228,20 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
                   className="flex flex-col space-y-1"
                 >
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="cash" id="cash" />
-                    <Label htmlFor="cash" className="text-base text-gray-800 dark:text-white">Efectivo</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
                     <RadioGroupItem value="transfer" id="transfer" />
                     <Label htmlFor="transfer" className="text-base text-gray-800 dark:text-white">Transferencia bancaria</Label>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="cash" id="cash" />
+                    <Label htmlFor="cash" className="text-base text-gray-800 dark:text-white">Efectivo</Label>
+                  </div>                  
                 </RadioGroup>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
-        />
-        
-
-        <Separator className="my-4" />
-
-        
+        />        
+        <Separator className="my-4" />        
       </div>
     </>
   );
