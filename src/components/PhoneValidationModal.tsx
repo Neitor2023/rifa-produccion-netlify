@@ -410,6 +410,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       {/* Loading Modal */}
       <LoadingModal 
         isOpen={isSearching} 
+        title="Buscando participante"
         message="Buscando datos del participante, por favor espere..."
       />
     </>

@@ -11,11 +11,15 @@ import { Loader2 } from "lucide-react";
 
 interface LoadingModalProps {
   isOpen: boolean;
-  title: string;
   message: string;
+  title?: string; // Make the title optional
 }
 
-const LoadingModal: React.FC<LoadingModalProps> = ({ isOpen, title, message }) => {
+const LoadingModal: React.FC<LoadingModalProps> = ({ 
+  isOpen, 
+  title = "Procesando", // Default title if not provided
+  message 
+}) => {
   return (
     <AlertDialog open={isOpen}>
       <AlertDialogContent className="sm:max-w-md">
