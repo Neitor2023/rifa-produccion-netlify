@@ -12,7 +12,7 @@ export interface VoucherHeaderProps {
 const VoucherHeader: React.FC<VoucherHeaderProps> = ({ onClose, onSaveVoucher }) => {
   return (
     {/*<div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">*/}
-    <DialogTitle className="text-xl font-bold bg-[#9b87f5] dark:bg-[#7E69AB] text-black-200 dark:text-white">
+    <DialogTitle className="text-xl font-bold bg-[#9b87f5] dark:bg-[#7E69AB] text-black dark:text-white">
         
         Comprobante
       </DialogTitle>
