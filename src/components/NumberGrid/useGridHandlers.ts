@@ -112,7 +112,10 @@ export const useGridHandlers = ({
     // Si se proporciona totalNumbers, calcule cuántos números están realmente disponibles
     if (totalNumbers && typeof totalNumbers === 'number') {
 toast.success(
-  `Validando disponibilidad:\n- Máximo permitido: ${maxAvailableNumbers}\n
+  `Validando disponibilidad:\n
+  - Máximo permitido: ${maxAvailableNumbers}\n
+  - number: ${number}\n
+  - Números totales: ${totalNumbers}\n
   - Restantes disponibles: ${remainingAvailable}`,
   { duration: 10000 }
 );      
