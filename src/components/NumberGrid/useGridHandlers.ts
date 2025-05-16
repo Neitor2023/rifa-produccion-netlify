@@ -117,12 +117,12 @@ export const useGridHandlers = ({
       remainingAvailable = Math.min(maxAvailableNumbers, availableNumbers);
 toast.success(
   `Validando disponibilidad:\n
-  - Máximo permitido: ${maxAvailableNumbers}\n
+  - Máximo permitido maxAvailableNumbers: ${maxAvailableNumbers}\n
   - number: ${number}\n
-  - Números totales: ${totalNumbers}\n
-  - Números Vendidos: ${soldNumbersCount}\n
-  - Números disponibles: ${availableNumbers}\n
-  - Restantes disponibles: ${remainingAvailable}`,
+  - Números totales totalNumbers: ${totalNumbers}\n
+  - Números Vendidos soldNumbersCount: ${soldNumbersCount}\n
+  - Números disponibles availableNumbers: ${availableNumbers}\n
+  - Restantes disponibles remainingAvailable: ${remainingAvailable}`,
   { duration: 10000 }
 );      
       
