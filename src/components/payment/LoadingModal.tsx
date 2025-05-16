@@ -15,10 +15,10 @@ const LoadingModal: React.FC<LoadingModalProps> = ({
   message = "Por favor espere mientras se procesa su solicitud..."
 }) => {
   return (
-    <Dialog open={isOpen}>
+    <Dialog open={isOpen} modal={true}>
       <DialogContent 
         className="sm:max-w-md bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg"
-        showClose={false}
+        // Remove the showClose property as it doesn't exist in the DialogContent type
       >
         <div className="flex flex-col items-center justify-center space-y-4">
           <LoaderCircle className="h-12 w-12 animate-spin text-purple-600 dark:text-purple-400" />
