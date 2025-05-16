@@ -26,7 +26,7 @@ const PaymentUploadZone: React.FC<PaymentUploadZoneProps> = ({
           <div className="space-y-2 text-center">
             
             <div className="text-gray-500">
-              <label htmlFor="file-upload" className="relative cursor-pointer font-semibold  hover:underline">
+              <label htmlFor="file-upload" className="relative cursor-pointer dark:text-white font-semibold  hover:underline">
                 <Upload className="mx-auto h-8 w-8 text-black dark:text-white" />                                
                 <span>Suba una imagen del comprobante</span>
                 <Input
