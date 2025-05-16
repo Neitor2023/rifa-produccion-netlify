@@ -29,7 +29,7 @@ export const useGridHandlers = ({
   raffleSeller,
   onReserve,
   onProceedToPayment,
-  debugMode = false,
+  debugMode = true,
   reservationDays,
   lotteryDate,
   totalNumbers,
@@ -121,7 +121,7 @@ export const useGridHandlers = ({
     }
       
     if (debugMode) {
-      console.log('NumberGrid: Available numbers calculation:', {
+      console.log('NumberGrid: Cálculo de números disponibles:', {
         totalNumbers,
         soldNumbersCount,
         maxAvailableNumbers,
