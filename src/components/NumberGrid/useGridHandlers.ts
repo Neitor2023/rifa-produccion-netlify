@@ -108,14 +108,17 @@ export const useGridHandlers = ({
 toast.success(
   (
     <div>
-      Validando con:<br />
-      {/* Aquí puedes agregar dinámicamente el nombre o número del participante */}
+      <p>
+        Validando con: <strong>{maxAvailableNumbers}</strong> número(s) disponibles
+      </p>
+      {/* Aquí puedes agregar dinámicamente el nombre o número del participante si es necesario */}
     </div>
   ),
   {
-    duration: 10000,
+    duration: 10000, // este toast dura 10 segundos
   }
 );
+
 
 
 
