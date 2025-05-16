@@ -161,6 +161,28 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
             </FormItem>
           )}
         />
+        
+        {/* Added: reporteSospechoso field */}
+        <FormField
+          control={form.control}
+          name="reporteSospechoso"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base font-medium text-gray-800 dark:text-white">
+                Reporte de actividad sospechosa
+              </FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Indique aquí si notó alguna actividad sospechosa o irregularidad"
+                  className="resize-none border-gray-300 dark:border-gray-600"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
       </div>
 
       <div className="space-y-4 bg-white/50 dark:bg-gray-800/50 p-4 rounded-md shadow-sm">
@@ -203,26 +225,6 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
 
         <Separator className="my-4" />
 
-        {/* Added: reporteSospechoso field */}
-        <FormField
-          control={form.control}
-          name="reporteSospechoso"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-base font-medium text-gray-800 dark:text-white">
-                Reporte de actividad sospechosa
-              </FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Indique aquí si notó alguna actividad sospechosa o irregularidad"
-                  className="resize-none border-gray-300 dark:border-gray-600"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
         
         <FormField
           control={form.control}
