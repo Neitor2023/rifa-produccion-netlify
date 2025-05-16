@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Dialog, 
@@ -28,6 +29,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { RAFFLE_ID, SELLER_ID } from '@/lib/constants';
+import { getSellerUuidFromCedula } from '@/hooks/useRaffleData/useSellerIdMapping';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -77,6 +79,22 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     
     try {
       console.log('[PaymentModal.tsx] Initiating automatic voucher saving for numbers:', selectedNumbers);
+      
+      // Get the seller UUID from the cedula if needed
+      let sellerUuid = SELLER_ID;
+      
+      if (!SELLER_ID.includes('-')) { // Not a UUID format
+        console.log('[PaymentModal.tsx] SELLER_ID appears to be a cedula, looking up UUID');
+        const uuid = await getSellerUuidFromCedula(SELLER_ID);
+        
+        if (uuid) {
+          console.log('[PaymentModal.tsx] Found seller UUID for cedula:', uuid);
+          sellerUuid = uuid;
+        } else {
+          console.error('[PaymentModal.tsx] Failed to find seller UUID for cedula:', SELLER_ID);
+          toast.error('Error: No se pudo encontrar el ID del vendedor');
+        }
+      }
       
       // 4. Prepare raffle details for voucher
       const raffleDetails = {
@@ -153,7 +171,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             imageUrl, 
             paymentData.participantId, 
             RAFFLE_ID,
-            SELLER_ID
+            sellerUuid
           );
           
           if (updateSuccess) {
@@ -233,6 +251,21 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       
       // After payment is completed, ensure the receipt is saved automatically
       if (voucherRef.current && formData.participantId) {
+        // Get the seller UUID from the cedula if needed
+        let sellerUuid = SELLER_ID;
+        
+        if (!SELLER_ID.includes('-')) { // Not a UUID format
+          console.log('[PaymentModal.tsx] SELLER_ID appears to be a cedula, looking up UUID');
+          const uuid = await getSellerUuidFromCedula(SELLER_ID);
+          
+          if (uuid) {
+            console.log('[PaymentModal.tsx] Found seller UUID for cedula:', uuid);
+            sellerUuid = uuid;
+          } else {
+            console.error('[PaymentModal.tsx] Failed to find seller UUID for cedula:', SELLER_ID);
+          }
+        }
+        
         const raffleDetails = {
           title: organization?.organization_name || 'Rifa',
           price: price
@@ -246,7 +279,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           raffleDetails,
           formData.participantId,
           RAFFLE_ID,
-          SELLER_ID
+          sellerUuid
         );
         
         if (receiptUrl) {
@@ -270,7 +303,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     }
   };
 
-  // Manejar el modal cerca de borrar selecciones
   const handleCloseModal = (): void => {
     console.log("[PaymentModal.tsx] Cerrar modalidad de pago y compensar selecciones");
     clearSelectionState();

@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
 import { toast } from 'sonner';
+import { getSellerUuidFromCedula } from '../useRaffleData/useSellerIdMapping';
 
 interface UpdateNumbersToSoldProps {
   numbers: string[];
@@ -37,9 +38,26 @@ export const updateNumbersToSold = async ({
     throw new Error('No se puede actualizar números sin ID de participante');
   }
 
-  if (!raffleSeller?.seller_id) {
+  // Get the seller UUID from the cedula if necessary
+  let sellerUuid = raffleSeller?.seller_id;
+
+  if (!sellerUuid) {
     console.error('❌ Error: seller_id no está definido');
     throw new Error('No se puede actualizar números sin ID de vendedor');
+  }
+
+  // Check if seller_id is a UUID or cedula
+  if (!sellerUuid.includes('-')) {
+    // This looks like a cedula, not a UUID - get the UUID
+    console.log("🔄 numberStatusUpdates.ts: Converting seller cedula to UUID:", sellerUuid);
+    const uuid = await getSellerUuidFromCedula(sellerUuid);
+    if (uuid) {
+      sellerUuid = uuid;
+      console.log("✅ numberStatusUpdates.ts: Found seller UUID:", sellerUuid);
+    } else {
+      console.error("❌ numberStatusUpdates.ts: Could not find seller UUID for cedula:", sellerUuid);
+      throw new Error(`No se encontró el UUID del vendedor con cédula ${sellerUuid}`);
+    }
   }
 
   if (!raffleId) {
@@ -103,7 +121,7 @@ export const updateNumbersToSold = async ({
       // Datos comunes para actualización o inserción
       const commonData: {
         status: 'sold';
-        seller_id: any;
+        seller_id: string;
         participant_id: string;
         payment_approved: boolean;
         reservation_expires_at: null;
@@ -114,7 +132,7 @@ export const updateNumbersToSold = async ({
         payment_receipt_url?: string;  // For the generated receipt
       } = {
         status: 'sold',
-        seller_id: raffleSeller.seller_id,
+        seller_id: sellerUuid,
         participant_id: participantId,
         payment_approved: true,
         reservation_expires_at: null,

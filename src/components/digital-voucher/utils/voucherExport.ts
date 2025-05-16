@@ -1,5 +1,7 @@
+
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { getSellerUuidFromCedula } from '@/hooks/useRaffleData/useSellerIdMapping';
 
 export const exportVoucherAsImage = async (
   content: HTMLDivElement | null,
@@ -238,7 +240,7 @@ export const updatePaymentReceiptUrlForParticipant = async (
   imageUrl: string,
   participantId: string,
   raffleId: string,
-  sellerId?: string
+  sellerIdOrCedula?: string
 ): Promise<boolean> => {
   try {
     console.log('[voucherExport.ts] Updating payment_receipt_url for participant:', participantId);
@@ -246,6 +248,21 @@ export const updatePaymentReceiptUrlForParticipant = async (
     if (!participantId || !raffleId || !imageUrl) {
       console.error('[voucherExport.ts] Missing required parameters');
       return false;
+    }
+    
+    // Get the actual UUID for the seller if a cedula was provided
+    let sellerUuid = sellerIdOrCedula;
+    
+    if (sellerIdOrCedula && !sellerIdOrCedula.includes('-')) {
+      // This looks like a cedula, not a UUID - get the UUID
+      console.log('[voucherExport.ts] sellerIdOrCedula appears to be a cedula, looking up UUID');
+      sellerUuid = await getSellerUuidFromCedula(sellerIdOrCedula);
+      
+      if (!sellerUuid) {
+        console.error('[voucherExport.ts] Could not find seller UUID for cedula:', sellerIdOrCedula);
+      } else {
+        console.log('[voucherExport.ts] Found seller UUID:', sellerUuid);
+      }
     }
     
     // Create the query to update only records belonging to this participant and raffle
@@ -256,8 +273,8 @@ export const updatePaymentReceiptUrlForParticipant = async (
       .eq('raffle_id', raffleId);
       
     // If seller_id is provided, add it to the filter
-    if (sellerId) {
-      query = query.eq('seller_id', sellerId);
+    if (sellerUuid) {
+      query = query.eq('seller_id', sellerUuid);
     }
 
     // Execute the update
@@ -287,7 +304,7 @@ export const ensureReceiptSavedForParticipant = async (
   } | undefined,
   participantId: string,
   raffleId: string,
-  sellerId?: string
+  sellerIdOrCedula?: string
 ): Promise<string | null> => {
   try {
     console.log('[voucherExport.ts] Starting automatic receipt saving for participant:', participantId);
@@ -314,12 +331,21 @@ export const ensureReceiptSavedForParticipant = async (
       return null;
     }
     
+    // Get the actual UUID for the seller if a cedula was provided
+    let sellerUuid = sellerIdOrCedula;
+    
+    if (sellerIdOrCedula && !sellerIdOrCedula.includes('-')) {
+      // This looks like a cedula, not a UUID - get the UUID
+      sellerUuid = await getSellerUuidFromCedula(sellerIdOrCedula);
+      console.log('[voucherExport.ts] Converted seller cedula to UUID:', sellerUuid);
+    }
+    
     // Update the receipt URL for this participant's numbers
     const updateSuccess = await updatePaymentReceiptUrlForParticipant(
       imageUrl,
       participantId,
       raffleId,
-      sellerId
+      sellerUuid || sellerIdOrCedula
     );
     
     if (updateSuccess) {

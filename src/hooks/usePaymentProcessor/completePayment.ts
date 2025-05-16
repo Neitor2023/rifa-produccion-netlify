@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { updateNumbersToSold } from './numberStatusUpdates';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { getSellerUuidFromCedula } from '../useRaffleData/useSellerIdMapping';
 
 interface UseCompletePaymentProps {
   raffleSeller: {
@@ -50,7 +51,7 @@ export function useCompletePayment({
   const saveSuspiciousActivityReport = async (
     reportMessage: string,
     participantId: string,
-    sellerId: string
+    sellerIdOrCedula: string
   ): Promise<void> => {
     try {
       if (!reportMessage || reportMessage.trim() === '') {
@@ -60,16 +61,30 @@ export function useCompletePayment({
       console.log('📝 Saving suspicious activity report:', {
         message: reportMessage,
         participantId,
-        sellerId,
+        sellerIdOrCedula,
         raffleId
       });
+      
+      // Convert seller cedula to UUID if needed
+      let sellerUuid = sellerIdOrCedula;
+      
+      if (sellerIdOrCedula && !sellerIdOrCedula.includes('-')) {
+        // This looks like a cedula, not a UUID - get the UUID
+        const uuid = await getSellerUuidFromCedula(sellerIdOrCedula);
+        if (uuid) {
+          sellerUuid = uuid;
+          console.log('📝 Converted seller cedula to UUID:', sellerUuid);
+        } else {
+          console.error('❌ Could not find seller UUID for cedula:', sellerIdOrCedula);
+        }
+      }
 
       const { error } = await supabase
         .from('fraud_reports')
         .insert({
           mensaje: reportMessage.trim(),
           participant_id: participantId,
-          seller_id: sellerId,
+          seller_id: sellerUuid,
           raffle_id: raffleId,
           estado: 'pendiente'
         });
@@ -107,6 +122,23 @@ export function useCompletePayment({
 
       debugLog('handleCompletePayment', { data, selectedNumbers });
 
+      // Get seller UUID from the cedula if necessary
+      let sellerUuid = raffleSeller.seller_id;
+      
+      if (raffleSeller.seller_id && !raffleSeller.seller_id.includes('-')) {
+        // This looks like a cedula, not a UUID - get the UUID
+        console.log("🔄 Converting seller cedula to UUID");
+        const uuid = await getSellerUuidFromCedula(raffleSeller.seller_id);
+        if (uuid) {
+          sellerUuid = uuid;
+          console.log("✅ Found seller UUID:", sellerUuid);
+        } else {
+          console.error("❌ Could not find seller UUID for cedula:", raffleSeller.seller_id);
+          toast.error("Error: No se pudo encontrar el ID del vendedor");
+          return;
+        }
+      }
+
       // 1. Verify numbers are still available
       const unavailableNumbers = await verifyNumbersAvailability(selectedNumbers, raffleId);
       if (unavailableNumbers.length > 0) {
@@ -127,8 +159,8 @@ export function useCompletePayment({
       }
       
       // 3. Process participant data
-      // Ensure seller_id is set
-      data.sellerId = raffleSeller.seller_id;
+      // Ensure seller_id is set with the correct UUID
+      data.sellerId = sellerUuid;
       debugLog('handleCompletePayment - Setting seller_id', { sellerId: data.sellerId });
       
       console.log("👤 Procesando datos del participante");
@@ -183,7 +215,10 @@ export function useCompletePayment({
             participantId, 
             paymentProofUrl, 
             raffleNumbers: [], // Passing empty array as it's not used in this context
-            raffleSeller,
+            raffleSeller: {
+              ...raffleSeller,
+              seller_id: sellerUuid // Use the UUID
+            },
             raffleId
           });
           
@@ -226,7 +261,10 @@ export function useCompletePayment({
           participantId, 
           paymentProofUrl, 
           raffleNumbers: [], // Passing empty array as it's not used in this context
-          raffleSeller,
+          raffleSeller: {
+            ...raffleSeller,
+            seller_id: sellerUuid // Use the UUID
+          },
           raffleId
         });
         
@@ -243,7 +281,7 @@ export function useCompletePayment({
         await saveSuspiciousActivityReport(
           data.reporteSospechoso,
           participantId,
-          raffleSeller.seller_id
+          sellerUuid
         );
       }
 
