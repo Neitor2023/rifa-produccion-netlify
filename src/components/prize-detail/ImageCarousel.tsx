@@ -34,7 +34,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
       {/*</div>*/}
         {/*</div>*/}
       
-      <div className="pt-1 w-full h-[500px] overflow-hidden rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+      <div className="mt-1 w-full h-[500px] overflow-hidden rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
         <PrizeImage 
           src={images[currentIndex]?.displayUrl} 
           alt={`${imageTitle} - ${currentIndex + 1}`}
