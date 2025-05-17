@@ -1,5 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
-import { Card, Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Card } from "@/components/ui/card";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
