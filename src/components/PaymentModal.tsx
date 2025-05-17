@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Card, Dialog, DialogContent } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -106,6 +106,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-white/20 backdrop-blur-md max-w-2xl">
+        <Card className="bg-transparent border-0 shadow-none">
         <PaymentModalHeader onClose={onClose} />
         <PaymentModalContent
           form={form}
@@ -124,6 +125,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           onClose={onClose}
           onSubmit={form.handleSubmit(onSubmit)}
         />
+      </Card>
       </DialogContent>
     </Dialog>
   );
