@@ -26,8 +26,13 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
       <div className="w-full h-[500px] overflow-hidden rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
         <div className="mb-4">
           <div className="text-base font-bold text-gray-600 dark:text-gray-400 text-sm whitespace-pre-line">
-            {formatText("Deslice hacia los lados para ver más imágenes")}
-            {formatText("Deslice hacia abajo para ver más detalles")}
+<p className="text-base font-bold text-gray-600 dark:text-gray-400 text-sm whitespace-pre-line">
+  Deslice hacia los lados para ver más imágenes
+</p>
+<p className="text-base font-bold text-gray-600 dark:text-gray-400 text-sm whitespace-pre-line">
+  Deslice hacia abajo para ver más detalles
+</p>
+
           </div>
         </div>
         
