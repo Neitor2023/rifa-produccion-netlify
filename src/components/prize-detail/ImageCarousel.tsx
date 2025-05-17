@@ -25,12 +25,12 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
     <div className="relative mb-6 hidden md:block">
         {/*<div className="mb-4">*/}
       {/*<div className="text-base font-bold text-gray-600 dark:text-gray-400 text-sm">*/}
-            <p className="text-base font-bold text-gray-600 dark:text-gray-400 text-sm">
+            {/*<p className="text-base font-bold text-gray-600 dark:text-gray-400 text-sm">*/}
               Deslice hacia los lados para ver más imágenes
-            </p>
-            <p className="text-base font-bold text-gray-600 dark:text-gray-400 text-sm">
+            {/*</p>*/}
+            {/*<p className="text-base font-bold text-gray-600 dark:text-gray-400 text-sm">*/}
               Deslice hacia abajo para ver más detalles
-            </p>
+            {/*</p>*/}
       {/*</div>*/}
         {/*</div>*/}
       
