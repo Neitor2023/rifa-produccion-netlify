@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Card, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -12,7 +12,6 @@ interface PaymentModalHeaderProps {
 export const PaymentModalHeader: React.FC<PaymentModalHeaderProps> = ({ onClose, onHeaderClick }) => {
   return (
     <DialogHeader className="relative pb-2 border-b border-gray-200 dark:border-gray-700">
-      <Card className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0">
       <DialogTitle 
         className="text-lg font-bold text-gray-800 dark:text-white cursor-pointer"
         onClick={onHeaderClick} // Make the title clickable
@@ -31,6 +30,5 @@ export const PaymentModalHeader: React.FC<PaymentModalHeaderProps> = ({ onClose,
         </Button>
       )}
     </DialogHeader>
-      </Card>
   );
 };
