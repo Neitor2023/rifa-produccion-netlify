@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, Dialog, DialogContent } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -60,6 +59,37 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     mode: "onChange"
   });
 
+  // Clear form fields if the modal is opened from the "Pagar Directo" button
+  useEffect(() => {
+    if (isOpen && clickedButton === "Pagar") {
+      form.reset({
+        buyerName: '',
+        buyerPhone: '',
+        buyerCedula: '',
+        buyerEmail: '',
+        direccion: '',
+        sugerenciaProducto: '',
+        paymentMethod: "cash",
+        paymentProof: null,
+        nota: '',
+        reporteSospechoso: '',
+        sellerId: '',
+        participantId: '',
+        clickedButtonType: '',
+        paymentReceiptUrl: '',
+      });
+      setPreviewUrl(null);
+    } else if (isOpen && buyerInfo) {
+      // For other buttons (like "Pagar Apartados"), keep the existing data
+      form.setValue('buyerName', buyerInfo.name || '');
+      form.setValue('buyerPhone', buyerInfo.phone || '');
+      form.setValue('buyerCedula', buyerInfo.cedula || '');
+      form.setValue('buyerEmail', buyerInfo.email || '');
+      form.setValue('direccion', buyerInfo.direccion || '');
+      form.setValue('sugerenciaProducto', buyerInfo.sugerencia_producto || '');
+    }
+  }, [isOpen, clickedButton, form, buyerInfo]);
+
   const onFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -103,11 +133,18 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     }
   };
 
+  // This is the handler that gets passed to the clickable title
+  const handleHeaderClick = () => {
+    if (form.formState.isValid && !isSubmitting) {
+      form.handleSubmit(onSubmit)();
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-white/20 backdrop-blur-md max-w-2xl">
         <Card className="bg-transparent border-0 shadow-none">
-        <PaymentModalHeader onClose={onClose} />
+        <PaymentModalHeader onClose={onClose} onHeaderClick={handleHeaderClick} />
         <PaymentModalContent
           form={form}
           selectedNumbers={selectedNumbers}
