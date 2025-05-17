@@ -22,8 +22,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
   if (!images || images.length === 0) return null;
 
   return (
-    <div className="relative mb-1 hidden md:block">
-      <div className="w-full h-[500px] overflow-hidden rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+    <div className="relative mb-6 hidden md:block">
         {/*<div className="mb-4">*/}
           <div className="text-base font-bold text-gray-600 dark:text-gray-400 text-sm">
 <p className="text-base font-bold text-gray-600 dark:text-gray-400 text-sm">
@@ -35,6 +34,8 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
 
           </div>
         {/*</div>*/}
+      
+      <div className="w-full h-[500px] overflow-hidden rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
         
         <PrizeImage 
           src={images[currentIndex]?.displayUrl} 
