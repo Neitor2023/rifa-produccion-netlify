@@ -24,7 +24,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
   return (
     <>
       <div className="text-base font-bold text-gray-600 dark:text-gray-400 text-sm">
-        <p>Deslice hacia los lados para ver más imágenes</p>
+        <p>Deslice hacia los lados para ver más</p>
         <p>Deslice hacia abajo para ver más detalles</p>
       </div>
   
