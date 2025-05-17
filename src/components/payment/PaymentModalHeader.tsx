@@ -6,15 +6,15 @@ import { Button } from "@/components/ui/button";
 
 interface PaymentModalHeaderProps {
   onClose?: () => void;
-  onHeaderClick?: () => void; // Added this prop to make the header clickable
+  onHeaderClick?: () => void;
 }
 
 export const PaymentModalHeader: React.FC<PaymentModalHeaderProps> = ({ onClose, onHeaderClick }) => {
   return (
     <DialogHeader className="relative pb-2 border-b border-gray-200 dark:border-gray-700">
       <DialogTitle 
-        className="text-lg font-bold text-gray-800 dark:text-white cursor-pointer"
-        onClick={onHeaderClick} // Make the title clickable
+        className="text-lg font-bold text-gray-800 dark:text-white cursor-pointer bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0 p-2 rounded"
+        onClick={onHeaderClick}
       >
         Completar Pago
       </DialogTitle>
