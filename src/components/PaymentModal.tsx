@@ -105,7 +105,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="bg-white/20 backdrop-blur-md max-w-2xl">
         <PaymentModalHeader onClose={onClose} />
         <PaymentModalContent
           form={form}
