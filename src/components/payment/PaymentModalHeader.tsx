@@ -11,7 +11,7 @@ interface PaymentModalHeaderProps {
 
 export const PaymentModalHeader: React.FC<PaymentModalHeaderProps> = ({ onClose, onHeaderClick }) => {
   return (
-    <DialogHeader className="relative pb-2 border-b border-gray-200 dark:border-gray-700">
+    <DialogHeader className="relative pb-2 border-0 border-gray-200 dark:border-gray-700">
       <DialogTitle 
         className="text-lg font-bold text-gray-800 dark:text-white cursor-pointer bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0 p-2 rounded"
         onClick={onHeaderClick}
