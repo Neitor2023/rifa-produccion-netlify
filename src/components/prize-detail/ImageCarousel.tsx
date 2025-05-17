@@ -22,19 +22,17 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
   if (!images || images.length === 0) return null;
 
   return (
-    <div className="relative mb-6 hidden md:block">
-        {/*<div className="mb-4">*/}
-      {/*<div className="text-base font-bold text-gray-600 dark:text-gray-400 text-sm">*/}
+      <div className="text-base font-bold text-gray-600 dark:text-gray-400 text-sm">
             {/*<p className="text-base font-bold text-gray-600 dark:text-gray-400 text-sm">*/}
               Deslice hacia los lados para ver más imágenes
             {/*</p>*/}
             {/*<p className="text-base font-bold text-gray-600 dark:text-gray-400 text-sm">*/}
               Deslice hacia abajo para ver más detalles
             {/*</p>*/}
-      {/*</div>*/}
-        {/*</div>*/}
-      
-      <div className="mt-1 w-full h-[500px] overflow-hidden rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+      </div>
+    
+    <div className="relative mb-6 hidden md:block">      
+      <div className="w-full h-[500px] overflow-hidden rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
         <PrizeImage 
           src={images[currentIndex]?.displayUrl} 
           alt={`${imageTitle} - ${currentIndex + 1}`}
