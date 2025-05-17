@@ -28,7 +28,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
         <p>Deslice hacia abajo para ver más detalles</p>
       </div>
   
-      <div className="relative hidden md:block">      
+      <div className="relative block md:block">      
         <div className="w-full h-[500px] overflow-hidden rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
           <PrizeImage 
             src={images[currentIndex]?.displayUrl} 
