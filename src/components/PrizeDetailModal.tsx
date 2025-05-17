@@ -91,7 +91,7 @@ const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, pr
           <CardContent className="p-0 mt-4">
             <ScrollArea className="max-h-[50vh] overflow-y-auto px-1 bg-gray-400 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700">
               <div className="p-4">
-                {/* Image carousel - Standard layout for larger displays */}
+                {/* Carrusel de imágenes: diseño estándar para pantallas más grandes */}
                 <ImageCarousel 
                   images={relevantImages}
                   currentIndex={currentImageIndex}
@@ -100,14 +100,16 @@ const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, pr
                   imageTitle={prize.name}
                 />
                 
-                {/* Embla Carousel for mobile devices */}
+                {/* Carrusel Embla para dispositivos móviles */}
                 <MobileCarousel 
                   images={relevantImages}
                   fallbackImage={prize.url_image}
                   imageTitle={prize.name}
                 />
                 
-                {/* Thumbnail gallery for multiple images - visible on both mobile and desktop */}
+                {/* Galería de miniaturas para múltiples imágenes */}
+                {/* visible tanto en dispositivos */}
+                {/* móviles como en computadoras de escritorio */}
                 <ThumbnailGallery 
                   images={relevantImages}
                   currentIndex={currentImageIndex}
@@ -120,7 +122,7 @@ const PrizeDetailModal: React.FC<PrizeDetailModalProps> = ({ isOpen, onClose, pr
                   detail={prize.detail}
                 />
 
-                {/* Display promotional image at the end if available */}
+                {/* Mostrar imagen promocional al final si está disponible */}
                 {organization?.imagen_publicitaria && (
                   <div className="mt-6">
                     <PromotionalImage imageUrl={organization.imagen_publicitaria} />
