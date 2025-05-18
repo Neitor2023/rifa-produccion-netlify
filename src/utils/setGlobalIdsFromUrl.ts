@@ -7,6 +7,7 @@ export let RAFFLE_ID = DEFAULT_RAFFLE_ID;
 export let SELLER_ID = DEFAULT_SELLER_ID;
 
 export async function setGlobalIdsFromUrl(): Promise<void> {
+  console.log('[setGlobalIdsFromUrl.ts] Aqui estoy');
   try {
     const params = new URLSearchParams(window.location.search);
     const prmtrRaffle = params.get('prmtrRaffle');
