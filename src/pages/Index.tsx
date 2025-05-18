@@ -5,10 +5,11 @@ import { useEffect } from "react";
 
 const Index = () => {
   const navigate = useNavigate();
-
+  
   useEffect(() => {
-    // Redireccionar automáticamente a la página web de VentaBoletos
-    navigate("/venta-boletos");
+    // Ya no redireccionamos automáticamente aquí, ya que lo hacemos en App.tsx
+    // y preservamos los parámetros de la URL
+    console.log("[Index.tsx] Página Index cargada, no redireccionando (ya se hizo en App.tsx)");
   }, [navigate]);
 
   return (
@@ -17,7 +18,12 @@ const Index = () => {
         <h1 className="text-4xl font-bold mb-4">Romy Rifa</h1>
         <p className="text-xl text-gray-600 mb-6">Sistema de venta de boletos para rifas</p>
         <Button 
-          onClick={() => navigate("/venta-boletos")}
+          onClick={() => {
+            // Preservar los parámetros de la URL al navegar
+            const currentParams = new URLSearchParams(window.location.search).toString();
+            const queryString = currentParams ? `?${currentParams}` : '';
+            navigate(`/venta-boletos${queryString}`);
+          }}
           className="bg-rifa-purple hover:bg-rifa-darkPurple"
         >
           Ir a Venta de Boletos
