@@ -12,6 +12,8 @@ interface UseRaffleDataProps {
 }
 
 export function useRaffleData({ raffleId, sellerId }: UseRaffleDataProps) {
+  console.log("[useRaffleData.ts] Called with params:", { raffleId, sellerId });
+  
   // Get seller data
   const { seller, isLoadingSeller } = useSellerData(sellerId);
   

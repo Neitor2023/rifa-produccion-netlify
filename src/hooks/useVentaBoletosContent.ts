@@ -1,9 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { useRaffleData } from '@/hooks/useRaffleData';
 import { usePaymentProcessor } from '@/hooks/usePaymentProcessor';
 import { useBuyerInfo } from '@/contexts/BuyerInfoContext';
-import { SELLER_ID, RAFFLE_ID } from '@/lib/constants';
-import { PaymentFormData } from '@/schemas/paymentFormSchema';
+import { SELLER_ID, RAFFLE_ID } from '@/utils/setGlobalIdsFromUrl';
 
 export function useVentaBoletosContent() {
   // State for the clicked button
@@ -12,7 +12,8 @@ export function useVentaBoletosContent() {
   // Access buyer info from context
   const { buyerInfo, setBuyerInfo } = useBuyerInfo();
   
-  // Get raffle data
+  // Get raffle data - using the imported values from setGlobalIdsFromUrl
+  console.log("[useVentaBoletosContent.ts] Using global IDs:", { RAFFLE_ID, SELLER_ID });
   const { 
     seller,
     raffle,
