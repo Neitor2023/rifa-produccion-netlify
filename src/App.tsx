@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +10,7 @@ import Index from "./pages/Index";
 import VentaBoletos from "./pages/VentaBoletos";
 import NotFound from "./pages/NotFound";
 import Receipt from './pages/Receipt';
+import { RAFFLE_ID, SELLER_ID } from "./utils/setGlobalIdsFromUrl";
 
 const queryClient = new QueryClient();
 

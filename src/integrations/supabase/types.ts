@@ -609,7 +609,6 @@ export type Database = {
           active: boolean
           avatar: string | null
           cedula: string | null
-          clave: string | null
           created_at: string | null
           deleted_at: string | null
           email: string
@@ -627,7 +626,6 @@ export type Database = {
           active?: boolean
           avatar?: string | null
           cedula?: string | null
-          clave?: string | null
           created_at?: string | null
           deleted_at?: string | null
           email: string
@@ -645,7 +643,6 @@ export type Database = {
           active?: boolean
           avatar?: string | null
           cedula?: string | null
-          clave?: string | null
           created_at?: string | null
           deleted_at?: string | null
           email?: string
