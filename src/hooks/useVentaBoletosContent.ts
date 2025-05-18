@@ -4,6 +4,7 @@ import { useRaffleData } from '@/hooks/useRaffleData';
 import { usePaymentProcessor } from '@/hooks/usePaymentProcessor';
 import { useBuyerInfo } from '@/contexts/BuyerInfoContext';
 import { SELLER_ID, RAFFLE_ID } from '@/utils/setGlobalIdsFromUrl';
+import { PaymentFormData } from '@/schemas/paymentFormSchema';
 
 export function useVentaBoletosContent() {
   // State for the clicked button
