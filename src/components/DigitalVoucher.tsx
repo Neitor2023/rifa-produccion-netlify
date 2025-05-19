@@ -20,7 +20,8 @@ import {
   presentVoucherImage, 
   uploadVoucherToStorage, 
   updatePaymentReceiptUrlForNumbers,
-  updatePaymentReceiptUrlForParticipant 
+  updatePaymentReceiptUrlForParticipant,
+  ensureReceiptSavedForParticipant
 } from './digital-voucher/utils/voucherExport';
 import { supabase } from '@/integrations/supabase/client';
 import { useNumberSelection } from '@/contexts/NumberSelectionContext';
@@ -63,6 +64,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   const [participantNumbers, setParticipantNumbers] = useState<string[]>([]);
   const [paymentProofImage, setPaymentProofImage] = useState<string | null>(null);
   const [receiptAlreadySaved, setReceiptAlreadySaved] = useState<boolean>(false);
+  const [showAlertMessage, setShowAlertMessage] = useState<boolean>(false);
   
   // Determine text color based on theme
   const textColor = theme === 'dark' ? 'text-white' : 'text-gray-800';
@@ -197,20 +199,43 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     }
   }, [raffleNumberId]);
   
+  // Check if we need to show alert message based on allowVoucherPrint
+  useEffect(() => {
+    if (isOpen) {
+      if (allowVoucherPrint === false) {
+        console.log('[DigitalVoucher.tsx] Setting showAlertMessage to true because allowVoucherPrint is false');
+        setShowAlertMessage(true);
+      } else {
+        setShowAlertMessage(false);
+      }
+    }
+  }, [isOpen, allowVoucherPrint]);
+  
   // Auto-save receipt when voucher is opened if not already saved
   useEffect(() => {
     const autoSaveReceipt = async () => {
-      // Only auto-save if the receipt hasn't been saved yet
+      // Always auto-save the receipt regardless of allowVoucherPrint value
       if (isOpen && printRef.current && participantId && !receiptAlreadySaved) {
         console.log('[DigitalVoucher.tsx] Auto-saving receipt for participant:', participantId);
-        await saveVoucherForAllNumbers();
+        try {
+          await saveVoucherForAllNumbers();
+          console.log('[DigitalVoucher.tsx] Auto-save receipt completed successfully');
+          
+          // If we should not show the receipt, show the alert after saving
+          if (allowVoucherPrint === false) {
+            setShowAlertMessage(true);
+          }
+        } catch (error) {
+          console.error('[DigitalVoucher.tsx] Error durante auto-guardado de recibo:', error);
+          toast.error('Error al guardar el comprobante automáticamente');
+        }
       }
     };
     
     // Delay execution slightly to ensure the DOM is ready
     const timer = setTimeout(autoSaveReceipt, 1000);
     return () => clearTimeout(timer);
-  }, [isOpen, printRef.current, participantId, receiptAlreadySaved]);
+  }, [isOpen, printRef.current, participantId, receiptAlreadySaved, allowVoucherPrint]);
   
   // Handle the modal close event
   const handleCloseModal = (): void => {
@@ -279,11 +304,19 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         
         if (updateSuccess) {
           setReceiptAlreadySaved(true);
-          toast.success('Comprobante guardado automáticamente', { id: 'receipt-saved' });
+          
+          // Only show success message if allowVoucherPrint is true
+          if (allowVoucherPrint) {
+            toast.success('Comprobante guardado automáticamente', { id: 'receipt-saved' });
+          } else {
+            console.log('[DigitalVoucher.tsx] Comprobante guardado automáticamente (sin mostrar toast porque allowVoucherPrint es false)');
+          }
         }
         
-        // Also download locally
-        downloadVoucherImage(imgData, `comprobante_${raffleDetails.title.replace(/\s+/g, '_')}.png`);
+        // Also download locally if allowed
+        if (allowVoucherPrint) {
+          downloadVoucherImage(imgData, `comprobante_${raffleDetails.title.replace(/\s+/g, '_')}.png`);
+        }
         
         return imageUrl;
       }
@@ -295,6 +328,17 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
       return null;
     }
   };
+
+  // Si allowVoucherPrint es false y el modal está abierto, mostramos el mensaje de alerta
+  if (isOpen && allowVoucherPrint === false && showAlertMessage) {
+    return (
+      <AlertMessage 
+        isOpen={true} 
+        onClose={handleCloseModal} 
+        textColor={textColor} 
+      />
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleCloseModal()}>
