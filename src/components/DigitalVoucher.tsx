@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import { 
   Dialog, 
@@ -231,7 +230,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
           if (savedUrl) {
             console.log('[DigitalVoucher.tsx] - Finalizando guardado automático de comprobante de pago');
             setReceiptAlreadySaved(true);
-            
+          
             // Only show toast if we're actually showing the voucher
             if (allowVoucherPrint) {
               toast.success('Comprobante guardado automáticamente', { id: 'receipt-saved' });
@@ -254,7 +253,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     const timer = setTimeout(autoSaveReceipt, 1000);
     return () => clearTimeout(timer);
   }, [isOpen, printRef.current, participantId, allowVoucherPrint, participantNumbers, raffleDetails]);
-  
+
   // Handle the modal close event
   const handleCloseModal = (): void => {
     clearSelectionState(); // Clear selections when modal is closed

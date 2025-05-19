@@ -22,8 +22,10 @@ export async function setGlobalIdsFromUrl(): Promise<void> {
       console.log("[setGlobalIdsFromUrl.ts] RAFFLE_ID asignado:", RAFFLE_ID);
     } else if (prmtrRaffle) {
       console.log('[setGlobalIdsFromUrl.ts] Raffle ID inválido en URL - valor:', prmtrRaffle);
+      console.log('[setGlobalIdsFromUrl.ts] Usando raffle_id por defecto:', DEFAULT_RAFFLE_ID);
     } else {
       console.log("[setGlobalIdsFromUrl.ts] – prmtrRaffle ausente, se usará valor por defecto");
+      console.log('[setGlobalIdsFromUrl.ts] Usando raffle_id por defecto:', DEFAULT_RAFFLE_ID);
     }
 
     // Validación y asignación del ID del vendedor
@@ -38,23 +40,25 @@ export async function setGlobalIdsFromUrl(): Promise<void> {
 
         if (error) {
           console.log('[setGlobalIdsFromUrl.ts] Error al buscar ID del vendedor - cédula:', prmtrDNI, '-', error.message);
+          console.log('[setGlobalIdsFromUrl.ts] Usando seller_id por defecto:', DEFAULT_SELLER_ID);
         } else if (data?.id) {
-          console.log("[setGlobalIdsFromUrl.ts] sellerId appears to be a cedula, looking up UUID");
-          console.log("[setGlobalIdsFromUrl.ts] Looking up seller UUID for cedula:", prmtrDNI);
           SELLER_ID = data.id;
-          console.log("[setGlobalIdsFromUrl.ts] Found seller UUID for cedula", prmtrDNI + ":", SELLER_ID);
-          console.log("[setGlobalIdsFromUrl.ts] Using UUID", SELLER_ID, "instead of cedula", prmtrDNI);
+          console.log("[setGlobalIdsFromUrl.ts] Cedula encontrada, UUID vendedor asignado:", SELLER_ID);
         } else {
           console.log('[setGlobalIdsFromUrl.ts] Fallo al buscar cédula – prmtrDNI:', prmtrDNI);
+          console.log('[setGlobalIdsFromUrl.ts] Usando seller_id por defecto:', DEFAULT_SELLER_ID);
         }
       } catch (dbError) {
         console.log('[setGlobalIdsFromUrl.ts] Error en la consulta a la base de datos:', dbError);
+        console.log('[setGlobalIdsFromUrl.ts] Usando seller_id por defecto:', DEFAULT_SELLER_ID);
       }
     } else {
       console.log("[setGlobalIdsFromUrl.ts] – prmtrDNI ausente, se usará valor por defecto");
+      console.log('[setGlobalIdsFromUrl.ts] Usando seller_id por defecto:', DEFAULT_SELLER_ID);
     }
   } catch (err) {
     console.log('[setGlobalIdsFromUrl.ts] Error inesperado al procesar parámetros de URL - Detalle:', err);
+    console.log('[setGlobalIdsFromUrl.ts] Usando valores por defecto - RAFFLE_ID:', DEFAULT_RAFFLE_ID, '- SELLER_ID:', DEFAULT_SELLER_ID);
   }
   
   console.log("[setGlobalIdsFromUrl.ts] – Finalizando extracción de variables de la URL con valores:", { 

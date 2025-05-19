@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentFormData } from '@/types/payment';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
+import { getSellerUuidFromCedula } from '@/hooks/useRaffleData/useSellerIdMapping';
 
 interface ProcessParticipantProps {
   data: PaymentFormData;
@@ -19,6 +20,42 @@ export const processParticipant = async ({
     debugLog('Processing participant', data);
     
     const formattedPhone = formatPhoneNumber(data.buyerPhone);
+    
+    // Validate and process the sellerId to ensure it's a valid UUID
+    let validSellerId: string | null = null;
+    
+    if (data.sellerId) {
+      // Check if the sellerId is already a UUID (contains hyphens and is long enough)
+      const isUuid = data.sellerId.includes('-') && data.sellerId.length > 30;
+      
+      if (isUuid) {
+        // Already a UUID, use it directly
+        validSellerId = data.sellerId;
+        debugLog('Using provided seller UUID', validSellerId);
+      } else {
+        // Looks like a cedula, try to get the UUID
+        try {
+          const uuid = await getSellerUuidFromCedula(data.sellerId);
+          if (uuid) {
+            validSellerId = uuid;
+            debugLog('Converted seller cedula to UUID', { cedula: data.sellerId, uuid });
+          } else {
+            debugLog('Could not find UUID for seller cedula', data.sellerId);
+          }
+        } catch (err) {
+          console.error("Error converting seller cedula to UUID:", err);
+          debugLog('Error converting seller cedula', err);
+        }
+      }
+    }
+    
+    // Verify we have a valid UUID before proceeding
+    if (!validSellerId) {
+      console.log("⚠️ No valid seller UUID found, participant will be created without seller association");
+      debugLog('No valid seller UUID', { originalId: data.sellerId });
+    } else {
+      debugLog('Using seller_id (verified UUID)', validSellerId);
+    }
     
     const { data: existingParticipant, error: searchError } = await supabase
       .from('participants')
@@ -50,9 +87,9 @@ export const processParticipant = async ({
       };
 
       // Save seller_id on the participant record - CRITICAL
-      // Either use the sellerId from data if available, or use the SELLER_ID constant
-      if (data.sellerId) {
-        updateData.seller_id = data.sellerId;
+      if (validSellerId) {
+        updateData.seller_id = validSellerId;
+        debugLog('Adding seller_id to participant update', validSellerId);
       }
 
       // Add debug log for email specifically
@@ -86,7 +123,7 @@ export const processParticipant = async ({
         sugerencia_producto: data.sugerenciaProducto || null,
         nota: data.nota || null,
         raffle_id: raffleId,
-        seller_id: data.sellerId || null // Add seller_id when creating participant
+        seller_id: validSellerId // Add validated seller_id when creating participant
       };
       
       // Add debug log for email specifically
@@ -118,7 +155,7 @@ export const processParticipant = async ({
         debugLog('Saving suspicious report', {
           mensaje: data.reporteSospechoso,
           participant_id: participantId,
-          seller_id: data.sellerId || null,
+          seller_id: validSellerId,
           raffle_id: raffleId
         });
         
@@ -127,7 +164,7 @@ export const processParticipant = async ({
           .insert({
             mensaje: data.reporteSospechoso,
             participant_id: participantId,
-            seller_id: data.sellerId || null,
+            seller_id: validSellerId,
             raffle_id: raffleId
           });
           

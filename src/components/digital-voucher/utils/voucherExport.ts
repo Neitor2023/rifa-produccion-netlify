@@ -237,146 +237,126 @@ export const updatePaymentReceiptUrlForNumbers = async (
 
 // Update payment receipt URL only for specific participant's numbers
 export const updatePaymentReceiptUrlForParticipant = async (
-  imageUrl: string,
+  voucherUrl: string,
   participantId: string,
   raffleId: string,
-  sellerIdOrCedula?: string
+  sellerId: string
 ): Promise<boolean> => {
   try {
-    console.log('[voucherExport.ts] Actualizando payment_receipt_url para participante:', participantId);
+    if (!voucherUrl || !participantId || !raffleId) {
+      console.error("[DigitalVoucher.tsx] - Error: Faltan datos para actualizar el comprobante de pago");
+      return false;
+    }
+
+    console.log('[DigitalVoucher.tsx] - Guardando URL en raffle_numbers.payment_receipt_url...');
     
-    if (!participantId || !raffleId || !imageUrl) {
-      console.error('[voucherExport.ts] Missing required parameters');
+    // Get all sold numbers for this participant in this raffle
+    const { data: participantNumbers, error: fetchError } = await supabase
+      .from('raffle_numbers')
+      .select('id, number')
+      .eq('participant_id', participantId)
+      .eq('raffle_id', raffleId)
+      .eq('status', 'sold');
+    
+    if (fetchError) {
+      console.error("[DigitalVoucher.tsx] - Error al buscar números del participante:", fetchError);
       return false;
     }
     
-    // Get the actual UUID for the seller if a cedula was provided
-    let sellerUuid = sellerIdOrCedula;
+    if (!participantNumbers || participantNumbers.length === 0) {
+      console.error("[DigitalVoucher.tsx] - No se encontraron números vendidos para este participante");
+      return false;
+    }
     
-    if (sellerIdOrCedula && !sellerIdOrCedula.includes('-')) {
-      // This looks like a cedula, not a UUID - get the UUID
-      console.log('[voucherExport.ts] sellerIdOrCedula appears to be a cedula, looking up UUID');
-      sellerUuid = await getSellerUuidFromCedula(sellerIdOrCedula);
+    // Update each number with the receipt URL
+    for (const numberRecord of participantNumbers) {
+      console.log(`[DigitalVoucher.tsx] – Generando comprobante para número: ${numberRecord.number}`);
       
-      if (!sellerUuid) {
-        console.error('[voucherExport.ts] Could not find seller UUID for cedula:', sellerIdOrCedula);
+      const { error: updateError } = await supabase
+        .from('raffle_numbers')
+        .update({ payment_receipt_url: voucherUrl })
+        .eq('id', numberRecord.id);
+      
+      if (updateError) {
+        console.error(`[DigitalVoucher.tsx] – Error al guardar comprobante – número: ${numberRecord.number} – Error:`, updateError);
       } else {
-        console.log('[voucherExport.ts] Found seller UUID:', sellerUuid);
+        console.log(`[DigitalVoucher.tsx] – Comprobante registrado con éxito para el número: ${numberRecord.number}`);
       }
     }
     
-    // Create the query to update only records belonging to this participant and raffle
-    let query = supabase
-      .from('raffle_numbers')
-      .update({ payment_receipt_url: imageUrl })
-      .eq('participant_id', participantId)
-      .eq('raffle_id', raffleId);
-      
-    // If seller_id is provided, add it to the filter
-    if (sellerUuid) {
-      query = query.eq('seller_id', sellerUuid);
-    }
-
-    // Execute the update
-    const { error, count } = await query;
-      
-    if (error) {
-      console.error('[voucherExport.ts] Error updating receipt URL for participant:', error);
-      return false;
-    }
-    
-    console.log(`[voucherExport.ts] Successfully updated receipt URLs for participant. Records updated: ${count || 'unknown'}`);
     return true;
-  } catch (error) {
-    console.error('[voucherExport.ts] Error in updatePaymentReceiptUrlForParticipant:', error);
+  } catch (error: any) {
+    console.error("[DigitalVoucher.tsx] – Error al actualizar URL del comprobante:", error?.message || error);
     return false;
   }
 };
 
 // New function to ensure automatic saving of receipt for selected numbers
 export const ensureReceiptSavedForParticipant = async (
-  voucherRef: React.RefObject<HTMLDivElement>,
-  raffleDetails: {
-    title: string;
-    price?: number;
-    lottery?: string;
-    dateLottery?: string;
-  } | undefined,
+  printRef: React.RefObject<HTMLDivElement>,
+  raffleDetails: any | undefined,
   participantId: string,
   raffleId: string,
-  sellerIdOrCedula?: string,
-  numbers?: string[]
+  sellerId: string,
+  participantNumbers: string[]
 ): Promise<string | null> => {
+  console.log('[DigitalVoucher.tsx] – Iniciando guardado automático de comprobante de pago...');
+  
+  if (!printRef.current || !raffleDetails || !participantId) {
+    console.error('[DigitalVoucher.tsx] - Error: No hay referencia al comprobante o detalles de rifa');
+    return null;
+  }
+  
   try {
-    console.log('[DigitalVoucher.tsx] – Iniciando guardado automático de comprobante de pago...');
-    
-    if (!voucherRef.current || !raffleDetails || !participantId) {
-      console.error('[DigitalVoucher.tsx] - Error al guardar comprobante: Faltan datos requeridos');
-      return null;
-    }
-    
     // Generate the voucher image
-    const imgData = await exportVoucherAsImage(voucherRef.current, '');
+    const imgData = await exportVoucherAsImage(printRef.current, '');
     if (!imgData) {
-      console.error('[DigitalVoucher.tsx] - Error al guardar comprobante: No se pudo generar la imagen');
+      console.error("[DigitalVoucher.tsx] - Error: No se pudo generar la imagen del comprobante");
       return null;
     }
     
-    // Create a unique identifier for this receipt
+    // Create a unique receipt ID
     const receiptId = `receipt_${new Date().getTime()}_${participantId}`;
     
-    // Upload the image to storage
-    const imageUrl = await uploadVoucherToStorage(imgData, raffleDetails.title || 'Rifa', receiptId);
-    if (!imageUrl) {
-      console.error('[DigitalVoucher.tsx] - Error al guardar comprobante: No se pudo subir la imagen');
-      return null;
-    }
-    
-    // Get the actual UUID for the seller if a cedula was provided
-    let sellerUuid = sellerIdOrCedula;
-    
-    if (sellerIdOrCedula && !sellerIdOrCedula.includes('-')) {
-      // This looks like a cedula, not a UUID - get the UUID
-      sellerUuid = await getSellerUuidFromCedula(sellerIdOrCedula);
-      console.log('[DigitalVoucher.tsx] - Convertido cédula de vendedor a UUID:', sellerUuid);
-    }
-    
-    // Update the receipt URL for this participant's numbers
-    const updateSuccess = await updatePaymentReceiptUrlForParticipant(
-      imageUrl,
-      participantId,
-      raffleId,
-      sellerUuid || sellerIdOrCedula
+    // Upload to storage
+    console.log('[DigitalVoucher.tsx] – Preparando imagen del comprobante...');
+    const imageUrl = await uploadVoucherToStorage(
+      imgData, 
+      raffleDetails.title, 
+      receiptId
     );
-
-    // Log result for each number (if numbers array provided)
-    if (numbers && numbers.length > 0) {
-      numbers.forEach(numero => {
-        console.log('[DigitalVoucher.tsx] - Comprobante guardado correctamente para número:', numero);
-      });
-    }
     
-    if (updateSuccess) {
-      console.log('[DigitalVoucher.tsx] - Finalizando guardado automático de comprobante de pago');
-      toast.success('Comprobante guardado automáticamente', {
-        id: 'receipt-saved-toast',
-        duration: 3000
-      });
-      return imageUrl;
+    if (imageUrl) {
+      console.log('[DigitalVoucher.tsx] – Imagen subida correctamente:', imageUrl);
+      
+      // Save the URL for each of the participant's numbers
+      const success = await updatePaymentReceiptUrlForParticipant(
+        imageUrl,
+        participantId,
+        raffleId,
+        sellerId
+      );
+      
+      if (success) {
+        participantNumbers.forEach(num => {
+          console.log(`[DigitalVoucher.tsx] – Comprobante guardado correctamente para número: ${num}`);
+        });
+        console.log('[DigitalVoucher.tsx] – Finalizando guardado automático de comprobante de pago');
+        toast.success('Comprobante guardado automáticamente', {
+          id: 'receipt-saved-toast',
+          duration: 3000
+        });
+        return imageUrl;
+      } else {
+        console.error("[DigitalVoucher.tsx] – Error al guardar URL del comprobante en la base de datos");
+        return null;
+      }
     } else {
-      console.error('[DigitalVoucher.tsx] - Error al guardar comprobante: Fallo al actualizar URLs');
+      console.error("[DigitalVoucher.tsx] – Error al subir la imagen del comprobante");
       return null;
     }
   } catch (error: any) {
-    const errorMessage = error?.message || 'Error desconocido';
-    // If numbers array is provided, log the error for each number
-    if (numbers && numbers.length > 0) {
-      numbers.forEach(numero => {
-        console.error('[DigitalVoucher.tsx] – Error al guardar comprobante – número:', numero, '– Error:', errorMessage);
-      });
-    } else {
-      console.error('[DigitalVoucher.tsx] - Error al guardar comprobante:', errorMessage);
-    }
+    console.error("[DigitalVoucher.tsx] – Error al guardar comprobante – Error:", error?.message || error);
     return null;
   }
 };
