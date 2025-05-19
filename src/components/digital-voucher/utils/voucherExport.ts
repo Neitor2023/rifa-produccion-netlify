@@ -1,4 +1,3 @@
-
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { getSellerUuidFromCedula } from '@/hooks/useRaffleData/useSellerIdMapping';
@@ -10,7 +9,7 @@ export const exportVoucherAsImage = async (
   if (!content) return null;
   
   try {
-    console.log('[DigitalVoucher.tsx] Exportando comprobante a imagen');
+    console.log('[DigitalVoucher.tsx] - Preparando imagen del comprobante...');
     const html2canvas = (await import('html2canvas')).default;
     const canvas = await html2canvas(content, {
       scale: 2, // Higher scale for better quality
@@ -20,9 +19,10 @@ export const exportVoucherAsImage = async (
     });
     
     const imgData = canvas.toDataURL('image/png');
+    console.log('[DigitalVoucher.tsx] - Imagen del comprobante generada exitosamente');
     return imgData;
   } catch (error) {
-    console.error('[DigitalVoucher.tsx] Error al exportar comprobante:', error);
+    console.error('[DigitalVoucher.tsx] - Error al generar imagen del comprobante:', error);
     toast.error("No se pudo crear la imagen del comprobante. Intente nuevamente.");
     return null;
   }
@@ -98,11 +98,11 @@ export const uploadVoucherToStorage = async (
 ): Promise<string | null> => {
   try {
     if (!imgData || !numberId) {
-      console.error('[DigitalVoucher.tsx] No se puede subir: falta la imagen o ID');
+      console.error('[DigitalVoucher.tsx] - No se puede subir: falta la imagen o ID');
       return null;
     }
 
-    console.log('[DigitalVoucher.tsx] Iniciando subida de comprobante para numberId:', numberId);
+    console.log('[DigitalVoucher.tsx] - Subiendo imagen del comprobante a Supabase...');
 
     // Convert base64 to blob
     const base64Data = imgData.split(',')[1];
@@ -118,7 +118,7 @@ export const uploadVoucherToStorage = async (
     
     // Try to upload file directly, if it fails due to missing bucket we'll create it
     try {
-      console.log('[DigitalVoucher.tsx] Intentando subir archivo:', fileName);
+      console.log('[DigitalVoucher.tsx] - Intentando subir archivo:', fileName);
       
       const { data, error: uploadError } = await supabase.storage
         .from('paymentreceipturl')
@@ -132,7 +132,7 @@ export const uploadVoucherToStorage = async (
         if (uploadError.message.includes('The resource was not found') || 
             uploadError.message.includes('Bucket not found')) {
           
-          console.log('[DigitalVoucher.tsx] El bucket no existe, se creará uno nuevo');
+          console.log('[DigitalVoucher.tsx] - El bucket no existe, se creará uno nuevo');
           
           // Create bucket with public access
           const { error: createBucketError } = await supabase.storage.createBucket('paymentreceipturl', {
@@ -140,11 +140,11 @@ export const uploadVoucherToStorage = async (
           });
           
           if (createBucketError) {
-            console.error('[DigitalVoucher.tsx] Error al crear bucket:', createBucketError.message);
+            console.error('[DigitalVoucher.tsx] - Error al crear bucket:', createBucketError.message);
             throw new Error(`Error creating bucket: ${createBucketError.message}`);
           }
           
-          console.log('[DigitalVoucher.tsx] Bucket creado exitosamente, reintentando subida');
+          console.log('[DigitalVoucher.tsx] - Bucket creado exitosamente, reintentando subida');
           
           // Try upload again
           const { error: retryError } = await supabase.storage
@@ -155,12 +155,12 @@ export const uploadVoucherToStorage = async (
             });
             
           if (retryError) {
-            console.error('[DigitalVoucher.tsx] Error en segundo intento de subida:', retryError);
+            console.error('[DigitalVoucher.tsx] - Error en segundo intento de subida:', retryError);
             throw new Error(`Error on retry upload: ${retryError.message}`);
           }
         } else {
           // Other upload error
-          console.error('[DigitalVoucher.tsx] Error al subir archivo:', uploadError);
+          console.error('[DigitalVoucher.tsx] - Error al subir archivo:', uploadError);
           throw new Error(`Error uploading file: ${uploadError.message}`);
         }
       }
@@ -172,7 +172,7 @@ export const uploadVoucherToStorage = async (
       }
       
       // Otherwise we've handled it above
-      console.log('[DigitalVoucher.tsx] Manejo de error de bucket completado');
+      console.log('[DigitalVoucher.tsx] - Manejo de error de bucket completado');
     }
     
     // Get public URL (do this regardless of the path taken above)
@@ -181,12 +181,12 @@ export const uploadVoucherToStorage = async (
       .getPublicUrl(fileName);
     
     const imageUrl = urlData.publicUrl;
-    console.log('[DigitalVoucher.tsx] Imagen subida a Storage en paymentreceipturl:', imageUrl);
+    console.log('[DigitalVoucher.tsx] - Imagen subida correctamente:', imageUrl);
     
     return imageUrl;
     
   } catch (error) {
-    console.error('[DigitalVoucher.tsx] Error al subir comprobante:', error);
+    console.error('[DigitalVoucher.tsx] - Error al subir comprobante:', error);
     toast.error("No se pudo guardar el comprobante en el servidor. Intente nuevamente.");
     return null;
   }
@@ -243,7 +243,7 @@ export const updatePaymentReceiptUrlForParticipant = async (
   sellerIdOrCedula?: string
 ): Promise<boolean> => {
   try {
-    console.log('[voucherExport.ts] Updating payment_receipt_url for participant:', participantId);
+    console.log('[voucherExport.ts] Actualizando payment_receipt_url para participante:', participantId);
     
     if (!participantId || !raffleId || !imageUrl) {
       console.error('[voucherExport.ts] Missing required parameters');
@@ -304,20 +304,21 @@ export const ensureReceiptSavedForParticipant = async (
   } | undefined,
   participantId: string,
   raffleId: string,
-  sellerIdOrCedula?: string
+  sellerIdOrCedula?: string,
+  numbers?: string[]
 ): Promise<string | null> => {
   try {
-    console.log('[voucherExport.ts] Starting automatic receipt saving for participant:', participantId);
+    console.log('[DigitalVoucher.tsx] – Iniciando guardado automático de comprobante de pago...');
     
     if (!voucherRef.current || !raffleDetails || !participantId) {
-      console.error('[voucherExport.ts] Missing required data for receipt generation');
+      console.error('[DigitalVoucher.tsx] - Error al guardar comprobante: Faltan datos requeridos');
       return null;
     }
     
     // Generate the voucher image
     const imgData = await exportVoucherAsImage(voucherRef.current, '');
     if (!imgData) {
-      console.error('[voucherExport.ts] Failed to generate voucher image');
+      console.error('[DigitalVoucher.tsx] - Error al guardar comprobante: No se pudo generar la imagen');
       return null;
     }
     
@@ -327,7 +328,7 @@ export const ensureReceiptSavedForParticipant = async (
     // Upload the image to storage
     const imageUrl = await uploadVoucherToStorage(imgData, raffleDetails.title || 'Rifa', receiptId);
     if (!imageUrl) {
-      console.error('[voucherExport.ts] Failed to upload voucher image');
+      console.error('[DigitalVoucher.tsx] - Error al guardar comprobante: No se pudo subir la imagen');
       return null;
     }
     
@@ -337,7 +338,7 @@ export const ensureReceiptSavedForParticipant = async (
     if (sellerIdOrCedula && !sellerIdOrCedula.includes('-')) {
       // This looks like a cedula, not a UUID - get the UUID
       sellerUuid = await getSellerUuidFromCedula(sellerIdOrCedula);
-      console.log('[voucherExport.ts] Converted seller cedula to UUID:', sellerUuid);
+      console.log('[DigitalVoucher.tsx] - Convertido cédula de vendedor a UUID:', sellerUuid);
     }
     
     // Update the receipt URL for this participant's numbers
@@ -347,20 +348,35 @@ export const ensureReceiptSavedForParticipant = async (
       raffleId,
       sellerUuid || sellerIdOrCedula
     );
+
+    // Log result for each number (if numbers array provided)
+    if (numbers && numbers.length > 0) {
+      numbers.forEach(numero => {
+        console.log('[DigitalVoucher.tsx] - Comprobante guardado correctamente para número:', numero);
+      });
+    }
     
     if (updateSuccess) {
-      console.log('[voucherExport.ts] Successfully saved receipt for participant:', participantId);
+      console.log('[DigitalVoucher.tsx] - Finalizando guardado automático de comprobante de pago');
       toast.success('Comprobante guardado automáticamente', {
         id: 'receipt-saved-toast',
         duration: 3000
       });
       return imageUrl;
     } else {
-      console.error('[voucherExport.ts] Failed to update receipt URL for participant');
+      console.error('[DigitalVoucher.tsx] - Error al guardar comprobante: Fallo al actualizar URLs');
       return null;
     }
-  } catch (error) {
-    console.error('[voucherExport.ts] Error in ensureReceiptSavedForParticipant:', error);
+  } catch (error: any) {
+    const errorMessage = error?.message || 'Error desconocido';
+    // If numbers array is provided, log the error for each number
+    if (numbers && numbers.length > 0) {
+      numbers.forEach(numero => {
+        console.error('[DigitalVoucher.tsx] – Error al guardar comprobante – número:', numero, '– Error:', errorMessage);
+      });
+    } else {
+      console.error('[DigitalVoucher.tsx] - Error al guardar comprobante:', errorMessage);
+    }
     return null;
   }
 };

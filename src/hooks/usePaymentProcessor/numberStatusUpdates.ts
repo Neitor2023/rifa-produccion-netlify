@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
 import { toast } from 'sonner';
-import { getSellerUuidFromCedula } from '../useRaffleData/useSellerIdMapping';
+import { getSellerUuidFromCedula } from '@/hooks/useRaffleData/useSellerIdMapping';
 
 interface UpdateNumbersToSoldProps {
   numbers: string[];

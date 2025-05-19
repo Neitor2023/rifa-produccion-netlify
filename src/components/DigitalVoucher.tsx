@@ -65,6 +65,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   const [paymentProofImage, setPaymentProofImage] = useState<string | null>(null);
   const [receiptAlreadySaved, setReceiptAlreadySaved] = useState<boolean>(false);
   const [showAlertMessage, setShowAlertMessage] = useState<boolean>(false);
+  const [isReceiptSaving, setIsReceiptSaving] = useState<boolean>(false);
   
   // Determine text color based on theme
   const textColor = theme === 'dark' ? 'text-white' : 'text-gray-800';
@@ -212,15 +213,23 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   // Auto-save receipt when voucher is opened regardless of allowVoucherPrint value
   useEffect(() => {
     const autoSaveReceipt = async () => {
-      if (isOpen && printRef.current && participantId) {
+      if (isOpen && printRef.current && participantId && !isReceiptSaving) {
         try {
-          console.log('[DigitalVoucher.tsx] Auto-saving receipt for participant:', participantId, 'allowVoucherPrint:', allowVoucherPrint);
+          setIsReceiptSaving(true);
+          console.log('[DigitalVoucher.tsx] – Iniciando guardado automático de comprobante de pago...');
           
           // Always try to generate and save the receipt, regardless of allowVoucherPrint
-          const savedUrl = await saveVoucherForAllNumbers();
+          const savedUrl = await ensureReceiptSavedForParticipant(
+            printRef,
+            raffleDetails,
+            participantId,
+            RAFFLE_ID,
+            SELLER_ID,
+            participantNumbers
+          );
           
           if (savedUrl) {
-            console.log('[DigitalVoucher.tsx] Auto-save receipt result: Success - URL:', savedUrl);
+            console.log('[DigitalVoucher.tsx] - Finalizando guardado automático de comprobante de pago');
             setReceiptAlreadySaved(true);
             
             // Only show toast if we're actually showing the voucher
@@ -228,13 +237,15 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
               toast.success('Comprobante guardado automáticamente', { id: 'receipt-saved' });
             }
           } else {
-            console.error('[DigitalVoucher.tsx] Auto-save receipt result: Failed - No URL returned');
+            console.error('[DigitalVoucher.tsx] - Error al guardar comprobante: No se pudo guardar la URL');
           }
-        } catch (error) {
-          console.error('[DigitalVoucher.tsx] Error durante auto-guardado de recibo:', error);
+        } catch (error: any) {
+          console.error('[DigitalVoucher.tsx] – Error al guardar comprobante – error:', error?.message || error);
           if (allowVoucherPrint) {
             toast.error('Error al guardar el comprobante automáticamente');
           }
+        } finally {
+          setIsReceiptSaving(false);
         }
       }
     };
@@ -242,7 +253,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     // Delay execution slightly to ensure the DOM is ready
     const timer = setTimeout(autoSaveReceipt, 1000);
     return () => clearTimeout(timer);
-  }, [isOpen, printRef.current, participantId, allowVoucherPrint]);
+  }, [isOpen, printRef.current, participantId, allowVoucherPrint, participantNumbers, raffleDetails]);
   
   // Handle the modal close event
   const handleCloseModal = (): void => {
@@ -263,7 +274,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     
     try {
       // Only update numbers for the current participant
-      console.log(`[DigitalVoucher.tsx] Updating receipt for participant numbers: ${paymentData.participantId}`);
+      console.log(`[DigitalVoucher.tsx] - Guardando URL en raffle_numbers.payment_receipt_url...`);
       
       // Use the utility function to update receipt URLs
       const result = await updatePaymentReceiptUrlForParticipant(
@@ -272,10 +283,14 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         RAFFLE_ID,
         SELLER_ID
       );
+
+      if (result) {
+        console.log('[DigitalVoucher.tsx] - Comprobante registrado con éxito');
+      }
       
       return result;
-    } catch (error) {
-      console.error("[DigitalVoucher.tsx] Error updating payment receipt:", error);
+    } catch (error: any) {
+      console.error("[DigitalVoucher.tsx] – Error al guardar comprobante – Error:", error?.message || error);
       return false;
     }
   };
@@ -297,6 +312,8 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         return null;
       }
       
+      console.log('[DigitalVoucher.tsx] - Generando comprobante para números:', participantNumbers.join(', '));
+      
       // Create a unique receipt ID
       const receiptId = `receipt_${new Date().getTime()}_${paymentData.participantId}`;
       
@@ -313,7 +330,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         
         if (updateSuccess) {
           setReceiptAlreadySaved(true);
-          console.log(`[DigitalVoucher.tsx] – Comprobante guardado correctamente – números: ${participantNumbers.join(', ')} – método de pago: ${paymentMethod}`);
+          console.log(`[DigitalVoucher.tsx] - Comprobante guardado correctamente - números: ${participantNumbers.join(', ')} - método de pago: ${paymentMethod}`);
           return imageUrl;
         } else {
           console.error("[DigitalVoucher.tsx] – Error al guardar comprobante – motivo: fallo al actualizar recibos en la base de datos");
@@ -323,13 +340,15 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         console.error("[DigitalVoucher.tsx] – Error al guardar comprobante – motivo: fallo al subir imagen");
         return null;
       }
-    } catch (error) {
-      console.error(`[DigitalVoucher.tsx] – Error al guardar comprobante – motivo: ${error}`);
+    } catch (error: any) {
+      console.error(`[DigitalVoucher.tsx] – Error al guardar comprobante – motivo: ${error?.message || error}`);
       // Don't show error toast if voucher printing is not allowed
       if (allowVoucherPrint) {
         toast.error("Error al guardar el comprobante. Intente nuevamente.");
       }
       return null;
+    } finally {
+      console.log('[DigitalVoucher.tsx] - Finalizando ciclo de guardado automático...');
     }
   };
 

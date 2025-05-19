@@ -109,10 +109,11 @@ export function useVentaBoletosContent() {
       return { success: false, message: 'Nombre del comprador es requerido' };
     }
     
-    // Ensure we're passing the clicked button type in the form data
+    // Ensure we're passing the clicked button type and seller ID in the form data
     const formDataWithButton: PaymentFormData = {
       ...data,
-      clickedButtonType: clickedButton
+      clickedButtonType: clickedButton,
+      sellerId: SELLER_ID // CRITICAL: Ensure SELLER_ID is passed to the form data
     };
     
     const result = await handleCompletePayment(formDataWithButton);

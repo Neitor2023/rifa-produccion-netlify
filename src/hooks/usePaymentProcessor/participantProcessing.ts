@@ -49,7 +49,7 @@ export const processParticipant = async ({
         sugerencia_producto: data.sugerenciaProducto || existingParticipant.sugerencia_producto || null
       };
 
-      // Save seller_id on the participant record if applicable
+      // Save seller_id on the participant record - CRITICAL
       // Either use the sellerId from data if available, or use the SELLER_ID constant
       if (data.sellerId) {
         updateData.seller_id = data.sellerId;
@@ -109,6 +109,39 @@ export const processParticipant = async ({
 
       participantId = newParticipant.id;
       debugLog('New participant created', { id: participantId });
+    }
+
+    // Now save the suspicious activity report if provided
+    if (data.reporteSospechoso) {
+      try {
+        console.log("🚨 Saving suspicious activity report:", data.reporteSospechoso);
+        debugLog('Saving suspicious report', {
+          mensaje: data.reporteSospechoso,
+          participant_id: participantId,
+          seller_id: data.sellerId || null,
+          raffle_id: raffleId
+        });
+        
+        const { error: fraudReportError } = await supabase
+          .from('fraud_reports')
+          .insert({
+            mensaje: data.reporteSospechoso,
+            participant_id: participantId,
+            seller_id: data.sellerId || null,
+            raffle_id: raffleId
+          });
+          
+        if (fraudReportError) {
+          console.error("Error saving fraud report:", fraudReportError);
+          debugLog('Fraud report error', fraudReportError);
+        } else {
+          console.log("✅ Fraud report saved successfully");
+        }
+      } catch (fraudError) {
+        console.error("Exception saving fraud report:", fraudError);
+        debugLog('Fraud report exception', fraudError);
+        // Don't throw here - we don't want to prevent participant creation/update if fraud report fails
+      }
     }
 
     return participantId;
