@@ -38,7 +38,11 @@ const GridLayout: React.FC<GridLayoutProps> = ({
 }) => {
   // Al comienzo de GridLayout, justo después de las propiedades:
   const numberMap = React.useMemo(
-    () => Object.fromEntries(numbers.map(n => [n.number, n])),
+    () => {
+      console.log('📊 GridLayout - Creando mapa de números filtrados por vendedor actual:', 
+        numbers.length, 'números recibidos');
+      return Object.fromEntries(numbers.map(n => [n.number, n]));
+    },
     [numbers]
   );  
 
