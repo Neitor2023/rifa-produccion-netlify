@@ -77,6 +77,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     minute: '2-digit'
   });
 
+  // Get payment method from payment data
   const paymentMethod = paymentData?.paymentMethod === 'cash' ? 'Efectivo' : 'Transferencia bancaria';
   
   // Fetch all raffle number IDs and participant ID when the component mounts or when selectedNumbers changes
@@ -100,7 +101,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         // For "Pagar Apartados" flow, get sold or reserved numbers for this participant
         const { data, error } = await supabase
           .from('raffle_numbers')
-          .select('id, number, participant_id, payment_proof, status, payment_receipt_url')
+          .select('id, number, participant_id, payment_proof, status, payment_receipt_url, payment_method')
           .eq('participant_id', currentParticipantId)
           .eq('raffle_id', RAFFLE_ID);
         
@@ -212,20 +213,22 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   useEffect(() => {
     const autoSaveReceipt = async () => {
       if (isOpen && printRef.current && participantId) {
-        // Important: Always try to save the receipt, regardless of allowVoucherPrint
-        console.log('[DigitalVoucher.tsx] Auto-saving receipt for participant:', participantId, 'allowVoucherPrint:', allowVoucherPrint);
-        
         try {
+          console.log('[DigitalVoucher.tsx] Auto-saving receipt for participant:', participantId, 'allowVoucherPrint:', allowVoucherPrint);
+          
+          // Always try to generate and save the receipt, regardless of allowVoucherPrint
           const savedUrl = await saveVoucherForAllNumbers();
-          console.log('[DigitalVoucher.tsx] Auto-save receipt result:', savedUrl ? 'Success' : 'Failed');
           
           if (savedUrl) {
+            console.log('[DigitalVoucher.tsx] Auto-save receipt result: Success - URL:', savedUrl);
             setReceiptAlreadySaved(true);
             
             // Only show toast if we're actually showing the voucher
             if (allowVoucherPrint) {
               toast.success('Comprobante guardado automáticamente', { id: 'receipt-saved' });
             }
+          } else {
+            console.error('[DigitalVoucher.tsx] Auto-save receipt result: Failed - No URL returned');
           }
         } catch (error) {
           console.error('[DigitalVoucher.tsx] Error durante auto-guardado de recibo:', error);
@@ -285,6 +288,8 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         return null;
       }
       
+      console.log("[DigitalVoucher.tsx] – Iniciando generación y guardado de comprobantes");
+      
       // Generate the voucher image
       const imgData = await exportVoucherAsImage(printRef.current, '');
       if (!imgData) {
@@ -308,20 +313,19 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         
         if (updateSuccess) {
           setReceiptAlreadySaved(true);
-          console.log('[DigitalVoucher.tsx] Comprobante guardado automáticamente. URL:', imageUrl);
+          console.log(`[DigitalVoucher.tsx] – Comprobante guardado correctamente – números: ${participantNumbers.join(', ')} – método de pago: ${paymentMethod}`);
+          return imageUrl;
+        } else {
+          console.error("[DigitalVoucher.tsx] – Error al guardar comprobante – motivo: fallo al actualizar recibos en la base de datos");
+          return null;
         }
-        
-        // Download locally only if allowed
-        if (allowVoucherPrint) {
-          downloadVoucherImage(imgData, `comprobante_${raffleDetails.title.replace(/\s+/g, '_')}.png`);
-        }
-        
-        return imageUrl;
+      } else {
+        console.error("[DigitalVoucher.tsx] – Error al guardar comprobante – motivo: fallo al subir imagen");
+        return null;
       }
-      
-      return null;
     } catch (error) {
-      console.error("[DigitalVoucher.tsx] Error saving voucher:", error);
+      console.error(`[DigitalVoucher.tsx] – Error al guardar comprobante – motivo: ${error}`);
+      // Don't show error toast if voucher printing is not allowed
       if (allowVoucherPrint) {
         toast.error("Error al guardar el comprobante. Intente nuevamente.");
       }
@@ -331,7 +335,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
 
   // If allowVoucherPrint is false and showAlertMessage is true, show the alert message instead of the voucher
   if (isOpen && !allowVoucherPrint && showAlertMessage) {
-    console.log('[DigitalVoucher.tsx] Showing AlertMessage component because allowVoucherPrint is false');
+    console.log('[DigitalVoucher.tsx] Mostrando AlertMessage porque allowVoucherPrint es false');
     return (
       <AlertMessage 
         isOpen={true} 

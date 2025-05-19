@@ -11,6 +11,7 @@ interface UpdateNumbersToSoldProps {
   raffleNumbers: any[];
   raffleSeller: any;
   raffleId: string;
+  paymentMethod?: string; // Add payment method parameter
 }
 
 interface UpdateResult {
@@ -24,12 +25,14 @@ export const updateNumbersToSold = async ({
   paymentProofUrl,
   raffleNumbers,
   raffleSeller,
-  raffleId
+  raffleId,
+  paymentMethod // Add parameter
 }: UpdateNumbersToSoldProps): Promise<UpdateResult> => {
   console.log("🔵 numberStatusUpdates.ts: Actualización de números a vendidos:", {
     numbers,
     participantId,
-    paymentProofUrl
+    paymentProofUrl,
+    paymentMethod // Log payment method
   });
 
   // Validación de parámetros críticos
@@ -128,6 +131,7 @@ export const updateNumbersToSold = async ({
         participant_name: string;
         participant_phone: string;
         participant_cedula: string;
+        payment_method?: string; // Add payment method field
         payment_proof?: string;  // For the transfer proof image
         payment_receipt_url?: string;  // For the generated receipt
       } = {
@@ -140,6 +144,12 @@ export const updateNumbersToSold = async ({
         participant_phone: formattedPhone, 
         participant_cedula: participantData.cedula
       };
+
+      // Store payment method if provided
+      if (paymentMethod) {
+        commonData.payment_method = paymentMethod;
+        console.log(`🔄 Agregando método de pago: ${paymentMethod} al número ${numStr}`);
+      }
 
       // Store payment proof in the correct field if available
       if (paymentProofUrl) {

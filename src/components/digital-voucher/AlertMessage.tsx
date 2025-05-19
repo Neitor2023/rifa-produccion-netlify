@@ -21,6 +21,8 @@ const AlertMessage: React.FC<AlertMessageProps> = ({
   onClose, 
   textColor 
 }) => {
+  console.log('[AlertMessage.tsx] Renderizando componente AlertMessage con isOpen:', isOpen);
+  
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
@@ -32,7 +34,7 @@ const AlertMessage: React.FC<AlertMessageProps> = ({
         
         <Alert variant="destructive" className="my-4">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle className="font-semibold">Important Notice</AlertTitle>
+          <AlertTitle className="font-semibold">Aviso Importante</AlertTitle>
           <AlertDescription className={`text-base leading-relaxed ${textColor}`}>
             <p className="mb-4">
               Su comprobante de pago está en revisión, es importante que le exija su comprobante de pago a su vendedor, este es su constancia de reclamo de premios; cualquier novedad comuníquese a los teléfonos de los organizadores que se encuentran al final de la página web.

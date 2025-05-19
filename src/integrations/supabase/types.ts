@@ -354,6 +354,7 @@ export type Database = {
           participant_name: string | null
           participant_phone: string | null
           payment_approved: boolean | null
+          payment_method: string | null
           payment_proof: string | null
           payment_receipt_url: string | null
           raffle_id: string | null
@@ -372,6 +373,7 @@ export type Database = {
           participant_name?: string | null
           participant_phone?: string | null
           payment_approved?: boolean | null
+          payment_method?: string | null
           payment_proof?: string | null
           payment_receipt_url?: string | null
           raffle_id?: string | null
@@ -390,6 +392,7 @@ export type Database = {
           participant_name?: string | null
           participant_phone?: string | null
           payment_approved?: boolean | null
+          payment_method?: string | null
           payment_proof?: string | null
           payment_receipt_url?: string | null
           raffle_id?: string | null

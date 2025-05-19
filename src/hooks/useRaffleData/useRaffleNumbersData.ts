@@ -86,7 +86,7 @@ export function useRaffleNumbersData(raffleId: string, sellerId: string) {
         seller_id: existingNumber?.seller_id || null,
         buyer_name: existingNumber?.participant_id ? 'Comprador' : null,
         buyer_phone: null,
-        payment_method: null,
+        payment_method: existingNumber?.payment_method || null,
         payment_proof: existingNumber?.payment_proof || null,
         payment_date: null
       });
