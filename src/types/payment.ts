@@ -12,5 +12,6 @@ export interface PaymentFormData {
   reporteSospechoso?: string;
   sellerId?: string;
   paymentReceiptUrl?: string;
-  participantId?: string; // Added this field
+  participantId?: string;
+  clickedButtonType?: string; // Added this field
 }

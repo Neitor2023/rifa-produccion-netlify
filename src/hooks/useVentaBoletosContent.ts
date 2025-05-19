@@ -109,7 +109,13 @@ export function useVentaBoletosContent() {
       return { success: false, message: 'Nombre del comprador es requerido' };
     }
     
-    const result = await handleCompletePayment(data);
+    // Ensure we're passing the clicked button type in the form data
+    const formDataWithButton: PaymentFormData = {
+      ...data,
+      clickedButtonType: clickedButton
+    };
+    
+    const result = await handleCompletePayment(formDataWithButton);
     
     // If we have a result with conflicting numbers, update our conflict state
     if (result && !result.success && result.conflictingNumbers && result.conflictingNumbers.length > 0) {

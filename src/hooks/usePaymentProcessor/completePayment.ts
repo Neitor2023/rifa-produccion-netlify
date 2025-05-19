@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { PaymentFormData } from '@/types/payment';
+import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import { toast } from 'sonner';
 import { updateNumbersToSold } from './numberStatusUpdates';
@@ -86,7 +86,8 @@ export function useCompletePayment({
       console.log("[completePayment.ts] Iniciando proceso de completar pago con datos:", { 
         nombreComprador: formData.buyerName,
         metodoPago: formData.paymentMethod,
-        numerosSeleccionados: selectedNumbers.length
+        numerosSeleccionados: selectedNumbers.length,
+        clickedButtonType: formData.clickedButtonType || 'No especificado'
       });
       
       // Validate we have selected numbers
@@ -94,12 +95,6 @@ export function useCompletePayment({
         toast.error("No hay números seleccionados para procesar el pago");
         return { success: false, message: "No hay números seleccionados" };
       }
-      
-      // Store the clicked button type in the form data for later reference
-      const updatedFormData = {
-        ...formData,
-        clickedButtonType: formData.clickedButtonType || 'Pagar'
-      };
       
       // Upload payment proof if present
       let paymentProofUrl = null;
@@ -109,14 +104,14 @@ export function useCompletePayment({
       }
       
       // Create or find participant
-      const participantId = await processParticipant(updatedFormData);
+      const participantId = await processParticipant(formData);
       if (!participantId) {
         toast.error("Error al procesar datos del comprador");
         return { success: false, message: "Error al procesar datos del comprador" };
       }
       
       // Add participant ID to form data for later use
-      updatedFormData.participantId = participantId;
+      formData.participantId = participantId;
       
       // Check that all numbers are still available before setting to sold
       const verificationResult = await verifyNumbersNotSoldByOthers(selectedNumbers);
@@ -144,7 +139,7 @@ export function useCompletePayment({
       }
       
       // Close payment modal and show voucher
-      setPaymentData(updatedFormData);
+      setPaymentData(formData);
       setIsPaymentModalOpen(false);
       
       // Refresh the numbers grid
