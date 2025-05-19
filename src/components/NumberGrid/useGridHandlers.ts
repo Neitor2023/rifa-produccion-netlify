@@ -133,7 +133,7 @@ export const useGridHandlers = ({
       if (prev.includes(number)) {
         return prev.filter(n => n !== number);
       } else {
-        // Check if adding this number would exceed the maximum allowed
+        // Marcar si añadir este número excedería el máximo permitido
         if (prev.length >= remainingAvailable) {
           toast.error(`Se ha superado la cantidad de números permitidos del vendedor, por favor finalice su selección de números.`);
           return prev;
@@ -164,10 +164,10 @@ export const useGridHandlers = ({
       return;
     }
     
-    // Calculate the reservation expiration date based on reservationDays and lotteryDate
+    // Calcular la fecha de vencimiento de la reserva según reservationDays y lotteryDate
     let reservationExpiresAt: Date;
     
-    // Get the current date
+    // Obtener la fecha actual
     const currentDate = new Date();
     
     // Calculate the date after adding the reservation days
@@ -188,20 +188,20 @@ export const useGridHandlers = ({
         // If expiration would be after the lottery, use the lottery date instead
         reservationExpiresAt = new Date(lotteryDate);
         if (debugMode) {
-          console.log('NumberGrid: Using lottery date as expiration:', reservationExpiresAt.toISOString());
+          console.log('NumberGrid: Utilizando la fecha de lotería como fecha de vencimiento:', reservationExpiresAt.toISOString());
         }
       } else {
         // Otherwise use the calculated expiration date
         reservationExpiresAt = expirationDate;
         if (debugMode) {
-          console.log('NumberGrid: Using calculated expiration date:', reservationExpiresAt.toISOString());
+          console.log('NumberGrid: Usando la fecha de vencimiento calculada:', reservationExpiresAt.toISOString());
         }
       }
     } else {
       // No valid lottery date, just use the calculated expiration date
       reservationExpiresAt = expirationDate;
       if (debugMode) {
-        console.log('NumberGrid: No valid lottery date, using calculated expiration:', reservationExpiresAt.toISOString());
+        console.log('NumberGrid: No hay fecha de lotería válida, se utiliza el vencimiento calculado:', reservationExpiresAt.toISOString());
       }
     }
     
@@ -213,7 +213,7 @@ export const useGridHandlers = ({
   
   const handleProceedToPayment = async (buttonType: string) => {
     if (debugMode) {
-      console.log(`NumberGrid: handleProceedToPayment called with button type: ${buttonType}`);
+      console.log(`NumberGrid: handleProceedToPayment llamado con tipo de botón: ${buttonType}`);
     }
     
     // Validar que raffle_id esté definido
@@ -252,7 +252,7 @@ export const useGridHandlers = ({
     
     if (buyerInfo) {
       if (debugMode) {
-        console.log("NumberGrid: Received validated buyer information:", {
+        console.log("NumberGrid: Se recibió información validada del comprador:", {
           name: buyerInfo.name,
           phone: buyerInfo.phone,
           cedula: buyerInfo.cedula,
@@ -296,7 +296,7 @@ export const useGridHandlers = ({
     }
     
     if (debugMode) {
-      console.log('NumberGrid: Querying Supabase for reserved numbers with participant ID:', participantId);
+      console.log('NumberGrid: Consultar a Supabase los números reservados con el participante ID:', participantId);
     }
     
     try {
