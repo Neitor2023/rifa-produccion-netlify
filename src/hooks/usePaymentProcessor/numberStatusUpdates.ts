@@ -14,9 +14,10 @@ interface UpdateNumbersToSoldProps {
   paymentMethod?: string; // Add payment method parameter
 }
 
-interface UpdateResult {
+export interface UpdateResult {
   success: boolean;
   conflictingNumbers?: string[];
+  message?: string;
 }
 
 export const updateNumbersToSold = async ({

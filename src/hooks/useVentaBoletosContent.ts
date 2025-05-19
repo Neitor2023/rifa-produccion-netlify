@@ -5,6 +5,7 @@ import { usePaymentProcessor } from '@/hooks/usePaymentProcessor';
 import { useBuyerInfo } from '@/contexts/BuyerInfoContext';
 import { SELLER_ID, RAFFLE_ID } from '@/utils/setGlobalIdsFromUrl';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
+import { ConflictResult } from '@/hooks/usePaymentProcessor/completePayment';
 
 export function useVentaBoletosContent() {
   // State for the clicked button
@@ -101,7 +102,13 @@ export function useVentaBoletosContent() {
   };
 
   // Let's wrap handleCompletePayment to handle the return value and update our local state
-  const wrappedHandleCompletePayment = async (data: PaymentFormData) => {
+  const wrappedHandleCompletePayment = async (data: PaymentFormData): Promise<ConflictResult | void> => {
+    // Make sure buyerName is set (required field)
+    if (!data.buyerName) {
+      console.error('useVentaBoletosContent.ts: buyerName is required but was not provided');
+      return { success: false, message: 'Nombre del comprador es requerido' };
+    }
+    
     const result = await handleCompletePayment(data);
     
     // If we have a result with conflicting numbers, update our conflict state

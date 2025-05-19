@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentFormData } from '@/types/payment';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -17,6 +18,13 @@ interface UseCompletePaymentProps {
   processParticipant: (data: PaymentFormData) => Promise<string | null>;
   supabase: any;
   debugMode?: boolean;
+}
+
+// Define the return type for conflict checks
+export interface ConflictResult {
+  success: boolean;
+  conflictingNumbers?: string[];
+  message?: string;
 }
 
 export function useCompletePayment({
@@ -40,7 +48,7 @@ export function useCompletePayment({
   };
 
   // Function to verify numbers are not sold by other sellers
-  const verifyNumbersNotSoldByOthers = async (numbers: string[]) => {
+  const verifyNumbersNotSoldByOthers = async (numbers: string[]): Promise<ConflictResult> => {
     try {
       const numbersInts = numbers.map(numStr => parseInt(numStr, 10));
       const { data: existingNumbers, error: checkError } = await supabase
@@ -72,7 +80,7 @@ export function useCompletePayment({
   };
 
   // Handle complete payment form submission
-  const handleCompletePayment = async (formData: PaymentFormData) => {
+  const handleCompletePayment = async (formData: PaymentFormData): Promise<ConflictResult> => {
     try {
       debugLog("handleCompletePayment", "Starting payment completion process");
       console.log("[completePayment.ts] Iniciando proceso de completar pago con datos:", { 
@@ -128,7 +136,11 @@ export function useCompletePayment({
       });
       
       if (!updateResult.success) {
-        return updateResult;
+        return { 
+          success: false, 
+          conflictingNumbers: updateResult.conflictingNumbers,
+          message: "Error al actualizar los números a vendidos"
+        };
       }
       
       // Close payment modal and show voucher
