@@ -63,23 +63,9 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   const [participantNumbers, setParticipantNumbers] = useState<string[]>([]);
   const [paymentProofImage, setPaymentProofImage] = useState<string | null>(null);
   const [receiptAlreadySaved, setReceiptAlreadySaved] = useState<boolean>(false);
-  const [showAlertMessage, setShowAlertMessage] = useState<boolean>(false);
   
   // Determine text color based on theme
   const textColor = theme === 'dark' ? 'text-white' : 'text-gray-800';
-
-  // Effect to show AlertMessage when allowVoucherPrint is false
-  useEffect(() => {
-    console.log('[DigitalVoucher.tsx] Comprobando allowVoucherPrint:', allowVoucherPrint);
-    
-    // Only show alert when voucher is opened and printing is not allowed
-    if (isOpen && allowVoucherPrint === false) {
-      console.log('[DigitalVoucher.tsx] Mostrando mensaje de alerta - impresión no permitida');
-      setShowAlertMessage(true);
-    } else {
-      setShowAlertMessage(false);
-    }
-  }, [isOpen, allowVoucherPrint]);
 
   const formattedDate = new Date().toLocaleDateString('es-ES', {
     year: 'numeric',
@@ -313,13 +299,6 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleCloseModal()}>
       <DialogContent className="sm:max-w-md md:max-w-xl lg:max-w-2xl min-h-[85vh] max-h-[90vh] flex flex-col bg-white/20 backdrop-blur-md rounded-xl border-0">
-        {/* Show AlertMessage when allowVoucherPrint is false */}
-        <AlertMessage 
-          isOpen={showAlertMessage} 
-          onClose={() => setShowAlertMessage(false)}
-          textColor={textColor}
-        />
-        
         <VoucherHeader 
           onClose={handleCloseModal}
           onSaveVoucher={saveVoucherForAllNumbers}

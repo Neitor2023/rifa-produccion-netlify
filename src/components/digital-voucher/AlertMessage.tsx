@@ -21,8 +21,6 @@ const AlertMessage: React.FC<AlertMessageProps> = ({
   onClose, 
   textColor 
 }) => {
-  console.log('[AlertMessage.tsx] Renderizando mensaje de alerta con isOpen=', isOpen);
-  
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md md:max-w-xl max-h-[90vh] flex flex-col bg-background dark:bg-gray-900 rounded-xl border-0 shadow-xl">
