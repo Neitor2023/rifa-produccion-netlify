@@ -28,23 +28,37 @@ export function useRaffleNumbersData(raffleId: string, sellerId: string) {
     queryFn: async () => {
       if (!sellerId) return null;
       
-      const { data, error } = await supabase
-        .from('raffle_sellers')
-        .select('*')
-        .eq('raffle_id', raffleId)
-        .eq('seller_id', sellerId)
-        .maybeSingle();
-      
-      if (error) {
-        console.error('Error fetching raffle seller:', error);
+      try {
+        console.log('[useRaffleNumbersData.ts] Fetching raffle seller with raffleId:', raffleId, 'sellerId:', sellerId);
+        
+        const { data, error } = await supabase
+          .from('raffle_sellers')
+          .select('*')
+          .eq('raffle_id', raffleId)
+          .eq('seller_id', sellerId)
+          .maybeSingle();
+        
+        if (error) {
+          console.error('[useRaffleNumbersData.ts] Error fetching raffle seller:', error);
+          return null;
+        }
+        
+        if (data) {
+          // Explicitly set allowVoucherPrint based on the value from the database
+          // Default to true if the field is null or undefined
+          const shouldAllowPrint = data.allow_voucher_print !== false;
+          console.log('[useRaffleNumbersData.ts] Setting allowVoucherPrint to:', shouldAllowPrint, 'based on DB value:', data.allow_voucher_print);
+          setAllowVoucherPrint(shouldAllowPrint);
+          
+          return data;
+        } else {
+          console.log('[useRaffleNumbersData.ts] No raffle seller found, using default allowVoucherPrint: true');
+          return null;
+        }
+      } catch (err) {
+        console.error('[useRaffleNumbersData.ts] Exception in fetching raffle seller:', err);
         return null;
       }
-      
-      if (data) {
-        setAllowVoucherPrint(data.allow_voucher_print || false);
-      }
-      
-      return data;
     },
     enabled: !!sellerId
   });

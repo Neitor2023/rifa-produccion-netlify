@@ -202,32 +202,36 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   // Check if we need to show alert message based on allowVoucherPrint
   useEffect(() => {
     if (isOpen) {
-      if (allowVoucherPrint === false) {
-        console.log('[DigitalVoucher.tsx] Setting showAlertMessage to true because allowVoucherPrint is false');
-        setShowAlertMessage(true);
-      } else {
-        setShowAlertMessage(false);
-      }
+      // If voucher printing is not allowed, show the alert message
+      setShowAlertMessage(!allowVoucherPrint);
+      console.log('[DigitalVoucher.tsx] Setting showAlertMessage to:', !allowVoucherPrint, 'based on allowVoucherPrint:', allowVoucherPrint);
     }
   }, [isOpen, allowVoucherPrint]);
   
-  // Auto-save receipt when voucher is opened if not already saved
+  // Auto-save receipt when voucher is opened regardless of allowVoucherPrint value
   useEffect(() => {
     const autoSaveReceipt = async () => {
-      // Always auto-save the receipt regardless of allowVoucherPrint value
-      if (isOpen && printRef.current && participantId && !receiptAlreadySaved) {
-        console.log('[DigitalVoucher.tsx] Auto-saving receipt for participant:', participantId);
+      if (isOpen && printRef.current && participantId) {
+        // Important: Always try to save the receipt, regardless of allowVoucherPrint
+        console.log('[DigitalVoucher.tsx] Auto-saving receipt for participant:', participantId, 'allowVoucherPrint:', allowVoucherPrint);
+        
         try {
-          await saveVoucherForAllNumbers();
-          console.log('[DigitalVoucher.tsx] Auto-save receipt completed successfully');
+          const savedUrl = await saveVoucherForAllNumbers();
+          console.log('[DigitalVoucher.tsx] Auto-save receipt result:', savedUrl ? 'Success' : 'Failed');
           
-          // If we should not show the receipt, show the alert after saving
-          if (allowVoucherPrint === false) {
-            setShowAlertMessage(true);
+          if (savedUrl) {
+            setReceiptAlreadySaved(true);
+            
+            // Only show toast if we're actually showing the voucher
+            if (allowVoucherPrint) {
+              toast.success('Comprobante guardado automáticamente', { id: 'receipt-saved' });
+            }
           }
         } catch (error) {
           console.error('[DigitalVoucher.tsx] Error durante auto-guardado de recibo:', error);
-          toast.error('Error al guardar el comprobante automáticamente');
+          if (allowVoucherPrint) {
+            toast.error('Error al guardar el comprobante automáticamente');
+          }
         }
       }
     };
@@ -235,7 +239,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     // Delay execution slightly to ensure the DOM is ready
     const timer = setTimeout(autoSaveReceipt, 1000);
     return () => clearTimeout(timer);
-  }, [isOpen, printRef.current, participantId, receiptAlreadySaved, allowVoucherPrint]);
+  }, [isOpen, printRef.current, participantId, allowVoucherPrint]);
   
   // Handle the modal close event
   const handleCloseModal = (): void => {
@@ -250,13 +254,13 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   // Function to update payment_receipt_url for all participant's numbers
   const updatePaymentReceiptUrlForAllNumbers = async (voucherUrl: string): Promise<boolean> => {
     if (!voucherUrl || !paymentData?.participantId) {
-      console.error("❌ Error: Insufficient data to update payment receipt");
+      console.error("[DigitalVoucher.tsx] Error: Insufficient data to update payment receipt");
       return false;
     }
     
     try {
       // Only update numbers for the current participant
-      console.log(`📋 Updating receipt for participant numbers: ${paymentData.participantId}`);
+      console.log(`[DigitalVoucher.tsx] Updating receipt for participant numbers: ${paymentData.participantId}`);
       
       // Use the utility function to update receipt URLs
       const result = await updatePaymentReceiptUrlForParticipant(
@@ -268,7 +272,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
       
       return result;
     } catch (error) {
-      console.error("❌ Error updating payment receipt:", error);
+      console.error("[DigitalVoucher.tsx] Error updating payment receipt:", error);
       return false;
     }
   };
@@ -277,14 +281,14 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   const saveVoucherForAllNumbers = async (): Promise<string | null> => {
     try {
       if (!printRef.current || !raffleDetails || !paymentData?.participantId) {
-        console.error("❌ Error: No voucher reference, raffle details or payment data");
+        console.error("[DigitalVoucher.tsx] Error: No voucher reference, raffle details or payment data");
         return null;
       }
       
       // Generate the voucher image
       const imgData = await exportVoucherAsImage(printRef.current, '');
       if (!imgData) {
-        console.error("❌ Error: Could not generate voucher image");
+        console.error("[DigitalVoucher.tsx] Error: Could not generate voucher image");
         return null;
       }
       
@@ -304,16 +308,10 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         
         if (updateSuccess) {
           setReceiptAlreadySaved(true);
-          
-          // Only show success message if allowVoucherPrint is true
-          if (allowVoucherPrint) {
-            toast.success('Comprobante guardado automáticamente', { id: 'receipt-saved' });
-          } else {
-            console.log('[DigitalVoucher.tsx] Comprobante guardado automáticamente (sin mostrar toast porque allowVoucherPrint es false)');
-          }
+          console.log('[DigitalVoucher.tsx] Comprobante guardado automáticamente. URL:', imageUrl);
         }
         
-        // Also download locally if allowed
+        // Download locally only if allowed
         if (allowVoucherPrint) {
           downloadVoucherImage(imgData, `comprobante_${raffleDetails.title.replace(/\s+/g, '_')}.png`);
         }
@@ -323,14 +321,17 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
       
       return null;
     } catch (error) {
-      console.error("❌ Error saving voucher:", error);
-      toast.error("Error al guardar el comprobante. Intente nuevamente.");
+      console.error("[DigitalVoucher.tsx] Error saving voucher:", error);
+      if (allowVoucherPrint) {
+        toast.error("Error al guardar el comprobante. Intente nuevamente.");
+      }
       return null;
     }
   };
 
-  // Si allowVoucherPrint es false y el modal está abierto, mostramos el mensaje de alerta
-  if (isOpen && allowVoucherPrint === false && showAlertMessage) {
+  // If allowVoucherPrint is false and showAlertMessage is true, show the alert message instead of the voucher
+  if (isOpen && !allowVoucherPrint && showAlertMessage) {
+    console.log('[DigitalVoucher.tsx] Showing AlertMessage component because allowVoucherPrint is false');
     return (
       <AlertMessage 
         isOpen={true} 

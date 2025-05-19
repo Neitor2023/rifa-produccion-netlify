@@ -34,6 +34,11 @@ export function useVentaBoletosContent() {
     sellerId: SELLER_ID 
   });
   
+  // Log the value of allowVoucherPrint to help with debugging
+  useEffect(() => {
+    console.log('[useVentaBoletosContent.ts] Current allowVoucherPrint value:', allowVoucherPrint);
+  }, [allowVoucherPrint]);
+  
   // Convert lottery date string to Date object if it exists
   const lotteryDate = raffle?.date_lottery ? new Date(raffle.date_lottery) : undefined;
   
@@ -75,7 +80,7 @@ export function useVentaBoletosContent() {
     raffleNumbers,
     refetchRaffleNumbers,
     debugMode,
-    allowVoucherPrint,
+    allowVoucherPrint, // Pass the correct allowVoucherPrint value
     reservationDays,
     lotteryDate
   });
