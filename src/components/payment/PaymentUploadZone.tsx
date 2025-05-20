@@ -17,6 +17,27 @@ const PaymentUploadZone: React.FC<PaymentUploadZoneProps> = ({
 }) => {
   return (
     <div className="space-y-4">
+      {previewUrl && (
+        <div className="mt-4">
+          <div className="relative">
+            <img
+              src={previewUrl}
+              alt="Comprobante"
+              className="rounded-md max-h-64 mx-auto"
+            />
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full"
+              onClick={onFileRemove}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+      
       <div className="flex flex-col gap-2">
         <label className="text-base font-medium text-gray-800 dark:text-white">
           Comprobante de Pago <span className="text-red-500">*</span>
@@ -43,26 +64,6 @@ const PaymentUploadZone: React.FC<PaymentUploadZoneProps> = ({
         </div>
       </div>
       
-      {previewUrl && (
-        <div className="mt-4">
-          <div className="relative">
-            <img
-              src={previewUrl}
-              alt="Comprobante"
-              className="rounded-md max-h-64 mx-auto"
-            />
-            <Button
-              type="button"
-              variant="destructive"
-              size="sm"
-              className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full"
-              onClick={onFileRemove}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
