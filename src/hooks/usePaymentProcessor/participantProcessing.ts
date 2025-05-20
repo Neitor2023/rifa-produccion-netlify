@@ -1,8 +1,8 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { PaymentFormData } from '@/types/payment';
-import { formatPhoneNumber } from '@/utils/phoneUtils';
-import { getSellerUuidFromCedula } from '@/hooks/useRaffleData/useSellerIdMapping';
+import { supabase } from "@/integrations/supabase/client";
+import { PaymentFormData } from "@/types/payment";
+import { formatPhoneNumber } from "@/utils/phoneUtils";
+import { getSellerUuidFromCedula } from "@/hooks/useRaffleData/useSellerIdMapping";
 
 interface ProcessParticipantProps {
   data: PaymentFormData;
