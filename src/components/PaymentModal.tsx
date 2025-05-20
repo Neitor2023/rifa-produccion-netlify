@@ -67,7 +67,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     if (!isOpen) {
       resetForm();
     } 
-    // Set form values when modal is opened with buyer info
+    // Establecer valores de formulario cuando se abre el modal con información del comprador
     else if (isOpen && clickedButton === "Pagar") {
       resetForm();
     } else if (isOpen && buyerInfo) {
@@ -81,7 +81,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     }
   }, [isOpen, clickedButton, buyerInfo]);
 
-  // Function to reset the form
+  // Función para restablecer el formulario
   const resetForm = () => {
     console.log("🧹 PaymentModal.tsx: Reseteando formulario");
     form.reset({
@@ -121,22 +121,22 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     try {
       setIsSubmitting(true);
       
-      // Log the form data for debugging purposes
+      // Registrar los datos del formulario para fines de depuración
       if (debugMode) {
-        console.log("Form Data to Submit:", data);
+        console.log("Datos del formulario a enviar:", data);
       }
       
-      // Store the clicked button type in form data
+      // Almacenar el tipo de botón en el que se hizo clic en los datos del formulario
       data.clickedButtonType = clickedButton;
       
       const result = await onCompletePayment(data);
       
-      // If the result has conflictingNumbers, the modal handling will be done by parent components
-      // Only handle the case where we need to close the payment modal
+      // Si el resultado tiene números conflictivos, el manejo modal lo realizarán los componentes principales.
+      // Solo se maneja el caso en el que necesitamos cerrar el modo de pago
       if (!result || (result && result.success)) {
         onClose();
         clearSelectionState();
-        resetForm(); // Reset form after successful submission
+        resetForm(); // Restablecer formulario después de un envío exitoso
       }
       
     } catch (error) {
@@ -147,7 +147,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     }
   };
 
-  // This is the handler that gets passed to the clickable title
+  // Este es el controlador que se pasa al título en el que se puede hacer clic.
   const handleHeaderClick = () => {
     if (form.formState.isValid && !isSubmitting) {
       form.handleSubmit(onSubmit)();
@@ -158,14 +158,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     <Dialog open={isOpen} onOpenChange={(open) => {
       if (!open) {
         onClose();
-        resetForm(); // Reset form when dialog is closed
+        resetForm(); // Restablecer formulario cuando se cierra el diálogo
       }
     }}>
       <DialogContent className="bg-white/20 backdrop-blur-md max-w-2xl">
         <Card className="bg-transparent border-0 shadow-none">
         <PaymentModalHeader onClose={() => {
           onClose();
-          resetForm(); // Reset form when closed via header button
+          resetForm(); // Restablecer formulario al cerrarlo mediante el botón de encabezado
         }} onHeaderClick={handleHeaderClick} />
         <PaymentModalContent
           form={form}
@@ -183,7 +183,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           isFormValid={form.formState.isValid}
           onClose={() => {
             onClose(); 
-            resetForm(); // Reset form when closed via cancel button
+            resetForm(); // Restablecer el formulario al cerrarlo mediante el botón Cancelar
           }}
           onSubmit={form.handleSubmit(onSubmit)}
         />
