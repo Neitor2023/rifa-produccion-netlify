@@ -14,6 +14,7 @@ import { useBuyerInfo } from '@/contexts/BuyerInfoContext';
 import { useReservationHandling } from './usePaymentProcessor/reservationHandling';
 import { handleCompletePayment, ConflictResult } from './usePaymentProcessor/completePayment';
 import { SELLER_ID, RAFFLE_ID } from '@/lib/constants';
+import { RaffleNumber } from '@/lib/constants/types';
 
 // Define a complete seller type to ensure we always pass a fully-formed seller object
 interface CompleteSeller {
@@ -23,18 +24,10 @@ interface CompleteSeller {
   active: boolean;
 }
 
-// Define a type for raffle numbers to ensure proper property access
-interface RaffleNumber {
-  number: number | string;
-  status: string;
-  seller_id?: string;
-  // Add other properties as needed
-}
-
 interface UsePaymentProcessorProps {
   raffleSeller: CompleteSeller | null;
   raffleId: string;
-  raffleNumbers: RaffleNumber[]; // Update to use the RaffleNumber type
+  raffleNumbers: RaffleNumber[]; // Use the imported RaffleNumber type
   refetchRaffleNumbers: () => Promise<any>;
   debugMode?: boolean;
   allowVoucherPrint?: boolean;

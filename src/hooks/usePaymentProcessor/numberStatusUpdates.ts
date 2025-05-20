@@ -1,13 +1,15 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
 import { toast } from 'sonner';
 import { getSellerUuidFromCedula } from '@/hooks/useRaffleData/useSellerIdMapping';
+import { RaffleNumber } from '@/lib/constants/types';
 
 interface UpdateNumbersToSoldProps {
   numbers: string[];
   participantId: string;
   paymentProofUrl: string | null;
-  raffleNumbers: any[];
+  raffleNumbers: RaffleNumber[];
   raffleSeller: any;
   raffleId: string;
   paymentMethod?: string;

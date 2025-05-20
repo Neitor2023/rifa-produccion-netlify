@@ -2,9 +2,10 @@
 import { ValidatedBuyerInfo } from "@/types/participant";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { RaffleNumber } from '@/lib/constants/types';
 
 interface UseNumberAvailabilityProps {
-  raffleNumbers?: any[];
+  raffleNumbers?: RaffleNumber[];
   raffleSeller: {
     id?: string;
     seller_id?: string;
@@ -53,9 +54,9 @@ export function useNumberAvailability({
         // Find matching number in raffleNumbers
         const matchingNumber = raffleNumbers.find(n => 
           // Compare as integers to avoid string/number comparison issues
-          n.number === numInt || 
+          (typeof n.number === 'number' && n.number === numInt) || 
           // Also check string representation (padded)
-          n.number === numStr ||
+          (typeof n.number === 'string' && n.number === numStr) ||
           // Check if string representation of the integer matches
           String(n.number) === String(numInt)
         );
@@ -65,7 +66,7 @@ export function useNumberAvailability({
           // If status is 'reserved', check if reserved by this seller
           if (matchingNumber.status === 'reserved') {
             // Only add to unavailable if reserved by different seller
-            if (matchingNumber.seller_id !== raffleSeller.seller_id) {
+            if (matchingNumber.seller_id !== raffleSeller?.seller_id) {
               unavailableNumbers.push(numStr);
             }
           } else {

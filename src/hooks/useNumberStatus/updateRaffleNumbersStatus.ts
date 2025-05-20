@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { calculateExpirationDate } from './expirationCalculator';
+import { RaffleNumber } from '@/lib/constants/types';
 
 interface UpdateRaffleNumbersStatusProps {
   numbers: string[];
@@ -9,7 +10,7 @@ interface UpdateRaffleNumbersStatusProps {
   participantData: any;
   raffleSeller: any;
   raffleId: string;
-  raffleNumbers: any[];
+  raffleNumbers: RaffleNumber[];
   debugLog: (context: string, data: any) => void;
   reservationDays?: number;
   lotteryDate?: Date;

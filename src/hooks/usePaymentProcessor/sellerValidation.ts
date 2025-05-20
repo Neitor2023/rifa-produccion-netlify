@@ -1,13 +1,6 @@
 
 import { toast } from 'sonner';
-
-// Define a type for raffle numbers to ensure proper property access
-interface RaffleNumber {
-  number: number | string;
-  status: string;
-  seller_id?: string;
-  // Add other properties as needed
-}
+import { RaffleNumber } from '@/lib/constants/types';
 
 export function useSellerValidation(raffleSeller: any, raffleNumbers: RaffleNumber[], debugMode = false) {
   const debugLog = (context: string, data: any) => {

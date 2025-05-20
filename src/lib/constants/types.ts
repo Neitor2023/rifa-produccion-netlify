@@ -1,3 +1,4 @@
+
 // Type definitions
 export interface Organization {
   organization_logo_url: string;
@@ -66,7 +67,7 @@ export interface RaffleSeller {
 export interface RaffleNumber {
   id: string;
   raffle_id: string;
-  number: string;
+  number: string | number;
   status: "available" | "reserved" | "sold";
   seller_id: string | null;
   buyer_name: string | null;
@@ -74,4 +75,10 @@ export interface RaffleNumber {
   payment_method: "cash" | "transfer" | null;
   payment_proof: string | null;
   payment_date: string | null;
+  participant_id?: string;
+  participant_name?: string;
+  participant_phone?: string;
+  participant_cedula?: string;
+  reservation_expires_at?: string | null;
+  payment_approved?: boolean;
 }

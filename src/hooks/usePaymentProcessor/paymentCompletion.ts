@@ -6,6 +6,7 @@ import { formatPhoneNumber } from '@/utils/phoneUtils';
 import { uploadPaymentProof } from './fileUpload';
 import { processParticipant } from './participantProcessing';
 import { updateNumbersToSold } from './numberStatusUpdates';
+import { RaffleNumber } from '@/lib/constants/types';
 
 interface UsePaymentCompletionProps {
   raffleSeller: any;
@@ -35,7 +36,7 @@ export function usePaymentCompletion({
       numbers: string[],
       participantId: string,
       paymentProofUrl: string | null,
-      raffleNumbers: any[]
+      raffleNumbers: RaffleNumber[]
     ) => updateNumbersToSold({ 
       numbers, 
       participantId, 

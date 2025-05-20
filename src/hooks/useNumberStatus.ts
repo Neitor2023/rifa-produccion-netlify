@@ -1,4 +1,6 @@
+
 import { supabase } from '@/integrations/supabase/client';
+import { RaffleNumber } from '@/lib/constants/types';
 
 export const useNumberStatus = ({ raffleSeller, raffleId, raffleNumbers, debugMode = false, reservationDays = 5, lotteryDate }) => {
   const debugLog = (context: string, data: any) => {
