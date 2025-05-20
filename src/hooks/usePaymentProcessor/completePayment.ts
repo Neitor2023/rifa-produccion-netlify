@@ -72,38 +72,10 @@ export const handleCompletePayment = ({
         // No imprimir datos sensibles en logs
       });
 
-      // CORRECCIÓN: Guardar reporte de actividad sospechosa si existe
-      if (formData.reporteSospechoso && formData.reporteSospechoso.trim() !== '') {
-        console.log("🚨 Guardando reporte de actividad sospechosa:", {
-          mensaje: formData.reporteSospechoso.substring(0, 20) + '...',
-        });
-        
-        try {
-          // Obtener los IDs necesarios
-          const sellerId = raffleSeller?.seller_id || formData.sellerId || SELLER_ID;
-          const theRaffleId = raffleId || RAFFLE_ID;
-          
-          // Insertar el reporte en la tabla fraud_reports
-          const { data: reportData, error: reportError } = await supabase
-            .from('fraud_reports')
-            .insert({
-              mensaje: formData.reporteSospechoso,
-              seller_id: sellerId,
-              raffle_id: theRaffleId,
-              // El participant_id se asignará más adelante una vez que tengamos el ID del participante
-            });
-            
-          if (reportError) {
-            console.error("❌ Error al guardar reporte de actividad sospechosa:", reportError);
-            // No interrumpir el flujo principal si falla esto
-          } else {
-            console.log("✅ Reporte de actividad sospechosa guardado correctamente");
-          }
-        } catch (reportException) {
-          console.error("❌ Excepción al guardar reporte de actividad sospechosa:", reportException);
-          // No interrumpir el flujo principal si falla esto
-        }
-      }
+      // VERIFICACIÓN: Asegurar que se está recibiendo y procesando el campo sugerenciaProducto
+      console.log("[completePayment.ts] 📝 Verificando campo sugerenciaProducto:", {
+        sugerenciaValue: formData.sugerenciaProducto || 'No proporcionado'
+      });
 
       // Validar que el raffleId esté definido
       if (!raffleId) {
@@ -178,6 +150,9 @@ export const handleCompletePayment = ({
       let participantId: string | null = null;
       
       try {
+        // CORRECCIÓN: Asegurar que sugerenciaProducto se pasa correctamente al processParticipant
+        console.log("💾 Guardando sugerencia producto:", formData.sugerenciaProducto);
+        
         participantId = await processParticipant({
           buyerName: formData.buyerName,
           buyerPhone: formData.buyerPhone,
@@ -191,24 +166,6 @@ export const handleCompletePayment = ({
         console.log("[completePayment.ts] Participante procesado exitosamente, ID:", participantId);
         debugLog('ID de participante obtenido', participantId);
         
-        // CORRECCIÓN: Actualizar el fraud_report con el participantId si existe un reporte
-        if (participantId && formData.reporteSospechoso && formData.reporteSospechoso.trim() !== '') {
-          try {
-            const { error: updateReportError } = await supabase
-              .from('fraud_reports')
-              .update({ participant_id: participantId })
-              .eq('mensaje', formData.reporteSospechoso)
-              .is('participant_id', null);
-              
-            if (updateReportError) {
-              console.error("❌ Error al actualizar participant_id en reporte sospechoso:", updateReportError);
-            } else {
-              console.log("✅ ID de participante agregado al reporte de actividad sospechosa");
-            }
-          } catch (updateReportError) {
-            console.error("❌ Excepción al actualizar participant_id en reporte sospechoso:", updateReportError);
-          }
-        }
       } catch (participantError) {
         console.error("[completePayment.ts] ❌ Error procesando el participante:", participantError);
         toast.error('Error al procesar los datos del participante');
@@ -221,6 +178,39 @@ export const handleCompletePayment = ({
       if (!participantId) {
         console.error("[completePayment.ts] ❌ No se pudo obtener ID de participante");
         throw new Error('Error al crear registro del participante');
+      }
+
+      // CORRECCIÓN: Guardar reporte de actividad sospechosa si existe
+      if (formData.reporteSospechoso && formData.reporteSospechoso.trim() !== '') {
+        console.log("🚨 Guardando reporte de actividad sospechosa:", {
+          mensaje: formData.reporteSospechoso.substring(0, 20) + '...',
+        });
+        
+        try {
+          // Obtener los IDs necesarios
+          const sellerId = sellerUuid || formData.sellerId || SELLER_ID;
+          const theRaffleId = raffleId || RAFFLE_ID;
+          
+          // Insertar el reporte en la tabla fraud_reports
+          const { data: reportData, error: reportError } = await supabase
+            .from('fraud_reports')
+            .insert({
+              mensaje: formData.reporteSospechoso,
+              seller_id: sellerId,
+              raffle_id: theRaffleId,
+              participant_id: participantId
+            });
+            
+          if (reportError) {
+            console.error("❌ Error al guardar reporte de actividad sospechosa:", reportError);
+            // No interrumpir el flujo principal si falla esto
+          } else {
+            console.log("✅ Reporte de actividad sospechosa guardado correctamente");
+          }
+        } catch (reportException) {
+          console.error("❌ Excepción al guardar reporte de actividad sospechosa:", reportException);
+          // No interrumpir el flujo principal si falla esto
+        }
       }
 
       // Actualizar los números a estado vendido

@@ -119,6 +119,11 @@ export const processParticipant = async ({
 
     let participantId: string | null = null;
 
+    // CORRECCIÓN: Asegurar que se está procesando correctamente el campo sugerencia_producto
+    console.log("[participantProcessing.ts] 📝 Procesando campo sugerencia_producto:", {
+      valor: data.sugerenciaProducto || 'No proporcionado'
+    });
+
     // Log de los datos que se usarán para actualizar o crear el participante
     console.log("[participantProcessing.ts] Datos del participante a procesar:", {
       name: data.buyerName,
@@ -127,11 +132,13 @@ export const processParticipant = async ({
       email: data.buyerEmail || '',
       seller_id: validSellerId,
       raffle_id: raffleId,
+      sugerencia_producto: data.sugerenciaProducto || ''
     });
     debugLog('Datos a procesar', {
       name: data.buyerName,
       phone: formattedPhone,
-      seller_id: validSellerId
+      seller_id: validSellerId,
+      sugerencia_producto: data.sugerenciaProducto
     });
 
     if (existingParticipant) {
@@ -177,7 +184,8 @@ export const processParticipant = async ({
       debugLog('Creando nuevo participante', { 
         name: data.buyerName, 
         phone: formattedPhone,
-        email: data.buyerEmail || ''
+        email: data.buyerEmail || '',
+        sugerencia_producto: data.sugerenciaProducto || null
       });
 
       const insertData: any = {
@@ -216,39 +224,6 @@ export const processParticipant = async ({
       participantId = newParticipant.id;
       console.log("[participantProcessing.ts] ✅ Nuevo participante creado:", participantId);
       debugLog('Nuevo participante creado', { id: participantId });
-    }
-
-    // Guardar reporte de actividad sospechosa si se proporciona
-    if (data.reporteSospechoso) {
-      try {
-        console.log("[participantProcessing.ts] 🚨 Guardando reporte de actividad sospechosa:", data.reporteSospechoso);
-        debugLog('Guardando reporte sospechoso', {
-          mensaje: data.reporteSospechoso,
-          participant_id: participantId,
-          seller_id: validSellerId,
-          raffle_id: raffleId
-        });
-        
-        const { error: fraudReportError } = await supabase
-          .from('fraud_reports')
-          .insert({
-            mensaje: data.reporteSospechoso,
-            participant_id: participantId,
-            seller_id: validSellerId,
-            raffle_id: raffleId
-          });
-          
-        if (fraudReportError) {
-          console.error("[participantProcessing.ts] ❌ Error al guardar reporte de fraude:", fraudReportError.message);
-          debugLog('Error en reporte de fraude', fraudReportError);
-        } else {
-          console.log("[participantProcessing.ts] ✅ Reporte de fraude guardado correctamente");
-        }
-      } catch (fraudError) {
-        console.error("[participantProcessing.ts] ❌ Excepción al guardar reporte de fraude:", fraudError);
-        debugLog('Excepción en reporte de fraude', fraudError);
-        // No lanzar aquí - no queremos impedir la creación/actualización del participante si falla el reporte de fraude
-      }
     }
 
     console.log("[participantProcessing.ts] ✅ Participante procesado correctamente:", participantId);
