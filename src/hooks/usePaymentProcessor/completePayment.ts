@@ -1,9 +1,10 @@
+
 import { toast } from 'sonner';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { UpdateResult, updateNumbersToSold } from './numberStatusUpdates';
-import { uploadFile } from '@/integrations/supabase/storage';
+import { uploadFile } from '@/lib/utils'; // Changed from non-existent module
 import { ValidatedBuyerInfo } from '@/types/participant';
-import { createParticipant, getParticipantByPhoneAndRaffle } from '@/integrations/supabase/participants';
+import { createParticipant, getParticipantByPhoneAndRaffle } from '@/utils/participantUtils'; // Changed from non-existent module
 import { formatPhoneNumber } from '@/utils/phoneUtils';
 import { DEFAULT_ORGANIZATION_ID, STORAGE_BUCKET_RECEIPTS } from '@/lib/constants/ids';
 
@@ -157,4 +158,29 @@ export const handleCompletePayment = ({
       };
     }
   };
+};
+
+// Create utility functions to replace the non-existent modules
+export const uploadPaymentProof = async (file: File): Promise<string | null> => {
+  if (!file) return null;
+  
+  try {
+    console.log('Uploading payment proof:', file.name);
+    
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('payment_proofs')
+      .upload(`${Date.now()}_${file.name}`, file);
+    
+    if (uploadError) throw uploadError;
+    
+    const { data: urlData } = supabase.storage
+      .from('payment_proofs')
+      .getPublicUrl(uploadData.path);
+    
+    console.log('Payment proof uploaded:', urlData.publicUrl);
+    return urlData.publicUrl;
+  } catch (error) {
+    console.error('Error uploading payment proof:', error);
+    return null;
+  }
 };

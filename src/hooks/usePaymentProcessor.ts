@@ -13,7 +13,7 @@ import { useNumberAvailability } from './usePaymentProcessor/numberAvailability'
 import { usePaymentCompletion } from './usePaymentProcessor/paymentCompletion';
 import { useBuyerInfo } from '@/contexts/BuyerInfoContext';
 import { useReservationHandling } from './usePaymentProcessor/reservationHandling';
-import { useCompletePayment } from './usePaymentProcessor/completePayment';
+import { handleCompletePayment } from './usePaymentProcessor/completePayment';
 import { SELLER_ID, RAFFLE_ID } from '@/lib/constants';
 
 // Define a complete seller type to ensure we always pass a fully-formed seller object
