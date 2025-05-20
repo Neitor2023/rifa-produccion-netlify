@@ -1,6 +1,7 @@
+
 import { toast } from 'sonner';
-import { useNumberStatus } from '../useNumberStatus';
-import { useParticipantManager } from '../useParticipantManager';
+import { useNumberStatus } from './useNumberStatus';
+import { useParticipantManager } from './useParticipantManager';
 import { RaffleNumber } from '@/lib/constants/types';
 
 interface UseReservationHandlingProps {

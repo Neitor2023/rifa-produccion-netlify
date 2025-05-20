@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -132,7 +133,7 @@ export function usePaymentProcessor({
       
       const { data, error } = await supabase
         .from('raffle_numbers')
-        .select('number, status')
+        .select('number, status, seller_id')
         .eq('raffle_id', raffleId)
         .in('number', numbers.map(n => parseInt(n)))
         .not('status', 'eq', 'available');

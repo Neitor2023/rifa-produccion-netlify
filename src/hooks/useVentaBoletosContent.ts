@@ -6,6 +6,7 @@ import { useBuyerInfo } from '@/contexts/BuyerInfoContext';
 import { SELLER_ID, RAFFLE_ID } from '@/utils/setGlobalIdsFromUrl';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { ConflictResult } from '@/hooks/usePaymentProcessor/completePayment';
+import { RaffleNumber } from '@/lib/constants/types';
 
 export function useVentaBoletosContent() {
   // State for the clicked button
@@ -52,6 +53,9 @@ export function useVentaBoletosContent() {
     console.log("useVentaBoletosContent.ts: Días de reserva:", reservationDays);
   }
   
+  // Cast raffleNumbers to the RaffleNumber type to ensure compatibility
+  const typedRaffleNumbers: RaffleNumber[] = raffleNumbers as unknown as RaffleNumber[];
+  
   // Payment processor hook
   const {
     selectedNumbers,
@@ -78,7 +82,7 @@ export function useVentaBoletosContent() {
       cant_max: raffleSeller?.cant_max || maxNumbersAllowed,
     } : null,
     raffleId: RAFFLE_ID,
-    raffleNumbers,
+    raffleNumbers: typedRaffleNumbers,
     refetchRaffleNumbers,
     debugMode,
     allowVoucherPrint,
@@ -148,7 +152,7 @@ export function useVentaBoletosContent() {
     raffle,
     prizes,
     prizeImages,
-    raffleNumbers,
+    raffleNumbers: typedRaffleNumbers,
     raffleSeller,
     formatNumbersForGrid,
     lotteryDate,

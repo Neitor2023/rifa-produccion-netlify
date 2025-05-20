@@ -81,4 +81,7 @@ export interface RaffleNumber {
   participant_cedula?: string;
   reservation_expires_at?: string | null;
   payment_approved?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string;
 }
