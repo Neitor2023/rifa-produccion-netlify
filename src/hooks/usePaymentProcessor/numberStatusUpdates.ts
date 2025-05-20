@@ -13,7 +13,7 @@ interface UpdateNumbersToSoldProps {
   raffleSeller: any;
   raffleId: string;
   paymentMethod?: string;
-  clickedButtonType?: string; // Add button type parameter
+  clickedButtonType?: string;
 }
 
 export interface UpdateResult {
@@ -30,14 +30,14 @@ export const updateNumbersToSold = async ({
   raffleSeller,
   raffleId,
   paymentMethod,
-  clickedButtonType // Add parameter
+  clickedButtonType
 }: UpdateNumbersToSoldProps): Promise<UpdateResult> => {
   console.log("🔵 numberStatusUpdates.ts: Actualización de números a vendidos:", {
     numbers,
     participantId,
     paymentProofUrl,
     paymentMethod,
-    clickedButtonType // Log button type
+    clickedButtonType
   });
 
   // Validación de parámetros críticos
@@ -152,14 +152,21 @@ export const updateNumbersToSold = async ({
         participant_cedula: participantData.cedula
       };
       
-      // Only set reservation_expires_at to null if we're NOT paying for reserved numbers
-      // (when clickedButtonType is NOT "Pagar Apartado")
+      // CORRECCIÓN: Solo establecer reservation_expires_at a null si NO estamos pagando números reservados
+      // (cuando clickedButtonType NO es "Pagar Apartado")
       if (clickedButtonType !== "Pagar Apartado") {
         console.log(`🔄 Estableciendo reservation_expires_at: null para el número ${numStr} (botón: ${clickedButtonType})`);
         commonData.reservation_expires_at = null;
-      } else if (existingNumber?.reservation_expires_at) {
-        console.log(`⚠️ Preservando reservation_expires_at para número reservado ${numStr}: ${existingNumber.reservation_expires_at}`);
-        // We don't set reservation_expires_at when using Pagar Apartado - it will keep existing value
+      } else {
+        // CORRECCIÓN: Para "Pagar Apartado", NO modificamos reservation_expires_at
+        console.log(`🔒 Preservando reservation_expires_at para número reservado ${numStr} - Botón: ${clickedButtonType}`);
+        // Eliminamos la propiedad para no incluirla en la actualización
+        delete commonData.reservation_expires_at;
+        
+        // Log para verificar el valor actual antes de la actualización
+        if (existingNumber?.reservation_expires_at) {
+          console.log(`ℹ️ Valor actual de reservation_expires_at: ${existingNumber.reservation_expires_at}`);
+        }
       }
 
       // Store payment method if provided
