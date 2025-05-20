@@ -61,26 +61,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     mode: "onChange"
   });
 
-  // Clear form fields if the modal is opened from the "Pagar Directo" button
+  // Reset form when modal is opened or closed
   useEffect(() => {
-    if (isOpen && clickedButton === "Pagar") {
-      form.reset({
-        buyerName: '',
-        buyerPhone: '',
-        buyerCedula: '',
-        buyerEmail: '',
-        direccion: '',
-        sugerenciaProducto: '',
-        paymentMethod: "cash",
-        paymentProof: null,
-        nota: '',
-        reporteSospechoso: '',
-        sellerId: '',
-        participantId: '',
-        clickedButtonType: '',
-        paymentReceiptUrl: '',
-      });
-      setPreviewUrl(null);
+    // Reset form when modal is closed
+    if (!isOpen) {
+      resetForm();
+    } 
+    // Set form values when modal is opened with buyer info
+    else if (isOpen && clickedButton === "Pagar") {
+      resetForm();
     } else if (isOpen && buyerInfo) {
       // For other buttons (like "Pagar Apartados"), keep the existing data
       form.setValue('buyerName', buyerInfo.name || '');
@@ -90,7 +79,29 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       form.setValue('direccion', buyerInfo.direccion || '');
       form.setValue('sugerenciaProducto', buyerInfo.sugerencia_producto || '');
     }
-  }, [isOpen, clickedButton, form, buyerInfo]);
+  }, [isOpen, clickedButton, buyerInfo]);
+
+  // Function to reset the form
+  const resetForm = () => {
+    console.log("🧹 PaymentModal.tsx: Reseteando formulario");
+    form.reset({
+      buyerName: '',
+      buyerPhone: '',
+      buyerCedula: '',
+      buyerEmail: '',
+      direccion: '',
+      sugerenciaProducto: '',
+      paymentMethod: "cash",
+      paymentProof: null,
+      nota: '',
+      reporteSospechoso: '',
+      sellerId: '',
+      participantId: '',
+      clickedButtonType: '',
+      paymentReceiptUrl: '',
+    });
+    setPreviewUrl(null);
+  };
 
   const onFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -125,6 +136,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       if (!result || (result && result.success)) {
         onClose();
         clearSelectionState();
+        resetForm(); // Reset form after successful submission
       }
       
     } catch (error) {
@@ -143,10 +155,18 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!open) {
+        onClose();
+        resetForm(); // Reset form when dialog is closed
+      }
+    }}>
       <DialogContent className="bg-white/20 backdrop-blur-md max-w-2xl">
         <Card className="bg-transparent border-0 shadow-none">
-        <PaymentModalHeader onClose={onClose} onHeaderClick={handleHeaderClick} />
+        <PaymentModalHeader onClose={() => {
+          onClose();
+          resetForm(); // Reset form when closed via header button
+        }} onHeaderClick={handleHeaderClick} />
         <PaymentModalContent
           form={form}
           selectedNumbers={selectedNumbers}
@@ -161,7 +181,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         <PaymentModalActions
           isSubmitting={isSubmitting}
           isFormValid={form.formState.isValid}
-          onClose={onClose}
+          onClose={() => {
+            onClose(); 
+            resetForm(); // Reset form when closed via cancel button
+          }}
           onSubmit={form.handleSubmit(onSubmit)}
         />
       </Card>

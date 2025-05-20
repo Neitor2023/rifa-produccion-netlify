@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
 import { toast } from 'sonner';
@@ -11,7 +10,8 @@ interface UpdateNumbersToSoldProps {
   raffleNumbers: any[];
   raffleSeller: any;
   raffleId: string;
-  paymentMethod?: string; // Add payment method parameter
+  paymentMethod?: string;
+  clickedButtonType?: string; // Add button type parameter
 }
 
 export interface UpdateResult {
@@ -27,13 +27,15 @@ export const updateNumbersToSold = async ({
   raffleNumbers,
   raffleSeller,
   raffleId,
-  paymentMethod // Add parameter
+  paymentMethod,
+  clickedButtonType // Add parameter
 }: UpdateNumbersToSoldProps): Promise<UpdateResult> => {
   console.log("🔵 numberStatusUpdates.ts: Actualización de números a vendidos:", {
     numbers,
     participantId,
     paymentProofUrl,
-    paymentMethod // Log payment method
+    paymentMethod,
+    clickedButtonType // Log button type
   });
 
   // Validación de parámetros críticos
@@ -99,7 +101,7 @@ export const updateNumbersToSold = async ({
     const numbersInts = numbers.map(numStr => parseInt(numStr, 10));
     const { data: existingNumbers, error: checkError } = await supabase
       .from('raffle_numbers')
-      .select('number, participant_id, status')
+      .select('number, participant_id, status, reservation_expires_at')
       .eq('raffle_id', raffleId)
       .in('number', numbersInts);
 
@@ -122,29 +124,41 @@ export const updateNumbersToSold = async ({
     const updatePromises = numbers.map(async (numStr) => {
       const num = parseInt(numStr, 10);
       
+      // Check if this number already exists in the database
+      const existingNumber = existingNumbers?.find(n => n.number === num);
+      
       // Datos comunes para actualización o inserción
       const commonData: {
         status: 'sold';
         seller_id: string;
         participant_id: string;
         payment_approved: boolean;
-        reservation_expires_at: null;
+        reservation_expires_at?: null;
         participant_name: string;
         participant_phone: string;
         participant_cedula: string;
-        payment_method?: string; // Add payment method field
-        payment_proof?: string;  // For the transfer proof image
-        payment_receipt_url?: string;  // For the generated receipt
+        payment_method?: string;
+        payment_proof?: string;
+        payment_receipt_url?: string;
       } = {
         status: 'sold',
         seller_id: sellerUuid,
         participant_id: participantId,
         payment_approved: true,
-        reservation_expires_at: null,
         participant_name: participantData.name,
         participant_phone: formattedPhone, 
         participant_cedula: participantData.cedula
       };
+      
+      // Only set reservation_expires_at to null if we're NOT paying for reserved numbers
+      // (when clickedButtonType is NOT "Pagar Apartado")
+      if (clickedButtonType !== "Pagar Apartado") {
+        console.log(`🔄 Estableciendo reservation_expires_at: null para el número ${numStr} (botón: ${clickedButtonType})`);
+        commonData.reservation_expires_at = null;
+      } else if (existingNumber?.reservation_expires_at) {
+        console.log(`⚠️ Preservando reservation_expires_at para número reservado ${numStr}: ${existingNumber.reservation_expires_at}`);
+        // We don't set reservation_expires_at when using Pagar Apartado - it will keep existing value
+      }
 
       // Store payment method if provided
       if (paymentMethod) {
@@ -158,11 +172,11 @@ export const updateNumbersToSold = async ({
       }
       
       // Check if this number already exists for this participant
-      const existingNumber = existingNumbers?.find(n => 
+      const existingNumberForParticipant = existingNumbers?.find(n => 
         n.number === num && n.participant_id === participantId
       );
       
-      if (existingNumber) {
+      if (existingNumberForParticipant) {
         // Update existing record for this participant
         console.log(`🔄 Actualizando número ${numStr} para el participante ${participantId}:`, commonData);
         

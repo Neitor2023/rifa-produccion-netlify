@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRaffleData } from '@/hooks/useRaffleData';
 import { usePaymentProcessor } from '@/hooks/usePaymentProcessor';
 import { useBuyerInfo } from '@/contexts/BuyerInfoContext';
-import { SELLER_ID, RAFFLE_ID } from '@/lib/constants';
+import { SELLER_ID, RAFFLE_ID } from '@/utils/setGlobalIdsFromUrl';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { ConflictResult } from '@/hooks/usePaymentProcessor/completePayment';
 
@@ -14,8 +14,8 @@ export function useVentaBoletosContent() {
   // Access buyer info from context
   const { buyerInfo, setBuyerInfo } = useBuyerInfo();
   
-  // Get raffle data - using the imported values from constants
-  console.log("[useVentaBoletosContent.ts] Usando IDs globales:", { RAFFLE_ID, SELLER_ID });
+  // Get raffle data - using the imported values from setGlobalIdsFromUrl
+  console.log("[useVentaBoletosContent.ts] Usando IDs de URL:", { RAFFLE_ID, SELLER_ID });
   const { 
     seller,
     raffle,
@@ -81,7 +81,7 @@ export function useVentaBoletosContent() {
     raffleNumbers,
     refetchRaffleNumbers,
     debugMode,
-    allowVoucherPrint, // Pass the correct allowVoucherPrint value
+    allowVoucherPrint,
     reservationDays,
     lotteryDate
   });
@@ -113,7 +113,7 @@ export function useVentaBoletosContent() {
     const formDataWithButton: PaymentFormData = {
       ...data,
       clickedButtonType: clickedButton,
-      sellerId: SELLER_ID // CRÍTICO: Asegurar que SELLER_ID se pasa a los datos del formulario
+      sellerId: SELLER_ID
     };
     
     const result = await handleCompletePayment(formDataWithButton);

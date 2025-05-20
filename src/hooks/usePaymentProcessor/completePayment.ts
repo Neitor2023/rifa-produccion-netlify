@@ -1,11 +1,13 @@
-
-import { supabase } from '@/integrations/supabase/client';
-import { PaymentFormData } from '@/schemas/paymentFormSchema';
-import { ValidatedBuyerInfo } from '@/types/participant';
 import { toast } from 'sonner';
-import { updateNumbersToSold } from './numberStatusUpdates';
+import { PaymentFormData } from '@/schemas/paymentFormSchema';
+import { UpdateResult, updateNumbersToSold } from './numberStatusUpdates';
+import { uploadFile } from '@/integrations/supabase/storage';
+import { ValidatedBuyerInfo } from '@/types/participant';
+import { createParticipant, getParticipantByPhoneAndRaffle } from '@/integrations/supabase/participants';
+import { formatPhoneNumber } from '@/utils/phoneUtils';
+import { DEFAULT_ORGANIZATION_ID, STORAGE_BUCKET_RECEIPTS } from '@/lib/constants/ids';
 
-interface UseCompletePaymentProps {
+interface HandleCompletePaymentProps {
   raffleSeller: any;
   raffleId: string;
   selectedNumbers: string[];
@@ -14,150 +16,145 @@ interface UseCompletePaymentProps {
   setIsPaymentModalOpen: (isOpen: boolean) => void;
   setIsVoucherOpen: (isOpen: boolean) => void;
   allowVoucherPrint: boolean;
-  uploadPaymentProof: (paymentProof: File | string | null) => Promise<string | null>;
-  processParticipant: (data: PaymentFormData) => Promise<string | null>;
+  uploadPaymentProof: (file: File) => Promise<string | null>;
+  processParticipant: ({ buyerName, buyerPhone, buyerEmail, buyerCedula, direccion, sugerencia_producto, nota }: { buyerName: string; buyerPhone: string; buyerEmail: string; buyerCedula: string; direccion: string; sugerencia_producto: string; nota: string; }) => Promise<{ participantId: string | null; validatedBuyerData: ValidatedBuyerInfo; }>;
   supabase: any;
   debugMode?: boolean;
 }
 
-// Define the return type for conflict checks
 export interface ConflictResult {
   success: boolean;
   conflictingNumbers?: string[];
   message?: string;
 }
 
-export function useCompletePayment({
-  raffleSeller,
-  raffleId,
-  selectedNumbers,
-  refetchRaffleNumbers,
-  setPaymentData,
-  setIsPaymentModalOpen,
+export const handleCompletePayment = ({ 
+  raffleSeller, 
+  raffleId, 
+  selectedNumbers, 
+  refetchRaffleNumbers, 
+  setPaymentData, 
+  setIsPaymentModalOpen, 
   setIsVoucherOpen,
   allowVoucherPrint,
-  uploadPaymentProof,
+  uploadPaymentProof, 
   processParticipant,
   supabase,
-  debugMode
-}: UseCompletePaymentProps) {
-  const debugLog = (context: string, data: any) => {
-    if (debugMode) {
-      console.log(`[DEBUG - ${context}]:`, data);
+  debugMode = false 
+}) => {
+  return async (
+    formData: PaymentFormData
+  ): Promise<ConflictResult | void> => {
+    const debugLog = (context: string, data: any) => {
+      if (debugMode) {
+        console.log(`[DEBUG - completePayment - ${context}]:`, data);
+      }
+    };
+
+    if (selectedNumbers.length === 0) {
+      toast.error('Please select at least one number');
+      return { success: false };
     }
-  };
 
-  // Function to verify numbers are not sold by other sellers
-  const verifyNumbersNotSoldByOthers = async (numbers: string[]): Promise<ConflictResult> => {
+    debugLog('Starting payment completion process', { 
+      formData, 
+      selectedNumbers 
+    });
+
     try {
-      const numbersInts = numbers.map(numStr => parseInt(numStr, 10));
-      const { data: existingNumbers, error: checkError } = await supabase
-        .from('raffle_numbers')
-        .select('number, participant_id, status')
-        .eq('raffle_id', raffleId)
-        .in('number', numbersInts);
-
-      if (checkError) {
-        console.error('❌ Error al verificar la existencia de números:', checkError);
-        return { success: false, message: 'Error al verificar la disponibilidad de números' };
-      }
-
-      // Verificar si algún número ya pertenece a otro participante con estado "sold"
-      const conflictingNumbers = existingNumbers
-        ?.filter(n => n.status === 'sold')
-        .map(n => n.number.toString());
-
-      if (conflictingNumbers && conflictingNumbers.length > 0) {
-        console.error('❌ Números ya reservados por otro participante:', conflictingNumbers);
-        return { success: false, conflictingNumbers };
-      }
-
-      return { success: true };
-    } catch (error) {
-      console.error("❌ Error en verifyNumbersNotSoldByOthers:", error);
-      return { success: false, message: "Error al verificar la disponibilidad de números" };
-    }
-  };
-
-  // Handle complete payment form submission
-  const handleCompletePayment = async (formData: PaymentFormData): Promise<ConflictResult> => {
-    try {
-      debugLog("handleCompletePayment", "Starting payment completion process");
-      console.log("[completePayment.ts] Iniciando proceso de completar pago con datos:", { 
-        nombreComprador: formData.buyerName,
-        metodoPago: formData.paymentMethod,
-        numerosSeleccionados: selectedNumbers.length,
-        clickedButtonType: formData.clickedButtonType || 'No especificado'
-      });
-      
-      // Validate we have selected numbers
-      if (!selectedNumbers.length) {
-        toast.error("No hay números seleccionados para procesar el pago");
-        return { success: false, message: "No hay números seleccionados" };
-      }
-      
       // Upload payment proof if present
       let paymentProofUrl = null;
       if (formData.paymentProof) {
         paymentProofUrl = await uploadPaymentProof(formData.paymentProof);
-        debugLog("handleCompletePayment", `Payment proof uploaded: ${paymentProofUrl}`);
       }
-      
-      // Create or find participant
-      const participantId = await processParticipant(formData);
+
+      debugLog('Payment proof upload result', paymentProofUrl);
+
+      // Process or create participant
+      const { participantId, validatedBuyerData } = await processParticipant({
+        buyerName: formData.buyerName,
+        buyerPhone: formData.buyerPhone,
+        buyerEmail: formData.buyerEmail || "",
+        buyerCedula: formData.buyerCedula,
+        direccion: formData.direccion || "",
+        sugerencia_producto: formData.sugerenciaProducto || "",
+        nota: formData.nota || "",
+      });
+
+      debugLog('Participant processing result', { 
+        participantId, 
+        validatedBuyerData 
+      });
+
       if (!participantId) {
-        toast.error("Error al procesar datos del comprador");
-        return { success: false, message: "Error al procesar datos del comprador" };
+        throw new Error('Failed to create participant record');
       }
-      
-      // Add participant ID to form data for later use
-      formData.participantId = participantId;
-      
-      // Check that all numbers are still available before setting to sold
-      const verificationResult = await verifyNumbersNotSoldByOthers(selectedNumbers);
-      if (!verificationResult.success) {
-        return verificationResult;
-      }
-      
-      // Update all numbers to sold in the database, including payment method
-      const updateResult = await updateNumbersToSold({
+
+      // Update the numbers to sold status
+      const result = await updateNumbersToSold({
         numbers: selectedNumbers,
         participantId,
         paymentProofUrl,
-        raffleNumbers: [], // These will be fetched inside the function
+        raffleNumbers: [],
         raffleSeller,
         raffleId,
-        paymentMethod: formData.paymentMethod // Pass payment method
+        paymentMethod: formData.paymentMethod,
+        clickedButtonType: formData.clickedButtonType // Pass clickedButtonType here
       });
-      
-      if (!updateResult.success) {
-        return { 
-          success: false, 
-          conflictingNumbers: updateResult.conflictingNumbers,
-          message: "Error al actualizar los números a vendidos"
-        };
+
+      debugLog('Update numbers result', result);
+
+      if (!result.success) {
+        if (result.conflictingNumbers) {
+          debugLog('Conflict detected during number update', result.conflictingNumbers);
+          return result;
+        }
+        throw new Error('Failed to update numbers in database');
       }
-      
-      // Close payment modal and show voucher
-      setPaymentData(formData);
-      setIsPaymentModalOpen(false);
-      
-      // Refresh the numbers grid
+
+      // Refresh raffle numbers data
       await refetchRaffleNumbers();
-      
-      // Always show voucher or alert based on allowVoucherPrint
-      setIsVoucherOpen(true);
-      
+
+      // Prepare payment data for the receipt/voucher
+      const paymentDataForReceipt: PaymentFormData = {
+        ...formData,
+        participantId,
+        sellerId: raffleSeller.seller_id,
+        // Include validated data for display
+        buyerName: validatedBuyerData.name,
+        buyerPhone: validatedBuyerData.phone,
+        buyerCedula: validatedBuyerData.cedula,
+        buyerEmail: validatedBuyerData.email || "",
+        direccion: validatedBuyerData.direccion || "",
+        sugerenciaProducto: validatedBuyerData.sugerencia_producto || "",
+        // Set payment receipt URL if generated
+        paymentReceiptUrl: formData.paymentReceiptUrl || ""
+      };
+
+      debugLog('Payment data prepared for receipt', paymentDataForReceipt);
+
+      // Set payment data for receipt generation
+      setPaymentData(paymentDataForReceipt);
+
+      // Close payment modal
+      setIsPaymentModalOpen(false);
+
+      // Show the voucher modal only if allowed
+      setTimeout(() => {
+        debugLog('Opening voucher modal', { allowVoucherPrint });
+        setIsVoucherOpen(true);
+      }, 500);
+
+      // Return success
       return { success: true };
     } catch (error) {
-      console.error("[completePayment.ts] Error al completar pago:", error);
-      toast.error("Error al procesar pago. Por favor, intente nuevamente.");
-      return { success: false, message: "Error al procesar pago" };
+      debugLog('Error in handleCompletePayment', error);
+      console.error('Error in completePayment:', error);
+      toast.error('Error processing payment. Please try again.');
+      return { 
+        success: false, 
+        message: error instanceof Error ? error.message : 'Unknown error' 
+      };
     }
   };
-
-  return {
-    handleCompletePayment,
-    verifyNumbersNotSoldByOthers
-  };
-}
+};
