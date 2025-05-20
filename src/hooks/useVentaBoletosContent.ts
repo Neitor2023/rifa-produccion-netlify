@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRaffleData } from '@/hooks/useRaffleData';
 import { usePaymentProcessor } from '@/hooks/usePaymentProcessor';
 import { useBuyerInfo } from '@/contexts/BuyerInfoContext';
-import { SELLER_ID, RAFFLE_ID } from '@/utils/setGlobalIdsFromUrl';
+import { SELLER_ID, RAFFLE_ID } from '@/lib/constants';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { ConflictResult } from '@/hooks/usePaymentProcessor/completePayment';
 
@@ -14,8 +14,8 @@ export function useVentaBoletosContent() {
   // Access buyer info from context
   const { buyerInfo, setBuyerInfo } = useBuyerInfo();
   
-  // Get raffle data - using the imported values from setGlobalIdsFromUrl
-  console.log("[useVentaBoletosContent.ts] Using global IDs:", { RAFFLE_ID, SELLER_ID });
+  // Get raffle data - using the imported values from constants
+  console.log("[useVentaBoletosContent.ts] Usando IDs globales:", { RAFFLE_ID, SELLER_ID });
   const { 
     seller,
     raffle,
@@ -37,7 +37,7 @@ export function useVentaBoletosContent() {
   
   // Log the value of allowVoucherPrint to help with debugging
   useEffect(() => {
-    console.log('[useVentaBoletosContent.ts] Current allowVoucherPrint value:', allowVoucherPrint);
+    console.log('[useVentaBoletosContent.ts] Valor actual de allowVoucherPrint:', allowVoucherPrint);
   }, [allowVoucherPrint]);
   
   // Convert lottery date string to Date object if it exists
@@ -48,8 +48,8 @@ export function useVentaBoletosContent() {
   
   // Debug output for lottery date and reservation days
   if (debugMode) {
-    console.log("useVentaBoletosContent.ts: Lottery Date:", lotteryDate);
-    console.log("useVentaBoletosContent.ts: Reservation Days:", reservationDays);
+    console.log("useVentaBoletosContent.ts: Fecha de lotería:", lotteryDate);
+    console.log("useVentaBoletosContent.ts: Días de reserva:", reservationDays);
   }
   
   // Payment processor hook
@@ -88,12 +88,12 @@ export function useVentaBoletosContent() {
 
   // Handle proceeding to payment with the button type
   const handleProceedToPaymentWithButton = async (numbers: string[], participantData?: any, buttonType?: string) => {
-    console.log("useVentaBoletosContent.ts: Proceeding to payment with button type:", buttonType);
+    console.log("useVentaBoletosContent.ts: Procediendo al pago con tipo de botón:", buttonType);
     setClickedButton(buttonType);
     
     // Clear buyer information if "Pagar" button was clicked
     if (buttonType === "Pagar") {
-      console.log("useVentaBoletosContent.ts: Clearing buyer info because 'Pagar' button was clicked");
+      console.log("useVentaBoletosContent.ts: Limpiando info del comprador porque se hizo clic en botón 'Pagar'");
       setBuyerInfo(null);
     }
     
@@ -105,7 +105,7 @@ export function useVentaBoletosContent() {
   const wrappedHandleCompletePayment = async (data: PaymentFormData): Promise<ConflictResult | void> => {
     // Make sure buyerName is set (required field)
     if (!data.buyerName) {
-      console.error('useVentaBoletosContent.ts: buyerName is required but was not provided');
+      console.error('useVentaBoletosContent.ts: El nombre del comprador es requerido pero no fue proporcionado');
       return { success: false, message: 'Nombre del comprador es requerido' };
     }
     
@@ -113,7 +113,7 @@ export function useVentaBoletosContent() {
     const formDataWithButton: PaymentFormData = {
       ...data,
       clickedButtonType: clickedButton,
-      sellerId: SELLER_ID // CRITICAL: Ensure SELLER_ID is passed to the form data
+      sellerId: SELLER_ID // CRÍTICO: Asegurar que SELLER_ID se pasa a los datos del formulario
     };
     
     const result = await handleCompletePayment(formDataWithButton);

@@ -51,6 +51,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   selectedNumbers,
   allowVoucherPrint = true,
   raffleDetails,
+  organization,
   onVoucherClosed
 }) => {
   const printRef = useRef<HTMLDivElement>(null);
@@ -66,6 +67,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   const [receiptAlreadySaved, setReceiptAlreadySaved] = useState<boolean>(false);
   const [showAlertMessage, setShowAlertMessage] = useState<boolean>(false);
   const [isReceiptSaving, setIsReceiptSaving] = useState<boolean>(false);
+  const [receiptSavedSuccessfully, setReceiptSavedSuccessfully] = useState<boolean>(false);
   
   // Determine text color based on theme
   const textColor = theme === 'dark' ? 'text-white' : 'text-gray-800';
@@ -87,14 +89,14 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
       if (!isOpen || !paymentData?.participantId) return;
       
       try {
-        console.log('[DigitalVoucher.tsx] Looking for IDs for participant:', paymentData.participantId);
+        console.log('[DigitalVoucher.tsx] Buscando IDs para participante:', paymentData.participantId);
         
         // Store participant ID for later use
         const currentParticipantId = paymentData?.participantId;
         setParticipantId(currentParticipantId);
         
         if (!currentParticipantId) {
-          console.error('[DigitalVoucher.tsx] Missing participant ID, cannot fetch numbers');
+          console.error('[DigitalVoucher.tsx] Falta ID del participante, no se pueden obtener números');
           return;
         }
         
@@ -107,7 +109,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
           .eq('raffle_id', RAFFLE_ID);
         
         if (error) {
-          console.error('[DigitalVoucher.tsx] Error fetching raffle number IDs:', error);
+          console.error('[DigitalVoucher.tsx] Error al obtener IDs de números:', error);
           return;
         }
         
@@ -120,12 +122,12 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
           let proofImage = null;
           if (paymentData?.paymentProof && typeof paymentData.paymentProof === 'string') {
             proofImage = paymentData.paymentProof;
-            console.log('[DigitalVoucher.tsx] Using payment proof from form data:', paymentData.paymentProof);
+            console.log('[DigitalVoucher.tsx] Usando comprobante de pago desde formulario:', paymentData.paymentProof);
           } else {
             // If not in form data, check database
             proofImage = data.find(item => item.payment_proof)?.payment_proof || null;
             if (proofImage) {
-              console.log('[DigitalVoucher.tsx] Payment proof image found in DB:', proofImage);
+              console.log('[DigitalVoucher.tsx] Imagen de comprobante encontrada en BD:', proofImage);
             }
           }
           
@@ -143,13 +145,13 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
           if (isPayingReserved) {
             // For "Pagar Apartados" flow, only get numbers that were previously reserved and now sold
             filteredData = data.filter(item => item.status === 'sold');
-            console.log('[DigitalVoucher.tsx] Filtered to sold numbers for "Pagar Apartados" flow:', 
+            console.log('[DigitalVoucher.tsx] Filtrado a números vendidos para flujo "Pagar Apartados":', 
               filteredData.map(item => item.number));
           } else {
             // For "Pagar Directo" flow, match with selected numbers
             const numbersInts = selectedNumbers.map(numStr => parseInt(numStr, 10));
             filteredData = data.filter(item => numbersInts.includes(Number(item.number)));
-            console.log('[DigitalVoucher.tsx] Filtered to selected numbers for direct payment:', 
+            console.log('[DigitalVoucher.tsx] Filtrado a números seleccionados para pago directo:', 
               filteredData.map(item => item.number));
           }
           
@@ -160,11 +162,11 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
           // Set the numbers to display in the voucher
           if (nums.length > 0) {
             setParticipantNumbers(nums);
-            console.log('[DigitalVoucher.tsx] Using participant numbers from DB:', nums);
+            console.log('[DigitalVoucher.tsx] Usando números de participante desde BD:', nums);
           } else {
             // Fallback to selected numbers if we couldn't find any numbers in DB
             setParticipantNumbers(selectedNumbers);
-            console.log('[DigitalVoucher.tsx] Using selected numbers as fallback:', selectedNumbers);
+            console.log('[DigitalVoucher.tsx] Usando números seleccionados como respaldo:', selectedNumbers);
           }
           
           // Set first ID for receipt URL generation
@@ -173,16 +175,16 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
             setIsRaffleNumberRetrieved(true);
           }
           
-          console.log('[DigitalVoucher.tsx] Participant numbers fetched:', nums);
-          console.log('[DigitalVoucher.tsx] Raffle number IDs fetched:', ids);
+          console.log('[DigitalVoucher.tsx] Números de participante obtenidos:', nums);
+          console.log('[DigitalVoucher.tsx] IDs de números obtenidos:', ids);
         } else {
-          console.warn('[DigitalVoucher.tsx] No numbers found for this participant');
+          console.warn('[DigitalVoucher.tsx] No se encontraron números para este participante');
           
           // Fallback: If no existing numbers found, use the provided selectedNumbers
           setParticipantNumbers(selectedNumbers);
         }
       } catch (err) {
-        console.error('[DigitalVoucher.tsx] Error in fetchRaffleNumberIds:', err);
+        console.error('[DigitalVoucher.tsx] Error en fetchRaffleNumberIds:', err);
       }
     };
     
@@ -197,18 +199,9 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
       const protocol = window.location.protocol || 'https:';
       const url = `${protocol}//${domain}/receipt/${raffleNumberId}`;
       setReceiptUrl(url);
-      console.log('[DigitalVoucher.tsx] Receipt URL generated:', url);
+      console.log('[DigitalVoucher.tsx] URL de recibo generada:', url);
     }
   }, [raffleNumberId]);
-  
-  // Check if we need to show alert message based on allowVoucherPrint
-  useEffect(() => {
-    if (isOpen) {
-      // If voucher printing is not allowed, show the alert message
-      setShowAlertMessage(!allowVoucherPrint);
-      console.log('[DigitalVoucher.tsx] Setting showAlertMessage to:', !allowVoucherPrint, 'based on allowVoucherPrint:', allowVoucherPrint);
-    }
-  }, [isOpen, allowVoucherPrint]);
   
   // Auto-save receipt when voucher is opened regardless of allowVoucherPrint value
   useEffect(() => {
@@ -231,10 +224,17 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
           if (savedUrl) {
             console.log('[DigitalVoucher.tsx] - Finalizando guardado automático de comprobante de pago');
             setReceiptAlreadySaved(true);
-          
+            setReceiptSavedSuccessfully(true);
+            
             // Only show toast if we're actually showing the voucher
             if (allowVoucherPrint) {
               toast.success('Comprobante guardado automáticamente', { id: 'receipt-saved' });
+            }
+            
+            // Show alert message when allowVoucherPrint is false
+            // But only after the receipt has been saved successfully
+            if (!allowVoucherPrint) {
+              setShowAlertMessage(true);
             }
           } else {
             console.error('[DigitalVoucher.tsx] - Error al guardar comprobante: No se pudo guardar la URL');
@@ -253,7 +253,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     // Delay execution slightly to ensure the DOM is ready
     const timer = setTimeout(autoSaveReceipt, 1000);
     return () => clearTimeout(timer);
-  }, [isOpen, printRef.current, participantId, allowVoucherPrint, participantNumbers, raffleDetails]);
+  }, [isOpen, printRef.current, participantId, participantNumbers, raffleDetails]);
 
   // Handle the modal close event
   const handleCloseModal = (): void => {
@@ -268,7 +268,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   // Function to update payment_receipt_url for all participant's numbers
   const updatePaymentReceiptUrlForAllNumbers = async (voucherUrl: string): Promise<boolean> => {
     if (!voucherUrl || !paymentData?.participantId) {
-      console.error("[DigitalVoucher.tsx] Error: Insufficient data to update payment receipt");
+      console.error("[DigitalVoucher.tsx] Error: Datos insuficientes para actualizar recibo de pago");
       return false;
     }
     
@@ -299,7 +299,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   const saveVoucherForAllNumbers = async (): Promise<string | null> => {
     try {
       if (!printRef.current || !raffleDetails || !paymentData?.participantId) {
-        console.error("[DigitalVoucher.tsx] Error: No voucher reference, raffle details or payment data");
+        console.error("[DigitalVoucher.tsx] Error: No hay referencia de comprobante, detalles de rifa o datos de pago");
         return null;
       }
       
@@ -308,7 +308,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
       // Generate the voucher image
       const imgData = await exportVoucherAsImage(printRef.current, '');
       if (!imgData) {
-        console.error("[DigitalVoucher.tsx] Error: Could not generate voucher image");
+        console.error("[DigitalVoucher.tsx] Error: No se pudo generar imagen del comprobante");
         return null;
       }
       
@@ -352,18 +352,20 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     }
   };
 
-  // If allowVoucherPrint is false and showAlertMessage is true, show the alert message instead of the voucher
-  if (isOpen && !allowVoucherPrint && showAlertMessage) {
+  // If the receipt has been saved and allowVoucherPrint is false, show the alert message
+  if (isOpen && !allowVoucherPrint && showAlertMessage && receiptSavedSuccessfully) {
     console.log('[DigitalVoucher.tsx] Mostrando AlertMessage porque allowVoucherPrint es false');
     return (
       <AlertMessage 
         isOpen={true} 
         onClose={handleCloseModal} 
         textColor={textColor} 
+        receiptSaved={receiptSavedSuccessfully}
       />
     );
   }
-
+  
+  // If allowVoucherPrint is true or receipt is still saving, show the regular voucher dialog
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleCloseModal()}>
       <DialogContent className="sm:max-w-md md:max-w-xl lg:max-w-2xl min-h-[85vh] max-h-[90vh] flex flex-col bg-white/20 backdrop-blur-md rounded-xl border-0">

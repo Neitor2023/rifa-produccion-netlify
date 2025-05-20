@@ -59,17 +59,16 @@ const RaffleModals: React.FC<RaffleModalsProps> = ({
         organization={organization}
       />
       
-      {/* Digital Voucher */}
-      {allowVoucherPrint && (
-        <DigitalVoucher 
-          isOpen={isVoucherOpen} 
-          onClose={() => setIsVoucherOpen(false)}
-          paymentData={paymentData}
-          raffleDetails={raffleDetails}
-          selectedNumbers={selectedNumbers}
-          organization={organization}
-        />
-      )}
+      {/* Digital Voucher - ALWAYS render it regardless of allowVoucherPrint */}
+      <DigitalVoucher 
+        isOpen={isVoucherOpen} 
+        onClose={() => setIsVoucherOpen(false)}
+        paymentData={paymentData}
+        raffleDetails={raffleDetails}
+        selectedNumbers={selectedNumbers}
+        organization={organization}
+        allowVoucherPrint={allowVoucherPrint}
+      />
     </>
   );
 };

@@ -14,14 +14,16 @@ interface AlertMessageProps {
   isOpen: boolean;
   onClose: () => void;
   textColor: string;
+  receiptSaved: boolean;
 }
 
 const AlertMessage: React.FC<AlertMessageProps> = ({ 
   isOpen, 
   onClose, 
-  textColor 
+  textColor,
+  receiptSaved = false
 }) => {
-  console.log('[AlertMessage.tsx] Renderizando componente AlertMessage con isOpen:', isOpen);
+  console.log('[AlertMessage.tsx] Renderizando componente AlertMessage con isOpen:', isOpen, 'receiptSaved:', receiptSaved);
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -37,7 +39,10 @@ const AlertMessage: React.FC<AlertMessageProps> = ({
           <AlertTitle className="font-semibold">Aviso Importante</AlertTitle>
           <AlertDescription className={`text-base leading-relaxed ${textColor}`}>
             <p className="mb-4">
-              Su comprobante de pago está en revisión, es importante que le exija su comprobante de pago a su vendedor, este es su constancia de reclamo de premios; cualquier novedad comuníquese a los teléfonos de los organizadores que se encuentran al final de la página web.
+              {receiptSaved 
+                ? "Su comprobante de pago ha sido guardado automáticamente, pero es importante que le exija su comprobante de pago a su vendedor, este es su constancia de reclamo de premios; cualquier novedad comuníquese a los teléfonos de los organizadores que se encuentran al final de la página web."
+                : "Su comprobante de pago está en revisión, es importante que le exija su comprobante de pago a su vendedor, este es su constancia de reclamo de premios; cualquier novedad comuníquese a los teléfonos de los organizadores que se encuentran al final de la página web."
+              }
             </p>
             <Button 
               onClick={onClose} 
