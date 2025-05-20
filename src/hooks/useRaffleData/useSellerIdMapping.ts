@@ -2,15 +2,15 @@
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Hook to get the seller UUID from a cedula
+ * Utility function to get the seller UUID from a cedula
  * This resolves the issue where SELLER_ID is a cedula but database tables expect a UUID
  */
 export async function getSellerUuidFromCedula(cedula: string): Promise<string | null> {
   try {
-    console.log('Looking up seller UUID for cedula:', cedula);
+    console.log('[useSellerIdMapping.ts] Buscando UUID de vendedor para cédula:', cedula);
     
     if (!cedula) {
-      console.error('No cedula provided for seller lookup');
+      console.error('[useSellerIdMapping.ts] No se proporcionó cédula para la búsqueda del vendedor');
       return null;
     }
     
@@ -21,19 +21,19 @@ export async function getSellerUuidFromCedula(cedula: string): Promise<string | 
       .maybeSingle();
     
     if (error) {
-      console.error('Error fetching seller UUID:', error);
+      console.error('[useSellerIdMapping.ts] Error al buscar UUID del vendedor:', error.message);
       return null;
     }
     
     if (!data || !data.id) {
-      console.error(`No seller found with cedula ${cedula}`);
+      console.error(`[useSellerIdMapping.ts] No se encontró vendedor con cédula ${cedula}`);
       return null;
     }
     
-    console.log(`Found seller UUID for cedula ${cedula}:`, data.id);
+    console.log(`[useSellerIdMapping.ts] UUID de vendedor encontrado para cédula ${cedula}:`, data.id);
     return data.id;
   } catch (err) {
-    console.error('Exception in getSellerUuidFromCedula:', err);
+    console.error('[useSellerIdMapping.ts] Excepción en getSellerUuidFromCedula:', err);
     return null;
   }
 }

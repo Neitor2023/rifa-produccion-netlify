@@ -8,6 +8,8 @@ import { createParticipant, getParticipantByPhoneAndRaffle } from '@/utils/parti
 import { formatPhoneNumber } from '@/utils/phoneUtils';
 import { DEFAULT_ORGANIZATION_ID, STORAGE_BUCKET_RECEIPTS } from '@/lib/constants/ids';
 import { supabase } from '@/integrations/supabase/client';
+import { getSellerUuidFromCedula } from '@/hooks/useRaffleData/useSellerIdMapping';
+import { SELLER_ID, RAFFLE_ID } from '@/lib/constants/ids';
 
 interface HandleCompletePaymentProps {
   raffleSeller: any;
@@ -54,25 +56,85 @@ export const handleCompletePayment = ({
     };
 
     if (selectedNumbers.length === 0) {
-      toast.error('Please select at least one number');
+      toast.error('Por favor seleccione al menos un número');
       return { success: false };
     }
 
-    debugLog('Starting payment completion process', { 
+    debugLog('Iniciando proceso de completar pago', { 
       formData, 
       selectedNumbers 
     });
 
     try {
-      // Upload payment proof if present
+      console.log("[completePayment.ts] Iniciando proceso de pago con formData:", {
+        buyerName: formData.buyerName,
+        buyerPhone: formData.buyerPhone,
+        // No imprimir datos sensibles en logs
+      });
+
+      // Validar que el raffleId esté definido
+      if (!raffleId) {
+        raffleId = RAFFLE_ID;
+        console.log("[completePayment.ts] ⚠️ raffleId no proporcionado, usando valor por defecto:", raffleId);
+      }
+
+      // Validar y procesar sellerId para asegurar que sea un UUID válido
+      let sellerUuid: string | null = null;
+      
+      if (raffleSeller?.seller_id) {
+        const isUuid = raffleSeller.seller_id.includes('-') && raffleSeller.seller_id.length > 30;
+        
+        if (isUuid) {
+          sellerUuid = raffleSeller.seller_id;
+          console.log("[completePayment.ts] Usando UUID del vendedor:", sellerUuid);
+        } else {
+          console.log("[completePayment.ts] Buscando UUID para cédula del vendedor:", raffleSeller.seller_id);
+          sellerUuid = await getSellerUuidFromCedula(raffleSeller.seller_id);
+          if (!sellerUuid) {
+            // Si no se encuentra, intentar con el SELLER_ID por defecto
+            console.log("[completePayment.ts] No se encontró UUID, buscando con SELLER_ID por defecto:", SELLER_ID);
+            sellerUuid = await getSellerUuidFromCedula(SELLER_ID);
+            if (sellerUuid) {
+              console.log("[completePayment.ts] UUID encontrado para SELLER_ID por defecto:", sellerUuid);
+            } else {
+              console.log("[completePayment.ts] ⚠️ No se pudo encontrar un UUID válido para el vendedor");
+            }
+          } else {
+            console.log("[completePayment.ts] UUID encontrado para cédula:", sellerUuid);
+          }
+        }
+      } else if (formData.sellerId) {
+        // Usar sellerId del formulario si está disponible
+        const isUuid = formData.sellerId.includes('-') && formData.sellerId.length > 30;
+        
+        if (isUuid) {
+          sellerUuid = formData.sellerId;
+        } else {
+          console.log("[completePayment.ts] Buscando UUID para cédula desde formData:", formData.sellerId);
+          sellerUuid = await getSellerUuidFromCedula(formData.sellerId);
+        }
+      } else {
+        // Último recurso: usar SELLER_ID por defecto
+        console.log("[completePayment.ts] Sin seller_id disponible, buscando con valor por defecto:", SELLER_ID);
+        sellerUuid = await getSellerUuidFromCedula(SELLER_ID);
+      }
+      
+      if (!sellerUuid) {
+        console.log("[completePayment.ts] ⚠️ No se pudo determinar un UUID válido para el vendedor");
+      }
+      
+      // Establecer el sellerId en formData para usarlo en el procesamiento del participante
+      formData.sellerId = sellerUuid || '';
+
+      // Subir comprobante de pago si está presente
       let paymentProofUrl = null;
       if (formData.paymentProof) {
         paymentProofUrl = await uploadPaymentProof(formData.paymentProof);
       }
 
-      debugLog('Payment proof upload result', paymentProofUrl);
+      debugLog('Resultado de la subida del comprobante de pago', paymentProofUrl);
 
-      // Process or create participant
+      // Procesar o crear participante
       const { participantId, validatedBuyerData } = await processParticipant({
         buyerName: formData.buyerName,
         buyerPhone: formData.buyerPhone,
@@ -83,16 +145,16 @@ export const handleCompletePayment = ({
         nota: formData.nota || "",
       });
 
-      debugLog('Participant processing result', { 
+      debugLog('Resultado del procesamiento del participante', { 
         participantId, 
         validatedBuyerData 
       });
 
       if (!participantId) {
-        throw new Error('Failed to create participant record');
+        throw new Error('Error al crear registro del participante');
       }
 
-      // Update the numbers to sold status
+      // Actualizar los números a estado vendido
       const result = await updateNumbersToSold({
         numbers: selectedNumbers,
         participantId,
@@ -101,61 +163,63 @@ export const handleCompletePayment = ({
         raffleSeller,
         raffleId,
         paymentMethod: formData.paymentMethod,
-        clickedButtonType: formData.clickedButtonType // Pass clickedButtonType here
+        clickedButtonType: formData.clickedButtonType // Pasar clickedButtonType aquí
       });
 
-      debugLog('Update numbers result', result);
+      debugLog('Resultado de la actualización de números', result);
 
       if (!result.success) {
         if (result.conflictingNumbers) {
-          debugLog('Conflict detected during number update', result.conflictingNumbers);
+          debugLog('Conflicto detectado durante la actualización de números', result.conflictingNumbers);
           return result;
         }
-        throw new Error('Failed to update numbers in database');
+        throw new Error('Error al actualizar números en la base de datos');
       }
 
-      // Refresh raffle numbers data
+      // Actualizar datos de rifas
       await refetchRaffleNumbers();
 
-      // Prepare payment data for the receipt/voucher
+      // Preparar datos de pago para el recibo/comprobante
       const paymentDataForReceipt: PaymentFormData = {
         ...formData,
         participantId,
-        sellerId: raffleSeller.seller_id,
-        // Include validated data for display
+        sellerId: sellerUuid || '',
+        // Incluir datos validados para mostrar
         buyerName: validatedBuyerData.name,
         buyerPhone: validatedBuyerData.phone,
         buyerCedula: validatedBuyerData.cedula,
         buyerEmail: validatedBuyerData.email || "",
         direccion: validatedBuyerData.direccion || "",
         sugerenciaProducto: validatedBuyerData.sugerencia_producto || "",
-        // Set payment receipt URL if generated
+        // Establecer URL del recibo de pago si se generó
         paymentReceiptUrl: formData.paymentReceiptUrl || ""
       };
 
-      debugLog('Payment data prepared for receipt', paymentDataForReceipt);
+      debugLog('Datos de pago preparados para recibo', paymentDataForReceipt);
 
-      // Set payment data for receipt generation
+      // Establecer datos de pago para generación de recibo
       setPaymentData(paymentDataForReceipt);
 
-      // Close payment modal
+      // Cerrar modal de pago
       setIsPaymentModalOpen(false);
 
-      // Show the voucher modal only if allowed
+      // Mostrar el modal de comprobante solo si está permitido
       setTimeout(() => {
-        debugLog('Opening voucher modal', { allowVoucherPrint });
+        debugLog('Abriendo modal de comprobante', { allowVoucherPrint });
         setIsVoucherOpen(true);
       }, 500);
 
-      // Return success
+      console.log("[completePayment.ts] ✅ Proceso de pago completado exitosamente");
+      
+      // Retornar éxito
       return { success: true };
     } catch (error) {
-      debugLog('Error in handleCompletePayment', error);
-      console.error('Error in completePayment:', error);
-      toast.error('Error processing payment. Please try again.');
+      debugLog('Error en handleCompletePayment', error);
+      console.error('[completePayment.ts] ❌ Error en completePayment:', error);
+      toast.error('Error al procesar el pago. Por favor intente nuevamente.');
       return { 
         success: false, 
-        message: error instanceof Error ? error.message : 'Unknown error' 
+        message: error instanceof Error ? error.message : 'Error desconocido' 
       };
     }
   };
@@ -166,7 +230,7 @@ export const uploadPaymentProof = async (file: File): Promise<string | null> => 
   if (!file) return null;
   
   try {
-    console.log('Uploading payment proof:', file.name);
+    console.log('[completePayment.ts] Subiendo comprobante de pago:', file.name);
     
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('payment_proofs')
@@ -178,10 +242,10 @@ export const uploadPaymentProof = async (file: File): Promise<string | null> => 
       .from('payment_proofs')
       .getPublicUrl(uploadData.path);
     
-    console.log('Payment proof uploaded:', urlData.publicUrl);
+    console.log('[completePayment.ts] Comprobante de pago subido:', urlData.publicUrl);
     return urlData.publicUrl;
   } catch (error) {
-    console.error('Error uploading payment proof:', error);
+    console.error('[completePayment.ts] ❌ Error al subir comprobante de pago:', error);
     return null;
   }
 };
