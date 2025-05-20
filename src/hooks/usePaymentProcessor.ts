@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -13,7 +12,7 @@ import { useNumberAvailability } from './usePaymentProcessor/numberAvailability'
 import { usePaymentCompletion } from './usePaymentProcessor/paymentCompletion';
 import { useBuyerInfo } from '@/contexts/BuyerInfoContext';
 import { useReservationHandling } from './usePaymentProcessor/reservationHandling';
-import { handleCompletePayment } from './usePaymentProcessor/completePayment';
+import { handleCompletePayment, ConflictResult } from './usePaymentProcessor/completePayment';
 import { SELLER_ID, RAFFLE_ID } from '@/lib/constants';
 
 // Define a complete seller type to ensure we always pass a fully-formed seller object
@@ -105,20 +104,69 @@ export function usePaymentProcessor({
     setValidatedBuyerData: setBuyerInfo
   });
 
-  const { handleCompletePayment, verifyNumbersNotSoldByOthers } = useCompletePayment({
-    raffleSeller: completeSeller,
-    raffleId,
-    selectedNumbers,
-    refetchRaffleNumbers,
-    setPaymentData,
-    setIsPaymentModalOpen,
-    setIsVoucherOpen,
-    allowVoucherPrint,
-    uploadPaymentProof,
-    processParticipant,
-    supabase,
-    debugMode
-  });
+  // Create a wrapper for handleCompletePayment
+  const completePayment = (formData: PaymentFormData): Promise<ConflictResult | void> => {
+    return handleCompletePayment({ 
+      raffleSeller: completeSeller,
+      raffleId,
+      selectedNumbers,
+      refetchRaffleNumbers,
+      setPaymentData,
+      setIsPaymentModalOpen,
+      setIsVoucherOpen,
+      allowVoucherPrint,
+      uploadPaymentProof,
+      processParticipant,
+      supabase,
+      debugMode
+    })(formData);
+  };
+
+  // Function to verify numbers are not sold by others
+  const verifyNumbersNotSoldByOthers = async (numbers: string[]): Promise<ConflictResult> => {
+    try {
+      if (debugMode) {
+        console.log('[DEBUG - verifyNumbersNotSoldByOthers] Checking numbers:', numbers);
+      }
+      
+      const { data, error } = await supabase
+        .from('raffle_numbers')
+        .select('number, status')
+        .eq('raffle_id', raffleId)
+        .in('number', numbers.map(n => parseInt(n)))
+        .not('status', 'eq', 'available');
+      
+      if (error) throw error;
+      
+      // Filter out numbers belonging to this seller and with status "reserved"
+      const conflictingNumbers = data
+        .filter(n => {
+          const isReservedByThisSeller = n.status === 'reserved' && 
+                                       n.seller_id === completeSeller.seller_id;
+          return !isReservedByThisSeller;
+        })
+        .map(n => n.number.toString());
+      
+      if (conflictingNumbers.length > 0) {
+        if (debugMode) {
+          console.log('[DEBUG - verifyNumbersNotSoldByOthers] Found conflicts:', conflictingNumbers);
+        }
+        return { 
+          success: false, 
+          conflictingNumbers,
+          message: 'Algunos números ya no están disponibles'
+        };
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error verifying numbers availability:', error);
+      return { 
+        success: false,
+        message: 'Error verificando disponibilidad de números'
+      };
+    }
+  };
 
   const debugLog = (context: string, data: any) => {
     if (debugMode) {
@@ -273,7 +321,8 @@ export function usePaymentProcessor({
     handleReserveNumbers,
     handleProceedToPayment,
     handlePayReservedNumbers,
-    handleCompletePayment,
+    handleCompletePayment: completePayment,
+    verifyNumbersNotSoldByOthers,
     findOrCreateParticipant,
     getSoldNumbersCount,
     allowVoucherPrint

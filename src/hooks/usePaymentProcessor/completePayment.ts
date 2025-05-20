@@ -2,11 +2,12 @@
 import { toast } from 'sonner';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { UpdateResult, updateNumbersToSold } from './numberStatusUpdates';
-import { uploadFile } from '@/lib/utils'; // Changed from non-existent module
+import { uploadFile } from '@/lib/utils'; 
 import { ValidatedBuyerInfo } from '@/types/participant';
-import { createParticipant, getParticipantByPhoneAndRaffle } from '@/utils/participantUtils'; // Changed from non-existent module
+import { createParticipant, getParticipantByPhoneAndRaffle } from '@/utils/participantUtils';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
 import { DEFAULT_ORGANIZATION_ID, STORAGE_BUCKET_RECEIPTS } from '@/lib/constants/ids';
+import { supabase } from '@/integrations/supabase/client';
 
 interface HandleCompletePaymentProps {
   raffleSeller: any;
@@ -160,7 +161,7 @@ export const handleCompletePayment = ({
   };
 };
 
-// Create utility functions to replace the non-existent modules
+// Create utility function for payment proof upload
 export const uploadPaymentProof = async (file: File): Promise<string | null> => {
   if (!file) return null;
   
