@@ -8,7 +8,7 @@ import { createParticipant, getParticipantByPhoneAndRaffle } from '@/utils/parti
 import { formatPhoneNumber } from '@/utils/phoneUtils';
 import { DEFAULT_ORGANIZATION_ID, STORAGE_BUCKET_RECEIPTS } from '@/lib/constants/ids';
 import { supabase } from '@/integrations/supabase/client';
-import { getSellerUuidFromCedula } from '@/hooks/useRaffleData/useSellerIdMapping';
+import { getSellerUuidFromCedula, isValidUuid } from '@/hooks/useRaffleData/useSellerIdMapping';
 import { SELLER_ID, RAFFLE_ID } from '@/lib/constants/ids';
 
 interface HandleCompletePaymentProps {
@@ -21,7 +21,7 @@ interface HandleCompletePaymentProps {
   setIsVoucherOpen: (isOpen: boolean) => void;
   allowVoucherPrint: boolean;
   uploadPaymentProof: (file: File) => Promise<string | null>;
-  processParticipant: ({ buyerName, buyerPhone, buyerEmail, buyerCedula, direccion, sugerencia_producto, nota }: { buyerName: string; buyerPhone: string; buyerEmail: string; buyerCedula: string; direccion: string; sugerencia_producto: string; nota: string; }) => Promise<{ participantId: string | null; validatedBuyerData: ValidatedBuyerInfo; }>;
+  processParticipant: ({ buyerName, buyerPhone, buyerEmail, buyerCedula, direccion, sugerencia_producto, nota }: { buyerName: string; buyerPhone: string; buyerEmail: string; buyerCedula: string; direccion: string; sugerencia_producto: string; nota: string; }) => Promise<string | null>;
   supabase: any;
   debugMode?: boolean;
 }
@@ -82,11 +82,9 @@ export const handleCompletePayment = ({
       let sellerUuid: string | null = null;
       
       if (raffleSeller?.seller_id) {
-        const isUuid = raffleSeller.seller_id.includes('-') && raffleSeller.seller_id.length > 30;
-        
-        if (isUuid) {
+        if (isValidUuid(raffleSeller.seller_id)) {
           sellerUuid = raffleSeller.seller_id;
-          console.log("[completePayment.ts] Usando UUID del vendedor:", sellerUuid);
+          console.log("[completePayment.ts] Usando UUID del vendedor de raffleSeller:", sellerUuid);
         } else {
           console.log("[completePayment.ts] Buscando UUID para cédula del vendedor:", raffleSeller.seller_id);
           sellerUuid = await getSellerUuidFromCedula(raffleSeller.seller_id);
@@ -105,22 +103,29 @@ export const handleCompletePayment = ({
         }
       } else if (formData.sellerId) {
         // Usar sellerId del formulario si está disponible
-        const isUuid = formData.sellerId.includes('-') && formData.sellerId.length > 30;
-        
-        if (isUuid) {
+        if (isValidUuid(formData.sellerId)) {
           sellerUuid = formData.sellerId;
+          console.log("[completePayment.ts] Usando UUID del vendedor de formData:", sellerUuid);
         } else {
           console.log("[completePayment.ts] Buscando UUID para cédula desde formData:", formData.sellerId);
           sellerUuid = await getSellerUuidFromCedula(formData.sellerId);
+          if (sellerUuid) {
+            console.log("[completePayment.ts] UUID encontrado para cédula de formData:", sellerUuid);
+          }
         }
       } else {
         // Último recurso: usar SELLER_ID por defecto
         console.log("[completePayment.ts] Sin seller_id disponible, buscando con valor por defecto:", SELLER_ID);
         sellerUuid = await getSellerUuidFromCedula(SELLER_ID);
+        if (sellerUuid) {
+          console.log("[completePayment.ts] UUID encontrado para SELLER_ID por defecto:", sellerUuid);
+        }
       }
       
       if (!sellerUuid) {
         console.log("[completePayment.ts] ⚠️ No se pudo determinar un UUID válido para el vendedor");
+      } else {
+        console.log("[completePayment.ts] ✅ UUID final determinado:", sellerUuid);
       }
       
       // Establecer el sellerId en formData para usarlo en el procesamiento del participante
@@ -135,22 +140,32 @@ export const handleCompletePayment = ({
       debugLog('Resultado de la subida del comprobante de pago', paymentProofUrl);
 
       // Procesar o crear participante
-      const { participantId, validatedBuyerData } = await processParticipant({
-        buyerName: formData.buyerName,
-        buyerPhone: formData.buyerPhone,
-        buyerEmail: formData.buyerEmail || "",
-        buyerCedula: formData.buyerCedula,
-        direccion: formData.direccion || "",
-        sugerencia_producto: formData.sugerenciaProducto || "",
-        nota: formData.nota || "",
-      });
-
-      debugLog('Resultado del procesamiento del participante', { 
-        participantId, 
-        validatedBuyerData 
-      });
+      let participantId: string | null = null;
+      
+      try {
+        participantId = await processParticipant({
+          buyerName: formData.buyerName,
+          buyerPhone: formData.buyerPhone,
+          buyerEmail: formData.buyerEmail || "",
+          buyerCedula: formData.buyerCedula,
+          direccion: formData.direccion || "",
+          sugerencia_producto: formData.sugerenciaProducto || "",
+          nota: formData.nota || "",
+        });
+        
+        console.log("[completePayment.ts] Participante procesado exitosamente, ID:", participantId);
+        debugLog('ID de participante obtenido', participantId);
+      } catch (participantError) {
+        console.error("[completePayment.ts] ❌ Error procesando el participante:", participantError);
+        toast.error('Error al procesar los datos del participante');
+        return { 
+          success: false, 
+          message: 'Error al procesar los datos del participante'
+        };
+      }
 
       if (!participantId) {
+        console.error("[completePayment.ts] ❌ No se pudo obtener ID de participante");
         throw new Error('Error al crear registro del participante');
       }
 
@@ -163,7 +178,7 @@ export const handleCompletePayment = ({
         raffleSeller,
         raffleId,
         paymentMethod: formData.paymentMethod,
-        clickedButtonType: formData.clickedButtonType // Pasar clickedButtonType aquí
+        clickedButtonType: formData.clickedButtonType
       });
 
       debugLog('Resultado de la actualización de números', result);
@@ -184,13 +199,6 @@ export const handleCompletePayment = ({
         ...formData,
         participantId,
         sellerId: sellerUuid || '',
-        // Incluir datos validados para mostrar
-        buyerName: validatedBuyerData.name,
-        buyerPhone: validatedBuyerData.phone,
-        buyerCedula: validatedBuyerData.cedula,
-        buyerEmail: validatedBuyerData.email || "",
-        direccion: validatedBuyerData.direccion || "",
-        sugerenciaProducto: validatedBuyerData.sugerencia_producto || "",
         // Establecer URL del recibo de pago si se generó
         paymentReceiptUrl: formData.paymentReceiptUrl || ""
       };

@@ -2,7 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { PaymentFormData } from "@/types/payment";
 import { formatPhoneNumber } from "@/utils/phoneUtils";
-import { getSellerUuidFromCedula } from "@/hooks/useRaffleData/useSellerIdMapping";
+import { getSellerUuidFromCedula, isValidUuid } from "@/hooks/useRaffleData/useSellerIdMapping";
 import { SELLER_ID, RAFFLE_ID } from "@/lib/constants/ids";
 
 interface ProcessParticipantProps {
@@ -20,19 +20,28 @@ export const processParticipant = async ({
     console.log("[participantProcessing.ts] Iniciando creación de participante...");
     debugLog('Iniciando procesamiento del participante', data);
     
+    // Validar que tengamos al menos los datos básicos necesarios
+    if (!data.buyerName || !data.buyerPhone) {
+      console.error("[participantProcessing.ts] ❌ Faltan datos obligatorios del participante");
+      debugLog('Faltan datos obligatorios', { 
+        nombre: !!data.buyerName, 
+        telefono: !!data.buyerPhone 
+      });
+      throw new Error("Faltan datos obligatorios del participante");
+    }
+    
     const formattedPhone = formatPhoneNumber(data.buyerPhone);
     
     // Validar y procesar el sellerId para asegurar que sea un UUID válido
     let validSellerId: string | null = null;
     
     if (data.sellerId) {
-      // Verificar si el sellerId ya es un UUID (contiene guiones y es suficientemente largo)
-      const isUuid = data.sellerId.includes('-') && data.sellerId.length > 30;
-      
-      if (isUuid) {
+      // Verificar si el sellerId ya es un UUID
+      if (isValidUuid(data.sellerId)) {
         // Ya es un UUID, usarlo directamente
         validSellerId = data.sellerId;
         debugLog('Usando UUID de vendedor proporcionado', validSellerId);
+        console.log("[participantProcessing.ts] Usando UUID de vendedor proporcionado:", validSellerId);
       } else {
         // Parece una cédula, intentar obtener el UUID
         try {
@@ -46,7 +55,7 @@ export const processParticipant = async ({
             console.log("[participantProcessing.ts] No se encontró UUID para cédula, usando valor por defecto:", SELLER_ID);
             debugLog('No se encontró UUID para la cédula', data.sellerId);
             
-            // Si no encontramos un UUID, intentamos nuevamente con SELLER_ID (que podría ser una cédula)
+            // Intentar nuevamente con SELLER_ID
             const defaultUuid = await getSellerUuidFromCedula(SELLER_ID);
             if (defaultUuid) {
               validSellerId = defaultUuid;
@@ -54,6 +63,12 @@ export const processParticipant = async ({
                 cedula: SELLER_ID,
                 uuid: defaultUuid
               });
+              debugLog('Usando UUID del valor por defecto', { 
+                cedula: SELLER_ID, 
+                uuid: defaultUuid 
+              });
+            } else {
+              console.log("[participantProcessing.ts] ⚠️ No se encontró UUID válido");
             }
           }
         } catch (err) {
@@ -61,14 +76,25 @@ export const processParticipant = async ({
           debugLog('Error al convertir cédula', err);
         }
       }
-    }
-    
-    // Verificamos que tengamos un UUID válido antes de continuar
-    if (!validSellerId) {
-      console.log("[participantProcessing.ts] ⚠️ No se encontró UUID válido para el vendedor, participante será creado sin asociación a vendedor");
-      debugLog('No hay UUID válido', { originalId: data.sellerId });
-    } else {
-      debugLog('Usando seller_id (UUID verificado)', validSellerId);
+    } else if (SELLER_ID) {
+      // Si no se proporcionó un seller_id, intentar usar el SELLER_ID por defecto
+      try {
+        console.log("[participantProcessing.ts] No hay seller_id, buscando UUID para SELLER_ID por defecto:", SELLER_ID);
+        const defaultUuid = await getSellerUuidFromCedula(SELLER_ID);
+        if (defaultUuid) {
+          validSellerId = defaultUuid;
+          console.log("[participantProcessing.ts] UUID encontrado para SELLER_ID por defecto:", {cedula: SELLER_ID, uuid: defaultUuid});
+          debugLog('UUID encontrado para valor por defecto', { 
+            cedula: SELLER_ID, 
+            uuid: defaultUuid 
+          });
+        } else {
+          console.log("[participantProcessing.ts] ⚠️ No se pudo encontrar UUID con SELLER_ID por defecto");
+        }
+      } catch (err) {
+        console.error("[participantProcessing.ts] Error al convertir SELLER_ID por defecto a UUID:", err);
+        debugLog('Error al convertir SELLER_ID', err);
+      }
     }
     
     // Validar que el raffleId esté definido
@@ -88,18 +114,24 @@ export const processParticipant = async ({
     if (searchError) {
       console.error("[participantProcessing.ts] ❌ Error al buscar participante existente:", searchError.message);
       debugLog('Error en búsqueda', searchError);
+      throw new Error("Error al buscar participante en la base de datos");
     }
 
     let participantId: string | null = null;
 
-    // Verificar datos del participante antes de proceder
-    console.log("[participantProcessing.ts] Verificando datos del participante:", {
+    // Log de los datos que se usarán para actualizar o crear el participante
+    console.log("[participantProcessing.ts] Datos del participante a procesar:", {
       name: data.buyerName,
       cedula: data.buyerCedula,
       phone: formattedPhone,
       email: data.buyerEmail || '',
       seller_id: validSellerId,
       raffle_id: raffleId,
+    });
+    debugLog('Datos a procesar', {
+      name: data.buyerName,
+      phone: formattedPhone,
+      seller_id: validSellerId
     });
 
     if (existingParticipant) {
@@ -109,23 +141,24 @@ export const processParticipant = async ({
 
       const updateData: any = {
         name: data.buyerName,
-        phone: formattedPhone, // Asegurar que el teléfono esté en formato internacional
+        phone: formattedPhone,
         nota: data.nota,
-        email: data.buyerEmail || existingParticipant.email || '', // Asegurar que email siempre esté establecido o preservado
+        email: data.buyerEmail || existingParticipant.email || '',
         cedula: data.buyerCedula || existingParticipant.cedula || null,
         direccion: data.direccion || existingParticipant.direccion || null,
         sugerencia_producto: data.sugerenciaProducto || existingParticipant.sugerencia_producto || null
       };
 
-      // Guardar seller_id en el registro del participante - CRÍTICO
+      // Solo agregar seller_id si tenemos un UUID válido
       if (validSellerId) {
         updateData.seller_id = validSellerId;
-        debugLog('Añadiendo seller_id a la actualización del participante', validSellerId);
+        debugLog('Añadiendo seller_id a la actualización', validSellerId);
+      } else {
+        console.log("[participantProcessing.ts] ⚠️ No se incluirá seller_id en la actualización (no disponible)");
       }
 
-      // Agregar registro de depuración para email específicamente
-      console.log("[participantProcessing.ts] 📧 Actualizando participante con email:", data.buyerEmail || existingParticipant.email || null);
-      debugLog('Email actualizado a', data.buyerEmail || existingParticipant.email || null);
+      console.log("[participantProcessing.ts] Actualizando participante con datos:", updateData);
+      debugLog('Datos de actualización', updateData);
 
       const { error: updateError } = await supabase
         .from('participants')
@@ -137,6 +170,8 @@ export const processParticipant = async ({
         debugLog('Error de actualización', updateError);
         throw new Error("Error al actualizar participante en la base de datos");
       }
+      
+      console.log("[participantProcessing.ts] ✅ Participante actualizado correctamente:", participantId);
     } else {
       console.log("[participantProcessing.ts] 🆕 Creando nuevo participante");
       debugLog('Creando nuevo participante', { 
@@ -145,23 +180,26 @@ export const processParticipant = async ({
         email: data.buyerEmail || ''
       });
 
-      const insertData = {
+      const insertData: any = {
         name: data.buyerName,
-        phone: formattedPhone, // Asegurar que el teléfono esté en formato internacional
-        email: data.buyerEmail || '', // Asegurar que email esté incluido en el insert
+        phone: formattedPhone,
+        email: data.buyerEmail || '',
         cedula: data.buyerCedula || null,
         direccion: data.direccion || null,
         sugerencia_producto: data.sugerenciaProducto || null,
         nota: data.nota || null,
-        raffle_id: raffleId,
-        seller_id: validSellerId // Añadir seller_id validado al crear participante
+        raffle_id: raffleId
       };
       
-      // Agregar registro de depuración para email específicamente
-      console.log("[participantProcessing.ts] 📧 Creando participante con email:", data.buyerEmail || '');
-      debugLog('Email establecido a', data.buyerEmail || '');
+      // Solo agregar seller_id si tenemos un UUID válido
+      if (validSellerId) {
+        insertData.seller_id = validSellerId;
+      } else {
+        console.log("[participantProcessing.ts] ⚠️ No se incluirá seller_id en la creación (no disponible)");
+      }
       
-      debugLog('Insertando datos del participante', insertData);
+      console.log("[participantProcessing.ts] Insertando participante con datos:", insertData);
+      debugLog('Datos de inserción', insertData);
 
       const { data: newParticipant, error: participantError } = await supabase
         .from('participants')
@@ -176,6 +214,7 @@ export const processParticipant = async ({
       }
 
       participantId = newParticipant.id;
+      console.log("[participantProcessing.ts] ✅ Nuevo participante creado:", participantId);
       debugLog('Nuevo participante creado', { id: participantId });
     }
 
