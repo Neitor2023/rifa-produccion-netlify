@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 interface UpdateNumbersParams {
@@ -43,7 +44,7 @@ export const updateNumbersToSold = async ({
     // Obtener información de números que podrían tener conflicto
     const { data: existingData, error: existingError } = await supabase
       .from('raffle_numbers')
-      .select('number, status, reservation_expires_at')
+      .select('number, status, reservation_expires_at, seller_id')
       .eq('raffle_id', raffleId)
       .in('number', numbers.map(num => parseInt(num)))
       .not('status', 'eq', 'available');

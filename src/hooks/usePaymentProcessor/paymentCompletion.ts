@@ -36,14 +36,18 @@ export function usePaymentCompletion({
       numbers: string[],
       participantId: string,
       paymentProofUrl: string | null,
-      raffleNumbers: RaffleNumber[]
+      raffleNumbers: RaffleNumber[],
+      paymentMethod: string = 'cash',
+      clickedButtonType: string = 'Pagar'
     ) => updateNumbersToSold({ 
       numbers, 
       participantId, 
       paymentProofUrl, 
       raffleNumbers, 
       raffleSeller,
-      raffleId 
+      raffleId,
+      paymentMethod,
+      clickedButtonType
     })
   };
 }
