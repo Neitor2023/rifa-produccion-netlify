@@ -23,10 +23,18 @@ interface CompleteSeller {
   active: boolean;
 }
 
+// Define a type for raffle numbers to ensure proper property access
+interface RaffleNumber {
+  number: number | string;
+  status: string;
+  seller_id?: string;
+  // Add other properties as needed
+}
+
 interface UsePaymentProcessorProps {
   raffleSeller: CompleteSeller | null;
   raffleId: string;
-  raffleNumbers: any[];
+  raffleNumbers: RaffleNumber[]; // Update to use the RaffleNumber type
   refetchRaffleNumbers: () => Promise<any>;
   debugMode?: boolean;
   allowVoucherPrint?: boolean;

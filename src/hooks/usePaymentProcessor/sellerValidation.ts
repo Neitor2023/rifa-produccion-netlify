@@ -1,7 +1,15 @@
 
 import { toast } from 'sonner';
 
-export function useSellerValidation(raffleSeller: any, raffleNumbers: any[], debugMode = false) {
+// Define a type for raffle numbers to ensure proper property access
+interface RaffleNumber {
+  number: number | string;
+  status: string;
+  seller_id?: string;
+  // Add other properties as needed
+}
+
+export function useSellerValidation(raffleSeller: any, raffleNumbers: RaffleNumber[], debugMode = false) {
   const debugLog = (context: string, data: any) => {
     if (debugMode) {
       console.log(`[DEBUG - SellerValidation - ${context}]:`, data);
