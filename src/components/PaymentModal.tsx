@@ -78,6 +78,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       form.setValue('buyerEmail', buyerInfo.email || '');
       form.setValue('direccion', buyerInfo.direccion || '');
       form.setValue('sugerenciaProducto', buyerInfo.sugerencia_producto || '');
+      
+      // Log para depuración
+      if (debugMode) {
+        console.log("PaymentModal: Cargando datos de comprador existente:", {
+          name: buyerInfo.name,
+          phone: buyerInfo.phone,
+          sugerenciaProducto: buyerInfo.sugerencia_producto
+        });
+      }
     }
   }, [isOpen, clickedButton, buyerInfo]);
 
@@ -124,6 +133,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       // Registrar los datos del formulario para fines de depuración
       if (debugMode) {
         console.log("Datos del formulario a enviar:", data);
+        console.log("Valor del campo sugerenciaProducto:", data.sugerenciaProducto);
       }
       
       // Almacenar el tipo de botón en el que se hizo clic en los datos del formulario

@@ -119,10 +119,9 @@ export const processParticipant = async ({
 
     let participantId: string | null = null;
 
-    // CORRECCIÓN: Asegurar que se está procesando correctamente el campo sugerencia_producto
-    console.log("[participantProcessing.ts] 📝 Procesando campo sugerencia_producto:", {
-      valor: data.sugerenciaProducto || 'No proporcionado'
-    });
+    // CORRECCIÓN: Verificar y registrar la presencia del campo sugerenciaProducto
+    const sugerenciaProductoValor = data.sugerenciaProducto || '';
+    console.log("[participantProcessing.ts] 💾 Guardando sugerencia producto:", sugerenciaProductoValor);
 
     // Log de los datos que se usarán para actualizar o crear el participante
     console.log("[participantProcessing.ts] Datos del participante a procesar:", {
@@ -132,13 +131,13 @@ export const processParticipant = async ({
       email: data.buyerEmail || '',
       seller_id: validSellerId,
       raffle_id: raffleId,
-      sugerencia_producto: data.sugerenciaProducto || ''
+      sugerencia_producto: sugerenciaProductoValor
     });
     debugLog('Datos a procesar', {
       name: data.buyerName,
       phone: formattedPhone,
       seller_id: validSellerId,
-      sugerencia_producto: data.sugerenciaProducto
+      sugerencia_producto: sugerenciaProductoValor
     });
 
     if (existingParticipant) {
@@ -153,7 +152,7 @@ export const processParticipant = async ({
         email: data.buyerEmail || existingParticipant.email || '',
         cedula: data.buyerCedula || existingParticipant.cedula || null,
         direccion: data.direccion || existingParticipant.direccion || null,
-        sugerencia_producto: data.sugerenciaProducto || existingParticipant.sugerencia_producto || null
+        sugerencia_producto: sugerenciaProductoValor
       };
 
       // Solo agregar seller_id si tenemos un UUID válido
@@ -185,7 +184,7 @@ export const processParticipant = async ({
         name: data.buyerName, 
         phone: formattedPhone,
         email: data.buyerEmail || '',
-        sugerencia_producto: data.sugerenciaProducto || null
+        sugerencia_producto: sugerenciaProductoValor
       });
 
       const insertData: any = {
@@ -194,7 +193,7 @@ export const processParticipant = async ({
         email: data.buyerEmail || '',
         cedula: data.buyerCedula || null,
         direccion: data.direccion || null,
-        sugerencia_producto: data.sugerenciaProducto || null,
+        sugerencia_producto: sugerenciaProductoValor,
         nota: data.nota || null,
         raffle_id: raffleId
       };

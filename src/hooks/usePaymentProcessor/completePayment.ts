@@ -1,4 +1,3 @@
-
 import { toast } from 'sonner';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { UpdateResult, updateNumbersToSold } from './numberStatusUpdates';
@@ -72,10 +71,8 @@ export const handleCompletePayment = ({
         // No imprimir datos sensibles en logs
       });
 
-      // VERIFICACIÓN: Asegurar que se está recibiendo y procesando el campo sugerenciaProducto
-      console.log("[completePayment.ts] 📝 Verificando campo sugerenciaProducto:", {
-        sugerenciaValue: formData.sugerenciaProducto || 'No proporcionado'
-      });
+      // CORRECCIÓN: Verificar y registrar la presencia del campo sugerenciaProducto
+      console.log("[completePayment.ts] 💾 Guardando sugerencia producto:", formData.sugerenciaProducto);
 
       // Validar que el raffleId esté definido
       if (!raffleId) {
@@ -151,7 +148,7 @@ export const handleCompletePayment = ({
       
       try {
         // CORRECCIÓN: Asegurar que sugerenciaProducto se pasa correctamente al processParticipant
-        console.log("💾 Guardando sugerencia producto:", formData.sugerenciaProducto);
+        console.log("[completePayment.ts] 💾 Pasando sugerencia producto al participante:", formData.sugerenciaProducto);
         
         participantId = await processParticipant({
           buyerName: formData.buyerName,
