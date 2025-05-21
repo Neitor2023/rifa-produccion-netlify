@@ -57,36 +57,35 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
               </div>
             ) : null}
             
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-900 dark:text-gray-200">
-              <div>
-                <span className="font-semibold">Valor por número:</span> 
-                {raffleDetails ? raffleDetails.price.toFixed(2) : '0.00'}
-              </div>
-              <div>
-                <span className="font-semibold">Total a pagar:</span> 
-                <span className="font-bold">{totalAmount.toFixed(2)}</span>
-              </div>
-              <div>
-                <span className="font-semibold">Fecha Emisión:</span> 
-                <div className="text-xs">{formattedDate}</div>
-              </div>
-              <div>
-                <span className="font-semibold">Fecha Sorteo:</span> 
-                <div className="text-xs">
-                  {raffleDetails?.dateLottery || '-'}
-                </div>
-              </div>
-              <div>
-                <span className="font-semibold">Método de pago:</span> 
-                {paymentMethod}
-              </div>
-              <div>
-                <span className="font-semibold">Cant. de Núm. seleccionados:</span> 
-                {selectedNumbers.length}
-              </div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-900 dark:text-gray-200">
+            <div>
+              <span className="font-semibold block">Valor por número:</span>
+              <span>{raffleDetails ? raffleDetails.price.toFixed(2) : '0.00'}</span>
+            </div>
+            <div>
+              <span className="font-semibold block">Total a pagar:</span>
+              <span className="font-bold">{totalAmount.toFixed(2)}</span>
+            </div>
+            <div>
+              <span className="font-semibold block">Fecha Emisión:</span>
+              <span className="text-xs">{formattedDate}</span>
+            </div>
+            <div>
+              <span className="font-semibold block">Fecha Sorteo:</span>
+              <span className="text-xs">
+                {raffleDetails?.dateLottery || '-'}
+              </span>
+            </div>
+            <div>
+              <span className="font-semibold block">Método de pago:</span>
+              <span>{paymentMethod}</span>
+            </div>
+            <div>
+              <span className="font-semibold block">Cant. de Núm. seleccionados:</span>
+              <span>{selectedNumbers.length}</span>
             </div>
           </div>
-
+            
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex justify-center items-center">
               <div className="h-[150px] w-[150px] bg-white p-2 rounded-lg">
