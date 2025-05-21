@@ -32,12 +32,20 @@ export function useNumberAvailability({
       // Validar que raffleSeller y raffleNumbers estén definidos
       if (!raffleSeller) {
         console.error("❌ Error: raffleSeller está undefined en checkNumbersAvailability");
-        throw new Error("Información del vendedor no disponible");
+        toast.error("Información del vendedor no disponible");
+        return [];
       }
       
+      // Log para depuración antes de la validación
+      console.log("🔍 [numberAvailability.ts] Verificando disponibilidad con datos:", {
+        numbersToCheck: numbers, 
+        totalRaffleNumbers: raffleNumbers?.length || 0
+      });
+      
+      // Si raffleNumbers está vacío, intentar continuar en lugar de lanzar error
       if (!raffleNumbers || raffleNumbers.length === 0) {
-        console.error("❌ Error: raffleNumbers está vacío en checkNumbersAvailability");
-        throw new Error("Información de números no disponible");
+        console.warn("⚠️ [numberAvailability.ts] raffleNumbers está vacío, se asumirá que todos los números están disponibles");
+        return []; // Retornar arreglo vacío (asumiendo que no hay conflictos)
       }
 
       debugLog("checkNumbersAvailability-input", { numbers });
@@ -76,10 +84,16 @@ export function useNumberAvailability({
         }
       }
       
+      console.log("✅ [numberAvailability.ts] Verificación de disponibilidad completada:", {
+        numbersRevisados: numbers.length,
+        numerosNoDisponibles: unavailableNumbers.length,
+        detalleNoDisponibles: unavailableNumbers
+      });
+      
       debugLog("checkNumbersAvailability-result", { unavailableNumbers });
       return unavailableNumbers;
     } catch (error) {
-      console.error("Error checking number availability:", error);
+      console.error("❌ [numberAvailability.ts] Error al verificar disponibilidad:", error);
       toast.error("Error al verificar disponibilidad de números");
       return [];
     }

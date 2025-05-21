@@ -35,13 +35,19 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
   
   // Handler for the Pagar button with button name 36
   const handleProceedToPayment = async () => {
-    console.log("NumberGridControls.tsx: Pay button clicked");
+    console.log("🔍 [NumberGridControls.tsx] Pagar button clicked, números seleccionados:", selectedNumbers);
+    
+    if (!selectedNumbers || selectedNumbers.length === 0) {
+      console.warn("⚠️ [NumberGridControls.tsx] No hay números seleccionados para proceder al pago");
+      return;
+    }
+    
     await onProceedToPayment("Pagar");
   };
   
   // Handler for the Pay Reserved button
   const handlePayReserved = () => {
-    console.log("NumberGridControls.tsx: Pay Reserved button clicked");
+    console.log("🔍 [NumberGridControls.tsx] Pay Reserved button clicked");
     onPayReserved();
   };
 
