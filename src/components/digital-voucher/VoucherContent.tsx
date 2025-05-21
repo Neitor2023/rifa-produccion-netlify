@@ -53,14 +53,15 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
             
             {paymentData?.buyerName ? (
               <div className="mb-2 text-md font-semibold text-gray-800 dark:text-gray-200">
-                Cliente: {paymentData.buyerName}
+                Cliente:
+                <span>{paymentData.buyerName}</span>
               </div>
             ) : null}
             
             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-900 dark:text-gray-200">
               <div>
-                <span className="font-semibold">Valor por número:</span> 
-                {raffleDetails ? raffleDetails.price.toFixed(2) : '0.00'}
+                <span className="font-semibold">Valor por número:</span>
+                <span>{raffleDetails ? raffleDetails.price.toFixed(2) : '0.00'}</span>
               </div>
               <div>
                 <span className="font-semibold">Total a pagar:</span> 
@@ -77,11 +78,11 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
                 </div>
               </div>
               <div>
-                <span className="font-semibold">Método de pago:</span> 
-                {paymentMethod}
+                <span className="font-semibold">Método de pago:</span>
+                <span>{paymentMethod}</span>
               </div>
               <div>
-                <span className="font-semibold">Cant. de Núm. seleccionados:</span> 
+                <span className="font-semibold">Cant. de Núm. seleccionados: </span> 
                 {selectedNumbers.length}
               </div>
             </div>
