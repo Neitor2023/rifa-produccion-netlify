@@ -26,7 +26,7 @@ export function useNumberAvailability({
     }
   };
 
-  // Enhanced function for checking number availability
+  // Función mejorada para comprobar la disponibilidad de números
   const checkNumbersAvailability = async (numbers: string[]): Promise<string[]> => {
     try {
       // Validar que raffleSeller y raffleNumbers estén definidos
