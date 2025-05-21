@@ -17,6 +17,8 @@ export const uploadPaymentProof = async ({
   }
   
   try {
+    console.log("[fileUpload.ts] 📸 Inicio del guardado de imagen del comprobante");
+    
     const fileName = `${raffleId}_${Date.now()}_${paymentProof.name}`;
     debugLog('Uploading payment proof', { fileName });
     
@@ -24,16 +26,20 @@ export const uploadPaymentProof = async ({
       .from('payment_proofs')
       .upload(fileName, paymentProof);
     
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error("[fileUpload.ts] 🔴 Error al guardar imagen del comprobante:", uploadError);
+      throw uploadError;
+    }
     
     const { data: urlData } = supabase.storage
       .from('payment_proofs')
       .getPublicUrl(fileName);
     
+    console.log("[fileUpload.ts] 🟢 Imagen del comprobante guardada correctamente:", urlData.publicUrl);
     debugLog('Payment proof uploaded', { url: urlData.publicUrl });
     return urlData.publicUrl;
   } catch (error) {
-    console.error('Error uploading payment proof:', error);
+    console.error("[fileUpload.ts] 🔴 Error al guardar imagen del comprobante:", error);
     throw error;
   }
 };

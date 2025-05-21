@@ -72,7 +72,7 @@ export const handleCompletePayment = ({
       });
 
       // CORRECCIÓN: Verificar y registrar la presencia del campo sugerenciaProducto
-      console.log("[completePayment.ts] 💾 Guardando sugerencia producto:", formData.sugerenciaProducto);
+      console.log("[completePayment.ts] 🟡 Guardando sugerencia producto:", formData.sugerenciaProducto || '');
 
       // Validar que el raffleId esté definido
       if (!raffleId) {
@@ -136,9 +136,9 @@ export const handleCompletePayment = ({
       // Subir comprobante de pago si está presente
       let paymentProofUrl = null;
       if (formData.paymentProof) {
-        console.log("📸 Inicio del guardado automático del comprobante de pago");
+        console.log("📸 [completePayment.ts] Inicio del guardado automático del comprobante de pago");
         paymentProofUrl = await uploadPaymentProof(formData.paymentProof);
-        console.log("📸 Finalización del guardado automático del comprobante de pago");
+        console.log("📸 [completePayment.ts] Finalización del guardado automático del comprobante de pago, URL:", paymentProofUrl);
       }
 
       debugLog('Resultado de la subida del comprobante de pago', paymentProofUrl);
@@ -147,8 +147,8 @@ export const handleCompletePayment = ({
       let participantId: string | null = null;
       
       try {
-        // CORRECCIÓN: Asegurar que sugerenciaProducto se pasa correctamente al processParticipant
-        console.log("[completePayment.ts] 💾 Pasando sugerencia producto al participante:", formData.sugerenciaProducto);
+        // Asegurar que sugerenciaProducto se pasa correctamente al processParticipant
+        console.log("[completePayment.ts] 🟡 Guardando sugerencia producto:", formData.sugerenciaProducto || '');
         
         participantId = await processParticipant({
           buyerName: formData.buyerName,
@@ -156,7 +156,7 @@ export const handleCompletePayment = ({
           buyerEmail: formData.buyerEmail || "",
           buyerCedula: formData.buyerCedula,
           direccion: formData.direccion || "",
-          sugerencia_producto: formData.sugerenciaProducto || "",
+          sugerenciaProducto: formData.sugerenciaProducto || "",
           nota: formData.nota || "",
         });
         

@@ -97,6 +97,8 @@ export const updateNumbersToSold = async ({
             seller_id: raffleSeller?.seller_id || null,
             payment_method: paymentMethod,
             payment_receipt_url: paymentProofUrl,
+            payment_proof: paymentProofUrl, // Restaurado: Se vuelve a guardar el comprobante aquí
+            payment_approved: false, // Restaurado: Se establece como no aprobado inicialmente
             // NO MODIFICAMOS reservation_expires_at para preservar su valor
           };
         }
@@ -111,9 +113,14 @@ export const updateNumbersToSold = async ({
         seller_id: raffleSeller?.seller_id || null,
         payment_method: paymentMethod,
         payment_receipt_url: paymentProofUrl,
+        payment_proof: paymentProofUrl, // Restaurado: Se guarda el comprobante aquí
+        payment_approved: false, // Restaurado: Se establece como no aprobado inicialmente
         reservation_expires_at: null
       };
     });
+
+    console.log("[numberStatusUpdates.ts] 📸 Inicio del guardado de imagen del comprobante");
+    console.log("[numberStatusUpdates.ts] URL del comprobante a guardar:", paymentProofUrl);
 
     // Realizar la actualización con upsert para manejar tanto nuevos números como existentes
     const { error: updateError } = await supabase
@@ -124,10 +131,12 @@ export const updateNumbersToSold = async ({
       });
 
     if (updateError) {
+      console.error("[numberStatusUpdates.ts] 🔴 Error al guardar imagen del comprobante:", updateError);
       console.error("[numberStatusUpdates.ts] Error al actualizar números:", updateError);
       throw new Error('Error al actualizar estado de números en la base de datos');
     }
 
+    console.log("[numberStatusUpdates.ts] 🟢 Imagen del comprobante guardada correctamente");
     console.log("[numberStatusUpdates.ts] ✅ Números actualizados exitosamente a estado 'sold'");
     return { success: true };
     

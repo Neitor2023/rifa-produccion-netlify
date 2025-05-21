@@ -103,6 +103,10 @@ export const processParticipant = async ({
       raffleId = RAFFLE_ID;
     }
 
+    // Capturar el valor de sugerencia_producto explícitamente
+    const sugerenciaProductoValor = data.sugerenciaProducto || '';
+    console.log("[participantProcessing.ts] 🟡 Guardando sugerencia producto:", sugerenciaProductoValor);
+
     // Buscar participante existente
     const { data: existingParticipant, error: searchError } = await supabase
       .from('participants')
@@ -118,10 +122,6 @@ export const processParticipant = async ({
     }
 
     let participantId: string | null = null;
-
-    // CORRECCIÓN: Verificar y registrar la presencia del campo sugerenciaProducto
-    const sugerenciaProductoValor = data.sugerenciaProducto || '';
-    console.log("[participantProcessing.ts] 💾 Guardando sugerencia producto:", sugerenciaProductoValor);
 
     // Log de los datos que se usarán para actualizar o crear el participante
     console.log("[participantProcessing.ts] Datos del participante a procesar:", {
@@ -152,7 +152,7 @@ export const processParticipant = async ({
         email: data.buyerEmail || existingParticipant.email || '',
         cedula: data.buyerCedula || existingParticipant.cedula || null,
         direccion: data.direccion || existingParticipant.direccion || null,
-        sugerencia_producto: sugerenciaProductoValor
+        sugerencia_producto: sugerenciaProductoValor // Siempre actualizar este campo con el valor proporcionado
       };
 
       // Solo agregar seller_id si tenemos un UUID válido
@@ -177,6 +177,7 @@ export const processParticipant = async ({
         throw new Error("Error al actualizar participante en la base de datos");
       }
       
+      console.log("[participantProcessing.ts] 🟢 Sugerencia producto guardada correctamente");
       console.log("[participantProcessing.ts] ✅ Participante actualizado correctamente:", participantId);
     } else {
       console.log("[participantProcessing.ts] 🆕 Creando nuevo participante");
@@ -193,7 +194,7 @@ export const processParticipant = async ({
         email: data.buyerEmail || '',
         cedula: data.buyerCedula || null,
         direccion: data.direccion || null,
-        sugerencia_producto: sugerenciaProductoValor,
+        sugerencia_producto: sugerenciaProductoValor, // Asignar directamente el valor
         nota: data.nota || null,
         raffle_id: raffleId
       };
@@ -221,6 +222,7 @@ export const processParticipant = async ({
       }
 
       participantId = newParticipant.id;
+      console.log("[participantProcessing.ts] 🟢 Sugerencia producto guardada correctamente");
       console.log("[participantProcessing.ts] ✅ Nuevo participante creado:", participantId);
       debugLog('Nuevo participante creado', { id: participantId });
     }
