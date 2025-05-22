@@ -11,6 +11,7 @@ export function useNumberConflictManagement(
   const [conflictingNumbers, setConflictingNumbers] = useState<string[]>([]);
   
   const handleConflictModalClose = () => {
+    console.log("🔄 [numberConflictManagement.ts] Cerrando modal de conflicto y refrescando números");
     setIsConflictModalOpen(false);
     setConflictingNumbers([]);
     setSelectedNumbers([]);

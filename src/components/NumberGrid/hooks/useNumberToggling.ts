@@ -53,7 +53,13 @@ export const useNumberToggling = ({
       return;
     }
     
-    if (status !== 'available') return;
+    // Modificar la lógica para permitir números 'returned'
+    if (status !== 'available' && status !== 'returned') return;
+    
+    // Si el número tiene estado 'returned', registramos que será tratado como disponible
+    if (status === 'returned') {
+      console.log(`🔄 [useNumberToggling.ts] Iniciando tratamiento de número returned: ${number}`);
+    }
     
     // Calcular el número máximo disponible
     const maxAvailableNumbers = raffleSeller.cant_max;
@@ -90,6 +96,11 @@ export const useNumberToggling = ({
           toast.error(`Se ha superado la cantidad de números permitidos del vendedor, por favor finalice su selección de números.`);
           return prev;
         }
+        
+        if (status === 'returned') {
+          console.log(`🔄 [useNumberToggling.ts] Registrando número ${number} como disponible para selección`);
+        }
+        
         return [...prev, number];
       }
     });
