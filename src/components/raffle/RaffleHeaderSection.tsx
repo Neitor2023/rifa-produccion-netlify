@@ -4,6 +4,8 @@ import DarkModeToggle from '@/components/DarkModeToggle';
 import { Organization } from '@/lib/constants';
 import { Card, CardContent } from '@/components/ui/card';
 import SafeImage from '@/components/SafeImage';
+import DevelopmentAlert from '@/components/DevelopmentAlert';
+import ConfigurationButton from '@/components/ConfigurationButton';
 
 interface RaffleHeaderSectionProps {
   organization: Organization | null;
@@ -14,6 +16,8 @@ const RaffleHeaderSection: React.FC<RaffleHeaderSectionProps> = ({
 }) => {
   return (
     <>
+      <DevelopmentAlert />
+      
       <div className="flex justify-between items-center">
         <div className="flex-1">
           {/* Nombre de la organización en su propia tarjeta con espaciado reducido */}
@@ -37,7 +41,11 @@ const RaffleHeaderSection: React.FC<RaffleHeaderSectionProps> = ({
             </Card>
           )}
         </div>
-        <DarkModeToggle />
+        
+        <div className="flex items-center gap-2">
+          <ConfigurationButton />
+          <DarkModeToggle />
+        </div>
       </div>
     </>
   );
