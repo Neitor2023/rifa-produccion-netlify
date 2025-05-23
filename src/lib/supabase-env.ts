@@ -9,11 +9,15 @@ import type { Database } from '@/integrations/supabase/types';
 const DEFAULT_SUPABASE_URL = "https://ehjljyuwlwcdiscxpbdr.supabase.co";
 const DEFAULT_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoamxqeXV3bHdjZGlzY3hwYmRyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0Nzk3MTIyMiwiZXhwIjoyMDYzNTQ3MjIyfQ.ms1NF83VojtylWPVp9IaTXtCOxUL0jZiUgDqHzrDzso";
 
+// Nombres de buckets por defecto
+const DEFAULT_BUCKET_PAYMENT_PROOFS = "payment-proofs";
+
 export interface EnvironmentConfig {
   supabaseUrl: string;
   supabaseKey: string;
   isDevelopment: boolean;
   environment: 'development' | 'production';
+  bucketPaymentProofs: string;
 }
 
 /**
@@ -23,10 +27,12 @@ export function getEnvironmentConfig(): EnvironmentConfig {
   // Intentar obtener variables de entorno
   const envUrl = import.meta.env.VITE_SUPABASE_URL || window?.ENV?.SUPABASE_URL;
   const envKey = import.meta.env.VITE_SUPABASE_KEY || window?.ENV?.SUPABASE_KEY;
+  const envBucketPaymentProofs = import.meta.env.VITE_BUCKET_PAYMENT_PROOFS || window?.ENV?.BUCKET_PAYMENT_PROOFS;
   
   // Usar variables de entorno si están disponibles, sino usar valores por defecto
   const supabaseUrl = envUrl || DEFAULT_SUPABASE_URL;
   const supabaseKey = envKey || DEFAULT_SUPABASE_KEY;
+  const bucketPaymentProofs = envBucketPaymentProofs || DEFAULT_BUCKET_PAYMENT_PROOFS;
   
   // Detectar si es entorno de desarrollo
   const isDevelopment = supabaseUrl.toLowerCase().includes('dev') || 
@@ -36,12 +42,14 @@ export function getEnvironmentConfig(): EnvironmentConfig {
   const environment = isDevelopment ? 'development' : 'production';
   
   console.log(`[supabase-env.ts] Configuración cargada - Entorno: ${environment}`);
+  console.log(`[supabase-env.ts] Bucket de comprobantes de pago: ${bucketPaymentProofs}`);
   
   return {
     supabaseUrl,
     supabaseKey,
     isDevelopment,
-    environment
+    environment,
+    bucketPaymentProofs
   };
 }
 
@@ -67,7 +75,16 @@ export function getVisibleConfig() {
     supabaseKey: `${config.supabaseKey.substring(0, 20)}...`, // Solo mostrar inicio
     environment: config.environment,
     isDevelopment: config.isDevelopment,
+    bucketPaymentProofs: config.bucketPaymentProofs,
     hostname: window.location.hostname,
     isDev: import.meta.env.DEV
   };
+}
+
+/**
+ * Función para obtener el nombre del bucket de comprobantes de pago
+ */
+export function getPaymentProofsBucket(): string {
+  const config = getEnvironmentConfig();
+  return config.bucketPaymentProofs;
 }

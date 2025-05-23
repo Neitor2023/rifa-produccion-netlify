@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { getPaymentProofsBucket } from '@/lib/supabase-env';
 
 interface UploadPaymentProofProps {
   paymentProof: File | string | null;
@@ -16,30 +17,32 @@ export const uploadPaymentProof = async ({
     return typeof paymentProof === 'string' ? paymentProof : null;
   }
   
+  const bucketName = getPaymentProofsBucket();
+  
   try {
-    console.log("[fileUpload.ts] 📸 Inicio del guardado de imagen del comprobante");
+    console.log(`[fileUpload.ts] 📸 Inicio del guardado de imagen del comprobante en bucket: ${bucketName}`);
     
     const fileName = `${raffleId}_${Date.now()}_${paymentProof.name}`;
-    debugLog('Uploading payment proof', { fileName });
+    debugLog('Uploading payment proof', { fileName, bucket: bucketName });
     
     const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('payment_proofs')
+      .from(bucketName)
       .upload(fileName, paymentProof);
     
     if (uploadError) {
-      console.error("[fileUpload.ts] 🔴 Error al guardar imagen del comprobante:", uploadError);
-      throw uploadError;
+      console.error(`[fileUpload.ts] 🔴 Error al guardar imagen del comprobante en bucket "${bucketName}":`, uploadError);
+      throw new Error(`Error al subir imagen al bucket "${bucketName}": ${uploadError.message}`);
     }
     
     const { data: urlData } = supabase.storage
-      .from('payment_proofs')
+      .from(bucketName)
       .getPublicUrl(fileName);
     
-    console.log("[fileUpload.ts] 🟢 Imagen del comprobante guardada correctamente:", urlData.publicUrl);
-    debugLog('Payment proof uploaded', { url: urlData.publicUrl });
+    console.log(`[fileUpload.ts] 🟢 Imagen del comprobante guardada correctamente en bucket "${bucketName}":`, urlData.publicUrl);
+    debugLog('Payment proof uploaded', { url: urlData.publicUrl, bucket: bucketName });
     return urlData.publicUrl;
   } catch (error) {
-    console.error("[fileUpload.ts] 🔴 Error al guardar imagen del comprobante:", error);
+    console.error(`[fileUpload.ts] 🔴 Error al guardar imagen del comprobante en bucket "${bucketName}":`, error);
     throw error;
   }
 };

@@ -9,6 +9,7 @@ import { DEFAULT_ORGANIZATION_ID, STORAGE_BUCKET_RECEIPTS } from '@/lib/constant
 import { supabase } from '@/integrations/supabase/client';
 import { getSellerUuidFromCedula, isValidUuid } from '@/hooks/useRaffleData/useSellerIdMapping';
 import { SELLER_ID, RAFFLE_ID } from '@/lib/constants/ids';
+import { getPaymentProofsBucket } from '@/lib/supabase-env';
 
 interface HandleCompletePaymentProps {
   raffleSeller: any;
@@ -278,23 +279,28 @@ export const handleCompletePayment = ({
 export const uploadPaymentProof = async (file: File): Promise<string | null> => {
   if (!file) return null;
   
+  const bucketName = getPaymentProofsBucket();
+  
   try {
-    console.log('[completePayment.ts] Subiendo comprobante de pago:', file.name);
+    console.log(`[completePayment.ts] Subiendo comprobante de pago a bucket: ${bucketName}`, file.name);
     
     const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('payment_proofs')
+      .from(bucketName)
       .upload(`${Date.now()}_${file.name}`, file);
     
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error(`[completePayment.ts] ❌ Error al subir comprobante de pago al bucket "${bucketName}":`, uploadError);
+      throw new Error(`Error al subir archivo al bucket "${bucketName}": ${uploadError.message}`);
+    }
     
     const { data: urlData } = supabase.storage
-      .from('payment_proofs')
+      .from(bucketName)
       .getPublicUrl(uploadData.path);
     
-    console.log('[completePayment.ts] Comprobante de pago subido:', urlData.publicUrl);
+    console.log(`[completePayment.ts] Comprobante de pago subido exitosamente al bucket "${bucketName}":`, urlData.publicUrl);
     return urlData.publicUrl;
   } catch (error) {
-    console.error('[completePayment.ts] ❌ Error al subir comprobante de pago:', error);
+    console.error(`[completePayment.ts] ❌ Error al subir comprobante de pago al bucket "${bucketName}":`, error);
     return null;
   }
 };
