@@ -76,22 +76,7 @@ export async function updateRaffleNumbersStatus({
       updateData.reservation_expires_at = null;
     }
     
-    // Check if this number has 'returned' status to handle it specially
-    const returnedNumber = raffleNumbers?.find(n => n.number === numStr && n.status === 'returned');
-    
-    if (returnedNumber) {
-      console.log(`🔄 [updateRaffleNumbersStatus.ts] Tratando número returned ${numStr} como nuevo registro`);
-      
-      // Create new record for 'returned' numbers instead of updating
-      const insertData = { ...updateData, raffle_id: raffleId, number: num };
-      debugLog(`Creating new record for returned number ${numStr}`, insertData);
-      const { error } = await supabase
-        .from('raffle_numbers')
-        .insert(insertData);
-      if (error) throw error;
-      
-      console.log(`✅ [updateRaffleNumbersStatus.ts] Nuevo registro creado para número returned ${numStr}`);
-    } else if (existingNumber) {
+    if (existingNumber) {
       debugLog(`Updating number ${numStr}`, updateData);
       const { error } = await supabase
         .from('raffle_numbers')

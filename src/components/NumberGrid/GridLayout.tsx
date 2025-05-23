@@ -38,18 +38,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
 }) => {
   // At the beginning of GridLayout, just after the props:
   const numberMap = React.useMemo(
-    () => {
-      // Crear un mapa para acceder rápidamente a los números
-      const map = Object.fromEntries(numbers.map(n => [n.number, n]));
-      
-      // Registrar en consola los números con estado 'returned' que se tratarán como disponibles
-      const returnedNumbers = numbers.filter(n => n.status === 'returned').map(n => n.number);
-      if (returnedNumbers.length > 0) {
-        console.log("🔄 [GridLayout.tsx] Números con estado 'returned' que serán tratados como disponibles:", returnedNumbers);
-      }
-      
-      return map;
-    },
+    () => Object.fromEntries(numbers.map(n => [n.number, n])),
     [numbers]
   );  
 
@@ -86,14 +75,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
       
       const paddedNum = num.toString().padStart(2, '0');
       const raffleNumber = numberMap[paddedNum];
-      
-      // Nueva lógica: Si el estado es 'returned', considerarlo como 'available'
-      let status = raffleNumber ? raffleNumber.status : 'available';
-      if (status === 'returned') {
-        console.log(`🔄 [GridLayout.tsx] Tratando número ${paddedNum} con estado 'returned' como 'available'`);
-        status = 'available';
-      }
-      
+      const status = raffleNumber ? raffleNumber.status : 'available';
       const isSelected = selectedNumbers.includes(paddedNum);
       const isHighlighted = highlightReserved && status === 'reserved';
 

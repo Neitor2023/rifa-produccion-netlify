@@ -93,13 +93,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     soldNumbersCount // Pass soldNumbersCount to useGridHandlers
   });
 
-  // Validación adicional para evitar problemas cuando numbers está vacío
-  console.log("🧮 [NumberGrid.tsx] Renderizando rejilla con:", {
-    totalNumeros: numbers?.length || 0,
-    numerosSeleccionados: selectedNumbers?.length || 0,
-    raffleSellerInfo: raffleSeller ? `ID: ${raffleSeller.id}, Seller ID: ${raffleSeller.seller_id}` : 'No disponible'
-  });
-
   return (
     <div className="mb-8">
       <NumberGridHeader 

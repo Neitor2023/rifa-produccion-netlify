@@ -26,26 +26,18 @@ export function useNumberAvailability({
     }
   };
 
-  // Función mejorada para comprobar la disponibilidad de números
+  // Enhanced function for checking number availability
   const checkNumbersAvailability = async (numbers: string[]): Promise<string[]> => {
     try {
       // Validar que raffleSeller y raffleNumbers estén definidos
       if (!raffleSeller) {
         console.error("❌ Error: raffleSeller está undefined en checkNumbersAvailability");
-        toast.error("Información del vendedor no disponible");
-        return [];
+        throw new Error("Información del vendedor no disponible");
       }
       
-      // Log para depuración antes de la validación
-      console.log("🔍 [numberAvailability.ts] Verificando disponibilidad con datos:", {
-        numbersToCheck: numbers, 
-        totalRaffleNumbers: raffleNumbers?.length || 0
-      });
-      
-      // Si raffleNumbers está vacío, intentar continuar en lugar de lanzar error
       if (!raffleNumbers || raffleNumbers.length === 0) {
-        console.warn("⚠️ [numberAvailability.ts] raffleNumbers está vacío, se asumirá que todos los números están disponibles");
-        return []; // Retornar arreglo vacío (asumiendo que no hay conflictos)
+        console.error("❌ Error: raffleNumbers está vacío en checkNumbersAvailability");
+        throw new Error("Información de números no disponible");
       }
 
       debugLog("checkNumbersAvailability-input", { numbers });
@@ -84,16 +76,10 @@ export function useNumberAvailability({
         }
       }
       
-      console.log("✅ [numberAvailability.ts] Verificación de disponibilidad completada:", {
-        numbersRevisados: numbers.length,
-        numerosNoDisponibles: unavailableNumbers.length,
-        detalleNoDisponibles: unavailableNumbers
-      });
-      
       debugLog("checkNumbersAvailability-result", { unavailableNumbers });
       return unavailableNumbers;
     } catch (error) {
-      console.error("❌ [numberAvailability.ts] Error al verificar disponibilidad:", error);
+      console.error("Error checking number availability:", error);
       toast.error("Error al verificar disponibilidad de números");
       return [];
     }

@@ -47,7 +47,7 @@ export const updateNumbersToSold = async ({
       .select('number, status, reservation_expires_at, seller_id')
       .eq('raffle_id', raffleId)
       .in('number', numbers.map(num => parseInt(num)))
-      .not('status', 'in', '(available,returned)'); // Agregar 'returned' como estado no conflictivo
+      .not('status', 'eq', 'available');
 
     if (existingError) {
       console.error('[numberStatusUpdates.ts] Error al verificar números existentes:', existingError);
@@ -76,15 +76,6 @@ export const updateNumbersToSold = async ({
       };
     }
 
-    // Identificar números con estado 'returned' para tratarlos de forma especial
-    const returnedNumbers = raffleNumbers
-      .filter(n => numbers.includes(n.number) && n.status === 'returned')
-      .map(n => n.number);
-    
-    if (returnedNumbers.length > 0) {
-      console.log("[numberStatusUpdates.ts] 🔄 Números con estado 'returned' que serán tratados como nuevos:", returnedNumbers);
-    }
-
     // Preparar datos para actualización
     const updateData = numbers.map(num => {
       // Caso especial para "Pagar Apartados": Preservar el campo reservation_expires_at
@@ -106,8 +97,8 @@ export const updateNumbersToSold = async ({
             seller_id: raffleSeller?.seller_id || null,
             payment_method: paymentMethod,
             payment_receipt_url: paymentProofUrl,
-            payment_proof: paymentProofUrl,
-            payment_approved: false,
+            payment_proof: paymentProofUrl, // Restaurado: Se vuelve a guardar el comprobante aquí
+            payment_approved: false, // Restaurado: Se establece como no aprobado inicialmente
             // NO MODIFICAMOS reservation_expires_at para preservar su valor
           };
         }
@@ -122,8 +113,8 @@ export const updateNumbersToSold = async ({
         seller_id: raffleSeller?.seller_id || null,
         payment_method: paymentMethod,
         payment_receipt_url: paymentProofUrl,
-        payment_proof: paymentProofUrl,
-        payment_approved: false,
+        payment_proof: paymentProofUrl, // Restaurado: Se guarda el comprobante aquí
+        payment_approved: false, // Restaurado: Se establece como no aprobado inicialmente
         reservation_expires_at: null
       };
     });
@@ -131,71 +122,18 @@ export const updateNumbersToSold = async ({
     console.log("[numberStatusUpdates.ts] 📸 Inicio del guardado de imagen del comprobante");
     console.log("[numberStatusUpdates.ts] URL del comprobante a guardar:", paymentProofUrl);
 
-    // Verificar si hay números con estado 'returned'
-    if (returnedNumbers.length > 0) {
-      // Para cada número 'returned', forzamos la creación de un nuevo registro
-      // sin modificar el registro existente con estado 'returned'
-      for (const num of returnedNumbers) {
-        const intNum = parseInt(num);
-        console.log(`[numberStatusUpdates.ts] 🆕 Guardando como nuevo registro para número returned: ${num}`);
-        
-        // Agregamos este número como un nuevo registro (insert) en vez de actualizar
-        const { data, error } = await supabase
-          .from('raffle_numbers')
-          .insert({
-            raffle_id: raffleId,
-            number: intNum,
-            status: 'sold',
-            participant_id: participantId,
-            seller_id: raffleSeller?.seller_id || null,
-            payment_method: paymentMethod,
-            payment_receipt_url: paymentProofUrl,
-            payment_proof: paymentProofUrl,
-            payment_approved: false,
-            reservation_expires_at: null
-          });
-        
-        if (error) {
-          console.error(`[numberStatusUpdates.ts] ❌ Error al insertar nuevo registro para número returned ${num}:`, error);
-          throw new Error(`Error al crear nuevo registro para número ${num}`);
-        } else {
-          console.log(`[numberStatusUpdates.ts] ✅ Nuevo registro creado exitosamente para número returned ${num}`);
-        }
-      }
-      
-      // Filtrar los números 'returned' del updateData para que no se procesen con upsert
-      const filteredUpdateData = updateData.filter(item => 
-        !returnedNumbers.includes(item.number.toString().padStart(2, '0'))
-      );
-      
-      // Si aún hay números para actualizar (que no sean 'returned')
-      if (filteredUpdateData.length > 0) {
-        const { error: updateError } = await supabase
-          .from('raffle_numbers')
-          .upsert(filteredUpdateData, {
-            onConflict: 'raffle_id,number',
-            ignoreDuplicates: false
-          });
+    // Realizar la actualización con upsert para manejar tanto nuevos números como existentes
+    const { error: updateError } = await supabase
+      .from('raffle_numbers')
+      .upsert(updateData, {
+        onConflict: 'raffle_id,number',
+        ignoreDuplicates: false
+      });
 
-        if (updateError) {
-          console.error("[numberStatusUpdates.ts] 🔴 Error al actualizar números no returned:", updateError);
-          throw new Error('Error al actualizar estado de números en la base de datos');
-        }
-      }
-    } else {
-      // Si no hay números 'returned', procedemos con el upsert normal
-      const { error: updateError } = await supabase
-        .from('raffle_numbers')
-        .upsert(updateData, {
-          onConflict: 'raffle_id,number',
-          ignoreDuplicates: false
-        });
-
-      if (updateError) {
-        console.error("[numberStatusUpdates.ts] 🔴 Error al guardar imagen del comprobante:", updateError);
-        console.error("[numberStatusUpdates.ts] Error al actualizar números:", updateError);
-        throw new Error('Error al actualizar estado de números en la base de datos');
-      }
+    if (updateError) {
+      console.error("[numberStatusUpdates.ts] 🔴 Error al guardar imagen del comprobante:", updateError);
+      console.error("[numberStatusUpdates.ts] Error al actualizar números:", updateError);
+      throw new Error('Error al actualizar estado de números en la base de datos');
     }
 
     console.log("[numberStatusUpdates.ts] 🟢 Imagen del comprobante guardada correctamente");
