@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { shouldShowDevNotice } from '@/lib/supabase-env';
+import { DEFAULT_ENVIRONMENT, shouldShowDevNotice } from '@/lib/supabase-env';
 
 const DevelopmentAlert: React.FC = () => {
   const showNotice = shouldShowDevNotice();
