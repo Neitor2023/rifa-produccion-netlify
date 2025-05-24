@@ -22,7 +22,7 @@ const ConfigurationModal: React.FC<ConfigurationModalProps> = ({
   const config = getVisibleConfig();
   
   return (
-    <Dialog open={false} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-blue-600 font-semibold">
