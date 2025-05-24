@@ -12,12 +12,17 @@ const DEFAULT_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzd
 // Nombres de buckets por defecto
 const DEFAULT_BUCKET_PAYMENT_PROOFS = "payment-proofs";
 
+// Control de visibilidad del aviso de desarrollo
+// Por defecto true - mostrar aviso de desarrollo
+const DEFAULT_SHOW_DEV_NOTICE = true;
+
 export interface EnvironmentConfig {
   supabaseUrl: string;
   supabaseKey: string;
   isDevelopment: boolean;
   environment: 'development' | 'production';
   bucketPaymentProofs: string;
+  showDevNotice: boolean;
 }
 
 /**
@@ -28,11 +33,16 @@ export function getEnvironmentConfig(): EnvironmentConfig {
   const envUrl = import.meta.env.VITE_SUPABASE_URL || window?.ENV?.SUPABASE_URL;
   const envKey = import.meta.env.VITE_SUPABASE_KEY || window?.ENV?.SUPABASE_KEY;
   const envBucketPaymentProofs = import.meta.env.VITE_BUCKET_PAYMENT_PROOFS || window?.ENV?.BUCKET_PAYMENT_PROOFS;
+  const envShowDevNotice = import.meta.env.VITE_SHOW_DEV_NOTICE || window?.ENV?.SHOW_DEV_NOTICE;
   
   // Usar variables de entorno si están disponibles, sino usar valores por defecto
   const supabaseUrl = envUrl || DEFAULT_SUPABASE_URL;
   const supabaseKey = envKey || DEFAULT_SUPABASE_KEY;
   const bucketPaymentProofs = envBucketPaymentProofs || DEFAULT_BUCKET_PAYMENT_PROOFS;
+  
+  // Convertir string a boolean para showDevNotice
+  // Si la variable existe y es "false", será false; en cualquier otro caso será true
+  const showDevNotice = envShowDevNotice === 'false' ? false : DEFAULT_SHOW_DEV_NOTICE;
   
   // Detectar si es entorno de desarrollo
   const isDevelopment = supabaseUrl.toLowerCase().includes('dev') || 
@@ -43,13 +53,15 @@ export function getEnvironmentConfig(): EnvironmentConfig {
   
   console.log(`[supabase-env.ts] Configuración cargada - Entorno: ${environment}`);
   console.log(`[supabase-env.ts] Bucket de comprobantes de pago: ${bucketPaymentProofs}`);
+  console.log(`[supabase-env.ts] Mostrar aviso de desarrollo: ${showDevNotice}`);
   
   return {
     supabaseUrl,
     supabaseKey,
     isDevelopment,
     environment,
-    bucketPaymentProofs
+    bucketPaymentProofs,
+    showDevNotice
   };
 }
 
@@ -76,6 +88,7 @@ export function getVisibleConfig() {
     environment: config.environment,
     isDevelopment: config.isDevelopment,
     bucketPaymentProofs: config.bucketPaymentProofs,
+    showDevNotice: config.showDevNotice,
     hostname: window.location.hostname,
     isDev: import.meta.env.DEV
   };
@@ -87,4 +100,20 @@ export function getVisibleConfig() {
 export function getPaymentProofsBucket(): string {
   const config = getEnvironmentConfig();
   return config.bucketPaymentProofs;
+}
+
+/**
+ * Función para verificar si se debe mostrar el aviso de desarrollo
+ * 
+ * Variable de entorno: VITE_SHOW_DEV_NOTICE
+ * - Si es "false" (string), no se mostrará el aviso
+ * - Si es cualquier otro valor o no está definida, se mostrará el aviso (por defecto: true)
+ * 
+ * Uso recomendado:
+ * - Desarrollo: dejar sin definir o establecer en "true" para ver avisos
+ * - Producción: establecer en "false" para ocultar avisos
+ */
+export function shouldShowDevNotice(): boolean {
+  const config = getEnvironmentConfig();
+  return config.showDevNotice;
 }

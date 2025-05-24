@@ -5,6 +5,7 @@ declare global {
       SUPABASE_URL?: string;
       SUPABASE_KEY?: string;
       BUCKET_PAYMENT_PROOFS?: string;
+      SHOW_DEV_NOTICE?: string;
     };
   }
 }
