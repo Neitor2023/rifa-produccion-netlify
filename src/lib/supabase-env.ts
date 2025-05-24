@@ -6,8 +6,8 @@ import type { Database } from '@/integrations/supabase/types';
 // const DEFAULT_SUPABASE_URL = "https://ngpedcqmktcosghpeyvi.supabase.co";
 // const DEFAULT_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ncGVkY3Fta3Rjb3NnaHBleXZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM0NzMzMzUsImV4cCI6MjA1OTA0OTMzNX0.TC6nH1RL9dYbFvK7YrLfDVRmRJhLIO_quYfI1kB_PPk";
 
-const DEFAULT_SUPABASE_URL = "https://ehjljyuwlwcdiscxpbdr.supabase.co";
-const DEFAULT_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoamxqeXV3bHdjZGlzY3hwYmRyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0Nzk3MTIyMiwiZXhwIjoyMDYzNTQ3MjIyfQ.ms1NF83VojtylWPVp9IaTXtCOxUL0jZiUgDqHzrDzso";
+// const DEFAULT_SUPABASE_URL = "https://ehjljyuwlwcdiscxpbdr.supabase.co";
+// const DEFAULT_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoamxqeXV3bHdjZGlzY3hwYmRyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0Nzk3MTIyMiwiZXhwIjoyMDYzNTQ3MjIyfQ.ms1NF83VojtylWPVp9IaTXtCOxUL0jZiUgDqHzrDzso";
 
 // Nombres de buckets por defecto
 const DEFAULT_BUCKET_PAYMENT_PROOFS = "payment-proofs";
