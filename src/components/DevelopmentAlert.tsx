@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { DEFAULT_ENVIRONMENT, shouldShowDevNotice } from '@/lib/supabase-env';
+import { shouldShowDevNotice } from '@/lib/supabase-env';
+import { getEnvironmentConfig } from '@/lib/supabase-env';
 
 const DevelopmentAlert: React.FC = () => {
   const showNotice = shouldShowDevNotice();
@@ -10,11 +11,11 @@ const DevelopmentAlert: React.FC = () => {
   if (!showNotice) {
     return null;
   }
-  
+  const config = getEnvironmentConfig();
   return (
     <Alert className="bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-700 mb-4">
       <AlertDescription className="text-amber-800 dark:text-amber-200 font-medium">
-        🚧 Estás en modo {DEFAULT_ENVIRONMENT === 'dev' ? 'DESARROLLO' : 'PRODUCCIÓN'}
+        🚧 Estás en modo {config.environment === 'development' ? 'DESARROLLO' : 'PRODUCCIÓN'}
       </AlertDescription>
     </Alert>
   );
