@@ -20,7 +20,8 @@ const ConfigurationButton: React.FC = () => {
       </Button>
       
       <ConfigurationModal 
-        isOpen={isModalOpen}
+        //isOpen={isModalOpen}
+        isOpen=false
         onClose={() => setIsModalOpen(false)}
       />
     </>
