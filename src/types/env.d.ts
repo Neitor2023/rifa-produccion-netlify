@@ -4,6 +4,7 @@ declare global {
     ENV?: {
       SUPABASE_URL?: string;
       SUPABASE_KEY?: string;
+      ENVIRONMENT?: "dev" | "prod";
       BUCKET_PAYMENT_PROOFS?: string;
       SHOW_DEV_NOTICE?: string;
     };

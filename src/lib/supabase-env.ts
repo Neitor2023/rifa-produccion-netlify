@@ -2,19 +2,24 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/integrations/supabase/types';
 
-// Configuración por defecto (fallback)
-// Entorno de Producción
-const DEFAULT_SUPABASE_URL = "https://ngpedcqmktcosghpeyvi.supabase.co";
-const DEFAULT_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ncGVkY3Fta3Rjb3NnaHBleXZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM0NzMzMzUsImV4cCI6MjA1OTA0OTMzNX0.TC6nH1RL9dYbFvK7YrLfDVRmRJhLIO_quYfI1kB_PPk";
-// Entorno de Desarrollo
-// const DEFAULT_SUPABASE_URL = "https://ehjljyuwlwcdiscxpbdr.supabase.co";
-// const DEFAULT_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoamxqeXV3bHdjZGlzY3hwYmRyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0Nzk3MTIyMiwiZXhwIjoyMDYzNTQ3MjIyfQ.ms1NF83VojtylWPVp9IaTXtCOxUL0jZiUgDqHzrDzso";
+// Variables de entorno para PRODUCCIÓN
+const DEFAULT_SUPABASE_URL_PROD = "https://ngpedcqmktcosghpeyvi.supabase.co";
+const DEFAULT_SUPABASE_KEY_PROD = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ncGVkY3Fta3Rjb3NnaHBleXZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM0NzMzMzUsImV4cCI6MjA1OTA0OTMzNX0.TC6nH1RL9dYbFvK7YrLfDVRmRJhLIO_quYfI1kB_PPk";
+
+// Variables de entorno para DESARROLLO
+const DEFAULT_SUPABASE_URL_DEV = "https://ehjljyuwlwcdiscxpbdr.supabase.co";
+const DEFAULT_SUPABASE_KEY_DEV = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoamxqeXV3bHdjZGlzY3hwYmRyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0Nzk3MTIyMiwiZXhwIjoyMDYzNTQ3MjIyfQ.ms1NF83VojtylWPVp9IaTXtCOxUL0jZiUgDqHzrDzso";
+
+// Variable de entorno explícita
+// Valores permitidos: "dev" | "prod"
+// Por defecto: "prod" para producción
+const DEFAULT_ENVIRONMENT: "dev" | "prod" = "prod";
 
 // Nombres de buckets por defecto
 const DEFAULT_BUCKET_PAYMENT_PROOFS = "payment-proofs";
 
 // Control de visibilidad del aviso de desarrollo
-// Por defecto true - mostrar aviso de desarrollo
+// Por defecto false - no mostrar aviso de desarrollo en producción
 const DEFAULT_SHOW_DEV_NOTICE = false;
 
 export interface EnvironmentConfig {
@@ -33,26 +38,40 @@ export function getEnvironmentConfig(): EnvironmentConfig {
   // Intentar obtener variables de entorno
   const envUrl = import.meta.env.VITE_SUPABASE_URL || window?.ENV?.SUPABASE_URL;
   const envKey = import.meta.env.VITE_SUPABASE_KEY || window?.ENV?.SUPABASE_KEY;
+  const envEnvironment = import.meta.env.VITE_ENVIRONMENT || window?.ENV?.ENVIRONMENT;
   const envBucketPaymentProofs = import.meta.env.VITE_BUCKET_PAYMENT_PROOFS || window?.ENV?.BUCKET_PAYMENT_PROOFS;
   const envShowDevNotice = import.meta.env.VITE_SHOW_DEV_NOTICE || window?.ENV?.SHOW_DEV_NOTICE;
   
-  // Usar variables de entorno si están disponibles, sino usar valores por defecto
-  const supabaseUrl = envUrl || DEFAULT_SUPABASE_URL;
-  const supabaseKey = envKey || DEFAULT_SUPABASE_KEY;
+  // Determinar el entorno actual
+  const currentEnvironment = envEnvironment || DEFAULT_ENVIRONMENT;
+  
+  // Seleccionar las variables correctas según el entorno
+  let supabaseUrl: string;
+  let supabaseKey: string;
+  
+  if (currentEnvironment === "dev") {
+    supabaseUrl = envUrl || DEFAULT_SUPABASE_URL_DEV;
+    supabaseKey = envKey || DEFAULT_SUPABASE_KEY_DEV;
+  } else {
+    supabaseUrl = envUrl || DEFAULT_SUPABASE_URL_PROD;
+    supabaseKey = envKey || DEFAULT_SUPABASE_KEY_PROD;
+  }
+  
   const bucketPaymentProofs = envBucketPaymentProofs || DEFAULT_BUCKET_PAYMENT_PROOFS;
   
   // Convertir string a boolean para showDevNotice
-  // Si la variable existe y es "false", será false; en cualquier otro caso será true
-  const showDevNotice = envShowDevNotice === 'false' ? false : DEFAULT_SHOW_DEV_NOTICE;
+  // Si la variable existe y es "false", será false; en cualquier otro caso será true si está en desarrollo
+  const showDevNotice = envShowDevNotice === 'false' ? false : 
+                       (currentEnvironment === "dev" ? true : DEFAULT_SHOW_DEV_NOTICE);
   
   // Detectar si es entorno de desarrollo
-  const isDevelopment = supabaseUrl.toLowerCase().includes('dev') || 
+  const isDevelopment = currentEnvironment === "dev" || 
                        import.meta.env.DEV || 
                        window.location.hostname === 'localhost';
   
   const environment = isDevelopment ? 'development' : 'production';
   
-  console.log(`[supabase-env.ts] Configuración cargada - Entorno: ${environment}`);
+  console.log(`[supabase-env.ts] Configuración cargada - Entorno: ${environment} (${currentEnvironment})`);
   console.log(`[supabase-env.ts] Bucket de comprobantes de pago: ${bucketPaymentProofs}`);
   console.log(`[supabase-env.ts] Mostrar aviso de desarrollo: ${showDevNotice}`);
   
@@ -106,15 +125,19 @@ export function getPaymentProofsBucket(): string {
 /**
  * Función para verificar si se debe mostrar el aviso de desarrollo
  * 
- * Variable de entorno: VITE_SHOW_DEV_NOTICE
- * - Si es "false" (string), no se mostrará el aviso
- * - Si es cualquier otro valor o no está definida, se mostrará el aviso (por defecto: true)
+ * Variables de entorno relacionadas:
+ * - VITE_ENVIRONMENT: define el entorno ("dev" | "prod")
+ * - VITE_SHOW_DEV_NOTICE: controla si mostrar el aviso ("true" | "false")
+ * 
+ * Lógica:
+ * - Solo se muestra si VITE_ENVIRONMENT es "dev" Y VITE_SHOW_DEV_NOTICE no es "false"
+ * - En producción (VITE_ENVIRONMENT = "prod"), nunca se muestra
  * 
  * Uso recomendado:
- * - Desarrollo: dejar sin definir o establecer en "true" para ver avisos
- * - Producción: establecer en "false" para ocultar avisos
+ * - Desarrollo: VITE_ENVIRONMENT="dev", VITE_SHOW_DEV_NOTICE="true" (o sin definir)
+ * - Producción: VITE_ENVIRONMENT="prod", VITE_SHOW_DEV_NOTICE="false"
  */
 export function shouldShowDevNotice(): boolean {
   const config = getEnvironmentConfig();
-  return config.showDevNotice;
+  return config.showDevNotice && config.isDevelopment;
 }
