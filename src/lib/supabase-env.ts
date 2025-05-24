@@ -60,12 +60,11 @@ export function getEnvironmentConfig(): EnvironmentConfig {
   const bucketPaymentProofs = envBucketPaymentProofs || DEFAULT_BUCKET_PAYMENT_PROOFS;
   
   // Convertir string a boolean para showDevNotice
-  // Si la variable existe y es "false", será false; en cualquier otro caso será true si está en desarrollo
-  const showDevNotice = envShowDevNotice === 'false' ? false : 
-                       (currentEnvironment === "dev" ? true : DEFAULT_SHOW_DEV_NOTICE);
+  // Si la variable existe y es "true", será true; en cualquier otro caso será false
+  const showDevNotice = envShowDevNotice === 'true' ? true : DEFAULT_SHOW_DEV_NOTICE;
   
   // Detectar si es entorno de desarrollo
-  const isDevelopment = currentEnvironment === "prod" || 
+  const isDevelopment = currentEnvironment === "dev" || 
                        import.meta.env.DEV || 
                        window.location.hostname === 'localhost';
 
@@ -126,18 +125,22 @@ export function getPaymentProofsBucket(): string {
  * Función para verificar si se debe mostrar el aviso de desarrollo
  * 
  * Variables de entorno relacionadas:
- * - VITE_ENVIRONMENT: define el entorno ("dev" | "prod")
- * - VITE_SHOW_DEV_NOTICE: controla si mostrar el aviso ("true" | "false")
+ * - VITE_SHOW_DEV_NOTICE: controla si mostrar elementos de desarrollo ("true" | "false")
  * 
  * Lógica:
- * - Solo se muestra si VITE_ENVIRONMENT es "dev" Y VITE_SHOW_DEV_NOTICE no es "false"
- * - En producción (VITE_ENVIRONMENT = "prod"), nunca se muestra
+ * - Solo se muestra si VITE_SHOW_DEV_NOTICE es explícitamente "true"
+ * - Por defecto es false para garantizar seguridad en producción
  * 
  * Uso recomendado:
- * - Desarrollo: VITE_ENVIRONMENT="dev", VITE_SHOW_DEV_NOTICE="true" (o sin definir)
- * - Producción: VITE_ENVIRONMENT="prod", VITE_SHOW_DEV_NOTICE="false"
+ * - Desarrollo: VITE_SHOW_DEV_NOTICE="true"
+ * - Producción: VITE_SHOW_DEV_NOTICE="false" (o sin definir)
+ * 
+ * Controla la visibilidad de:
+ * - Botón "Ver configuración"
+ * - Modal de configuración
+ * - Alertas de desarrollo
  */
 export function shouldShowDevNotice(): boolean {
   const config = getEnvironmentConfig();
-  return config.showDevNotice && config.isDevelopment;
+  return config.showDevNotice;
 }

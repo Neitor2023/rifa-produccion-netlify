@@ -3,9 +3,15 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
 import ConfigurationModal from './ConfigurationModal';
+import { shouldShowDevNotice } from '@/lib/supabase-env';
 
 const ConfigurationButton: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Solo renderizar si showDevNotice es true
+  if (!shouldShowDevNotice()) {
+    return null;
+  }
   
   return (
     <>

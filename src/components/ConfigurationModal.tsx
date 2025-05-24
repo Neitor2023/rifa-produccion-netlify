@@ -8,7 +8,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { getVisibleConfig } from '@/lib/supabase-env';
+import { getVisibleConfig, shouldShowDevNotice } from '@/lib/supabase-env';
 
 interface ConfigurationModalProps {
   isOpen: boolean;
@@ -19,6 +19,11 @@ const ConfigurationModal: React.FC<ConfigurationModalProps> = ({
   isOpen, 
   onClose 
 }) => {
+  // Solo renderizar si showDevNotice es true
+  if (!shouldShowDevNotice()) {
+    return null;
+  }
+
   const config = getVisibleConfig();
   
   return (
