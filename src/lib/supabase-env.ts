@@ -65,10 +65,10 @@ export function getEnvironmentConfig(): EnvironmentConfig {
                        (currentEnvironment === "dev" ? true : DEFAULT_SHOW_DEV_NOTICE);
   
   // Detectar si es entorno de desarrollo
-  const isDevelopment = currentEnvironment === "prod" || 
-                       import.meta.env.DEV || 
-                       window.location.hostname === 'localhost';
-  
+  // const isDevelopment = currentEnvironment === "prod" || 
+                       // import.meta.env.DEV || 
+                       // window.location.hostname === 'localhost';
+  const isDevelopment = false
   const environment = isDevelopment ? 'development' : 'production';
   
   console.log(`[supabase-env.ts] Configuración cargada - Entorno: ${environment} (${currentEnvironment})`);
