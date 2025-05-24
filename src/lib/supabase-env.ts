@@ -13,7 +13,7 @@ const DEFAULT_SUPABASE_KEY_DEV = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Variable de entorno explícita
 // Valores permitidos: "dev" | "prod"
 // Por defecto: "prod" para producción
-const DEFAULT_ENVIRONMENT: "dev" | "prod" = "dev";
+const DEFAULT_ENVIRONMENT: "dev" | "prod" = "prod";
 
 // Nombres de buckets por defecto
 const DEFAULT_BUCKET_PAYMENT_PROOFS = "payment-proofs";
@@ -65,7 +65,7 @@ export function getEnvironmentConfig(): EnvironmentConfig {
                        (currentEnvironment === "dev" ? true : DEFAULT_SHOW_DEV_NOTICE);
   
   // Detectar si es entorno de desarrollo
-  const isDevelopment = currentEnvironment === "dev" || 
+  const isDevelopment = currentEnvironment === "prod" || 
                        import.meta.env.DEV || 
                        window.location.hostname === 'localhost';
   
