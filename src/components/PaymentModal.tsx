@@ -89,7 +89,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       }
     }
   }, [isOpen, clickedButton, buyerInfo]);
-console.log("xxxxxx6");
+  
   // Función para restablecer el formulario
   const resetForm = () => {
     console.log("🧹 PaymentModal.tsx: Reseteando formulario");
