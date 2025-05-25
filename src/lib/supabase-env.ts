@@ -20,7 +20,7 @@ const DEFAULT_BUCKET_PAYMENT_PROOFS = "payment-proofs";
 
 // Control de visibilidad del aviso de desarrollo
 // Por defecto false - no mostrar aviso de desarrollo en producción
-const DEFAULT_SHOW_DEV_NOTICE = true;
+const DEFAULT_SHOW_DEV_NOTICE = false;
 
 export interface EnvironmentConfig {
   supabaseUrl: string;
