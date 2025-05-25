@@ -47,7 +47,7 @@ const VentaBoletosMain: React.FC<VentaBoletosMainProps> = ({
   if (isLoading) {
     return <LoadingSpinner />;
   }
-
+console.log("xxxx");
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       <div className="container px-4 py-4 max-w-3xl mx-auto">

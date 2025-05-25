@@ -45,7 +45,7 @@ const VentaBoletosContent: React.FC = () => {
 
   // Acceda a la información del comprador desde el contexto
   const { buyerInfo } = useBuyerInfo();
-  console.log("xxx");
+  
   return (
     <>
       <VentaBoletosMain 
