@@ -25,7 +25,7 @@ export function useRaffleData({ raffleId, sellerId }: UseRaffleDataProps) {
   
   // Get organization data
   const { organization, isLoading: isLoadingOrganization } = useOrganizationData(raffleId);
-  
+   console.log("despues [useRaffleData.ts] Called with params:", { raffleId, sellerId });
   // Get raffle numbers data
   const { 
     raffleNumbers, 
