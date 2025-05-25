@@ -36,7 +36,7 @@ export function useRaffleData({ raffleId, sellerId }: UseRaffleDataProps) {
     allowVoucherPrint,
     isLoading: isLoadingRaffleNumbers 
   } = useRaffleNumbersData(raffleId, seller?.id || '');
-console.log("despues X [useRaffleData.ts] Called with params:", { raffleId, sellerId });
+
   const isLoading = 
     isLoadingSeller || 
     isLoadingRaffle || 
