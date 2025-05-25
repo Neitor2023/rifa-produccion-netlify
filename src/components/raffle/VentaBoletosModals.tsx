@@ -78,5 +78,5 @@ const VentaBoletosModals: React.FC<VentaBoletosModalsProps> = ({
     </>
   );
 };
-
+console.log("xxxxx5");
 export default VentaBoletosModals;
