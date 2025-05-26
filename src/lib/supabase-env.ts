@@ -13,7 +13,7 @@ const DEFAULT_SUPABASE_KEY_DEV = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Variable de entorno explícita
 // Valores permitidos: "dev" | "prod"
 // Por defecto: "prod" para producción
-const DEFAULT_ENVIRONMENT: "dev" | "prod" = "prod";
+const DEFAULT_ENVIRONMENT: "dev" | "prod" = "dev";
 
 // Nombres de buckets por defecto
 const DEFAULT_BUCKET_PAYMENT_PROOFS = "payment-proofs";
