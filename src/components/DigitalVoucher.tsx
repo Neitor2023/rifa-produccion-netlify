@@ -325,7 +325,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
       );
       
       if (imageUrl) {
-        // Update only this participant's numbers with the receipt URL
+        // Actualice solo los números de este participante con la URL del recibo
         const updateSuccess = await updatePaymentReceiptUrlForAllNumbers(imageUrl);
         
         if (updateSuccess) {
