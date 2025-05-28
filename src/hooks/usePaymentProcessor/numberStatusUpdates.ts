@@ -121,7 +121,7 @@ export const updateNumbersToSold = async ({
 
     console.log("[numberStatusUpdates.ts] 📸 Inicio del guardado de imagen del comprobante");
     console.log("[numberStatusUpdates.ts] URL del comprobante a guardar:", paymentProofUrl);
-    console.log("[numberStatusUpdates.ts] actualización con upsert para manejar tanto nuevos números como existentes:", updateData);
+    console.log("[numberStatusUpdates.ts] actualización con upsert para manejar tanto nuevos números como existentes:", numbers);
     
     // Realizar la actualización con upsert para manejar tanto nuevos números como existentes
     const { error: updateError } = await supabase
