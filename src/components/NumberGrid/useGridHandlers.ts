@@ -191,7 +191,7 @@ export const useGridHandlers = ({
     const daysToAdd = typeof reservationDays === 'number' ? reservationDays : 5;
     
     if (debugMode) {
-      console.log('[NumberGrid/useGridHandlers.ts] Using reservation days:', daysToAdd);
+      console.log('[NumberGrid/useGridHandlers.ts] Usando días de reserva:', daysToAdd);
     }
     
     // Create a new date by adding the specified days
