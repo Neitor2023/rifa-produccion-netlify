@@ -36,27 +36,27 @@ const GridLayout: React.FC<GridLayoutProps> = ({
   organization,
   totalNumbers = 99,
 }) => {
-  // At the beginning of GridLayout, just after the props:
+  // Al comienzo de GridLayout, justo después de las propiedades:
   const numberMap = React.useMemo(
     () => Object.fromEntries(numbers.map(n => [n.number, n])),
     [numbers]
   );  
 
-  // Log when highlightReserved changes
+  // Registrar cambios cuando se resaltan los reservados
   React.useEffect(() => {
     console.log("📊 GridLayout - highlightReserved changed:", highlightReserved);
   }, [highlightReserved]);
 
-  // Calculate how many rows and columns we need to display all numbers
+  // Calcula cuántas filas y columnas necesitamos para mostrar todos los números
   const calculateGridDimensions = () => {
     // Ensure totalNumbers is always a number
     const total = Math.max(1, totalNumbers || 0);
     
-    // Determine the number of columns (10 is a good value for mobile and desktop)
+    // Determinar el número de columnas (10 es un buen valor para dispositivos móviles y computadoras de escritorio)
     const columns = 10;
     
-    // Calculate how many rows we need to display all numbers
-    const rows = Math.ceil((total + 1) / columns); // +1 because we include 0
+    // Calcula cuántas filas necesitamos para mostrar todos los números
+    const rows = Math.ceil((total + 1) / columns); // +1 porque incluimos 0
     
     return { rows, columns };
   };
