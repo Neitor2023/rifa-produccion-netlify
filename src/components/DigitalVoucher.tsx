@@ -1,8 +1,8 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import { 
   Dialog, 
   DialogContent, 
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
@@ -368,7 +368,14 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   // If allowVoucherPrint is true or receipt is still saving, show the regular voucher dialog
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleCloseModal()}>
-      <DialogContent className="sm:max-w-md md:max-w-xl lg:max-w-2xl min-h-[85vh] max-h-[90vh] flex flex-col bg-white/20 backdrop-blur-md rounded-xl border-0">
+      <DialogContent 
+        className="sm:max-w-md md:max-w-xl lg:max-w-2xl min-h-[85vh] max-h-[90vh] flex flex-col bg-white/20 backdrop-blur-md rounded-xl border-0"
+        aria-describedby="voucher-description"
+      >
+        <DialogDescription id="voucher-description" className="sr-only">
+          Comprobante digital de pago para números de rifa seleccionados
+        </DialogDescription>
+        
         <VoucherHeader 
           onClose={handleCloseModal}
           onSaveVoucher={saveVoucherForAllNumbers}

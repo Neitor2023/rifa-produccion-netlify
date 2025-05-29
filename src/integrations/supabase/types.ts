@@ -349,10 +349,7 @@ export type Database = {
           deleted_at: string | null
           id: string
           number: number
-          participant_cedula: string | null
           participant_id: string | null
-          participant_name: string | null
-          participant_phone: string | null
           payment_approved: boolean | null
           payment_method: string | null
           payment_proof: string | null
@@ -368,10 +365,7 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           number: number
-          participant_cedula?: string | null
           participant_id?: string | null
-          participant_name?: string | null
-          participant_phone?: string | null
           payment_approved?: boolean | null
           payment_method?: string | null
           payment_proof?: string | null
@@ -387,10 +381,7 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           number?: number
-          participant_cedula?: string | null
           participant_id?: string | null
-          participant_name?: string | null
-          participant_phone?: string | null
           payment_approved?: boolean | null
           payment_method?: string | null
           payment_proof?: string | null
@@ -424,6 +415,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      raffle_numbers_reason: {
+        Row: {
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          number: number
+          participant_id: string | null
+          payment_approved: boolean | null
+          payment_method: string | null
+          payment_proof: string | null
+          payment_receipt_url: string | null
+          raffle_id: string | null
+          reservation_expires_at: string | null
+          return_reason: string | null
+          seller_id: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          number: number
+          participant_id?: string | null
+          payment_approved?: boolean | null
+          payment_method?: string | null
+          payment_proof?: string | null
+          payment_receipt_url?: string | null
+          raffle_id?: string | null
+          reservation_expires_at?: string | null
+          return_reason?: string | null
+          seller_id?: string | null
+          status: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          number?: number
+          participant_id?: string | null
+          payment_approved?: boolean | null
+          payment_method?: string | null
+          payment_proof?: string | null
+          payment_receipt_url?: string | null
+          raffle_id?: string | null
+          reservation_expires_at?: string | null
+          return_reason?: string | null
+          seller_id?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       raffle_prize_images: {
         Row: {
@@ -771,7 +816,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      move_raffle_number_to_reason: {
+        Args: { p_raffle_number_id: string; p_return_reason: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

@@ -17,7 +17,7 @@ interface NumberGridControlsProps {
   onClearSelection: () => void;
   onReserve: () => void;
   onPayReserved: () => void;
-  onProceedToPayment: (buttonType: string) => Promise<void>; // Updated to match return type
+  onProceedToPayment: (buttonType: string) => Promise<void>;
 }
 
 export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
@@ -33,22 +33,23 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
     onClearSelection();
   };
   
-  // Handler for the Pagar button with button name 36
+  // Handler for the Pagar button with button name
   const handleProceedToPayment = async () => {
     console.log("NumberGridControls.tsx: Pay button clicked");
     await onProceedToPayment("Pagar");
   };
   
-  // Handler for the Pay Reserved button
+  // Handler for the Pay Reserved button with improved logging
   const handlePayReserved = () => {
-    console.log("NumberGridControls.tsx: Pay Reserved button clicked");
+    console.log("[NumberGridControls.tsx] Iniciando proceso de pago de apartado");
     onPayReserved();
+    console.log("[NumberGridControls.tsx] Finalizando proceso de pago de apartado");
   };
 
   const buttons = [
     {
       key: "clear",
-      variant: "outline" as const, // Fixed: Using "as const" to specify the literal type
+      variant: "outline" as const,
       onClick: handleClearSelection,
       bgClass: "bg-[#1EAEDB] dark:bg-[#1EAEDB]",
       iconOrImage: <Check className="h-full w-full" />,
@@ -56,7 +57,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
     },
     {
       key: "reserve",
-      variant: "secondary" as const, // Fixed: Using "as const" to specify the literal type
+      variant: "secondary" as const,
       onClick: onReserve,
       bgClass: "bg-amber-500 hover:bg-amber-600",
       iconOrImage: <ShoppingCart className="h-full w-full" />, 
@@ -64,7 +65,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
     },
     {
       key: "payReserved",
-      variant: "secondary" as const, // Fixed: Using "as const" to specify the literal type
+      variant: "secondary" as const,
       onClick: handlePayReserved,
       bgClass: "bg-orange-500 hover:bg-orange-600",
       iconOrImage: <CreditCard className="h-full w-full" />,   
@@ -72,7 +73,7 @@ export const NumberGridControls: React.FC<NumberGridControlsProps> = ({
     },
     {
       key: "pay",
-      variant: "secondary" as const, // Fixed: Using "as const" to specify the literal type
+      variant: "secondary" as const,
       onClick: handleProceedToPayment,
       bgClass: "bg-green-500 hover:bg-green-600",
       iconOrImage: <CreditCard className="h-full w-full" />,

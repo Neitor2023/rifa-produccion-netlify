@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -55,16 +54,25 @@ export const useGridHandlers = ({
   } = useNumberSelection();
   
   const handlePayReserved = () => {
-    console.log('NumberGrid: handlePayReserved called');
+    console.log('[NumberGridControls.tsx] Iniciando proceso de pago de apartado');
     
     setClickedPaymentButton("Pagar Apartados");
     
     if (highlightReserved) {
+      console.log('[NumberGrid/useGridHandlers.ts] Ya está en modo highlight, no procesar nuevamente');
       return;
     }
     
-    const reservedNumbers = numbers.filter(n => n.status === 'reserved');
+    // Filtrar solo números reservados para este vendedor
+    const reservedNumbers = numbers.filter(n => 
+      n.status === 'reserved' && 
+      n.seller_id === raffleSeller.seller_id
+    );
+    
+    console.log('[NumberGrid/useGridHandlers.ts] Números reservados encontrados para este vendedor:', reservedNumbers.length);
+    
     if (reservedNumbers.length === 0) {
+      console.log('[NumberGrid/useGridHandlers.ts] No hay números reservados para este vendedor');
       toast.warning('No hay números reservados para pagar');
       setShowReservedMessage(false);
       return;
@@ -73,6 +81,8 @@ export const useGridHandlers = ({
     setHighlightReserved(true);
     setShowReservedMessage(true);
     toast.info(`Hay ${reservedNumbers.length} numero reservado(s). Seleccione uno para proceder con el pago.`);
+    
+    console.log('[NumberGridControls.tsx] Finalizando proceso de pago de apartado');
   };
   
   const handleCloseReservedMessage = () => {
@@ -81,19 +91,25 @@ export const useGridHandlers = ({
   
   const toggleNumber = (number: string, status: string) => {
     if (debugMode) {
-      console.log(`NumberGrid: Alternar número llamado con número=${number}, status=${status}`);
+      console.log(`[NumberGrid/useGridHandlers.ts] Alternar número llamado con número=${number}, status=${status}`);
     }
     
     if (highlightReserved && status === 'reserved') {
       const selectedNumber = numbers.find(n => n.number === number);
       if (selectedNumber) {
+        console.log(`[NumberGrid/useGridHandlers.ts] Número seleccionado en modo apartado: ${number}, participantId: ${selectedNumber.participant_id}`);
+        
+        // Solo obtener números del mismo participante que el número seleccionado
         const allReservedNumbers = numbers
           .filter(n => 
             n.status === 'reserved' && 
-            n.participant_id === selectedNumber.participant_id
+            n.participant_id === selectedNumber.participant_id &&
+            n.seller_id === raffleSeller.seller_id // Asegurar que sea del mismo vendedor
           )
           .map(n => n.number);
           
+        console.log(`[NumberGrid/useGridHandlers.ts] Números reservados del mismo participante (${selectedNumber.participant_id}):`, allReservedNumbers);
+        
         setSelectedNumbers(allReservedNumbers);
         setSelectedReservedNumber(number);
         setIsPhoneModalOpen(true);
@@ -103,25 +119,25 @@ export const useGridHandlers = ({
     
     if (status !== 'available') return;
     
-    // Calcular el número máximo disponible
+    // Calculate maximum available numbers
     const maxAvailableNumbers = raffleSeller.cant_max;
     
-    // Calcule los números restantes disponibles según los números totales (si se proporcionan) o el máximo del vendedor
+    // Calculate remaining available numbers based on total numbers (if provided) or seller max
     let remainingAvailable: number;
     
-    // Si se proporciona totalNumbers, calcule cuántos números están realmente disponibles
+    // If totalNumbers is provided, calculate how many numbers are actually available
     if (totalNumbers && typeof totalNumbers === 'number') {
-      // Calcula cuántos números quedan todavía disponibles para la venta
+      // Calculate how many numbers are still available for sale
       const availableNumbers = Math.max(0, totalNumbers - soldNumbersCount + 1);      
-      // Tome el mínimo entre los números disponibles y el número máximo de vendedores
+      // Take the minimum between available numbers and max seller numbers
       remainingAvailable = Math.min((maxAvailableNumbers - soldNumbersCount + 1), availableNumbers);           
     } else {
-      // Recurre a utilizar únicamente el máximo del vendedor
+      // Fallback to just use the seller maximum
       remainingAvailable = maxAvailableNumbers;
     }
       
     if (debugMode) {
-      console.log('NumberGrid: Cálculo de números disponibles:', {
+      console.log('[NumberGrid/useGridHandlers.ts] Cálculo de números disponibles:', {
         totalNumbers,
         soldNumbersCount,
         maxAvailableNumbers,
@@ -133,7 +149,7 @@ export const useGridHandlers = ({
       if (prev.includes(number)) {
         return prev.filter(n => n !== number);
       } else {
-        // Marcar si añadir este número excedería el máximo permitido
+        // Check if adding this number would exceed the maximum allowed
         if (prev.length >= remainingAvailable) {
           toast.error(`Se ha superado la cantidad de números permitidos del vendedor, por favor finalice su selección de números.`);
           return prev;
@@ -153,10 +169,10 @@ export const useGridHandlers = ({
   
   const handleConfirmReservation = (data: { buyerName: string; buyerPhone: string; buyerCedula: string }) => {
     if (debugMode) {
-      console.log('NumberGrid: Reservation data:', data);
-      console.log('NumberGrid: Selected numbers:', selectedNumbers);
-      console.log('NumberGrid: Reservation days:', reservationDays);
-      console.log('NumberGrid: Lottery date:', lotteryDate);
+      console.log('[NumberGrid/useGridHandlers.ts] Reservation data:', data);
+      console.log('[NumberGrid/useGridHandlers.ts] Selected numbers:', selectedNumbers);
+      console.log('[NumberGrid/useGridHandlers.ts] Reservation days:', reservationDays);
+      console.log('[NumberGrid/useGridHandlers.ts] Lottery date:', lotteryDate);
     }
     
     if (!data.buyerName || !data.buyerPhone) {
@@ -164,10 +180,10 @@ export const useGridHandlers = ({
       return;
     }
     
-    // Calcular la fecha de vencimiento de la reserva según reservationDays y lotteryDate
+    // Calculate the reservation expiration date based on reservationDays and lotteryDate
     let reservationExpiresAt: Date;
     
-    // Obtener la fecha actual
+    // Get the current date
     const currentDate = new Date();
     
     // Calculate the date after adding the reservation days
@@ -175,7 +191,7 @@ export const useGridHandlers = ({
     const daysToAdd = typeof reservationDays === 'number' ? reservationDays : 5;
     
     if (debugMode) {
-      console.log('NumberGrid: Using reservation days:', daysToAdd);
+      console.log('[NumberGrid/useGridHandlers.ts] Using reservation days:', daysToAdd);
     }
     
     // Create a new date by adding the specified days
@@ -188,20 +204,20 @@ export const useGridHandlers = ({
         // If expiration would be after the lottery, use the lottery date instead
         reservationExpiresAt = new Date(lotteryDate);
         if (debugMode) {
-          console.log('NumberGrid: Utilizando la fecha de lotería como fecha de vencimiento:', reservationExpiresAt.toISOString());
+          console.log('[NumberGrid/useGridHandlers.ts] Utilizando la fecha de lotería como fecha de vencimiento:', reservationExpiresAt.toISOString());
         }
       } else {
         // Otherwise use the calculated expiration date
         reservationExpiresAt = expirationDate;
         if (debugMode) {
-          console.log('NumberGrid: Usando la fecha de vencimiento calculada:', reservationExpiresAt.toISOString());
+          console.log('[NumberGrid/useGridHandlers.ts] Usando la fecha de vencimiento calculada:', reservationExpiresAt.toISOString());
         }
       }
     } else {
       // No valid lottery date, just use the calculated expiration date
       reservationExpiresAt = expirationDate;
       if (debugMode) {
-        console.log('NumberGrid: No hay fecha de lotería válida, se utiliza el vencimiento calculado:', reservationExpiresAt.toISOString());
+        console.log('[NumberGrid/useGridHandlers.ts] No hay fecha de lotería válida, se utiliza el vencimiento calculado:', reservationExpiresAt.toISOString());
       }
     }
     
@@ -213,7 +229,7 @@ export const useGridHandlers = ({
   
   const handleProceedToPayment = async (buttonType: string) => {
     if (debugMode) {
-      console.log(`NumberGrid: handleProceedToPayment llamado con tipo de botón: ${buttonType}`);
+      console.log(`[NumberGrid/useGridHandlers.ts] handleProceedToPayment llamado con tipo de botón: ${buttonType}`);
     }
     
     // Validar que raffle_id esté definido
@@ -243,6 +259,8 @@ export const useGridHandlers = ({
     participantId: string,
     buyerInfo?: ValidatedBuyerInfo
   ) => {
+    console.log(`[NumberGrid/useGridHandlers.ts] Validación exitosa para participantId: ${participantId}`);
+    
     // Validar que participantId esté definido
     if (!participantId) {
       console.error("❌ Error: participantId está undefined. Abortando ejecución.");
@@ -252,7 +270,7 @@ export const useGridHandlers = ({
     
     if (buyerInfo) {
       if (debugMode) {
-        console.log("NumberGrid: Se recibió información validada del comprador:", {
+        console.log("[NumberGrid/useGridHandlers.ts] Se recibió información validada del comprador:", {
           name: buyerInfo.name,
           phone: buyerInfo.phone,
           cedula: buyerInfo.cedula,
@@ -271,6 +289,7 @@ export const useGridHandlers = ({
     
     try {
       if (participantId && buyerInfo) {
+        console.log(`[NumberGrid/useGridHandlers.ts] Procediendo al pago para participantId: ${participantId} con números seleccionados:`, selectedNumbers);
         await onProceedToPayment(selectedNumbers, buyerInfo, clickedPaymentButton);
       } else {
         await handleNumberValidation(validatedNumber);
@@ -282,6 +301,8 @@ export const useGridHandlers = ({
   };
   
   const handleParticipantValidation = async (participantId: string) => {
+    console.log(`[NumberGrid/useGridHandlers.ts] Validando participante: ${participantId}`);
+    
     // Validar que raffle_id y seller_id estén definidos
     if (!raffleSeller.raffle_id) {
       console.error("❌ Error: raffle_id está undefined en raffleSeller. Abortando ejecución.");
@@ -296,7 +317,7 @@ export const useGridHandlers = ({
     }
     
     if (debugMode) {
-      console.log('NumberGrid: Consultar a Supabase los números reservados con el participante ID:', participantId);
+      console.log('[NumberGrid/useGridHandlers.ts] Consultar a Supabase los números reservados con el participante ID:', participantId);
     }
     
     try {
@@ -309,7 +330,7 @@ export const useGridHandlers = ({
         .eq('seller_id', raffleSeller.seller_id);
       
       if (error) {
-        console.error('NumberGrid: Error al obtener números reservados:', error);
+        console.error('[NumberGrid/useGridHandlers.ts] Error al obtener números reservados:', error);
         toast.error('Error al buscar números reservados');
         return;
       }
@@ -319,15 +340,13 @@ export const useGridHandlers = ({
           n.number.toString().padStart(2, '0')
         );
         
-        if (debugMode) {
-          console.log('NumberGrid: Números reservados encontrados:', allReservedNumbers);
-        }
+        console.log(`[NumberGrid/useGridHandlers.ts] Números reservados encontrados para participante ${participantId}:`, allReservedNumbers);
         
         toast.success(`${allReservedNumbers.length} número(s) encontrado(s)`);
         await onProceedToPayment(allReservedNumbers);
       } else {
         if (debugMode) {
-          console.log('NumberGrid: No se encontraron números reservados con consulta directa');
+          console.log('[NumberGrid/useGridHandlers.ts] No se encontraron números reservados con consulta directa');
         }
         
         toast.error('❗ No se encontraron números reservados para este participante.');

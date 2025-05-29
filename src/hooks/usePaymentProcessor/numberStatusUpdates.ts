@@ -41,10 +41,39 @@ export const updateNumbersToSold = async ({
       throw new Error("El ID de la rifa no está definido");
     }
 
+    // Para "Pagar Apartados", validar que los números pertenezcan al participante específico
+    if (clickedButtonType === "Pagar Apartados") {
+      console.log("[numberStatusUpdates.ts] 🔍 Validando que los números pertenezcan al participante:", participantId);
+      
+      const { data: participantNumbers, error: participantError } = await supabase
+        .from('raffle_numbers')
+        .select('number, participant_id, seller_id')
+        .eq('raffle_id', raffleId)
+        .eq('participant_id', participantId)
+        .eq('seller_id', raffleSeller?.seller_id)
+        .eq('status', 'reserved')
+        .in('number', numbers.map(num => parseInt(num)));
+
+      if (participantError) {
+        console.error('[numberStatusUpdates.ts] Error al validar números del participante:', participantError);
+        throw new Error('Error al validar números del participante');
+      }
+
+      if (!participantNumbers || participantNumbers.length !== numbers.length) {
+        console.error('[numberStatusUpdates.ts] Los números no pertenecen todos al participante o no están reservados');
+        return { 
+          success: false, 
+          message: 'Algunos números no pertenecen a este participante o no están reservados'
+        };
+      }
+
+      console.log("[numberStatusUpdates.ts] ✅ Validación exitosa: todos los números pertenecen al participante");
+    }
+
     // Obtener información de números que podrían tener conflicto
     const { data: existingData, error: existingError } = await supabase
       .from('raffle_numbers')
-      .select('number, status, reservation_expires_at, seller_id')
+      .select('number, status, reservation_expires_at, seller_id, participant_id')
       .eq('raffle_id', raffleId)
       .in('number', numbers.map(num => parseInt(num)))
       .not('status', 'eq', 'available');
@@ -54,16 +83,23 @@ export const updateNumbersToSold = async ({
       throw new Error('Error al verificar disponibilidad de números');
     }
 
-    // Verificar conflictos: números que están vendidos o reservados por otros vendedores
+    // Verificar conflictos: números que están vendidos o reservados por otros
     const conflictingNumbers: string[] = [];
     
     existingData?.forEach(item => {
-      if (
-        item.status === 'sold' ||
-        (item.status === 'reserved' && raffleSeller?.seller_id && 
-         item.seller_id !== raffleSeller.seller_id)
-      ) {
-        conflictingNumbers.push(item.number.toString());
+      // Para "Pagar Apartados", verificar que el número pertenezca al participante correcto
+      if (clickedButtonType === "Pagar Apartados") {
+        if (item.status === 'sold' || 
+            (item.status === 'reserved' && item.participant_id !== participantId)) {
+          conflictingNumbers.push(item.number.toString());
+        }
+      } else {
+        // Para "Pagar Directo", verificar conflictos normales
+        if (item.status === 'sold' ||
+            (item.status === 'reserved' && raffleSeller?.seller_id && 
+             item.seller_id !== raffleSeller.seller_id)) {
+          conflictingNumbers.push(item.number.toString());
+        }
       }
     });
 
@@ -97,8 +133,8 @@ export const updateNumbersToSold = async ({
             seller_id: raffleSeller?.seller_id || null,
             payment_method: paymentMethod,
             payment_receipt_url: paymentProofUrl,
-            payment_proof: paymentProofUrl, // Restaurado: Se vuelve a guardar el comprobante aquí
-            payment_approved: false, // Restaurado: Se establece como no aprobado inicialmente
+            payment_proof: paymentProofUrl,
+            payment_approved: false,
             // NO MODIFICAMOS reservation_expires_at para preservar su valor
           };
         }
@@ -113,8 +149,8 @@ export const updateNumbersToSold = async ({
         seller_id: raffleSeller?.seller_id || null,
         payment_method: paymentMethod,
         payment_receipt_url: paymentProofUrl,
-        payment_proof: paymentProofUrl, // Restaurado: Se guarda el comprobante aquí
-        payment_approved: false, // Restaurado: Se establece como no aprobado inicialmente
+        payment_proof: paymentProofUrl,
+        payment_approved: false,
         reservation_expires_at: null
       };
     });
