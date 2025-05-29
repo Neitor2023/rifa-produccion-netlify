@@ -63,14 +63,14 @@ const GridLayout: React.FC<GridLayoutProps> = ({
 
   const { rows, columns } = calculateGridDimensions();
   
-  // Generate the grid of numbers
+  // Generar la cuadrícula de números
   const grid = [];
   for (let row = 0; row < rows; row++) {
     const rowItems = [];
     for (let col = 0; col < columns; col++) {
       const num = row * columns + col;
       
-      // If we exceed totalNumbers, don't render more numbers
+      // Si excedemos totalNumbers, no rendericemos más números
       if (num > totalNumbers) break;
       
       const paddedNum = num.toString().padStart(2, '0');
@@ -87,14 +87,14 @@ const GridLayout: React.FC<GridLayoutProps> = ({
           isSelected={isSelected}
           isHighlighted={isHighlighted}
           checklistImage={organization?.image_checklist}
-          reservedImage={organization?.image_apartado} // Pass the reserved image URL
+          reservedImage={organization?.image_apartado} // Pase la URL de la imagen reservada
           onToggle={() => {
             if (highlightReserved && status === 'reserved') {
-              // Directly call toggleNumber instead of onPayReserved
+              // Llamar directamente a toggleNumber en lugar de onPayReserved
               console.log("▶️ src/components/NumberGrid/GridLayout.tsx: pulsado reservado:", paddedNum);
               toggleNumber(paddedNum, status);
             } else {
-              // Normal selection logic
+              // Lógica de selección normal
               toggleNumber(paddedNum, status);
             }
           }}          
