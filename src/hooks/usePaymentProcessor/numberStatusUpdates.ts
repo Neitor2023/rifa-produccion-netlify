@@ -45,25 +45,50 @@ export const updateNumbersToSold = async ({
     if (clickedButtonType === "Pagar Apartados") {
       console.log("[numberStatusUpdates.ts] 🔍 Validando que los números pertenezcan al participante:", participantId);
       
+      // Añadir logging detallado de la consulta
+      console.log("[numberStatusUpdates.ts] 📋 Parámetros de consulta:", {
+        raffleId,
+        participantId,
+        sellerId: raffleSeller?.seller_id,
+        numbersToValidate: numbers
+      });
+      
       const { data: participantNumbers, error: participantError } = await supabase
         .from('raffle_numbers')
-        .select('number, participant_id, seller_id')
+        .select('number, participant_id, seller_id, status')
         .eq('raffle_id', raffleId)
         .eq('participant_id', participantId)
         .eq('seller_id', raffleSeller?.seller_id)
         .eq('status', 'reserved')
         .in('number', numbers.map(num => parseInt(num)));
 
+      console.log("[numberStatusUpdates.ts] 🔍 Resultado de la consulta:", {
+        encontrados: participantNumbers?.length || 0,
+        esperados: numbers.length,
+        datos: participantNumbers
+      });
+
       if (participantError) {
         console.error('[numberStatusUpdates.ts] Error al validar números del participante:', participantError);
         throw new Error('Error al validar números del participante');
       }
 
-      if (!participantNumbers || participantNumbers.length !== numbers.length) {
-        console.error('[numberStatusUpdates.ts] Los números no pertenecen todos al participante o no están reservados');
+      if (!participantNumbers || participantNumbers.length === 0) {
+        console.warn('[numberStatusUpdates.ts] ⚠️ No se encontraron números reservados para este participante');
         return { 
           success: false, 
-          message: 'Algunos números no pertenecen a este participante o no están reservados'
+          message: 'No se encontraron números reservados para este participante. Por favor, verifique que los números estén correctamente apartados.'
+        };
+      }
+
+      if (participantNumbers.length !== numbers.length) {
+        console.warn('[numberStatusUpdates.ts] ⚠️ Algunos números no pertenecen al participante:', {
+          encontrados: participantNumbers.map(n => n.number),
+          solicitados: numbers.map(n => parseInt(n))
+        });
+        return { 
+          success: false, 
+          message: `Solo ${participantNumbers.length} de ${numbers.length} números pertenecen a este participante y están reservados`
         };
       }
 
