@@ -105,20 +105,58 @@ export function usePaymentProcessor({
     setValidatedBuyerData: setBuyerInfo
   });
 
-  // Create a wrapper for handleCompletePayment
-  const completePayment = (formData: PaymentFormData): Promise<ConflictResult | void> => {
-    return handleCompletePayment({ 
-      raffleSeller: completeSeller,
-      raffleId,
-      selectedNumbers,
-      raffleNumbers,
-      setIsVoucherOpen,
-      setPaymentData,
-      setIsPaymentModalOpen,
-      refetchRaffleNumbers,
-      debugMode,
-      allowVoucherPrint
-    })(formData);
+  // CORRECCIÓN: Función para limpiar variables después del pago exitoso
+  const clearPaymentState = () => {
+    console.log("[usePaymentProcessor.ts] + Iniciando limpieza de variables tras pago completado");
+    
+    // Limpiar números seleccionados
+    setSelectedNumbers([]);
+    
+    // Limpiar datos del participante
+    setBuyerInfo(null);
+    
+    // Limpiar datos de pago
+    setPaymentData(null);
+    
+    // Cerrar modales
+    setIsPaymentModalOpen(false);
+    setIsConflictModalOpen(false);
+    setConflictingNumbers([]);
+    
+    console.log("[usePaymentProcessor.ts] ✅ Variables de pago limpiadas correctamente");
+  };
+
+  // Create a wrapper for handleCompletePayment with proper cleanup
+  const completePayment = async (formData: PaymentFormData): Promise<ConflictResult | void> => {
+    try {
+      const result = await handleCompletePayment({ 
+        raffleSeller: completeSeller,
+        raffleId,
+        selectedNumbers,
+        raffleNumbers,
+        setIsVoucherOpen,
+        setPaymentData,
+        setIsPaymentModalOpen,
+        refetchRaffleNumbers,
+        debugMode,
+        allowVoucherPrint
+      })(formData);
+
+      // CORRECCIÓN: Si el pago fue exitoso, limpiar variables
+      if (!result || (result && result.success)) {
+        console.log("[usePaymentProcessor.ts] + Pago completado exitosamente, limpiando variables");
+        
+        // Pequeño delay para asegurar que el voucher se abra correctamente antes de limpiar
+        setTimeout(() => {
+          clearPaymentState();
+        }, 500);
+      }
+
+      return result;
+    } catch (error) {
+      console.error("[usePaymentProcessor.ts] ❌ Error en completePayment:", error);
+      throw error;
+    }
   };
 
   // Function to verify numbers are not sold by others
@@ -253,6 +291,7 @@ export function usePaymentProcessor({
       participantData: participantData ? {
         id: participantData.id,
         name: participantData.name,
+        phone: participantData.phone,
         // Omit sensitive data from logs
       } : undefined
     });
@@ -290,12 +329,18 @@ export function usePaymentProcessor({
         return;
       }
       
-      setBuyerInfo(participantData);
+      // CORRECCIÓN: Asegurar que el teléfono esté en formato correcto antes de establecer buyerInfo
+      const updatedParticipantData = {
+        ...participantData,
+        phone: participantData.phone || ''
+      };
+      
+      setBuyerInfo(updatedParticipantData);
       setSelectedNumbers(numbers);
       
       setIsPaymentModalOpen(true);
       
-      debugLog("usePaymentProcessor: Payment modal opened with validated data:", participantData);
+      debugLog("usePaymentProcessor: Payment modal opened with validated data:", updatedParticipantData);
     } catch (error) {
       console.error('usePaymentProcessor: ❌ Error proceeding to payment of reserved numbers:', error);
       toast.error('Error al procesar el pago de números reservados');
@@ -324,6 +369,7 @@ export function usePaymentProcessor({
     verifyNumbersNotSoldByOthers,
     findOrCreateParticipant,
     getSoldNumbersCount,
-    allowVoucherPrint
+    allowVoucherPrint,
+    clearPaymentState // Exportar función de limpieza para uso externo si es necesario
   };
 }

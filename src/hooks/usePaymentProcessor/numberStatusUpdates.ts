@@ -55,16 +55,16 @@ export const updateNumbersToSold = async ({
     // Sanitize participantId early to prevent UUID errors
     const sanitizedParticipantId = sanitizeParticipantIdForDB(participantId);
     
-    console.log("[numberStatusUpdates.ts] + Iniciando actualización con datos validados:", { 
+    console.log("[numberStatusUpdates.ts] + Iniciando pago de número reservado:", { 
       participantIdOriginal: participantId,
       participantIdSanitizado: sanitizedParticipantId,
       raffleId,
       sellerId: raffleSeller?.seller_id,
-      tipoBoton: clickedButtonType,
-      numerosSeleccionados: selectedNumbers,
-      cantidadSeleccionada: selectedNumbers.length,
-      comprobanteUrl: paymentProofUrl
+      tipoBoton: clickedButtonType
     });
+
+    console.log("[numberStatusUpdates.ts] + Números seleccionados para pago:", selectedNumbers);
+    console.log("[numberStatusUpdates.ts] + Comprobante cargado:", paymentProofUrl ? 'Sí' : 'No');
 
     // Validar el raffleId
     if (!raffleId) {
@@ -72,7 +72,7 @@ export const updateNumbersToSold = async ({
       throw new Error("El ID de la rifa no está definido");
     }
 
-    // CORRECCIÓN: Para "Pagar Apartados", validar que los números pertenezcan al participante específico
+    // CORRECCIÓN: Para "Pagar Apartados", validar que los números pertenezcan al participante específico Y estén en la selección
     if (clickedButtonType === "Pagar Apartados") {
       console.log("[numberStatusUpdates.ts] + Validando números apartados para participante:", {
         participantId: sanitizedParticipantId,
@@ -89,6 +89,7 @@ export const updateNumbersToSold = async ({
         };
       }
       
+      // CORRECCIÓN CRÍTICA: Obtener TODOS los números reservados del participante
       const { data: participantNumbers, error: participantError } = await supabase
         .from('raffle_numbers')
         .select('number, participant_id, seller_id, status')
@@ -97,9 +98,8 @@ export const updateNumbersToSold = async ({
         .eq('seller_id', raffleSeller?.seller_id)
         .eq('status', 'reserved');
 
-      console.log("[numberStatusUpdates.ts] + Resultado de consulta BD:", {
+      console.log("[numberStatusUpdates.ts] + Números reservados del participante en BD:", {
         encontradosEnBD: participantNumbers?.length || 0,
-        esperadosSeleccionados: selectedNumbers.length,
         datosEncontrados: participantNumbers?.map(n => n.number) || []
       });
 
@@ -116,44 +116,35 @@ export const updateNumbersToSold = async ({
         };
       }
 
-      // CORRECCIÓN: Verificar si los números del participante están CONTENIDOS en la selección
+      // CORRECCIÓN CRÍTICA: Validar que SOLO se procesen los números SELECCIONADOS que pertenezcan al participante
       const participantNumbersArray = participantNumbers.map(n => parseInt(String(n.number)));
       const selectedNumbersArray = selectedNumbers.map(n => parseInt(n));
       
-      const participantNumbersInSelection = participantNumbersArray.filter(num => 
-        selectedNumbersArray.includes(num)
+      // Filtrar números seleccionados que realmente pertenecen al participante
+      const validSelectedNumbers = selectedNumbersArray.filter(num => 
+        participantNumbersArray.includes(num)
       );
 
-      console.log("[numberStatusUpdates.ts] + Análisis de inclusión:", {
-        numerosDelParticipante: participantNumbersArray,
-        numerosSeleccionados: selectedNumbersArray,
-        numerosDelParticipanteEnSeleccion: participantNumbersInSelection,
-        todosIncluidos: participantNumbersInSelection.length === participantNumbersArray.length
+      console.log("[numberStatusUpdates.ts] + Validación de números seleccionados:", {
+        numerosReservadosDelParticipante: participantNumbersArray,
+        numerosSeleccionadosEnUI: selectedNumbersArray,
+        numerosValidosParaPago: validSelectedNumbers,
+        cantidadValidaParaPago: validSelectedNumbers.length
       });
 
-      if (participantNumbersInSelection.length === 0) {
-        console.warn('[numberStatusUpdates.ts] + Ningún número del participante está en la selección');
+      if (validSelectedNumbers.length === 0) {
+        console.warn('[numberStatusUpdates.ts] + Ningún número seleccionado pertenece a este participante');
         return { 
           success: false, 
           message: 'Los números seleccionados no pertenecen a este participante'
         };
       }
 
-      // Proceder solo con los números que realmente pertenecen al participante
-      const validSelectedNumbers = selectedNumbers.filter(num => 
-        participantNumbersArray.includes(parseInt(num))
-      );
+      // CORRECCIÓN: Actualizar selectedNumbers para usar SOLO los números válidos seleccionados del participante
+      selectedNumbers = validSelectedNumbers.map(n => String(n).padStart(2, '0'));
 
-      if (validSelectedNumbers.length !== participantNumbersInSelection.length) {
-        console.warn('[numberStatusUpdates.ts] + Discrepancia en números válidos');
-      }
-
-      // Actualizar selectedNumbers para usar solo los números válidos del participante
-      selectedNumbers = validSelectedNumbers.map(n => String(parseInt(n)).padStart(2, '0'));
-
-      console.log("[numberStatusUpdates.ts] + Validación exitosa: procediendo con números del participante:", {
-        numerosOriginales: selectedNumbersArray,
-        numerosValidados: selectedNumbers,
+      console.log("[numberStatusUpdates.ts] + Validación exitosa: procediendo con números seleccionados del participante:", {
+        numerosAProcessar: selectedNumbers,
         cantidadFinal: selectedNumbers.length
       });
     }
@@ -245,10 +236,10 @@ export const updateNumbersToSold = async ({
       };
     });
 
-    console.log("[numberStatusUpdates.ts] + Preparando actualización para números:", {
+    console.log("[numberStatusUpdates.ts] + Datos del participante para actualización:", {
+      participantId: sanitizedParticipantId,
       cantidadNumeros: updateData.length,
       numerosAProcesar: updateData.map(d => d.number),
-      participantIdFinal: sanitizedParticipantId,
       tieneComprobante: !!paymentProofUrl,
       comprobanteUrl: paymentProofUrl
     });
@@ -266,11 +257,13 @@ export const updateNumbersToSold = async ({
       throw new Error('Error al actualizar estado de números en la base de datos: ' + updateError.message);
     }
 
-    console.log("[numberStatusUpdates.ts] + Actualización exitosa completada para:", {
+    console.log("[numberStatusUpdates.ts] ✅ Actualización exitosa completada para:", {
       numeros: selectedNumbers,
       participantId: sanitizedParticipantId,
       comprobanteGuardado: !!paymentProofUrl
     });
+
+    console.log("[numberStatusUpdates.ts] + Limpieza de variables tras pago completado.");
     
     return { success: true };
     

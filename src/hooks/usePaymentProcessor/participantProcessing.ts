@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { PaymentFormData } from "@/schemas/paymentFormSchema";
 import { getSellerUuidFromCedula, isValidUuid } from "@/hooks/useRaffleData/useSellerIdMapping";
+import { formatPhoneNumber } from "@/utils/phoneUtils";
 
 interface ProcessParticipantProps {
   data: PaymentFormData;
@@ -41,6 +42,13 @@ export const processParticipant = async ({
       throw new Error('La cédula del comprador es requerida');
     }
 
+    // CORRECCIÓN: Formatear el teléfono al formato internacional
+    const formattedPhone = formatPhoneNumber(data.buyerPhone);
+    console.log("[participantProcessing.ts] + Teléfono formateado:", {
+      original: data.buyerPhone,
+      formateado: formattedPhone
+    });
+
     // CORRECCIÓN CRÍTICA: Validar y convertir seller_id si es necesario
     let validSellerId: string | null = null;
     
@@ -76,7 +84,7 @@ export const processParticipant = async ({
     // Preparar datos del participante con valores por defecto para campos opcionales
     const participantData = {
       name: data.buyerName.trim(),
-      phone: data.buyerPhone.trim(),
+      phone: formattedPhone, // Usar el teléfono formateado
       cedula: data.buyerCedula.trim(),
       email: data.buyerEmail || '',
       direccion: data.direccion || '',
@@ -118,7 +126,7 @@ export const processParticipant = async ({
         .from('participants')
         .update({
           name: participantData.name,
-          phone: participantData.phone,
+          phone: participantData.phone, // Actualizar con teléfono formateado
           email: participantData.email,
           direccion: participantData.direccion,
           sugerencia_producto: participantData.sugerencia_producto,
