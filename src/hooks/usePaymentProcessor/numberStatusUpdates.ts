@@ -94,8 +94,7 @@ export const updateNumbersToSold = async ({
         .eq('raffle_id', raffleId)
         .eq('participant_id', sanitizedParticipantId)
         .eq('seller_id', raffleSeller?.seller_id)
-        .eq('status', 'reserved')
-        .in('number', selectedNumbers.map(num => parseInt(num)));
+        .eq('status', 'reserved');
 
       console.log("[numberStatusUpdates.ts] 📊 Resultado de consulta BD:", {
         encontradosEnBD: participantNumbers?.length || 0,
@@ -116,20 +115,48 @@ export const updateNumbersToSold = async ({
         };
       }
 
-      if (participantNumbers.length !== selectedNumbers.length) {
-        console.warn('[numberStatusUpdates.ts] ⚠️ Inconsistencia entre números seleccionados y encontrados:', {
-          encontradosEnBD: participantNumbers.map(n => n.number),
-          seleccionadosEnUI: selectedNumbers.map(n => parseInt(n)),
-          cantidadEncontrada: participantNumbers.length,
-          cantidadSeleccionada: selectedNumbers.length
-        });
+      // CORRECCIÓN: Verificar si los números del participante están CONTENIDOS en la selección
+      // En lugar de validar igualdad exacta, verificamos inclusión
+      const participantNumbersArray = participantNumbers.map(n => parseInt(n.number));
+      const selectedNumbersArray = selectedNumbers.map(n => parseInt(n));
+      
+      const participantNumbersInSelection = participantNumbersArray.filter(num => 
+        selectedNumbersArray.includes(num)
+      );
+
+      console.log("[numberStatusUpdates.ts] 🔍 Análisis de inclusión:", {
+        numerosDelParticipante: participantNumbersArray,
+        numerosSeleccionados: selectedNumbersArray,
+        numerosDelParticipanteEnSeleccion: participantNumbersInSelection,
+        todosIncluidos: participantNumbersInSelection.length === participantNumbersArray.length
+      });
+
+      if (participantNumbersInSelection.length === 0) {
+        console.warn('[numberStatusUpdates.ts] ⚠️ Ningún número del participante está en la selección');
         return { 
           success: false, 
-          message: `Solo ${participantNumbers.length} de ${selectedNumbers.length} números seleccionados están reservados para este participante`
+          message: 'Los números seleccionados no pertenecen a este participante'
         };
       }
 
-      console.log("[numberStatusUpdates.ts] ✅ Validación exitosa: todos los números seleccionados están en la BD");
+      // Proceder solo con los números que realmente pertenecen al participante
+      // Filtrar selectedNumbers para incluir solo los que están en participantNumbers
+      const validSelectedNumbers = selectedNumbers.filter(num => 
+        participantNumbersArray.includes(parseInt(num))
+      );
+
+      if (validSelectedNumbers.length !== participantNumbersInSelection.length) {
+        console.warn('[numberStatusUpdates.ts] ⚠️ Discrepancia en números válidos');
+      }
+
+      // Actualizar selectedNumbers para usar solo los números válidos del participante
+      selectedNumbers = validSelectedNumbers.map(n => String(parseInt(n)).padStart(2, '0'));
+
+      console.log("[numberStatusUpdates.ts] ✅ Validación exitosa: procediendo con números del participante:", {
+        numerosOriginales: selectedNumbersArray,
+        numerosValidados: selectedNumbers,
+        cantidadFinal: selectedNumbers.length
+      });
     }
 
     // Obtener información de números que podrían tener conflicto
