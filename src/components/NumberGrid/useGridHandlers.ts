@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,6 +39,7 @@ export const useGridHandlers = ({
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
   const [clickedPaymentButton, setClickedPaymentButton] = useState<string | undefined>(undefined);
+  const [currentParticipantId, setCurrentParticipantId] = useState<string | null>(null);
   
   // Context hooks
   const { setBuyerInfo } = useBuyerInfo();
@@ -104,6 +106,12 @@ export const useGridHandlers = ({
           participantId: selectedNumber.participant_id,
           sellerId: selectedNumber.seller_id
         });
+        
+        // CRUCIAL: Capturar y almacenar el participantId
+        const participantId = selectedNumber.participant_id;
+        setCurrentParticipantId(participantId);
+        
+        console.log(`[useGridHandlers.ts] 💾 participantId capturado:`, participantId);
         
         // Solo obtener números del mismo participante que el número seleccionado
         const allReservedNumbers = numbers
@@ -237,7 +245,8 @@ export const useGridHandlers = ({
       numeros: selectedNumbers,
       cantidad: selectedNumbers.length,
       raffleId: raffleSeller.raffle_id,
-      sellerId: raffleSeller.seller_id
+      sellerId: raffleSeller.seller_id,
+      participantIdActual: currentParticipantId
     });
     
     // Validar que raffle_id esté definido
@@ -255,6 +264,17 @@ export const useGridHandlers = ({
       return;
     }
     
+    // VALIDACIÓN CRÍTICA: Para "Pagar Apartados" debe haber participantId
+    if (buttonType === "Pagar Apartados") {
+      if (!currentParticipantId) {
+        console.error("[useGridHandlers.ts] ❌ Error: No hay participantId para 'Pagar Apartados'");
+        toast.error("Error: No se pudo identificar el participante. Por favor, seleccione el número nuevamente.");
+        return;
+      }
+      
+      console.log(`[useGridHandlers.ts] ✅ participantId validado para Pagar Apartados: ${currentParticipantId}`);
+    }
+    
     try {
       await onProceedToPayment(selectedNumbers, undefined, buttonType);
     } catch (error) {
@@ -269,7 +289,8 @@ export const useGridHandlers = ({
     buyerInfo?: ValidatedBuyerInfo
   ) => {
     console.log(`[useGridHandlers.ts] ✅ Validación exitosa:`, {
-      participantId,
+      participantIdPasado: participantId,
+      participantIdActual: currentParticipantId,
       numerosSeleccionados: selectedNumbers,
       cantidadSeleccionada: selectedNumbers.length,
       buyerInfo: buyerInfo ? {
@@ -278,25 +299,46 @@ export const useGridHandlers = ({
       } : null
     });
     
-    // Validar que participantId esté definido
-    if (!participantId) {
-      console.error("[useGridHandlers.ts] ❌ Error: participantId undefined");
+    // CRUCIAL: Usar el participantId validado y sincronizar con el actual
+    const finalParticipantId = participantId || currentParticipantId;
+    
+    if (!finalParticipantId) {
+      console.error("[useGridHandlers.ts] ❌ Error: participantId undefined después de validación");
       toast.error("Error en la validación. Por favor, intente de nuevo.");
       return;
     }
     
+    // Actualizar el participantId actual si viene uno nuevo de la validación
+    if (participantId && participantId !== currentParticipantId) {
+      console.log(`[useGridHandlers.ts] 🔄 Actualizando participantId: ${currentParticipantId} -> ${participantId}`);
+      setCurrentParticipantId(participantId);
+    }
+    
     if (buyerInfo) {
       console.log("[useGridHandlers.ts] 💾 Actualizando información del comprador");
-      setBuyerInfo(buyerInfo);
+      
+      // CRUCIAL: Asegurar que el buyerInfo tenga el participantId correcto
+      const updatedBuyerInfo = {
+        ...buyerInfo,
+        id: finalParticipantId
+      };
+      
+      setBuyerInfo(updatedBuyerInfo);
     }
     
     setIsPhoneModalOpen(false);
     setShowReservedMessage(false);
     
     try {
-      if (participantId && buyerInfo) {
-        console.log(`[useGridHandlers.ts] 🚀 Procediendo al pago con participante validado`);
-        await onProceedToPayment(selectedNumbers, buyerInfo, clickedPaymentButton);
+      if (finalParticipantId && buyerInfo) {
+        console.log(`[useGridHandlers.ts] 🚀 Procediendo al pago con participante validado: ${finalParticipantId}`);
+        
+        const finalBuyerInfo = {
+          ...buyerInfo,
+          id: finalParticipantId
+        };
+        
+        await onProceedToPayment(selectedNumbers, finalBuyerInfo, clickedPaymentButton);
       } else {
         await handleNumberValidation(validatedNumber);
       }

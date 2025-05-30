@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
@@ -54,7 +53,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       nota: '',
       reporteSospechoso: '',
       sellerId: '',
-      participantId: '',
+      participantId: buyerInfo?.id || '',
       clickedButtonType: '',
       paymentReceiptUrl: '',
     },
@@ -79,16 +78,45 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       form.setValue('direccion', buyerInfo.direccion || '');
       form.setValue('sugerenciaProducto', buyerInfo.sugerencia_producto || '');
       
+      // CRUCIAL: Asegurar que el participantId se establezca correctamente
+      if (buyerInfo.id) {
+        form.setValue('participantId', buyerInfo.id);
+        console.log(`[PaymentModal.tsx] 💾 participantId establecido en el formulario: ${buyerInfo.id}`);
+      }
+      
       // Log para depuración
       if (debugMode) {
         console.log("PaymentModal: Cargando datos de comprador existente:", {
           name: buyerInfo.name,
           phone: buyerInfo.phone,
+          participantId: buyerInfo.id,
           sugerenciaProducto: buyerInfo.sugerencia_producto
         });
       }
     }
   }, [isOpen, clickedButton, buyerInfo]);
+
+  // VALIDACIÓN CRÍTICA: Verificar datos antes de abrir el modal para "Pagar Apartados"
+  useEffect(() => {
+    if (isOpen && clickedButton === "Pagar Apartados") {
+      console.log('[PaymentModal.tsx] 🔍 Validando datos para "Pagar Apartados":', {
+        buyerInfo: buyerInfo ? {
+          id: buyerInfo.id,
+          name: buyerInfo.name,
+          phone: buyerInfo.phone
+        } : null,
+        participantIdEnFormulario: form.getValues('participantId')
+      });
+      
+      // Si no hay buyerInfo o no tiene ID válido para "Pagar Apartados"
+      if (!buyerInfo || !buyerInfo.id) {
+        console.error('[PaymentModal.tsx] ❌ Error: Datos de participante faltantes para "Pagar Apartados"');
+        toast.error('Error: No se pudieron cargar los datos del participante. Por favor, intente nuevamente.');
+        onClose();
+        return;
+      }
+    }
+  }, [isOpen, clickedButton, buyerInfo, onClose, form]);
   
   // Función para restablecer el formulario
   const resetForm = () => {
@@ -130,9 +158,33 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     try {
       setIsSubmitting(true);
       
+      // VALIDACIÓN CRÍTICA FINAL antes del envío
+      if (clickedButton === "Pagar Apartados") {
+        const participantId = data.participantId || buyerInfo?.id;
+        
+        console.log('[PaymentModal.tsx] 🔍 Validación final para "Pagar Apartados":', {
+          participantIdFormulario: data.participantId,
+          participantIdBuyerInfo: buyerInfo?.id,
+          participantIdFinal: participantId
+        });
+        
+        if (!participantId) {
+          console.error('[PaymentModal.tsx] ❌ Error: participantId faltante en envío');
+          toast.error('Error: No se puede procesar el pago sin identificar el participante.');
+          setIsSubmitting(false);
+          return;
+        }
+        
+        // Asegurar que el participantId esté en los datos del formulario
+        data.participantId = participantId;
+      }
+      
       // Registrar los datos del formulario para fines de depuración
       if (debugMode) {
-        console.log("Datos del formulario a enviar:", data);
+        console.log("Datos del formulario a enviar:", {
+          ...data,
+          participantId: data.participantId
+        });
         console.log("Valor del campo sugerenciaProducto:", data.sugerenciaProducto);
       }
       

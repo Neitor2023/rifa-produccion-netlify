@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
@@ -190,6 +191,13 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         return;
       }
 
+      console.log(`[PhoneValidationModal.tsx] ✅ Participante encontrado:`, {
+        id: participant.id,
+        name: participant.name,
+        phone: participant.phone,
+        foundBy
+      });
+
       // Verificar si el participante tiene números reservados
       const { data: reservedNumbersData, error: reservedError } = await supabase
         .from('raffle_numbers')
@@ -249,13 +257,19 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       return;
     }
     
+    console.log(`[PhoneValidationModal.tsx] 🚀 Procediendo con participante validado:`, {
+      id: participant.id,
+      name: participant.name,
+      phone: participant.phone
+    });
+    
     if (!participant.phone && validation.formattedNumber) {
       participant.phone = formatPhoneNumber(phone);
     }
     
     onPhoneValidationSuccess(
       participant.phone || formatPhoneNumber(phone),
-      participant.id,
+      participant.id, // CRUCIAL: Pasar el ID correcto
       participant
     );
     handleModalClose();
