@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -112,15 +111,13 @@ export function usePaymentProcessor({
       raffleSeller: completeSeller,
       raffleId,
       selectedNumbers,
-      refetchRaffleNumbers,
+      raffleNumbers,
+      setIsVoucherOpen,
       setPaymentData,
       setIsPaymentModalOpen,
-      setIsVoucherOpen,
-      allowVoucherPrint,
-      uploadPaymentProof,
-      processParticipant,
-      supabase,
-      debugMode
+      refetchRaffleNumbers,
+      debugMode,
+      allowVoucherPrint
     })(formData);
   };
 
