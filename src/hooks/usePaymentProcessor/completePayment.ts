@@ -20,7 +20,28 @@ interface CompletePaymentProps {
   setIsPaymentModalOpen: (open: boolean) => void;
   refetchRaffleNumbers: () => Promise<any>;
   debugMode?: boolean;
-  allowVoucherPrint?: boolean; // Added missing property
+  allowVoucherPrint?: boolean;
+}
+
+// Helper function to validate UUID format
+function isValidUUID(uuid: string): boolean {
+  if (!uuid || typeof uuid !== 'string') return false;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+}
+
+// Helper function to sanitize participantId
+function sanitizeParticipantId(participantId: string | undefined | null): string | null {
+  if (!participantId || participantId.trim() === '') {
+    return null;
+  }
+  
+  if (!isValidUUID(participantId)) {
+    console.warn('[completePayment.ts] ⚠️ Invalid UUID format detected:', participantId);
+    return null;
+  }
+  
+  return participantId;
 }
 
 export function useCompletePayment({
@@ -33,7 +54,7 @@ export function useCompletePayment({
   setIsPaymentModalOpen,
   refetchRaffleNumbers,
   debugMode = false,
-  allowVoucherPrint = true // Added with default value
+  allowVoucherPrint = true
 }: CompletePaymentProps) {
 
   const debugLog = (context: string, data: any) => {
@@ -44,8 +65,12 @@ export function useCompletePayment({
 
   const completePayment = async (data: PaymentFormData): Promise<ConflictResult | void> => {
     try {
-      console.log("[completePayment.ts] 🎯 Iniciando proceso de pago con datos:", {
-        participantId: data.participantId,
+      // Validate and sanitize participantId
+      const sanitizedParticipantId = sanitizeParticipantId(data.participantId);
+      
+      console.log("[completePayment.ts] 🎯 Iniciando proceso de pago con datos validados:", {
+        participantIdOriginal: data.participantId,
+        participantIdSanitizado: sanitizedParticipantId,
         sellerId: data.sellerId,
         tipoBoton: data.clickedButtonType,
         numerosSeleccionados: selectedNumbers,
@@ -60,6 +85,11 @@ export function useCompletePayment({
         throw new Error('No hay números seleccionados para procesar');
       }
 
+      // Validate workflow based on button type
+      if (data.clickedButtonType === "Pagar Apartados" && !sanitizedParticipantId) {
+        throw new Error('Para pagar números apartados se requiere un participante válido');
+      }
+
       // Upload image if provided
       let paymentProofUrl: string | null = null;
       if (data.paymentProof) {
@@ -68,11 +98,11 @@ export function useCompletePayment({
         console.log("[completePayment.ts] ✅ Comprobante subido:", paymentProofUrl);
       }
 
-      // Update numbers to sold status - PASANDO selectedNumbers como parámetro adicional
+      // Update numbers to sold status with sanitized participantId
       const updateResult: UpdateResult = await updateNumbersToSold({
-        numbers: selectedNumbers, // Esta es la lista original que se mantiene
-        selectedNumbers, // NUEVO: Pasar selectedNumbers explícitamente
-        participantId: data.participantId || '',
+        numbers: selectedNumbers,
+        selectedNumbers,
+        participantId: sanitizedParticipantId || '', // Use empty string as fallback for backward compatibility
         paymentProofUrl,
         raffleNumbers,
         raffleSeller,
@@ -102,7 +132,7 @@ export function useCompletePayment({
         selectedNumbers,
         paymentMethod: data.paymentMethod,
         paymentProof: paymentProofUrl,
-        participantId: data.participantId,
+        participantId: sanitizedParticipantId,
         sellerId: data.sellerId,
         clickedButtonType: data.clickedButtonType
       };

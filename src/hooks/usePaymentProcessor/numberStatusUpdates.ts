@@ -10,13 +10,34 @@ interface UpdateNumbersParams {
   raffleId: string;
   paymentMethod: string;
   clickedButtonType: string;
-  selectedNumbers: string[]; // Nuevo parámetro para números seleccionados
+  selectedNumbers: string[];
 }
 
 export interface UpdateResult {
   success: boolean;
   conflictingNumbers?: string[];
   message?: string;
+}
+
+// Helper function to validate UUID format
+function isValidUUID(uuid: string): boolean {
+  if (!uuid || typeof uuid !== 'string') return false;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+}
+
+// Helper function to sanitize participantId for database operations
+function sanitizeParticipantIdForDB(participantId: string): string | null {
+  if (!participantId || participantId.trim() === '') {
+    return null;
+  }
+  
+  if (!isValidUUID(participantId)) {
+    console.warn('[numberStatusUpdates.ts] ⚠️ Invalid UUID format, converting to null:', participantId);
+    return null;
+  }
+  
+  return participantId;
 }
 
 export const updateNumbersToSold = async ({
@@ -28,11 +49,15 @@ export const updateNumbersToSold = async ({
   raffleId,
   paymentMethod,
   clickedButtonType,
-  selectedNumbers // Recibiendo números seleccionados
+  selectedNumbers
 }: UpdateNumbersParams): Promise<UpdateResult> => {
   try {
-    console.log("[numberStatusUpdates.ts] 🎯 Iniciando actualización con datos clave:", { 
-      participantId,
+    // Sanitize participantId early to prevent UUID errors
+    const sanitizedParticipantId = sanitizeParticipantIdForDB(participantId);
+    
+    console.log("[numberStatusUpdates.ts] 🎯 Iniciando actualización con datos validados:", { 
+      participantIdOriginal: participantId,
+      participantIdSanitizado: sanitizedParticipantId,
       raffleId,
       sellerId: raffleSeller?.seller_id,
       tipoBoton: clickedButtonType,
@@ -49,16 +74,25 @@ export const updateNumbersToSold = async ({
     // Para "Pagar Apartados", validar que los números pertenezcan al participante específico
     if (clickedButtonType === "Pagar Apartados") {
       console.log("[numberStatusUpdates.ts] 🔍 Validando números apartados para participante:", {
-        participantId,
+        participantId: sanitizedParticipantId,
         numerosSeleccionados: selectedNumbers,
         cantidadSeleccionada: selectedNumbers.length
       });
+      
+      // Only proceed with validation if we have a valid participantId
+      if (!sanitizedParticipantId) {
+        console.error('[numberStatusUpdates.ts] ❌ Error: participantId no válido para flujo "Pagar Apartados"');
+        return { 
+          success: false, 
+          message: 'Se requiere un participante válido para pagar números apartados'
+        };
+      }
       
       const { data: participantNumbers, error: participantError } = await supabase
         .from('raffle_numbers')
         .select('number, participant_id, seller_id, status')
         .eq('raffle_id', raffleId)
-        .eq('participant_id', participantId)
+        .eq('participant_id', sanitizedParticipantId)
         .eq('seller_id', raffleSeller?.seller_id)
         .eq('status', 'reserved')
         .in('number', selectedNumbers.map(num => parseInt(num)));
@@ -74,7 +108,6 @@ export const updateNumbersToSold = async ({
         throw new Error('Error al validar números del participante');
       }
 
-      // CORRECCIÓN PRINCIPAL: Comparar con selectedNumbers.length
       if (!participantNumbers || participantNumbers.length === 0) {
         console.warn('[numberStatusUpdates.ts] ⚠️ No se encontraron números reservados para este participante');
         return { 
@@ -123,7 +156,7 @@ export const updateNumbersToSold = async ({
     existingData?.forEach(item => {
       if (clickedButtonType === "Pagar Apartados") {
         if (item.status === 'sold' || 
-            (item.status === 'reserved' && item.participant_id !== participantId)) {
+            (item.status === 'reserved' && item.participant_id !== sanitizedParticipantId)) {
           conflictingNumbers.push(item.number.toString());
         }
       } else {
@@ -156,7 +189,7 @@ export const updateNumbersToSold = async ({
             raffle_id: raffleId,
             number: parseInt(num),
             status: 'sold',
-            participant_id: participantId,
+            participant_id: sanitizedParticipantId,
             seller_id: raffleSeller?.seller_id || null,
             payment_method: paymentMethod,
             payment_receipt_url: paymentProofUrl,
@@ -171,7 +204,7 @@ export const updateNumbersToSold = async ({
         raffle_id: raffleId,
         number: parseInt(num),
         status: 'sold',
-        participant_id: participantId,
+        participant_id: sanitizedParticipantId,
         seller_id: raffleSeller?.seller_id || null,
         payment_method: paymentMethod,
         payment_receipt_url: paymentProofUrl,
@@ -183,7 +216,8 @@ export const updateNumbersToSold = async ({
 
     console.log("[numberStatusUpdates.ts] 💾 Preparando actualización para números:", {
       cantidadNumeros: updateData.length,
-      numerosAProcesar: updateData.map(d => d.number)
+      numerosAProcesar: updateData.map(d => d.number),
+      participantIdFinal: sanitizedParticipantId
     });
     
     // Realizar la actualización con upsert
