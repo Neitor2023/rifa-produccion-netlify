@@ -41,6 +41,7 @@ export function usePaymentCompletion({
       clickedButtonType: string = 'Pagar'
     ) => updateNumbersToSold({ 
       numbers, 
+      selectedNumbers: numbers, // Añadir selectedNumbers requerido
       participantId, 
       paymentProofUrl, 
       raffleNumbers, 

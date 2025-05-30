@@ -134,3 +134,9 @@ export function useCompletePayment({
 
   return { completePayment };
 }
+
+// Export the function for backwards compatibility
+export const handleCompletePayment = (props: CompletePaymentProps) => {
+  const { completePayment } = useCompletePayment(props);
+  return completePayment;
+};
