@@ -13,14 +13,14 @@ const DEFAULT_SUPABASE_KEY_DEV = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Variable de entorno explícita
 // Valores permitidos: "dev" | "prod"
 // Por defecto: "prod" para producción
-const DEFAULT_ENVIRONMENT: "dev" | "prod" = "dev";
+const DEFAULT_ENVIRONMENT: "dev" | "prod" = "prod";
 
 // Nombres de buckets por defecto
 const DEFAULT_BUCKET_PAYMENT_PROOFS = "payment-proofs";
 
 // Control de visibilidad del aviso de desarrollo
 // Por defecto false - no mostrar aviso de desarrollo en producción
-const DEFAULT_SHOW_DEV_NOTICE = false;
+const DEFAULT_SHOW_DEV_NOTICE = true;
 
 export interface EnvironmentConfig {
   supabaseUrl: string;
