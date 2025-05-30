@@ -93,11 +93,11 @@ export function useCompletePayment({
         throw new Error('No hay números seleccionados para procesar');
       }
 
-      // Ensure we have a properly formed PaymentFormData object with all required fields
+      // Create validated data with all required fields properly assigned
       const validatedData: PaymentFormData = {
-        buyerName: data.buyerName,
-        buyerPhone: data.buyerPhone,
-        buyerCedula: data.buyerCedula,
+        buyerName: data.buyerName.trim(),
+        buyerPhone: data.buyerPhone.trim(),
+        buyerCedula: data.buyerCedula.trim(),
         buyerEmail: data.buyerEmail || '',
         direccion: data.direccion || '',
         paymentMethod: data.paymentMethod || 'cash',
