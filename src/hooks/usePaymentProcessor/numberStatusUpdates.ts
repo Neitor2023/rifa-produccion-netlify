@@ -55,26 +55,27 @@ export const updateNumbersToSold = async ({
     // Sanitize participantId early to prevent UUID errors
     const sanitizedParticipantId = sanitizeParticipantIdForDB(participantId);
     
-    console.log("[numberStatusUpdates.ts] + Iniciando pago de número reservado:", { 
+    console.log("[numberStatusUpdates.ts] + 💰 Iniciando actualización de números para pago:", { 
       participantIdOriginal: participantId,
       participantIdSanitizado: sanitizedParticipantId,
       raffleId,
       sellerId: raffleSeller?.seller_id,
-      tipoBoton: clickedButtonType
+      tipoBoton: clickedButtonType,
+      metodoPago: paymentMethod
     });
 
-    console.log("[numberStatusUpdates.ts] + Números seleccionados para pago:", selectedNumbers);
-    console.log("[numberStatusUpdates.ts] + Comprobante cargado:", paymentProofUrl ? 'Sí' : 'No');
+    console.log("[numberStatusUpdates.ts] + 📋 Números seleccionados para pago:", selectedNumbers);
+    console.log("[numberStatusUpdates.ts] + 📎 Comprobante cargado:", paymentProofUrl ? 'Sí' : 'No');
 
     // Validar el raffleId
     if (!raffleId) {
-      console.error("[numberStatusUpdates.ts] + Error: raffleId no está definido");
+      console.error("[numberStatusUpdates.ts] + ❌ Error: raffleId no está definido");
       throw new Error("El ID de la rifa no está definido");
     }
 
-    // CORRECCIÓN: Para "Pagar Apartados", validar que los números pertenezcan al participante específico Y estén en la selección
+    // CORRECCIÓN CRÍTICA: Para "Pagar Apartados", validar que los números pertenezcan al participante específico Y estén en la selección
     if (clickedButtonType === "Pagar Apartados") {
-      console.log("[numberStatusUpdates.ts] + Validando números apartados para participante:", {
+      console.log("[numberStatusUpdates.ts] + 🔍 Validando números apartados para participante:", {
         participantId: sanitizedParticipantId,
         numerosSeleccionados: selectedNumbers,
         cantidadSeleccionada: selectedNumbers.length
@@ -82,7 +83,7 @@ export const updateNumbersToSold = async ({
       
       // Only proceed with validation if we have a valid participantId
       if (!sanitizedParticipantId) {
-        console.error('[numberStatusUpdates.ts] + Error: participantId no válido para flujo "Pagar Apartados"');
+        console.error('[numberStatusUpdates.ts] + ❌ Error: participantId no válido para flujo "Pagar Apartados"');
         return { 
           success: false, 
           message: 'Se requiere un participante válido para pagar números apartados'
@@ -98,18 +99,18 @@ export const updateNumbersToSold = async ({
         .eq('seller_id', raffleSeller?.seller_id)
         .eq('status', 'reserved');
 
-      console.log("[numberStatusUpdates.ts] + Números reservados del participante en BD:", {
+      console.log("[numberStatusUpdates.ts] + 🔍 Números reservados del participante en BD:", {
         encontradosEnBD: participantNumbers?.length || 0,
         datosEncontrados: participantNumbers?.map(n => n.number) || []
       });
 
       if (participantError) {
-        console.error('[numberStatusUpdates.ts] + Error al consultar BD:', participantError);
+        console.error('[numberStatusUpdates.ts] + ❌ Error al consultar BD:', participantError);
         throw new Error('Error al validar números del participante');
       }
 
       if (!participantNumbers || participantNumbers.length === 0) {
-        console.warn('[numberStatusUpdates.ts] + No se encontraron números reservados para este participante');
+        console.warn('[numberStatusUpdates.ts] + ⚠️ No se encontraron números reservados para este participante');
         return { 
           success: false, 
           message: 'No se encontraron números reservados para este participante. Verifique que los números estén correctamente apartados.'
@@ -125,7 +126,7 @@ export const updateNumbersToSold = async ({
         participantNumbersArray.includes(num)
       );
 
-      console.log("[numberStatusUpdates.ts] + Validación de números seleccionados:", {
+      console.log("[numberStatusUpdates.ts] + ✅ Validación de números seleccionados:", {
         numerosReservadosDelParticipante: participantNumbersArray,
         numerosSeleccionadosEnUI: selectedNumbersArray,
         numerosValidosParaPago: validSelectedNumbers,
@@ -133,7 +134,7 @@ export const updateNumbersToSold = async ({
       });
 
       if (validSelectedNumbers.length === 0) {
-        console.warn('[numberStatusUpdates.ts] + Ningún número seleccionado pertenece a este participante');
+        console.warn('[numberStatusUpdates.ts] + ⚠️ Ningún número seleccionado pertenece a este participante');
         return { 
           success: false, 
           message: 'Los números seleccionados no pertenecen a este participante'
@@ -143,7 +144,7 @@ export const updateNumbersToSold = async ({
       // CORRECCIÓN: Actualizar selectedNumbers para usar SOLO los números válidos seleccionados del participante
       selectedNumbers = validSelectedNumbers.map(n => String(n).padStart(2, '0'));
 
-      console.log("[numberStatusUpdates.ts] + Validación exitosa: procediendo con números seleccionados del participante:", {
+      console.log("[numberStatusUpdates.ts] + ✅ Validación exitosa: procediendo con números seleccionados del participante:", {
         numerosAProcessar: selectedNumbers,
         cantidadFinal: selectedNumbers.length
       });
@@ -158,11 +159,11 @@ export const updateNumbersToSold = async ({
       .not('status', 'eq', 'available');
 
     if (existingError) {
-      console.error('[numberStatusUpdates.ts] + Error al verificar números existentes:', existingError);
+      console.error('[numberStatusUpdates.ts] + ❌ Error al verificar números existentes:', existingError);
       throw new Error('Error al verificar disponibilidad de números');
     }
 
-    console.log("[numberStatusUpdates.ts] + Verificación de conflictos:", {
+    console.log("[numberStatusUpdates.ts] + 🔍 Verificación de conflictos:", {
       numerosEncontrados: existingData?.length || 0,
       datosExistentes: existingData
     });
@@ -186,7 +187,7 @@ export const updateNumbersToSold = async ({
     });
 
     if (conflictingNumbers.length > 0) {
-      console.warn('[numberStatusUpdates.ts] + Números en conflicto detectados:', conflictingNumbers);
+      console.warn('[numberStatusUpdates.ts] + ⚠️ Números en conflicto detectados:', conflictingNumbers);
       return { 
         success: false, 
         conflictingNumbers,
@@ -208,7 +209,7 @@ export const updateNumbersToSold = async ({
 
       // CORRECCIÓN: Agregar payment_receipt_url cuando hay comprobante
       if (paymentProofUrl) {
-        console.log("[numberStatusUpdates.ts] + Agregando URL de comprobante para número:", num, "URL:", paymentProofUrl);
+        console.log("[numberStatusUpdates.ts] + 📎 Agregando URL de comprobante para número:", num, "URL:", paymentProofUrl);
         return {
           ...baseData,
           payment_receipt_url: paymentProofUrl,
@@ -218,7 +219,7 @@ export const updateNumbersToSold = async ({
 
       // Para "Pagar Apartados", preservar reservation_expires_at si existe
       if (clickedButtonType === "Pagar Apartados") {
-        console.log("[numberStatusUpdates.ts] + Preservando reservation_expires_at para número:", num);
+        console.log("[numberStatusUpdates.ts] + ⏰ Preservando reservation_expires_at para número:", num);
         const existingNumber = existingData?.find(item => item.number === parseInt(num));
         
         if (existingNumber?.reservation_expires_at) {
@@ -236,7 +237,7 @@ export const updateNumbersToSold = async ({
       };
     });
 
-    console.log("[numberStatusUpdates.ts] + Datos del participante para actualización:", {
+    console.log("[numberStatusUpdates.ts] + 💾 Datos preparados para actualización:", {
       participantId: sanitizedParticipantId,
       cantidadNumeros: updateData.length,
       numerosAProcesar: updateData.map(d => d.number),
@@ -253,22 +254,22 @@ export const updateNumbersToSold = async ({
       });
 
     if (updateError) {
-      console.error("[numberStatusUpdates.ts] + Error al actualizar en Supabase:", updateError);
+      console.error("[numberStatusUpdates.ts] + ❌ Error al actualizar en Supabase:", updateError);
       throw new Error('Error al actualizar estado de números en la base de datos: ' + updateError.message);
     }
 
-    console.log("[numberStatusUpdates.ts] ✅ Actualización exitosa completada para:", {
+    console.log("[numberStatusUpdates.ts] + ✅ Actualización exitosa completada para:", {
       numeros: selectedNumbers,
       participantId: sanitizedParticipantId,
       comprobanteGuardado: !!paymentProofUrl
     });
 
-    console.log("[numberStatusUpdates.ts] + Limpieza de variables tras pago completado.");
+    console.log("[numberStatusUpdates.ts] + 🧹 Preparando limpieza de variables tras pago completado.");
     
     return { success: true };
     
   } catch (error) {
-    console.error("[numberStatusUpdates.ts] + Error general en updateNumbersToSold:", error);
+    console.error("[numberStatusUpdates.ts] + ❌ Error general en updateNumbersToSold:", error);
     throw error;
   }
 };

@@ -88,14 +88,21 @@ export const useGridHandlers = ({
     setShowReservedMessage(true);
     setSelectedReservedNumbers([]);
     setShowReservedPaymentButton(false);
+    
+    // CORRECCIÓN: Limpiar números seleccionados anteriores
+    setSelectedNumbers([]);
+    
     toast.info(`Hay ${reservedNumbers.length} numero reservado(s). Seleccione los números que desea pagar y luego haga clic en "Proceder al Pago".`);
   };
   
   const handleCloseReservedMessage = () => {
+    console.log('[useGridHandlers.ts] 🧹 Cerrando mensaje de reservados y limpiando estado');
     setShowReservedMessage(false);
     setHighlightReserved(false);
     setSelectedReservedNumbers([]);
     setShowReservedPaymentButton(false);
+    setCurrentParticipantId(null);
+    setClickedPaymentButton(undefined);
   };
   
   const toggleNumber = (number: string, status: string) => {
@@ -175,7 +182,7 @@ export const useGridHandlers = ({
 
     console.log('[useGridHandlers.ts] 🚀 Procediendo al pago con números reservados seleccionados:', selectedReservedNumbers);
     
-    // Establecer los números seleccionados para el contexto
+    // CORRECCIÓN: Establecer los números seleccionados en el contexto principal también
     setSelectedNumbers(selectedReservedNumbers);
     
     // Abrir el modal de validación telefónica
@@ -319,6 +326,7 @@ export const useGridHandlers = ({
       setBuyerInfo(updatedBuyerInfo);
     }
     
+    // CORRECCIÓN: Limpiar estado de reservados
     setIsPhoneModalOpen(false);
     setShowReservedMessage(false);
     setHighlightReserved(false);
@@ -334,7 +342,11 @@ export const useGridHandlers = ({
           id: finalParticipantId
         };
         
-        await onProceedToPayment(selectedNumbers, finalBuyerInfo, clickedPaymentButton);
+        // CORRECCIÓN: Para "Pagar Apartados", usar los números seleccionados específicos
+        const numbersToProcess = clickedPaymentButton === "Pagar Apartados" ? selectedReservedNumbers : selectedNumbers;
+        console.log(`[useGridHandlers.ts] 📋 Números a procesar para ${clickedPaymentButton}:`, numbersToProcess);
+        
+        await onProceedToPayment(numbersToProcess, finalBuyerInfo, clickedPaymentButton);
       } else {
         await handleNumberValidation(validatedNumber);
       }
