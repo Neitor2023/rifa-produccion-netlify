@@ -76,7 +76,7 @@ export function useCompletePayment({
         tieneReporteSospechoso: !!(data.reporteSospechoso && data.reporteSospechoso.trim())
       });
 
-      // Validate required fields
+      // Validate required fields - CORRECCIÓN: Verificar que todos los campos requeridos estén presentes
       if (!data.buyerName || data.buyerName.trim() === '') {
         throw new Error('El nombre del comprador es requerido');
       }
@@ -93,7 +93,14 @@ export function useCompletePayment({
         throw new Error('No hay números seleccionados para procesar');
       }
 
-      // Create validated data with all required fields properly assigned
+      // CORRECCIÓN: Crear datos validados garantizando que todos los campos requeridos estén presentes
+      console.log("[completePayment.ts] + Validando datos del formulario antes de procesar:", {
+        buyerName: data.buyerName,
+        buyerPhone: data.buyerPhone,
+        buyerCedula: data.buyerCedula,
+        tipoBoton: data.clickedButtonType
+      });
+
       const validatedData: PaymentFormData = {
         buyerName: data.buyerName.trim(),
         buyerPhone: data.buyerPhone.trim(),
@@ -121,7 +128,7 @@ export function useCompletePayment({
         sugerenciaProducto: validatedData.sugerenciaProducto
       });
 
-      // Procesar o crear participante primero
+      // CORRECCIÓN 1: Procesar o crear participante primero - CRÍTICO para "Pagar Directo"
       console.log("[completePayment.ts] + Procesando datos del participante...");
       const participantId = await processParticipant({
         data: validatedData,
@@ -135,7 +142,7 @@ export function useCompletePayment({
 
       console.log("[completePayment.ts] + Participante procesado exitosamente con ID:", participantId);
 
-      // Procesar reporte de actividad sospechosa si existe
+      // CORRECCIÓN 2: Procesar reporte de actividad sospechosa si existe - CRÍTICO para ambos botones
       if (validatedData.reporteSospechoso && validatedData.reporteSospechoso.trim()) {
         console.log("[completePayment.ts] + Procesando reporte de actividad sospechosa...");
         await processFraudReport({
@@ -148,15 +155,20 @@ export function useCompletePayment({
         console.log("[completePayment.ts] + Reporte de actividad sospechosa procesado correctamente");
       }
 
-      // Upload image if provided
+      // CORRECCIÓN 3: Upload image if provided - CRÍTICO para pagos en efectivo
       let paymentProofUrl: string | null = null;
       if (validatedData.paymentProof) {
         console.log("[completePayment.ts] + Subiendo comprobante de pago...");
-        paymentProofUrl = await uploadImageToSupabase(validatedData.paymentProof);
-        console.log("[completePayment.ts] + Comprobante subido correctamente en URL:", paymentProofUrl);
+        try {
+          paymentProofUrl = await uploadImageToSupabase(validatedData.paymentProof);
+          console.log("[completePayment.ts] + Comprobante subido correctamente en URL:", paymentProofUrl);
+        } catch (uploadError) {
+          console.error("[completePayment.ts] + Error al subir comprobante:", uploadError);
+          throw new Error('Error al subir el comprobante de pago');
+        }
       }
 
-      // Update numbers to sold status with the processed participantId
+      // CORRECCIÓN 4: Update numbers to sold status with the processed participantId
       console.log("[completePayment.ts] + Actualizando números a estado vendido...");
       const updateResult: UpdateResult = await updateNumbersToSold({
         numbers: selectedNumbers,
@@ -201,7 +213,8 @@ export function useCompletePayment({
         telefono: validatedData.buyerPhone,
         numeros: selectedNumbers.length,
         metodo: validatedData.paymentMethod,
-        participantId: participantId
+        participantId: participantId,
+        comprobanteUrl: paymentProofUrl
       });
 
       // Set payment data and open voucher

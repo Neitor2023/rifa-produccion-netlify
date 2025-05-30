@@ -62,7 +62,8 @@ export const updateNumbersToSold = async ({
       sellerId: raffleSeller?.seller_id,
       tipoBoton: clickedButtonType,
       numerosSeleccionados: selectedNumbers,
-      cantidadSeleccionada: selectedNumbers.length
+      cantidadSeleccionada: selectedNumbers.length,
+      comprobanteUrl: paymentProofUrl
     });
 
     // Validar el raffleId
@@ -71,7 +72,7 @@ export const updateNumbersToSold = async ({
       throw new Error("El ID de la rifa no está definido");
     }
 
-    // Para "Pagar Apartados", validar que los números pertenezcan al participante específico
+    // CORRECCIÓN: Para "Pagar Apartados", validar que los números pertenezcan al participante específico
     if (clickedButtonType === "Pagar Apartados") {
       console.log("[numberStatusUpdates.ts] + Validando números apartados para participante:", {
         participantId: sanitizedParticipantId,
@@ -116,7 +117,6 @@ export const updateNumbersToSold = async ({
       }
 
       // CORRECCIÓN: Verificar si los números del participante están CONTENIDOS en la selección
-      // En lugar de validar igualdad exacta, verificamos inclusión
       const participantNumbersArray = participantNumbers.map(n => parseInt(String(n.number)));
       const selectedNumbersArray = selectedNumbers.map(n => parseInt(n));
       
@@ -140,7 +140,6 @@ export const updateNumbersToSold = async ({
       }
 
       // Proceder solo con los números que realmente pertenecen al participante
-      // Filtrar selectedNumbers para incluir solo los que están en participantNumbers
       const validSelectedNumbers = selectedNumbers.filter(num => 
         participantNumbersArray.includes(parseInt(num))
       );
@@ -204,39 +203,44 @@ export const updateNumbersToSold = async ({
       };
     }
 
-    // Preparar datos para actualización usando selectedNumbers
+    // CORRECCIÓN CRÍTICA: Preparar datos para actualización con payment_receipt_url
     const updateData = selectedNumbers.map(num => {
-      if (clickedButtonType === "Pagar Apartados") {
-        console.log("[numberStatusUpdates.ts] + Preservando reservation_expires_at para número:", num);
-        
-        const existingNumber = existingData?.find(item => item.number === parseInt(num));
-        
-        if (existingNumber?.reservation_expires_at) {
-          return {
-            raffle_id: raffleId,
-            number: parseInt(num),
-            status: 'sold',
-            participant_id: sanitizedParticipantId,
-            seller_id: raffleSeller?.seller_id || null,
-            payment_method: paymentMethod,
-            payment_receipt_url: paymentProofUrl,
-            payment_proof: paymentProofUrl,
-            payment_approved: false,
-            // Preservar reservation_expires_at
-          };
-        }
-      }
-      
-      return {
+      const baseData = {
         raffle_id: raffleId,
         number: parseInt(num),
         status: 'sold',
         participant_id: sanitizedParticipantId,
         seller_id: raffleSeller?.seller_id || null,
         payment_method: paymentMethod,
-        payment_receipt_url: paymentProofUrl,
-        payment_proof: paymentProofUrl,
         payment_approved: false,
+      };
+
+      // CORRECCIÓN: Agregar payment_receipt_url cuando hay comprobante
+      if (paymentProofUrl) {
+        console.log("[numberStatusUpdates.ts] + Agregando URL de comprobante para número:", num, "URL:", paymentProofUrl);
+        return {
+          ...baseData,
+          payment_receipt_url: paymentProofUrl,
+          payment_proof: paymentProofUrl
+        };
+      }
+
+      // Para "Pagar Apartados", preservar reservation_expires_at si existe
+      if (clickedButtonType === "Pagar Apartados") {
+        console.log("[numberStatusUpdates.ts] + Preservando reservation_expires_at para número:", num);
+        const existingNumber = existingData?.find(item => item.number === parseInt(num));
+        
+        if (existingNumber?.reservation_expires_at) {
+          return {
+            ...baseData,
+            payment_proof: paymentProofUrl
+          };
+        }
+      }
+      
+      return {
+        ...baseData,
+        payment_proof: paymentProofUrl,
         reservation_expires_at: null
       };
     });
@@ -244,7 +248,9 @@ export const updateNumbersToSold = async ({
     console.log("[numberStatusUpdates.ts] + Preparando actualización para números:", {
       cantidadNumeros: updateData.length,
       numerosAProcesar: updateData.map(d => d.number),
-      participantIdFinal: sanitizedParticipantId
+      participantIdFinal: sanitizedParticipantId,
+      tieneComprobante: !!paymentProofUrl,
+      comprobanteUrl: paymentProofUrl
     });
     
     // Realizar la actualización con upsert
@@ -257,10 +263,15 @@ export const updateNumbersToSold = async ({
 
     if (updateError) {
       console.error("[numberStatusUpdates.ts] + Error al actualizar en Supabase:", updateError);
-      throw new Error('Error al actualizar estado de números en la base de datos');
+      throw new Error('Error al actualizar estado de números en la base de datos: ' + updateError.message);
     }
 
-    console.log("[numberStatusUpdates.ts] + Actualización exitosa completada");
+    console.log("[numberStatusUpdates.ts] + Actualización exitosa completada para:", {
+      numeros: selectedNumbers,
+      participantId: sanitizedParticipantId,
+      comprobanteGuardado: !!paymentProofUrl
+    });
+    
     return { success: true };
     
   } catch (error) {
