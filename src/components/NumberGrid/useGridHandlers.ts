@@ -69,7 +69,10 @@ export const useGridHandlers = ({
       n.seller_id === raffleSeller.seller_id
     );
     
-    console.log('[NumberGrid/useGridHandlers.ts] Números reservados encontrados para este vendedor:', reservedNumbers.length);
+    console.log('[NumberGrid/useGridHandlers.ts] Números reservados encontrados para este vendedor:', {
+      cantidad: reservedNumbers.length,
+      vendedor: raffleSeller.seller_id
+    });
     
     if (reservedNumbers.length === 0) {
       console.log('[NumberGrid/useGridHandlers.ts] No hay números reservados para este vendedor');
@@ -97,7 +100,11 @@ export const useGridHandlers = ({
     if (highlightReserved && status === 'reserved') {
       const selectedNumber = numbers.find(n => n.number === number);
       if (selectedNumber) {
-        console.log(`[NumberGrid/useGridHandlers.ts] Número seleccionado en modo apartado: ${number}, participantId: ${selectedNumber.participant_id}`);
+        console.log(`[NumberGrid/useGridHandlers.ts] Número seleccionado en modo apartado:`, {
+          numero: number,
+          participantId: selectedNumber.participant_id,
+          sellerId: selectedNumber.seller_id
+        });
         
         // Solo obtener números del mismo participante que el número seleccionado
         const allReservedNumbers = numbers
@@ -108,7 +115,10 @@ export const useGridHandlers = ({
           )
           .map(n => n.number);
           
-        console.log(`[NumberGrid/useGridHandlers.ts] Números reservados del mismo participante (${selectedNumber.participant_id}):`, allReservedNumbers);
+        console.log(`[NumberGrid/useGridHandlers.ts] Números reservados del mismo participante (${selectedNumber.participant_id}):`, {
+          numeros: allReservedNumbers,
+          cantidad: allReservedNumbers.length
+        });
         
         setSelectedNumbers(allReservedNumbers);
         setSelectedReservedNumber(number);
@@ -259,7 +269,11 @@ export const useGridHandlers = ({
     participantId: string,
     buyerInfo?: ValidatedBuyerInfo
   ) => {
-    console.log(`[NumberGrid/useGridHandlers.ts] Validación exitosa para participantId: ${participantId}`);
+    console.log(`[NumberGrid/useGridHandlers.ts] Validación exitosa para participante:`, {
+      participantId,
+      numerosSeleccionados: selectedNumbers,
+      cantidadSeleccionada: selectedNumbers.length
+    });
     
     // Validar que participantId esté definido
     if (!participantId) {
@@ -289,7 +303,11 @@ export const useGridHandlers = ({
     
     try {
       if (participantId && buyerInfo) {
-        console.log(`[NumberGrid/useGridHandlers.ts] Procediendo al pago para participantId: ${participantId} con números seleccionados:`, selectedNumbers);
+        console.log(`[NumberGrid/useGridHandlers.ts] Procediendo al pago para participante:`, {
+          participantId,
+          numerosSeleccionados: selectedNumbers,
+          tipoBoton: clickedPaymentButton
+        });
         await onProceedToPayment(selectedNumbers, buyerInfo, clickedPaymentButton);
       } else {
         await handleNumberValidation(validatedNumber);

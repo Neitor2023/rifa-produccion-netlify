@@ -50,7 +50,8 @@ export const updateNumbersToSold = async ({
         raffleId,
         participantId,
         sellerId: raffleSeller?.seller_id,
-        numbersToValidate: numbers
+        numerosSeleccionados: numbers,
+        cantidadNumerosSeleccionados: numbers.length
       });
       
       const { data: participantNumbers, error: participantError } = await supabase
@@ -81,18 +82,21 @@ export const updateNumbersToSold = async ({
         };
       }
 
+      // CORRECCIÓN: Comparar con numbers.length (números seleccionados) en lugar de todos los números
       if (participantNumbers.length !== numbers.length) {
-        console.warn('[numberStatusUpdates.ts] ⚠️ Algunos números no pertenecen al participante:', {
-          encontrados: participantNumbers.map(n => n.number),
-          solicitados: numbers.map(n => parseInt(n))
+        console.warn('[numberStatusUpdates.ts] ⚠️ Algunos números seleccionados no pertenecen al participante o no están reservados:', {
+          encontradosEnBD: participantNumbers.map(n => n.number),
+          seleccionadosEnUI: numbers.map(n => parseInt(n)),
+          cantidadEncontrada: participantNumbers.length,
+          cantidadSeleccionada: numbers.length
         });
         return { 
           success: false, 
-          message: `Solo ${participantNumbers.length} de ${numbers.length} números pertenecen a este participante y están reservados`
+          message: `Solo ${participantNumbers.length} de ${numbers.length} números seleccionados están reservados para este participante`
         };
       }
 
-      console.log("[numberStatusUpdates.ts] ✅ Validación exitosa: todos los números pertenecen al participante");
+      console.log("[numberStatusUpdates.ts] ✅ Validación exitosa: todos los números seleccionados pertenecen al participante");
     }
 
     // Obtener información de números que podrían tener conflicto
