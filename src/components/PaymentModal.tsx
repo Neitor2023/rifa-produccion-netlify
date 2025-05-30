@@ -89,11 +89,16 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         id: buyerInfo.id
       });
 
+      // CORRECCIÓN CRÍTICA: Priorizar la carga del email del participante
       form.setValue('buyerName', buyerInfo.name || '');
       form.setValue('buyerPhone', buyerInfo.phone || '');
       form.setValue('buyerCedula', buyerInfo.cedula || '');
-      // CORRECCIÓN: Cargar también el email del participante
-      form.setValue('buyerEmail', buyerInfo.email || '');
+      
+      // PRIORITARIO: Cargar email del participante
+      const participantEmail = buyerInfo.email || '';
+      form.setValue('buyerEmail', participantEmail);
+      console.log('[PaymentModal.tsx] 📧 Email del participante cargado:', participantEmail);
+      
       form.setValue('direccion', buyerInfo.direccion || '');
       form.setValue('sugerenciaProducto', buyerInfo.sugerencia_producto || '');
       
@@ -103,7 +108,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         console.log(`[PaymentModal.tsx] 💾 participantId establecido en el formulario: ${buyerInfo.id}`);
       }
       
-      // Log para depuración
+      // Log para depuración - incluir email
       if (debugMode) {
         console.log("PaymentModal: Cargando datos de comprador existente:", {
           name: buyerInfo.name,
@@ -183,10 +188,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       setIsSubmitting(true);
       
       console.log('[PaymentModal.tsx] 🚀 Iniciando envío de formulario para:', clickedButton);
-      console.log('[PaymentModal.tsx] 📋 Datos del formulario:', {
+      console.log('[PaymentModal.tsx] 📋 Datos del formulario con email:', {
         buyerName: data.buyerName,
         buyerPhone: data.buyerPhone,
-        buyerEmail: data.buyerEmail,
+        buyerEmail: data.buyerEmail, // IMPORTANTE: Incluir email en logs
         buyerCedula: data.buyerCedula,
         participantId: data.participantId,
         paymentMethod: data.paymentMethod,
@@ -220,7 +225,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           ...data,
           participantId: data.participantId
         });
-        console.log("Valor del campo sugerenciaProducto:", data.sugerenciaProducto);
         console.log("Valor del campo email:", data.buyerEmail);
       }
       

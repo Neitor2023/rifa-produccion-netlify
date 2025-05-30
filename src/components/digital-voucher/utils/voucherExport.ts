@@ -6,87 +6,116 @@ export const exportVoucherAsImage = async (
   content: HTMLDivElement | null,
   fileName: string
 ): Promise<string | null> => {
-  if (!content) return null;
+  if (!content) {
+    console.error('[voucherExport.ts] ❌ No hay contenido para exportar');
+    return null;
+  }
   
   try {
-    console.log('[DigitalVoucher.tsx] - Preparando imagen del comprobante...');
+    console.log('[voucherExport.ts] 📸 Preparando imagen del comprobante...');
     const html2canvas = (await import('html2canvas')).default;
+    
+    // CORRECCIÓN: Configuración mejorada para evitar errores de iframe
     const canvas = await html2canvas(content, {
       scale: 2, // Higher scale for better quality
       logging: false,
       useCORS: true,
-      allowTaint: true
+      allowTaint: true,
+      // CRÍTICO: Configuraciones para evitar problemas con iframe
+      foreignObjectRendering: false,
+      removeContainer: true,
+      ignoreElements: (element) => {
+        // Ignorar elementos que puedan causar problemas
+        return element.tagName === 'IFRAME' || 
+               element.tagName === 'SCRIPT' ||
+               element.classList.contains('ignore-in-export');
+      }
     });
     
     const imgData = canvas.toDataURL('image/png');
-    console.log('[DigitalVoucher.tsx] - Imagen del comprobante generada exitosamente');
+    console.log('[voucherExport.ts] ✅ Imagen del comprobante generada exitosamente');
     return imgData;
-  } catch (error) {
-    console.error('[DigitalVoucher.tsx] - Error al generar imagen del comprobante:', error);
+  } catch (error: any) {
+    console.error('[voucherExport.ts] ❌ Error al generar imagen del comprobante:', error?.message || error);
     toast.error("No se pudo crear la imagen del comprobante. Intente nuevamente.");
     return null;
   }
 };
 
 export const downloadVoucherImage = (imgData: string, fileName: string): void => {
-  const link = document.createElement('a');
-  link.download = fileName;
-  link.href = imgData;
-  link.click();
-  
-  toast.success("¡Descarga exitosa! El comprobante ha sido guardado en tus descargas.");
+  try {
+    console.log('[voucherExport.ts] 📥 Iniciando descarga:', fileName);
+    const link = document.createElement('a');
+    link.download = fileName;
+    link.href = imgData;
+    link.click();
+    
+    toast.success("¡Descarga exitosa! El comprobante ha sido guardado en tus descargas.");
+    console.log('[voucherExport.ts] ✅ Descarga completada');
+  } catch (error: any) {
+    console.error('[voucherExport.ts] ❌ Error en descarga:', error?.message || error);
+    toast.error("Error al descargar el comprobante");
+  }
 };
 
 export const presentVoucherImage = (imgData: string): void => {
-  const newWindow = window.open('', '_blank');
-  if (newWindow) {
-    newWindow.document.write(`
-      <html>
-        <head>
-          <title>Comprobante de Pago</title>
-          <style>
-            body {
-              margin: 0;
-              padding: 0;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              background: rgba(0, 0, 0, 0.9);
-              min-height: 100vh;
-              overflow: auto;
-            }
-            img {
-              max-width: 95%;
-              max-height: 95vh;
-              object-fit: contain;
-            }
-            .close-btn {
-              position: fixed;
-              top: 20px;
-              right: 20px;
-              background: white;
-              color: black;
-              border: none;
-              border-radius: 50%;
-              width: 40px;
-              height: 40px;
-              font-size: 20px;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            }
-          </style>
-        </head>
-        <body>
-          <button class="close-btn" onclick="window.close()">×</button>
-          <img src="${imgData}" alt="Comprobante de pago" />
-        </body>
-      </html>
-    `);
-    newWindow.document.close();
-  } else {
-    toast.error("No se pudo abrir la ventana de presentación. Verifique que no tenga bloqueadores de ventanas emergentes activados.");
+  try {
+    console.log('[voucherExport.ts] 👁️ Abriendo visualización de comprobante');
+    const newWindow = window.open('', '_blank');
+    if (newWindow) {
+      newWindow.document.write(`
+        <html>
+          <head>
+            <title>Comprobante de Pago</title>
+            <style>
+              body {
+                margin: 0;
+                padding: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background: rgba(0, 0, 0, 0.9);
+                min-height: 100vh;
+                overflow: auto;
+              }
+              img {
+                max-width: 95%;
+                max-height: 95vh;
+                object-fit: contain;
+              }
+              .close-btn {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: white;
+                color: black;
+                border: none;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              }
+            </style>
+          </head>
+          <body>
+            <button class="close-btn" onclick="window.close()">×</button>
+            <img src="${imgData}" alt="Comprobante de pago" />
+          </body>
+        </html>
+      `);
+      newWindow.document.close();
+      console.log('[voucherExport.ts] ✅ Ventana de visualización abierta');
+    } else {
+      console.error('[voucherExport.ts] ❌ No se pudo abrir ventana de visualización');
+      toast.error("No se pudo abrir la ventana de presentación. Verifique que no tenga bloqueadores de ventanas emergentes activados.");
+    }
+  } catch (error: any) {
+    console.error('[voucherExport.ts] ❌ Error en visualización:', error?.message || error);
+    toast.error("Error al visualizar el comprobante");
   }
 };
 
@@ -300,18 +329,18 @@ export const ensureReceiptSavedForParticipant = async (
   sellerId: string,
   participantNumbers: string[]
 ): Promise<string | null> => {
-  console.log('[DigitalVoucher.tsx] – Iniciando guardado automático de comprobante de pago...');
+  console.log('[voucherExport.ts] 💾 Iniciando guardado automático de comprobante de pago...');
   
   if (!printRef.current || !raffleDetails || !participantId) {
-    console.error('[DigitalVoucher.tsx] - Error: No hay referencia al comprobante o detalles de rifa');
+    console.error('[voucherExport.ts] ❌ Error: No hay referencia al comprobante o detalles de rifa');
     return null;
   }
   
   try {
-    // Generate the voucher image
+    // Generate the voucher image with improved configuration
     const imgData = await exportVoucherAsImage(printRef.current, '');
     if (!imgData) {
-      console.error("[DigitalVoucher.tsx] - Error: No se pudo generar la imagen del comprobante");
+      console.error("[voucherExport.ts] ❌ Error: No se pudo generar la imagen del comprobante");
       return null;
     }
     
@@ -319,7 +348,7 @@ export const ensureReceiptSavedForParticipant = async (
     const receiptId = `receipt_${new Date().getTime()}_${participantId}`;
     
     // Upload to storage
-    console.log('[DigitalVoucher.tsx] – Preparando imagen del comprobante...');
+    console.log('[voucherExport.ts] 📤 Preparando subida de imagen del comprobante...');
     const imageUrl = await uploadVoucherToStorage(
       imgData, 
       raffleDetails.title, 
@@ -327,7 +356,7 @@ export const ensureReceiptSavedForParticipant = async (
     );
     
     if (imageUrl) {
-      console.log('[DigitalVoucher.tsx] – Imagen subida correctamente:', imageUrl);
+      console.log('[voucherExport.ts] ✅ Imagen subida correctamente:', imageUrl);
       
       // Save the URL for each of the participant's numbers
       const success = await updatePaymentReceiptUrlForParticipant(
@@ -339,24 +368,24 @@ export const ensureReceiptSavedForParticipant = async (
       
       if (success) {
         participantNumbers.forEach(num => {
-          console.log(`[DigitalVoucher.tsx] – Comprobante guardado correctamente para número: ${num}`);
+          console.log(`[voucherExport.ts] ✅ Comprobante guardado correctamente para número: ${num}`);
         });
-        console.log('[DigitalVoucher.tsx] – Finalizando guardado automático de comprobante de pago');
+        console.log('[voucherExport.ts] ✅ Finalizando guardado automático de comprobante de pago');
         toast.success('Comprobante guardado automáticamente', {
           id: 'receipt-saved-toast',
           duration: 3000
         });
         return imageUrl;
       } else {
-        console.error("[DigitalVoucher.tsx] – Error al guardar URL del comprobante en la base de datos");
+        console.error("[voucherExport.ts] ❌ Error al guardar URL del comprobante en la base de datos");
         return null;
       }
     } else {
-      console.error("[DigitalVoucher.tsx] – Error al subir la imagen del comprobante");
+      console.error("[voucherExport.ts] ❌ Error al subir la imagen del comprobante");
       return null;
     }
   } catch (error: any) {
-    console.error("[DigitalVoucher.tsx] – Error al guardar comprobante – Error:", error?.message || error);
+    console.error("[voucherExport.ts] ❌ Error al guardar comprobante – Error:", error?.message || error);
     return null;
   }
 };
