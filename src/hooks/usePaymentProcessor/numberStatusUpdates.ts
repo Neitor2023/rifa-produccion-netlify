@@ -117,7 +117,7 @@ export const updateNumbersToSold = async ({
 
       // CORRECCIÓN: Verificar si los números del participante están CONTENIDOS en la selección
       // En lugar de validar igualdad exacta, verificamos inclusión
-      const participantNumbersArray = participantNumbers.map(n => parseInt(n.number));
+      const participantNumbersArray = participantNumbers.map(n => parseInt(String(n.number)));
       const selectedNumbersArray = selectedNumbers.map(n => parseInt(n));
       
       const participantNumbersInSelection = participantNumbersArray.filter(num => 
@@ -184,13 +184,13 @@ export const updateNumbersToSold = async ({
       if (clickedButtonType === "Pagar Apartados") {
         if (item.status === 'sold' || 
             (item.status === 'reserved' && item.participant_id !== sanitizedParticipantId)) {
-          conflictingNumbers.push(item.number.toString());
+          conflictingNumbers.push(String(item.number));
         }
       } else {
         if (item.status === 'sold' ||
             (item.status === 'reserved' && raffleSeller?.seller_id && 
              item.seller_id !== raffleSeller.seller_id)) {
-          conflictingNumbers.push(item.number.toString());
+          conflictingNumbers.push(String(item.number));
         }
       }
     });
