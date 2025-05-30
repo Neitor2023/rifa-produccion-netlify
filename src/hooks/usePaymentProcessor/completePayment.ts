@@ -1,4 +1,3 @@
-
 import { toast } from 'sonner';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { updateNumbersToSold, UpdateResult } from './numberStatusUpdates';
@@ -100,23 +99,20 @@ export function useCompletePayment({
         tipoBoton: data.clickedButtonType
       });
 
-      // Use data directly since it's already validated by the schema
-      const validatedData = data;
-
       console.log("[completePayment.ts] + Datos validados del participante:", {
-        nombre: validatedData.buyerName,
-        telefono: validatedData.buyerPhone,
-        cedula: validatedData.buyerCedula,
-        email: validatedData.buyerEmail,
-        direccion: validatedData.direccion,
-        nota: validatedData.nota,
-        sugerenciaProducto: validatedData.sugerenciaProducto
+        nombre: data.buyerName,
+        telefono: data.buyerPhone,
+        cedula: data.buyerCedula,
+        email: data.buyerEmail,
+        direccion: data.direccion,
+        nota: data.nota,
+        sugerenciaProducto: data.sugerenciaProducto
       });
 
       // CORRECCIÓN 1: Procesar o crear participante primero - CRÍTICO para "Pagar Directo"
       console.log("[completePayment.ts] + Procesando datos del participante...");
       const participantId = await processParticipant({
-        data: validatedData,
+        data: data,
         raffleId,
         debugLog
       });
@@ -125,30 +121,30 @@ export function useCompletePayment({
         throw new Error('Error al procesar participante');
       }
 
-      console.log("[completePayment.ts] + Participante procesado exitosamente con ID:", participantId);
+      console.log("[completePayment.ts] ✅ Participante procesado exitosamente con ID:", participantId);
 
       // CORRECCIÓN 2: Procesar reporte de actividad sospechosa si existe - CRÍTICO para ambos botones
-      if (validatedData.reporteSospechoso && validatedData.reporteSospechoso.trim()) {
+      if (data.reporteSospechoso && data.reporteSospechoso.trim()) {
         console.log("[completePayment.ts] + Procesando reporte de actividad sospechosa...");
         await processFraudReport({
           participantId,
-          sellerId: validatedData.sellerId || raffleSeller?.seller_id || null,
+          sellerId: data.sellerId || raffleSeller?.seller_id || null,
           raffleId,
-          reporteSospechoso: validatedData.reporteSospechoso,
+          reporteSospechoso: data.reporteSospechoso,
           debugLog
         });
-        console.log("[completePayment.ts] + Reporte de actividad sospechosa procesado correctamente");
+        console.log("[completePayment.ts] ✅ Reporte de actividad sospechosa procesado correctamente");
       }
 
       // CORRECCIÓN 3: Upload image if provided - CRÍTICO para pagos en efectivo
       let paymentProofUrl: string | null = null;
-      if (validatedData.paymentProof) {
+      if (data.paymentProof) {
         console.log("[completePayment.ts] + Subiendo comprobante de pago...");
         try {
-          paymentProofUrl = await uploadImageToSupabase(validatedData.paymentProof);
-          console.log("[completePayment.ts] + Comprobante subido correctamente en URL:", paymentProofUrl);
+          paymentProofUrl = await uploadImageToSupabase(data.paymentProof);
+          console.log("[completePayment.ts] ✅ Comprobante subido correctamente en URL:", paymentProofUrl);
         } catch (uploadError) {
-          console.error("[completePayment.ts] + Error al subir comprobante:", uploadError);
+          console.error("[completePayment.ts] ❌ Error al subir comprobante:", uploadError);
           throw new Error('Error al subir el comprobante de pago');
         }
       }
@@ -163,8 +159,8 @@ export function useCompletePayment({
         raffleNumbers,
         raffleSeller,
         raffleId,
-        paymentMethod: validatedData.paymentMethod,
-        clickedButtonType: validatedData.clickedButtonType || ''
+        paymentMethod: data.paymentMethod,
+        clickedButtonType: data.clickedButtonType || ''
       });
 
       if (!updateResult.success) {
@@ -182,22 +178,22 @@ export function useCompletePayment({
 
       // Prepare payment data for voucher
       const paymentDataForVoucher = {
-        buyerName: validatedData.buyerName,
-        buyerPhone: validatedData.buyerPhone,
-        buyerCedula: validatedData.buyerCedula,
+        buyerName: data.buyerName,
+        buyerPhone: data.buyerPhone,
+        buyerCedula: data.buyerCedula,
         selectedNumbers,
-        paymentMethod: validatedData.paymentMethod,
+        paymentMethod: data.paymentMethod,
         paymentProof: paymentProofUrl,
         participantId: participantId,
-        sellerId: validatedData.sellerId,
-        clickedButtonType: validatedData.clickedButtonType
+        sellerId: data.sellerId,
+        clickedButtonType: data.clickedButtonType
       };
 
       console.log("[completePayment.ts] + Preparando datos para voucher:", {
-        comprador: validatedData.buyerName,
-        telefono: validatedData.buyerPhone,
+        comprador: data.buyerName,
+        telefono: data.buyerPhone,
         numeros: selectedNumbers.length,
-        metodo: validatedData.paymentMethod,
+        metodo: data.paymentMethod,
         participantId: participantId,
         comprobanteUrl: paymentProofUrl
       });
@@ -210,13 +206,13 @@ export function useCompletePayment({
       // Refresh data
       await refetchRaffleNumbers();
 
-      console.log("[completePayment.ts] + Proceso de pago completado exitosamente para participante:", participantId);
+      console.log("[completePayment.ts] ✅ Proceso de pago completo y sin errores para participante:", participantId);
       toast.success('Pago procesado exitosamente');
 
       return { success: true };
 
     } catch (error: any) {
-      console.error("[completePayment.ts] + Error en completePayment:", error);
+      console.error("[completePayment.ts] ❌ Error en completePayment:", error);
       toast.error(`Error al procesar el pago: ${error.message}`);
       throw error;
     }
