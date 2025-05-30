@@ -100,9 +100,23 @@ export function useCompletePayment({
         tipoBoton: data.clickedButtonType
       });
 
-      // Since data is already of type PaymentFormData from the schema, we can use it directly
-      // The schema validation ensures all required fields are present
-      const validatedData = data;
+      // Create properly typed validatedData object after validation
+      const validatedData: PaymentFormData = {
+        buyerName: data.buyerName!,  // We know this is defined after validation
+        buyerPhone: data.buyerPhone!,  // We know this is defined after validation
+        buyerCedula: data.buyerCedula!,  // We know this is defined after validation
+        buyerEmail: data.buyerEmail || '',
+        direccion: data.direccion || '',
+        sugerenciaProducto: data.sugerenciaProducto || '',
+        paymentMethod: data.paymentMethod,
+        paymentProof: data.paymentProof,
+        nota: data.nota || '',
+        reporteSospechoso: data.reporteSospechoso || '',
+        sellerId: data.sellerId,
+        participantId: data.participantId,
+        clickedButtonType: data.clickedButtonType,
+        paymentReceiptUrl: data.paymentReceiptUrl
+      };
 
       console.log("[completePayment.ts] + Datos validados del participante:", {
         nombre: validatedData.buyerName,
