@@ -76,18 +76,55 @@ export function useCompletePayment({
         tieneReporteSospechoso: !!(data.reporteSospechoso && data.reporteSospechoso.trim())
       });
 
-      if (!data.buyerName) {
+      // Validate required fields
+      if (!data.buyerName || data.buyerName.trim() === '') {
         throw new Error('El nombre del comprador es requerido');
+      }
+
+      if (!data.buyerPhone || data.buyerPhone.trim() === '') {
+        throw new Error('El teléfono del comprador es requerido');
+      }
+
+      if (!data.buyerCedula || data.buyerCedula.trim() === '') {
+        throw new Error('La cédula del comprador es requerida');
       }
 
       if (selectedNumbers.length === 0) {
         throw new Error('No hay números seleccionados para procesar');
       }
 
+      // Ensure we have a properly formed PaymentFormData object with all required fields
+      const validatedData: PaymentFormData = {
+        buyerName: data.buyerName,
+        buyerPhone: data.buyerPhone,
+        buyerCedula: data.buyerCedula,
+        buyerEmail: data.buyerEmail || '',
+        direccion: data.direccion || '',
+        paymentMethod: data.paymentMethod || 'cash',
+        paymentProof: data.paymentProof || null,
+        participantId: data.participantId,
+        reporteSospechoso: data.reporteSospechoso || '',
+        nota: data.nota || '',
+        sugerenciaProducto: data.sugerenciaProducto || '',
+        paymentReceiptUrl: data.paymentReceiptUrl,
+        sellerId: data.sellerId,
+        clickedButtonType: data.clickedButtonType || ''
+      };
+
+      console.log("[completePayment.ts] + Datos validados del participante:", {
+        nombre: validatedData.buyerName,
+        telefono: validatedData.buyerPhone,
+        cedula: validatedData.buyerCedula,
+        email: validatedData.buyerEmail,
+        direccion: validatedData.direccion,
+        nota: validatedData.nota,
+        sugerenciaProducto: validatedData.sugerenciaProducto
+      });
+
       // Procesar o crear participante primero
       console.log("[completePayment.ts] + Procesando datos del participante...");
       const participantId = await processParticipant({
-        data,
+        data: validatedData,
         raffleId,
         debugLog
       });
@@ -99,13 +136,13 @@ export function useCompletePayment({
       console.log("[completePayment.ts] + Participante procesado exitosamente con ID:", participantId);
 
       // Procesar reporte de actividad sospechosa si existe
-      if (data.reporteSospechoso && data.reporteSospechoso.trim()) {
+      if (validatedData.reporteSospechoso && validatedData.reporteSospechoso.trim()) {
         console.log("[completePayment.ts] + Procesando reporte de actividad sospechosa...");
         await processFraudReport({
           participantId,
-          sellerId: data.sellerId || raffleSeller?.seller_id || null,
+          sellerId: validatedData.sellerId || raffleSeller?.seller_id || null,
           raffleId,
-          reporteSospechoso: data.reporteSospechoso,
+          reporteSospechoso: validatedData.reporteSospechoso,
           debugLog
         });
         console.log("[completePayment.ts] + Reporte de actividad sospechosa procesado correctamente");
@@ -113,9 +150,9 @@ export function useCompletePayment({
 
       // Upload image if provided
       let paymentProofUrl: string | null = null;
-      if (data.paymentProof) {
+      if (validatedData.paymentProof) {
         console.log("[completePayment.ts] + Subiendo comprobante de pago...");
-        paymentProofUrl = await uploadImageToSupabase(data.paymentProof);
+        paymentProofUrl = await uploadImageToSupabase(validatedData.paymentProof);
         console.log("[completePayment.ts] + Comprobante subido correctamente en URL:", paymentProofUrl);
       }
 
@@ -129,8 +166,8 @@ export function useCompletePayment({
         raffleNumbers,
         raffleSeller,
         raffleId,
-        paymentMethod: data.paymentMethod,
-        clickedButtonType: data.clickedButtonType || ''
+        paymentMethod: validatedData.paymentMethod,
+        clickedButtonType: validatedData.clickedButtonType || ''
       });
 
       if (!updateResult.success) {
@@ -148,22 +185,22 @@ export function useCompletePayment({
 
       // Prepare payment data for voucher
       const paymentDataForVoucher = {
-        buyerName: data.buyerName,
-        buyerPhone: data.buyerPhone,
-        buyerCedula: data.buyerCedula,
+        buyerName: validatedData.buyerName,
+        buyerPhone: validatedData.buyerPhone,
+        buyerCedula: validatedData.buyerCedula,
         selectedNumbers,
-        paymentMethod: data.paymentMethod,
+        paymentMethod: validatedData.paymentMethod,
         paymentProof: paymentProofUrl,
         participantId: participantId,
-        sellerId: data.sellerId,
-        clickedButtonType: data.clickedButtonType
+        sellerId: validatedData.sellerId,
+        clickedButtonType: validatedData.clickedButtonType
       };
 
       console.log("[completePayment.ts] + Preparando datos para voucher:", {
-        comprador: data.buyerName,
-        telefono: data.buyerPhone,
+        comprador: validatedData.buyerName,
+        telefono: validatedData.buyerPhone,
         numeros: selectedNumbers.length,
-        metodo: data.paymentMethod,
+        metodo: validatedData.paymentMethod,
         participantId: participantId
       });
 
