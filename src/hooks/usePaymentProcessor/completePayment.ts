@@ -76,7 +76,7 @@ export function useCompletePayment({
         tieneReporteSospechoso: !!(data.reporteSospechoso && data.reporteSospechoso.trim())
       });
 
-      // Validate required fields - CORRECCIÓN: Verificar que todos los campos requeridos estén presentes
+      // Validate required fields early
       if (!data.buyerName || data.buyerName.trim() === '') {
         throw new Error('El nombre del comprador es requerido');
       }
@@ -93,7 +93,6 @@ export function useCompletePayment({
         throw new Error('No hay números seleccionados para procesar');
       }
 
-      // CORRECCIÓN: Crear datos validados garantizando que todos los campos requeridos estén presentes
       console.log("[completePayment.ts] + Validando datos del formulario antes de procesar:", {
         buyerName: data.buyerName,
         buyerPhone: data.buyerPhone,
@@ -101,23 +100,9 @@ export function useCompletePayment({
         tipoBoton: data.clickedButtonType
       });
 
-      // Create validated data object with explicit required fields
-      const validatedData: PaymentFormData = {
-        buyerName: data.buyerName,
-        buyerPhone: data.buyerPhone,
-        buyerCedula: data.buyerCedula,
-        buyerEmail: data.buyerEmail || '',
-        direccion: data.direccion || '',
-        paymentMethod: data.paymentMethod || 'cash',
-        paymentProof: data.paymentProof || null,
-        participantId: data.participantId,
-        reporteSospechoso: data.reporteSospechoso || '',
-        nota: data.nota || '',
-        sugerenciaProducto: data.sugerenciaProducto || '',
-        paymentReceiptUrl: data.paymentReceiptUrl,
-        sellerId: data.sellerId,
-        clickedButtonType: data.clickedButtonType || ''
-      };
+      // Since data is already of type PaymentFormData from the schema, we can use it directly
+      // The schema validation ensures all required fields are present
+      const validatedData = data;
 
       console.log("[completePayment.ts] + Datos validados del participante:", {
         nombre: validatedData.buyerName,
