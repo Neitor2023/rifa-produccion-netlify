@@ -101,10 +101,11 @@ export function useCompletePayment({
         tipoBoton: data.clickedButtonType
       });
 
+      // Create validated data object with explicit required fields
       const validatedData: PaymentFormData = {
-        buyerName: data.buyerName.trim(),
-        buyerPhone: data.buyerPhone.trim(),
-        buyerCedula: data.buyerCedula.trim(),
+        buyerName: data.buyerName,
+        buyerPhone: data.buyerPhone,
+        buyerCedula: data.buyerCedula,
         buyerEmail: data.buyerEmail || '',
         direccion: data.direccion || '',
         paymentMethod: data.paymentMethod || 'cash',
