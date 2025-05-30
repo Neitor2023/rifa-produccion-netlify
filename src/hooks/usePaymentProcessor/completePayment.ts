@@ -20,6 +20,7 @@ interface CompletePaymentProps {
   setIsPaymentModalOpen: (open: boolean) => void;
   refetchRaffleNumbers: () => Promise<any>;
   debugMode?: boolean;
+  allowVoucherPrint?: boolean; // Added missing property
 }
 
 export function useCompletePayment({
@@ -31,7 +32,8 @@ export function useCompletePayment({
   setPaymentData,
   setIsPaymentModalOpen,
   refetchRaffleNumbers,
-  debugMode = false
+  debugMode = false,
+  allowVoucherPrint = true // Added with default value
 }: CompletePaymentProps) {
 
   const debugLog = (context: string, data: any) => {
