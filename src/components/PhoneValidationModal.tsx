@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
@@ -105,7 +104,6 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   const [isSearching, setIsSearching] = useState(false);
   const { clearSelectionState, setSelectedNumbers, selectedNumbers } = useNumberSelection();
   const [isNoReservedNumbersDialogOpen, setIsNoReservedNumbersDialogOpen] = useState(false);
-  const [isNumberNotInReservedDialogOpen, setIsNumberNotInReservedDialogOpen] = useState(false);
   const [isNumberMismatchDialogOpen, setIsNumberMismatchDialogOpen] = useState(false);
   const [reservedNumbers, setReservedNumbers] = useState<string[]>([]);
   const [participantFound, setParticipantFound] = useState<ValidatedBuyerInfo | null>(null);
@@ -240,22 +238,18 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       setReservedNumbers(formattedReservedNumbers);
       setParticipantFound(participant);
 
-      // NUEVA VALIDACIÓN: Comparar números seleccionados con números reservados
-      const selectedNumbersSet = new Set(selectedNumbers);
-      const reservedNumbersSet = new Set(formattedReservedNumbers);
-      
-      // Verificar si hay diferencias entre los números seleccionados y los reservados
-      const areNumbersDifferent = selectedNumbers.length !== formattedReservedNumbers.length || 
-        !selectedNumbers.every(num => reservedNumbersSet.has(num));
+      // CORRECCIÓN DEFINITIVA: En lugar de mostrar modal de conflicto, usar automáticamente los números reservados
+      console.log("[src/components/PhoneValidationModal.tsx] CORRECCIÓN: Usando automáticamente los números reservados del participante:", {
+        participantId: participant.id,
+        participantName: participant.name,
+        numerosReservados: formattedReservedNumbers,
+        cantidadReservada: formattedReservedNumbers.length
+      });
 
-      if (areNumbersDifferent) {
-        console.log("[src/components/PhoneValidationModal.tsx] Validación de números - Participante:", participant.id, "números seleccionados:", selectedNumbers, "números reservados:", formattedReservedNumbers, "son diferentes:", areNumbersDifferent);
-        setIsNumberMismatchDialogOpen(true);
-        return;
-      }
+      // Actualizar automáticamente los números seleccionados con los números reservados
+      setSelectedNumbers(formattedReservedNumbers);
 
-      // Si todo está bien, continuar con el proceso normal
-      console.log("[src/components/PhoneValidationModal.tsx] Números coinciden, continuando con participante:", participant.name, "participantId:", participant.id);
+      // Continuar directamente con el participante validado
       proceedWithValidatedParticipant(participant);
 
     } catch (error) {
@@ -319,7 +313,6 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
     console.log("[src/components/PhoneValidationModal.tsx] Cancelando validación y limpiando todo - participante:", participantFound?.name, "participantId:", participantFound?.id, "números seleccionados limpiados:", selectedNumbers);
     setIsNumberMismatchDialogOpen(false);
     setIsNoReservedNumbersDialogOpen(false);
-    setIsNumberNotInReservedDialogOpen(false);
     clearSelectionState(); // Limpiar todas las selecciones
     handleModalClose();
   };
@@ -420,36 +413,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Dialog for number not in reserved list (original functionality) */}
-      <AlertDialog 
-        open={isNumberNotInReservedDialogOpen} 
-        onOpenChange={setIsNumberNotInReservedDialogOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Número no reservado</AlertDialogTitle>
-            <AlertDialogDescription>
-              Su número seleccionado no existe en sus números reservados en la base de datos. 
-              ¿Desea seguir el pago con sus números reservados?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex justify-between">
-            <AlertDialogCancel 
-              onClick={() => {
-                setIsNumberNotInReservedDialogOpen(false);
-                handleModalClose();
-              }}
-            >
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={continueWithReservedNumbers}>
-              Continuar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* NUEVO Dialog for number mismatch - cuando los números seleccionados son diferentes a los reservados */}
+      {/* Dialog for number mismatch - mantenido para casos especiales */}
       <AlertDialog 
         open={isNumberMismatchDialogOpen} 
         onOpenChange={setIsNumberMismatchDialogOpen}

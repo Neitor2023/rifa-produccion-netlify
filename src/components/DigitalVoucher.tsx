@@ -1,511 +1,301 @@
 
 import React, { useRef, useEffect, useState } from 'react';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription,
-} from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Download, Eye, X } from 'lucide-react';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
-import { useTheme } from '@/components/ThemeProvider';
 import { toast } from 'sonner';
-
-// Import the refactored components
-import AlertMessage from './digital-voucher/AlertMessage';
-import VoucherHeader from './digital-voucher/VoucherHeader';
-import VoucherContent from './digital-voucher/VoucherContent';
-import VoucherActions from './digital-voucher/VoucherActions';
-import { 
-  exportVoucherAsImage, 
-  downloadVoucherImage, 
-  presentVoucherImage, 
-  uploadVoucherToStorage, 
-  updatePaymentReceiptUrlForNumbers,
-  updatePaymentReceiptUrlForParticipant,
-  ensureReceiptSavedForParticipant
-} from './digital-voucher/utils/voucherExport';
-import { supabase } from '@/integrations/supabase/client';
-import { useNumberSelection } from '@/contexts/NumberSelectionContext';
-import { RAFFLE_ID, SELLER_ID } from '@/lib/constants';
-import { Organization } from '@/lib/constants/types';
+import { exportVoucherAsImage, downloadVoucherImage, presentVoucherImage, ensureReceiptSavedForParticipant } from '@/components/digital-voucher/utils/voucherExport';
 
 interface DigitalVoucherProps {
   isOpen: boolean;
   onClose: () => void;
-  paymentData?: PaymentFormData | null;
+  paymentData: PaymentFormData | null;
   selectedNumbers: string[];
-  allowVoucherPrint?: boolean;
   raffleDetails?: {
     title: string;
     price: number;
     lottery: string;
     dateLottery: string;
   };
-  organization?: Organization | null;
-  onVoucherClosed?: () => void;
+  debugMode?: boolean;
+  participantId?: string;
+  raffleId?: string;
+  sellerId?: string;
 }
 
-const DigitalVoucher: React.FC<DigitalVoucherProps> = ({ 
-  isOpen, 
-  onClose, 
+const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
+  isOpen,
+  onClose,
   paymentData,
   selectedNumbers,
-  allowVoucherPrint = true,
   raffleDetails,
-  organization,
-  onVoucherClosed
+  debugMode = false,
+  participantId,
+  raffleId,
+  sellerId
 }) => {
   const printRef = useRef<HTMLDivElement>(null);
-  const { theme } = useTheme();
-  const [raffleNumberId, setRaffleNumberId] = useState<string | null>(null);
-  const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
-  const [isRaffleNumberRetrieved, setIsRaffleNumberRetrieved] = useState<boolean>(false);
-  const { clearSelectionState } = useNumberSelection();
-  const [allRaffleNumberIds, setAllRaffleNumberIds] = useState<string[]>([]);
-  const [participantId, setParticipantId] = useState<string | null>(null);
-  const [participantNumbers, setParticipantNumbers] = useState<string[]>([]);
-  const [paymentProofImage, setPaymentProofImage] = useState<string | null>(null);
-  const [receiptAlreadySaved, setReceiptAlreadySaved] = useState<boolean>(false);
-  const [showAlertMessage, setShowAlertMessage] = useState<boolean>(false);
-  const [isReceiptSaving, setIsReceiptSaving] = useState<boolean>(false);
-  const [receiptSavedSuccessfully, setReceiptSavedSuccessfully] = useState<boolean>(false);
-  
-  // Determine text color based on theme
-  const textColor = theme === 'dark' ? 'text-white' : 'text-gray-800';
+  const [hasAutoSaved, setHasAutoSaved] = useState(false);
 
-  const formattedDate = new Date().toLocaleDateString('es-ES', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-
-  // Get payment method from payment data
-  const paymentMethod = paymentData?.paymentMethod === 'cash' ? 'Efectivo' : 'Transferencia bancaria';
-  
-  // Fetch all raffle number IDs and participant ID when the component mounts or when selectedNumbers changes
+  // CORRECCIÓN DEFINITIVA: Eliminar el useEffect que cierra automáticamente el modal
+  // El modal debe permanecer abierto hasta que el usuario lo cierre manualmente
   useEffect(() => {
-    const fetchRaffleNumberIds = async (): Promise<void> => {
-      if (!isOpen || !paymentData?.participantId) return;
-      
-      try {
-        console.log('[src/components/DigitalVoucher.tsx] Iniciando obtención de IDs para participante:', paymentData.buyerName, 'participantId:', paymentData.participantId, 'sellerId:', SELLER_ID, 'raffleId:', RAFFLE_ID, 'números seleccionados:', selectedNumbers);
+    const handleAutoSave = async () => {
+      // Solo ejecutar el guardado automático una vez cuando el modal se abre
+      if (isOpen && !hasAutoSaved && paymentData && participantId && raffleId && selectedNumbers.length > 0) {
+        console.log("[src/components/DigitalVoucher.tsx] Iniciando guardado automático de comprobante para participante:", paymentData.buyerName, "ID:", participantId, "números:", selectedNumbers);
         
-        // Store participant ID for later use
-        const currentParticipantId = paymentData?.participantId;
-        setParticipantId(currentParticipantId);
-        
-        if (!currentParticipantId) {
-          console.error('[src/components/DigitalVoucher.tsx] Error: Falta ID del participante para:', paymentData.buyerName);
-          return;
-        }
-        
-        // Para "Pagar Apartados", usar SOLO los números seleccionados
-        if (paymentData.clickedButtonType === "Pagar Apartados") {
-          console.log('[src/components/DigitalVoucher.tsx] Procesando flujo "Pagar Apartados" para participante:', paymentData.buyerName, 'participantId:', currentParticipantId, 'números específicos:', selectedNumbers);
-          
-          // Verificar que los números seleccionados estén en la BD para este participante
-          const selectedNumbersInt = selectedNumbers.map(n => parseInt(n));
-          const { data: verifiedNumbers, error: verifyError } = await supabase
-            .from('raffle_numbers')
-            .select('id, number, participant_id, payment_proof, status, payment_receipt_url, payment_method')
-            .eq('participant_id', currentParticipantId)
-            .eq('raffle_id', RAFFLE_ID)
-            .in('number', selectedNumbersInt);
-          
-          if (verifyError) {
-            console.error('[src/components/DigitalVoucher.tsx] Error al verificar números seleccionados para participante:', paymentData.buyerName, 'participantId:', currentParticipantId, 'error:', verifyError);
-            return;
-          }
-          
-          if (verifiedNumbers && verifiedNumbers.length > 0) {
-            console.log('[src/components/DigitalVoucher.tsx] Números verificados para "Pagar Apartados" del participante:', paymentData.buyerName, 'participantId:', currentParticipantId, 'números:', verifiedNumbers.map(n => n.number));
+        // Pequeño delay para asegurar que el DOM esté completamente renderizado
+        setTimeout(async () => {
+          try {
+            const voucherUrl = await ensureReceiptSavedForParticipant(
+              printRef,
+              raffleDetails,
+              participantId,
+              raffleId || '',
+              sellerId || '',
+              selectedNumbers
+            );
             
-            // Usar SOLO los números verificados que coinciden con la selección
-            const verifiedNumbersFormatted = verifiedNumbers.map(item => item.number.toString().padStart(2, '0'));
-            setParticipantNumbers(verifiedNumbersFormatted);
-            
-            // Get payment proof from current form data or database
-            let proofImage = null;
-            if (paymentData?.paymentProof && typeof paymentData.paymentProof === 'string') {
-              proofImage = paymentData.paymentProof;
-              console.log('[src/components/DigitalVoucher.tsx] Usando comprobante de pago desde formulario actual para participante:', paymentData.buyerName, 'participantId:', currentParticipantId);
+            if (voucherUrl) {
+              console.log("[src/components/DigitalVoucher.tsx] Comprobante guardado automáticamente para participante:", paymentData.buyerName, "ID:", participantId, "URL:", voucherUrl);
+              setHasAutoSaved(true);
             } else {
-              proofImage = verifiedNumbers.find(item => item.payment_proof)?.payment_proof || null;
-              if (proofImage) {
-                console.log('[src/components/DigitalVoucher.tsx] Usando comprobante de pago desde BD para participante:', paymentData.buyerName, 'participantId:', currentParticipantId);
-              }
+              console.error("[src/components/DigitalVoucher.tsx] Error al guardar comprobante para participante:", paymentData.buyerName, "participantId:", participantId, "no se pudo guardar la URL");
             }
-            setPaymentProofImage(proofImage);
-            
-            const ids = verifiedNumbers.map(item => item.id);
-            setAllRaffleNumberIds(ids);
-            
-            if (ids.length > 0) {
-              setRaffleNumberId(ids[0]);
-              setIsRaffleNumberRetrieved(true);
-            }
-          } else {
-            console.warn('[src/components/DigitalVoucher.tsx] No se encontraron números verificados para participante:', paymentData.buyerName, 'participantId:', currentParticipantId);
-            // Fallback: usar números seleccionados
-            setParticipantNumbers(selectedNumbers);
+          } catch (error) {
+            console.error("[src/components/DigitalVoucher.tsx] Error durante el guardado automático:", error);
           }
-        } else {
-          // Para otros flujos, usar la lógica original
-          console.log('[src/components/DigitalVoucher.tsx] Procesando flujo estándar para participante:', paymentData.buyerName, 'participantId:', currentParticipantId);
-          
-          const { data, error } = await supabase
-            .from('raffle_numbers')
-            .select('id, number, participant_id, payment_proof, status, payment_receipt_url, payment_method')
-            .eq('participant_id', currentParticipantId)
-            .eq('raffle_id', RAFFLE_ID);
-          
-          if (error) {
-            console.error('[src/components/DigitalVoucher.tsx] Error al obtener IDs de números para participante:', paymentData.buyerName, 'participantId:', currentParticipantId, 'error:', error);
-            return;
-          }
-          
-          if (data && data.length > 0) {
-            // Check if receipt is already saved
-            const anyReceiptSaved = data.some(item => item.payment_receipt_url);
-            setReceiptAlreadySaved(anyReceiptSaved);
-            
-            // Get payment proof from form data or database
-            let proofImage = null;
-            if (paymentData?.paymentProof && typeof paymentData.paymentProof === 'string') {
-              proofImage = paymentData.paymentProof;
-              console.log('[src/components/DigitalVoucher.tsx] Usando comprobante de pago desde formulario para participante:', paymentData.buyerName, 'participantId:', currentParticipantId);
-            } else {
-              proofImage = data.find(item => item.payment_proof)?.payment_proof || null;
-              if (proofImage) {
-                console.log('[src/components/DigitalVoucher.tsx] Imagen de comprobante encontrada en BD para participante:', paymentData.buyerName, 'participantId:', currentParticipantId);
-              }
-            }
-            setPaymentProofImage(proofImage);
-            
-            const ids = data.map(item => item.id);
-            const nums = data.map(item => item.number.toString().padStart(2, '0'));
-            
-            setAllRaffleNumberIds(ids);
-            setParticipantNumbers(nums);
-            
-            if (ids.length > 0) {
-              setRaffleNumberId(ids[0]);
-              setIsRaffleNumberRetrieved(true);
-            }
-            
-            console.log('[src/components/DigitalVoucher.tsx] Números de participante obtenidos exitosamente:', paymentData.buyerName, 'participantId:', currentParticipantId, 'números:', nums);
-          } else {
-            console.warn('[src/components/DigitalVoucher.tsx] No se encontraron números para participante:', paymentData.buyerName, 'participantId:', currentParticipantId);
-            setParticipantNumbers(selectedNumbers);
-          }
-        }
-      } catch (err) {
-        console.error('[src/components/DigitalVoucher.tsx] Error en fetchRaffleNumberIds para participante:', paymentData.buyerName, 'participantId:', paymentData.participantId, 'error:', err);
+        }, 1000);
       }
     };
-    
-    fetchRaffleNumberIds();
-  }, [isOpen, selectedNumbers, paymentData]);
-  
-  // Generate the receipt URL for the QR code
+
+    handleAutoSave();
+  }, [isOpen, hasAutoSaved, paymentData, participantId, raffleId, sellerId, selectedNumbers, raffleDetails]);
+
+  // Resetear el estado cuando se cierra el modal
   useEffect(() => {
-    if (raffleNumberId) {
-      // Use the current window's hostname or a default domain if needed
-      const domain = window.location.hostname || 'rifamax.com';
-      const protocol = window.location.protocol || 'https:';
-      const url = `${protocol}//${domain}/receipt/${raffleNumberId}`;
-      setReceiptUrl(url);
-      console.log('[src/components/DigitalVoucher.tsx] URL de recibo generada para participante:', paymentData?.buyerName, 'participantId:', paymentData?.participantId, 'URL:', url);
+    if (!isOpen) {
+      console.log("[src/components/DigitalVoucher.tsx] Modal cerrado, reseteando estado de guardado automático");
+      setHasAutoSaved(false);
     }
-  }, [raffleNumberId]);
-  
-  // Auto-save receipt - CORREGIDO: NO CERRAR EL MODAL AUTOMÁTICAMENTE
-  useEffect(() => {
-    const autoSaveReceipt = async () => {
-      if (isOpen && printRef.current && participantId && !isReceiptSaving && participantNumbers.length > 0) {
-        try {
-          setIsReceiptSaving(true);
-          console.log('[src/components/DigitalVoucher.tsx] Iniciando guardado automático de comprobante para participante:', paymentData?.buyerName, 'participantId:', participantId, 'números:', participantNumbers, 'sellerId:', SELLER_ID, 'raffleId:', RAFFLE_ID);
-          
-          // Always try to generate and save the receipt, regardless of allowVoucherPrint
-          const savedUrl = await ensureReceiptSavedForParticipant(
-            printRef,
-            raffleDetails,
-            participantId,
-            RAFFLE_ID,
-            SELLER_ID,
-            participantNumbers
-          );
-          
-          if (savedUrl) {
-            console.log('[src/components/DigitalVoucher.tsx] Comprobante guardado automáticamente exitosamente para participante:', paymentData?.buyerName, 'participantId:', participantId, 'URL:', savedUrl);
-            setReceiptAlreadySaved(true);
-            setReceiptSavedSuccessfully(true);
-            
-            // Only show toast if we're actually showing the voucher
-            if (allowVoucherPrint) {
-              toast.success('Comprobante guardado automáticamente', { id: 'receipt-saved' });
-            }
-            
-            // IMPORTANTE: NO cerrar el modal automáticamente - el participante debe cerrarlo manualmente
-            // Solo mostrar mensaje de alerta cuando allowVoucherPrint es false pero NO cerrar modal
-            if (!allowVoucherPrint) {
-              setShowAlertMessage(true);
-            }
-          } else {
-            console.error('[src/components/DigitalVoucher.tsx] Error al guardar comprobante para participante:', paymentData?.buyerName, 'participantId:', participantId, 'no se pudo guardar la URL');
-            if (allowVoucherPrint) {
-              toast.error('Error al guardar el comprobante automáticamente');
-            }
-          }
-        } catch (error: any) {
-          console.error('[src/components/DigitalVoucher.tsx] Error al guardar comprobante automáticamente para participante:', paymentData?.buyerName, 'participantId:', participantId, 'error:', error?.message || error);
-          if (allowVoucherPrint) {
-            toast.error('Error al guardar el comprobante automáticamente');
-          }
-        } finally {
-          setIsReceiptSaving(false);
-        }
-      }
-    };
-    
-    // Delay execution slightly to ensure the DOM is ready
-    const timer = setTimeout(autoSaveReceipt, 1000);
-    return () => clearTimeout(timer);
-  }, [isOpen, printRef.current, participantId, participantNumbers, raffleDetails, allowVoucherPrint]);
-  
-  // Handle the modal close event - SOLO MANUAL, nunca automático
-  const handleCloseModal = (): void => {
-    console.log('[src/components/DigitalVoucher.tsx] Cerrando modal de comprobante MANUALMENTE para participante:', paymentData?.buyerName, 'participantId:', participantId, 'números:', participantNumbers);
-    clearSelectionState(); // Clear selections when modal is closed
-    onClose();
-    // Call the onVoucherClosed callback if provided
-    if (onVoucherClosed) {
-      onVoucherClosed();
-    }
-  };
+  }, [isOpen]);
 
-  // Function to update payment_receipt_url for all participant's numbers
-  const updatePaymentReceiptUrlForAllNumbers = async (voucherUrl: string): Promise<boolean> => {
-    if (!voucherUrl || !paymentData?.participantId) {
-      console.error("[src/components/DigitalVoucher.tsx] Error: Datos insuficientes para actualizar recibo de pago para participante:", paymentData?.buyerName, 'participantId:', paymentData?.participantId);
-      return false;
-    }
-    
-    try {
-      // Only update numbers for the current participant
-      console.log(`[src/components/DigitalVoucher.tsx] Guardando URL en raffle_numbers.payment_receipt_url para participante: ${paymentData.buyerName}, participantId: ${paymentData.participantId}, sellerId: ${SELLER_ID}, raffleId: ${RAFFLE_ID}`);
-      
-      // Use the utility function to update receipt URLs
-      const result = await updatePaymentReceiptUrlForParticipant(
-        voucherUrl,
-        paymentData.participantId,
-        RAFFLE_ID,
-        SELLER_ID
-      );
-
-      if (result) {
-        console.log('[src/components/DigitalVoucher.tsx] Comprobante registrado con éxito para participante:', paymentData.buyerName, 'participantId:', paymentData.participantId, 'URL:', voucherUrl);
-      }
-      
-      return result;
-    } catch (error: any) {
-      console.error("[src/components/DigitalVoucher.tsx] Error al guardar comprobante para participante:", paymentData?.buyerName, "participantId:", paymentData?.participantId, "error:", error?.message || error);
-      return false;
-    }
-  };
-
-  // Mejorar función de guardado de comprobante
-  const saveVoucherForAllNumbers = async (): Promise<string | null> => {
-    try {
-      if (!printRef.current || !raffleDetails || !paymentData?.participantId) {
-        console.error("[src/components/DigitalVoucher.tsx] Error: No hay referencia de comprobante, detalles de rifa o datos de pago para participante:", paymentData?.buyerName);
-        toast.error("Error: No se pueden generar los datos del comprobante");
-        return null;
-      }
-      
-      console.log("[src/components/DigitalVoucher.tsx] Iniciando generación y guardado de comprobantes para participante:", paymentData.buyerName, "ID:", paymentData.participantId, "Números:", participantNumbers);
-      
-      // Usar html2canvas sin iframe para evitar errores
-      const html2canvas = (await import('html2canvas')).default;
-      
-      try {
-        console.log('[src/components/DigitalVoucher.tsx] Generando imagen del comprobante para participante:', paymentData.buyerName);
-        const canvas = await html2canvas(printRef.current, {
-          scale: 2,
-          logging: false,
-          useCORS: true,
-          allowTaint: true,
-          // Configuraciones para evitar errores de iframe
-          foreignObjectRendering: false,
-          removeContainer: true
-        });
-        
-        const imgData = canvas.toDataURL('image/png');
-        console.log('[src/components/DigitalVoucher.tsx] Imagen del comprobante generada exitosamente para participante:', paymentData.buyerName);
-        
-        if (!imgData) {
-          throw new Error("No se pudo generar la imagen del comprobante");
-        }
-        
-        // Create a unique receipt ID
-        const receiptId = `receipt_${new Date().getTime()}_${paymentData.participantId}`;
-        
-        // Upload to storage
-        const imageUrl = await uploadVoucherToStorage(
-          imgData, 
-          raffleDetails.title, 
-          receiptId
-        );
-        
-        if (imageUrl) {
-          console.log('[src/components/DigitalVoucher.tsx] Imagen subida correctamente para participante:', paymentData.buyerName, 'URL:', imageUrl);
-          
-          // Actualizar solo los números de este participante con la URL del recibo
-          const updateSuccess = await updatePaymentReceiptUrlForAllNumbers(imageUrl);
-          
-          if (updateSuccess) {
-            setReceiptAlreadySaved(true);
-            console.log(`[src/components/DigitalVoucher.tsx] Comprobante guardado correctamente para participante: ${paymentData.buyerName} - números: ${participantNumbers.join(', ')} - método de pago: ${paymentMethod}`);
-            toast.success("¡Comprobante guardado exitosamente!");
-            return imageUrl;
-          } else {
-            console.error("[src/components/DigitalVoucher.tsx] Error al guardar comprobante para participante:", paymentData.buyerName, "fallo al actualizar recibos en la base de datos");
-            toast.error("Error al guardar el comprobante en la base de datos");
-            return null;
-          }
-        } else {
-          console.error("[src/components/DigitalVoucher.tsx] Error al guardar comprobante para participante:", paymentData.buyerName, "fallo al subir imagen");
-          toast.error("Error al subir la imagen del comprobante");
-          return null;
-        }
-      } catch (canvasError: any) {
-        console.error('[src/components/DigitalVoucher.tsx] Error al generar imagen con html2canvas para participante:', paymentData.buyerName, 'Error:', canvasError?.message || canvasError);
-        toast.error("Error al generar la imagen del comprobante");
-        return null;
-      }
-    } catch (error: any) {
-      console.error(`[src/components/DigitalVoucher.tsx] Error al guardar comprobante para participante: ${paymentData?.buyerName} - Error: ${error?.message || error}`);
-      toast.error("Error al guardar el comprobante. Intente nuevamente.");
-      return null;
-    } finally {
-      console.log('[src/components/DigitalVoucher.tsx] Finalizando ciclo de guardado para participante:', paymentData?.buyerName);
-    }
-  };
-
-  // Mejorar función de descarga
-  const handleDownloadVoucher = async () => {
-    if (printRef.current) {
-      try {
-        console.log('[src/components/DigitalVoucher.tsx] Iniciando descarga de comprobante para participante:', paymentData?.buyerName);
-        
-        const html2canvas = (await import('html2canvas')).default;
-        const canvas = await html2canvas(printRef.current, {
-          scale: 2,
-          logging: false,
-          useCORS: true,
-          allowTaint: true,
-          foreignObjectRendering: false,
-          removeContainer: true
-        });
-        
-        const imgData = canvas.toDataURL('image/png');
-        
-        if (imgData) {
-          downloadVoucherImage(imgData, `comprobante_${new Date().getTime()}.png`);
-          console.log('[src/components/DigitalVoucher.tsx] Descarga iniciada correctamente para participante:', paymentData?.buyerName);
-        } else {
-          throw new Error("No se pudo generar la imagen para descarga");
-        }
-      } catch (error: any) {
-        console.error('[src/components/DigitalVoucher.tsx] Error en descarga para participante:', paymentData?.buyerName, 'Error:', error?.message || error);
-        toast.error("Error al descargar el comprobante");
-      }
-    }
-  };
-
-  // Mejorar función de visualización
-  const handleViewVoucher = async () => {
-    if (printRef.current) {
-      try {
-        console.log('[src/components/DigitalVoucher.tsx] Iniciando visualización de comprobante para participante:', paymentData?.buyerName);
-        
-        const html2canvas = (await import('html2canvas')).default;
-        const canvas = await html2canvas(printRef.current, {
-          scale: 2,
-          logging: false,
-          useCORS: true,
-          allowTaint: true,
-          foreignObjectRendering: false,
-          removeContainer: true
-        });
-        
-        const imgData = canvas.toDataURL('image/png');
-        
-        if (imgData) {
-          presentVoucherImage(imgData);
-          console.log('[src/components/DigitalVoucher.tsx] Visualización iniciada correctamente para participante:', paymentData?.buyerName);
-        } else {
-          throw new Error("No se pudo generar la imagen para visualización");
-        }
-      } catch (error: any) {
-        console.error('[src/components/DigitalVoucher.tsx] Error en visualización para participante:', paymentData?.buyerName, 'Error:', error?.message || error);
-        toast.error("Error al visualizar el comprobante");
-      }
-    }
-  };
-
-  // If the receipt has been saved and allowVoucherPrint is false, show the alert message
-  if (isOpen && !allowVoucherPrint && showAlertMessage && receiptSavedSuccessfully) {
-    console.log('[src/components/DigitalVoucher.tsx] Mostrando AlertMessage porque allowVoucherPrint es false para participante:', paymentData?.buyerName, 'participantId:', participantId);
-    return (
-      <AlertMessage 
-        isOpen={true} 
-        onClose={handleCloseModal} 
-        textColor={textColor} 
-        receiptSaved={receiptSavedSuccessfully}
-      />
-    );
+  if (!paymentData) {
+    console.log("[src/components/DigitalVoucher.tsx] No hay datos de pago disponibles");
+    return null;
   }
-  
-  // If allowVoucherPrint is true or receipt is still saving, show the regular voucher dialog
+
+  console.log("[src/components/DigitalVoucher.tsx] Renderizando comprobante para participante:", paymentData.buyerName, "ID:", participantId, "con números:", selectedNumbers);
+
+  const handleDownload = async () => {
+    console.log("[src/components/DigitalVoucher.tsx] Iniciando descarga de comprobante para participante:", paymentData.buyerName, "ID:", participantId);
+    
+    const imgData = await exportVoucherAsImage(printRef.current, '');
+    if (imgData) {
+      const fileName = `comprobante_${paymentData.buyerName.replace(/\s+/g, '_')}_${selectedNumbers.join('-')}_${new Date().getTime()}.png`;
+      downloadVoucherImage(imgData, fileName);
+      console.log("[src/components/DigitalVoucher.tsx] Descarga completada para participante:", paymentData.buyerName, "archivo:", fileName);
+    } else {
+      console.error("[src/components/DigitalVoucher.tsx] Error al generar imagen para descarga - participante:", paymentData.buyerName, "ID:", participantId);
+    }
+  };
+
+  const handlePresent = async () => {
+    console.log("[src/components/DigitalVoucher.tsx] Iniciando presentación de comprobante para participante:", paymentData.buyerName, "ID:", participantId);
+    
+    const imgData = await exportVoucherAsImage(printRef.current, '');
+    if (imgData) {
+      presentVoucherImage(imgData);
+      console.log("[src/components/DigitalVoucher.tsx] Presentación iniciada para participante:", paymentData.buyerName);
+    } else {
+      console.error("[src/components/DigitalVoucher.tsx] Error al generar imagen para presentación - participante:", paymentData.buyerName, "ID:", participantId);
+    }
+  };
+
+  // CORRECCIÓN: Función de cierre manual del modal
+  const handleManualClose = () => {
+    console.log("[src/components/DigitalVoucher.tsx] Cierre manual del modal por el participante:", paymentData.buyerName, "ID:", participantId);
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleCloseModal()}>
+    <Dialog open={isOpen} onOpenChange={() => {}}>
       <DialogContent 
-        className="sm:max-w-md md:max-w-xl lg:max-w-2xl min-h-[85vh] max-h-[90vh] flex flex-col bg-white/20 backdrop-blur-md rounded-xl border-0"
-        aria-describedby="voucher-description"
+        className="max-w-2xl max-h-[90vh] overflow-auto bg-white/95 backdrop-blur-sm"
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogDescription id="voucher-description" className="sr-only">
-          Comprobante digital de pago para números de rifa seleccionados
-        </DialogDescription>
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <DialogTitle className="text-xl font-bold text-gray-800">
+            Comprobante de Pago Digital
+          </DialogTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleManualClose}
+            className="h-8 w-8 p-0 hover:bg-gray-100"
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Cerrar</span>
+          </Button>
+        </DialogHeader>
         
-        <VoucherHeader 
-          onClose={handleCloseModal}
-          onSaveVoucher={saveVoucherForAllNumbers}
-        />
-        
-        <ScrollArea className="flex-1 overflow-y-auto p-4">
-          <VoucherContent 
-            printRef={printRef}
-            formattedDate={formattedDate}
-            paymentMethod={paymentMethod}
-            paymentData={paymentData}
-            selectedNumbers={participantNumbers} // Using participant's numbers
-            raffleDetails={raffleDetails}
-            qrUrl={receiptUrl || ''}
-            textColor={textColor}
-            numberId={raffleNumberId || undefined}
-            paymentProofImage={paymentProofImage}
-          />
-        </ScrollArea>
-        
-        <VoucherActions 
-          onClose={handleCloseModal}
-          onDownload={handleDownloadVoucher}
-          onView={handleViewVoucher}
-        />
+        <div className="space-y-4">
+          {/* Voucher Content */}
+          <Card className="border-2 border-gray-300 bg-white">
+            <CardContent className="p-6" ref={printRef}>
+              <div className="text-center space-y-4">
+                <div className="border-b-2 border-gray-200 pb-4">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                    {raffleDetails?.title || 'Comprobante de Pago'}
+                  </h2>
+                  <p className="text-sm text-gray-600">
+                    Fecha: {new Date().toLocaleDateString('es-ES', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 text-left">
+                  <div>
+                    <p className="text-sm text-gray-600">Participante:</p>
+                    <p className="font-semibold text-gray-800">{paymentData.buyerName}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Teléfono:</p>
+                    <p className="font-semibold text-gray-800">{paymentData.buyerPhone}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Cédula:</p>
+                    <p className="font-semibold text-gray-800">{paymentData.buyerCedula || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Email:</p>
+                    <p className="font-semibold text-gray-800">{paymentData.buyerEmail || 'N/A'}</p>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-200 pt-4">
+                  <div className="grid grid-cols-2 gap-4 text-left">
+                    <div>
+                      <p className="text-sm text-gray-600">Números Comprados:</p>
+                      <p className="font-bold text-xl text-blue-600">
+                        {selectedNumbers.join(', ')}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Cantidad:</p>
+                      <p className="font-semibold text-gray-800">{selectedNumbers.length} números</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-200 pt-4">
+                  <div className="grid grid-cols-2 gap-4 text-left">
+                    <div>
+                      <p className="text-sm text-gray-600">Precio por número:</p>
+                      <p className="font-semibold text-gray-800">
+                        ${raffleDetails?.price?.toLocaleString() || 'N/A'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Total Pagado:</p>
+                      <p className="font-bold text-xl text-green-600">
+                        ${((raffleDetails?.price || 0) * selectedNumbers.length).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-200 pt-4">
+                  <div className="grid grid-cols-2 gap-4 text-left">
+                    <div>
+                      <p className="text-sm text-gray-600">Método de Pago:</p>
+                      <p className="font-semibold text-gray-800 capitalize">
+                        {paymentData.paymentMethod === 'cash' ? 'Efectivo' : 
+                         paymentData.paymentMethod === 'transfer' ? 'Transferencia' : 
+                         paymentData.paymentMethod}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Sorteo:</p>
+                      <p className="font-semibold text-gray-800">
+                        {raffleDetails?.lottery || 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {raffleDetails?.dateLottery && (
+                  <div className="border-t border-gray-200 pt-4">
+                    <p className="text-sm text-gray-600">Fecha del Sorteo:</p>
+                    <p className="font-semibold text-gray-800">{raffleDetails.dateLottery}</p>
+                  </div>
+                )}
+
+                {paymentData.direccion && (
+                  <div className="border-t border-gray-200 pt-4">
+                    <p className="text-sm text-gray-600">Dirección:</p>
+                    <p className="font-semibold text-gray-800">{paymentData.direccion}</p>
+                  </div>
+                )}
+
+                <div className="border-t-2 border-gray-200 pt-4 text-center">
+                  <p className="text-xs text-gray-500">
+                    Este comprobante es válido como prueba de participación en la rifa.
+                    <br />
+                    Conserve este documento hasta la fecha del sorteo.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button
+              onClick={handleDownload}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+            >
+              <Download className="h-4 w-4" />
+              Descargar Comprobante
+            </Button>
+            
+            <Button
+              onClick={handlePresent}
+              variant="outline"
+              className="flex items-center gap-2 border-blue-600 text-blue-600 hover:bg-blue-50"
+            >
+              <Eye className="h-4 w-4" />
+              Ver en Pantalla Completa
+            </Button>
+            
+            <Button
+              onClick={handleManualClose}
+              variant="secondary"
+              className="flex items-center gap-2"
+            >
+              <X className="h-4 w-4" />
+              Cerrar
+            </Button>
+          </div>
+
+          {debugMode && (
+            <div className="mt-4 p-3 bg-gray-100 rounded text-xs">
+              <p><strong>Debug Info:</strong></p>
+              <p>Participant ID: {participantId}</p>
+              <p>Raffle ID: {raffleId}</p>
+              <p>Auto-saved: {hasAutoSaved ? 'Sí' : 'No'}</p>
+            </div>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

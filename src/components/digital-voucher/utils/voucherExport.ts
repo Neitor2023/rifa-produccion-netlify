@@ -1,3 +1,4 @@
+
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { getSellerUuidFromCedula } from '@/hooks/useRaffleData/useSellerIdMapping';
@@ -15,20 +16,32 @@ export const exportVoucherAsImage = async (
     console.log('[voucherExport.ts] 📸 Preparando imagen del comprobante...');
     const html2canvas = (await import('html2canvas')).default;
     
-    // CORRECCIÓN: Configuración mejorada para evitar errores de iframe
+    // CORRECCIÓN DEFINITIVA: Configuración mejorada para evitar errores de iframe
     const canvas = await html2canvas(content, {
       scale: 2, // Higher scale for better quality
       logging: false,
       useCORS: true,
       allowTaint: true,
-      // CRÍTICO: Configuraciones para evitar problemas con iframe
+      // CRÍTICO: Configuraciones específicas para evitar problemas con iframe
       foreignObjectRendering: false,
-      removeContainer: true,
+      removeContainer: false, // Cambio crítico
       ignoreElements: (element) => {
         // Ignorar elementos que puedan causar problemas
         return element.tagName === 'IFRAME' || 
                element.tagName === 'SCRIPT' ||
                element.classList.contains('ignore-in-export');
+      },
+      // NUEVA CONFIGURACIÓN: Evitar errores relacionados con elementos clonados
+      onclone: (clonedDoc, element) => {
+        console.log('[voucherExport.ts] 🔄 Clonando documento para captura...');
+        // Remover elementos problemáticos del documento clonado
+        const iframes = clonedDoc.querySelectorAll('iframe');
+        iframes.forEach(iframe => iframe.remove());
+        
+        const scripts = clonedDoc.querySelectorAll('script');
+        scripts.forEach(script => script.remove());
+        
+        return clonedDoc;
       }
     });
     
@@ -37,8 +50,28 @@ export const exportVoucherAsImage = async (
     return imgData;
   } catch (error: any) {
     console.error('[voucherExport.ts] ❌ Error al generar imagen del comprobante:', error?.message || error);
-    toast.error("No se pudo crear la imagen del comprobante. Intente nuevamente.");
-    return null;
+    
+    // FALLBACK: Intentar con configuración más simple
+    try {
+      console.log('[voucherExport.ts] 🔄 Intentando captura con configuración simple...');
+      const html2canvas = (await import('html2canvas')).default;
+      
+      const canvas = await html2canvas(content, {
+        scale: 1,
+        logging: false,
+        useCORS: false,
+        allowTaint: true,
+        backgroundColor: '#ffffff'
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      console.log('[voucherExport.ts] ✅ Imagen generada con configuración simple');
+      return imgData;
+    } catch (fallbackError: any) {
+      console.error('[voucherExport.ts] ❌ Error en fallback:', fallbackError?.message || fallbackError);
+      toast.error("No se pudo crear la imagen del comprobante. Intente nuevamente.");
+      return null;
+    }
   }
 };
 
@@ -264,7 +297,6 @@ export const updatePaymentReceiptUrlForNumbers = async (
   }
 };
 
-// Update payment receipt URL only for specific participant's numbers
 export const updatePaymentReceiptUrlForParticipant = async (
   voucherUrl: string,
   participantId: string,
@@ -320,7 +352,6 @@ export const updatePaymentReceiptUrlForParticipant = async (
   }
 };
 
-// New function to ensure automatic saving of receipt for selected numbers
 export const ensureReceiptSavedForParticipant = async (
   printRef: React.RefObject<HTMLDivElement>,
   raffleDetails: any | undefined,
