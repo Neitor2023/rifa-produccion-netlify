@@ -43,18 +43,27 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
 }) => {
   const printRef = useRef<HTMLDivElement>(null);
   const [hasAutoSaved, setHasAutoSaved] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
-  // CORRECCIÓN DEFINITIVA: Eliminar el useEffect que cierra automáticamente el modal
-  // El modal debe permanecer abierto hasta que el usuario lo cierre manualmente
+  // Efecto para guardar automáticamente el comprobante cuando el modal esté completamente cargado
   useEffect(() => {
     const handleAutoSave = async () => {
-      // Solo ejecutar el guardado automático una vez cuando el modal se abre
-      if (isOpen && !hasAutoSaved && paymentData && participantId && raffleId && selectedNumbers.length > 0) {
-        console.log("[src/components/DigitalVoucher.tsx] + Iniciando guardado automático de comprobante para participante:", paymentData.buyerName, "ID:", participantId, "números:", selectedNumbers);
+      // Solo ejecutar si el modal está abierto, no se ha guardado antes, y hay datos válidos
+      if (isOpen && !hasAutoSaved && paymentData && participantId && raffleId && selectedNumbers.length > 0 && !isGeneratingImage) {
+        console.log("[src/components/DigitalVoucher.tsx] + Iniciando emisión de voucher del participante", {
+          nombreParticipante: paymentData.buyerName,
+          emailParticipante: paymentData.buyerEmail,
+          idParticipante: participantId,
+          numerosSeleccionados: selectedNumbers,
+          cantidadNumeros: selectedNumbers.length
+        });
         
-        // Pequeño delay para asegurar que el DOM esté completamente renderizado
+        // Dar tiempo para que el DOM se renderice completamente
         setTimeout(async () => {
           try {
+            setIsGeneratingImage(true);
+            console.log("[src/components/DigitalVoucher.tsx] + Generando imagen del comprobante para participante:", paymentData.buyerName, "con números:", selectedNumbers);
+            
             const voucherUrl = await ensureReceiptSavedForParticipant(
               printRef,
               raffleDetails,
@@ -65,100 +74,148 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
             );
             
             if (voucherUrl) {
-              console.log("[src/components/DigitalVoucher.tsx] + Comprobante guardado automáticamente para participante:", paymentData.buyerName, "ID:", participantId, "URL:", voucherUrl);
+              console.log("[src/components/DigitalVoucher.tsx] + ✅ Comprobante guardado automáticamente para participante:", {
+                nombreParticipante: paymentData.buyerName,
+                idParticipante: participantId,
+                urlComprobante: voucherUrl,
+                numerosGuardados: selectedNumbers
+              });
               setHasAutoSaved(true);
+              toast.success('Comprobante generado y guardado correctamente', {
+                id: 'voucher-success-toast',
+                duration: 3000
+              });
             } else {
-              console.error("[src/components/DigitalVoucher.tsx] + Error al guardar comprobante para participante:", paymentData.buyerName, "participantId:", participantId, "no se pudo guardar la URL");
+              console.error("[src/components/DigitalVoucher.tsx] + ❌ Error al guardar comprobante para participante:", {
+                nombreParticipante: paymentData.buyerName,
+                idParticipante: participantId,
+                error: "No se pudo generar la URL del comprobante"
+              });
             }
           } catch (error) {
-            console.error("[src/components/DigitalVoucher.tsx] + Error durante el guardado automático:", error);
+            console.error("[src/components/DigitalVoucher.tsx] + ❌ Error durante generación automática del comprobante:", {
+              nombreParticipante: paymentData.buyerName,
+              idParticipante: participantId,
+              error: error
+            });
+          } finally {
+            setIsGeneratingImage(false);
           }
-        }, 1000);
+        }, 1500); // Incrementar el tiempo para asegurar renderizado completo
       }
     };
 
     handleAutoSave();
-  }, [isOpen, hasAutoSaved, paymentData, participantId, raffleId, sellerId, selectedNumbers, raffleDetails]);
+  }, [isOpen, hasAutoSaved, paymentData, participantId, raffleId, sellerId, selectedNumbers, raffleDetails, isGeneratingImage]);
 
   // Resetear el estado cuando se cierra el modal
   useEffect(() => {
     if (!isOpen) {
-      console.log("[src/components/DigitalVoucher.tsx] + Modal cerrado, reseteando estado de guardado automático");
+      console.log("[src/components/DigitalVoucher.tsx] + Modal cerrado manualmente, reseteando estados");
       setHasAutoSaved(false);
+      setIsGeneratingImage(false);
     }
   }, [isOpen]);
 
   if (!paymentData) {
-    console.log("[src/components/DigitalVoucher.tsx] + No hay datos de pago disponibles");
+    console.log("[src/components/DigitalVoucher.tsx] + ⚠️ No hay datos de pago disponibles para mostrar el comprobante");
     return null;
   }
 
-  console.log("[src/components/DigitalVoucher.tsx] + Renderizando comprobante para participante:", paymentData.buyerName, "ID:", participantId, "con números:", selectedNumbers);
+  console.log("[src/components/DigitalVoucher.tsx] + Renderizando comprobante digital para participante:", {
+    nombreParticipante: paymentData.buyerName,
+    emailParticipante: paymentData.buyerEmail,
+    idParticipante: participantId,
+    numerosSeleccionados: selectedNumbers,
+    estadoGuardado: hasAutoSaved ? 'Guardado' : 'Pendiente'
+  });
 
   const handleDownload = async () => {
-    console.log("[src/components/DigitalVoucher.tsx] + Iniciando descarga de comprobante para participante:", paymentData.buyerName, "ID:", participantId);
+    console.log("[src/components/DigitalVoucher.tsx] + Iniciando descarga manual de comprobante para participante:", {
+      nombreParticipante: paymentData.buyerName,
+      idParticipante: participantId
+    });
     
-    const imgData = await exportVoucherAsImage(printRef.current, '');
-    if (imgData) {
-      const fileName = `comprobante_${paymentData.buyerName.replace(/\s+/g, '_')}_${selectedNumbers.join('-')}_${new Date().getTime()}.png`;
-      downloadVoucherImage(imgData, fileName);
-      console.log("[src/components/DigitalVoucher.tsx] + Descarga completada para participante:", paymentData.buyerName, "archivo:", fileName);
-    } else {
-      console.error("[src/components/DigitalVoucher.tsx] + Error al generar imagen para descarga - participante:", paymentData.buyerName, "ID:", participantId);
+    try {
+      const imgData = await exportVoucherAsImage(printRef.current, '');
+      if (imgData) {
+        const fileName = `comprobante_${paymentData.buyerName.replace(/\s+/g, '_')}_${selectedNumbers.join('-')}_${new Date().getTime()}.png`;
+        downloadVoucherImage(imgData, fileName);
+        console.log("[src/components/DigitalVoucher.tsx] + ✅ Descarga completada para participante:", paymentData.buyerName, "archivo:", fileName);
+      } else {
+        console.error("[src/components/DigitalVoucher.tsx] + ❌ Error al generar imagen para descarga - participante:", paymentData.buyerName);
+      }
+    } catch (error) {
+      console.error("[src/components/DigitalVoucher.tsx] + ❌ Error durante descarga manual:", error);
     }
   };
 
   const handlePresent = async () => {
-    console.log("[src/components/DigitalVoucher.tsx] + Iniciando presentación de comprobante para participante:", paymentData.buyerName, "ID:", participantId);
+    console.log("[src/components/DigitalVoucher.tsx] + Iniciando presentación de comprobante para participante:", {
+      nombreParticipante: paymentData.buyerName,
+      idParticipante: participantId
+    });
     
-    const imgData = await exportVoucherAsImage(printRef.current, '');
-    if (imgData) {
-      presentVoucherImage(imgData);
-      console.log("[src/components/DigitalVoucher.tsx] + Presentación iniciada para participante:", paymentData.buyerName);
-    } else {
-      console.error("[src/components/DigitalVoucher.tsx] + Error al generar imagen para presentación - participante:", paymentData.buyerName, "ID:", participantId);
+    try {
+      const imgData = await exportVoucherAsImage(printRef.current, '');
+      if (imgData) {
+        presentVoucherImage(imgData);
+        console.log("[src/components/DigitalVoucher.tsx] + ✅ Presentación iniciada para participante:", paymentData.buyerName);
+      } else {
+        console.error("[src/components/DigitalVoucher.tsx] + ❌ Error al generar imagen para presentación - participante:", paymentData.buyerName);
+      }
+    } catch (error) {
+      console.error("[src/components/DigitalVoucher.tsx] + ❌ Error durante presentación:", error);
     }
   };
 
-  // CORRECCIÓN: Función de cierre manual del modal
+  // Función de cierre manual - ÚNICA forma de cerrar el modal
   const handleManualClose = () => {
-    console.log("[src/components/DigitalVoucher.tsx] + Cierre manual del modal por el participante:", paymentData.buyerName, "ID:", participantId);
+    console.log("[src/components/DigitalVoucher.tsx] + Cierre manual del modal por participante:", {
+      nombreParticipante: paymentData.buyerName,
+      idParticipante: participantId,
+      comprobanteGuardado: hasAutoSaved
+    });
     onClose();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}}>
+    <Dialog 
+      open={isOpen} 
+      onOpenChange={() => {}} // Prevenir cierre automático
+    >
       <DialogContent 
-        className="max-w-2xl max-h-[90vh] overflow-auto bg-white/95 backdrop-blur-sm"
-        onInteractOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
+        className="max-w-2xl max-h-[90vh] overflow-auto bg-white/98 backdrop-blur-sm border border-gray-200 shadow-2xl rounded-lg"
+        onInteractOutside={(e) => e.preventDefault()} // Prevenir cierre por click fuera
+        onEscapeKeyDown={(e) => e.preventDefault()} // Prevenir cierre por ESC
       >
-        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <DialogTitle className="text-xl font-bold text-gray-800">
-            Comprobante de Pago Digital
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200">
+          <DialogTitle className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            📄 Comprobante de Pago Digital
           </DialogTitle>
           <Button
             variant="ghost"
             size="sm"
             onClick={handleManualClose}
-            className="h-8 w-8 p-0 hover:bg-gray-100"
+            className="h-10 w-10 p-0 hover:bg-gray-100 rounded-full transition-colors"
           >
-            <X className="h-4 w-4" />
-            <span className="sr-only">Cerrar</span>
+            <X className="h-5 w-5 text-gray-600" />
+            <span className="sr-only">Cerrar comprobante</span>
           </Button>
         </DialogHeader>
         
-        <div className="space-y-4">
-          {/* Voucher Content */}
-          <Card className="border-2 border-gray-300 bg-white">
-            <CardContent className="p-6" ref={printRef}>
-              <div className="text-center space-y-4">
-                <div className="border-b-2 border-gray-200 pb-4">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-2">
+        <div className="space-y-6 py-4">
+          {/* Contenido del Comprobante - Diseño Original Restaurado */}
+          <Card className="border-2 border-blue-200 bg-gradient-to-br from-white to-blue-50/30 shadow-lg rounded-lg">
+            <CardContent className="p-8" ref={printRef}>
+              <div className="text-center space-y-6">
+                {/* Encabezado del Comprobante */}
+                <div className="border-b-2 border-blue-300 pb-6 mb-6">
+                  <h2 className="text-3xl font-bold text-blue-800 mb-3">
                     {raffleDetails?.title || 'Comprobante de Pago'}
                   </h2>
-                  <p className="text-sm text-gray-600">
-                    Fecha: {new Date().toLocaleDateString('es-ES', {
+                  <p className="text-sm text-gray-600 bg-gray-100 px-4 py-2 rounded-full inline-block">
+                    📅 Emitido: {new Date().toLocaleDateString('es-ES', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric',
@@ -168,70 +225,74 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 text-left">
-                  <div>
-                    <p className="text-sm text-gray-600">Participante:</p>
-                    <p className="font-semibold text-gray-800">{paymentData.buyerName}</p>
+                {/* Información del Participante */}
+                <div className="grid grid-cols-2 gap-6 text-left bg-white/60 p-6 rounded-lg border border-gray-200">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-gray-600">👤 Participante:</p>
+                    <p className="font-bold text-lg text-gray-800">{paymentData.buyerName}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Teléfono:</p>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-gray-600">📱 Teléfono:</p>
                     <p className="font-semibold text-gray-800">{paymentData.buyerPhone}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Cédula:</p>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-gray-600">🆔 Cédula:</p>
                     <p className="font-semibold text-gray-800">{paymentData.buyerCedula || 'N/A'}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Email:</p>
-                    <p className="font-semibold text-gray-800">{paymentData.buyerEmail || 'N/A'}</p>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-gray-600">📧 Email:</p>
+                    <p className="font-semibold text-gray-800 text-sm break-all">{paymentData.buyerEmail || 'N/A'}</p>
                   </div>
                 </div>
 
-                <div className="border-t border-gray-200 pt-4">
-                  <div className="grid grid-cols-2 gap-4 text-left">
-                    <div>
-                      <p className="text-sm text-gray-600">Números Comprados:</p>
-                      <p className="font-bold text-xl text-blue-600">
+                {/* Números Comprados */}
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg border-2 border-green-200">
+                  <div className="grid grid-cols-2 gap-6 text-left">
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-600">🎯 Números Comprados:</p>
+                      <p className="font-bold text-2xl text-green-700 bg-white px-4 py-2 rounded-lg border border-green-300">
                         {selectedNumbers.join(', ')}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Cantidad:</p>
-                      <p className="font-semibold text-gray-800">{selectedNumbers.length} números</p>
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-600">📊 Cantidad:</p>
+                      <p className="font-semibold text-xl text-gray-800">{selectedNumbers.length} número{selectedNumbers.length > 1 ? 's' : ''}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="border-t border-gray-200 pt-4">
-                  <div className="grid grid-cols-2 gap-4 text-left">
-                    <div>
-                      <p className="text-sm text-gray-600">Precio por número:</p>
-                      <p className="font-semibold text-gray-800">
+                {/* Información de Pago */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border-2 border-blue-200">
+                  <div className="grid grid-cols-2 gap-6 text-left">
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-600">💰 Precio por número:</p>
+                      <p className="font-semibold text-lg text-gray-800">
                         ${raffleDetails?.price?.toLocaleString() || 'N/A'}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Total Pagado:</p>
-                      <p className="font-bold text-xl text-green-600">
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-600">💵 Total Pagado:</p>
+                      <p className="font-bold text-2xl text-green-600 bg-white px-4 py-2 rounded-lg border border-green-300">
                         ${((raffleDetails?.price || 0) * selectedNumbers.length).toLocaleString()}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="border-t border-gray-200 pt-4">
-                  <div className="grid grid-cols-2 gap-4 text-left">
-                    <div>
-                      <p className="text-sm text-gray-600">Método de Pago:</p>
-                      <p className="font-semibold text-gray-800 capitalize">
-                        {paymentData.paymentMethod === 'cash' ? 'Efectivo' : 
-                         paymentData.paymentMethod === 'transfer' ? 'Transferencia' : 
+                {/* Detalles del Sorteo */}
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-lg border-2 border-purple-200">
+                  <div className="grid grid-cols-2 gap-6 text-left">
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-600">💳 Método de Pago:</p>
+                      <p className="font-semibold text-lg text-gray-800 capitalize bg-white px-3 py-1 rounded border">
+                        {paymentData.paymentMethod === 'cash' ? '💵 Efectivo' : 
+                         paymentData.paymentMethod === 'transfer' ? '🏦 Transferencia' : 
                          paymentData.paymentMethod}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Sorteo:</p>
-                      <p className="font-semibold text-gray-800">
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-600">🎲 Sorteo:</p>
+                      <p className="font-semibold text-lg text-gray-800 bg-white px-3 py-1 rounded border">
                         {raffleDetails?.lottery || 'N/A'}
                       </p>
                     </div>
@@ -239,67 +300,96 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
                 </div>
 
                 {raffleDetails?.dateLottery && (
-                  <div className="border-t border-gray-200 pt-4">
-                    <p className="text-sm text-gray-600">Fecha del Sorteo:</p>
-                    <p className="font-semibold text-gray-800">{raffleDetails.dateLottery}</p>
+                  <div className="bg-yellow-50 p-4 rounded-lg border-2 border-yellow-200">
+                    <p className="text-sm font-medium text-gray-600 mb-1">📅 Fecha del Sorteo:</p>
+                    <p className="font-bold text-xl text-yellow-800">{raffleDetails.dateLottery}</p>
                   </div>
                 )}
 
                 {paymentData.direccion && (
-                  <div className="border-t border-gray-200 pt-4">
-                    <p className="text-sm text-gray-600">Dirección:</p>
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <p className="text-sm font-medium text-gray-600 mb-1">🏠 Dirección:</p>
                     <p className="font-semibold text-gray-800">{paymentData.direccion}</p>
                   </div>
                 )}
 
-                <div className="border-t-2 border-gray-200 pt-4 text-center">
-                  <p className="text-xs text-gray-500">
+                {/* Pie del Comprobante */}
+                <div className="border-t-2 border-gray-300 pt-6 text-center bg-gray-50 p-6 rounded-lg">
+                  <div className="flex items-center justify-center gap-2 mb-3">
+                    <span className="text-2xl">✅</span>
+                    <p className="text-lg font-bold text-green-700">Comprobante Válido</p>
+                  </div>
+                  <p className="text-sm text-gray-600 leading-relaxed">
                     Este comprobante es válido como prueba de participación en la rifa.
                     <br />
-                    Conserve este documento hasta la fecha del sorteo.
+                    <strong>Conserve este documento hasta la fecha del sorteo.</strong>
+                    <br />
+                    <span className="text-xs text-gray-500">
+                      Generado automáticamente por el sistema Romy Rifa
+                    </span>
                   </p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          {/* Botones de Acción - Diseño Mejorado */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center bg-gray-50 p-6 rounded-lg border border-gray-200">
             <Button
               onClick={handleDownload}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+              disabled={isGeneratingImage}
+              className="flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-md transition-all transform hover:scale-105"
             >
-              <Download className="h-4 w-4" />
+              <Download className="h-5 w-5" />
               Descargar Comprobante
             </Button>
             
             <Button
               onClick={handlePresent}
+              disabled={isGeneratingImage}
               variant="outline"
-              className="flex items-center gap-2 border-blue-600 text-blue-600 hover:bg-blue-50"
+              className="flex items-center gap-3 border-blue-600 text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-lg shadow-md transition-all transform hover:scale-105"
             >
-              <Eye className="h-4 w-4" />
-              Ver en Pantalla Completa
+              <Eye className="h-5 w-5" />
+              Ver Pantalla Completa
             </Button>
             
             <Button
               onClick={handleManualClose}
               variant="secondary"
-              className="flex items-center gap-2"
+              className="flex items-center gap-3 bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-lg shadow-md transition-all"
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5" />
               Cerrar
             </Button>
           </div>
 
+          {/* Estado del Guardado */}
+          {isGeneratingImage && (
+            <div className="flex items-center justify-center gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="animate-spin h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+              <p className="text-blue-700 font-medium">Generando y guardando comprobante...</p>
+            </div>
+          )}
+          
+          {hasAutoSaved && !isGeneratingImage && (
+            <div className="flex items-center justify-center gap-3 p-4 bg-green-50 rounded-lg border border-green-200">
+              <span className="text-green-600 text-xl">✅</span>
+              <p className="text-green-700 font-medium">Comprobante guardado automáticamente</p>
+            </div>
+          )}
+
+          {/* Información de Debug */}
           {debugMode && (
-            <div className="mt-4 p-3 bg-gray-100 rounded text-xs">
-              <p><strong>Debug Info:</strong></p>
+            <div className="mt-6 p-4 bg-gray-100 rounded-lg border border-gray-300 text-xs font-mono">
+              <p><strong>🔧 Debug Info:</strong></p>
               <p>Participant ID: {participantId}</p>
               <p>Raffle ID: {raffleId}</p>
               <p>Auto-saved: {hasAutoSaved ? 'Sí' : 'No'}</p>
+              <p>Generating Image: {isGeneratingImage ? 'Sí' : 'No'}</p>
               <p>Allow Voucher Print: {allowVoucherPrint ? 'Sí' : 'No'}</p>
               <p>Organization: {organization?.organization_name || 'N/A'}</p>
+              <p>Selected Numbers: {selectedNumbers.join(', ')}</p>
             </div>
           )}
         </div>
