@@ -89,22 +89,20 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
       if (!isOpen || !paymentData?.participantId) return;
       
       try {
-        console.log('[DigitalVoucher.tsx] 🔍 Buscando IDs para participante:', paymentData.participantId);
-        console.log('[DigitalVoucher.tsx] 📋 Números seleccionados originales:', selectedNumbers);
-        console.log('[DigitalVoucher.tsx] 🔘 Tipo de botón:', paymentData.clickedButtonType);
+        console.log('[src/components/DigitalVoucher.tsx] Iniciando obtención de IDs para participante:', paymentData.buyerName, 'ID:', paymentData.participantId, 'Números seleccionados:', selectedNumbers);
         
         // Store participant ID for later use
         const currentParticipantId = paymentData?.participantId;
         setParticipantId(currentParticipantId);
         
         if (!currentParticipantId) {
-          console.error('[DigitalVoucher.tsx] ❌ Falta ID del participante, no se pueden obtener números');
+          console.error('[src/components/DigitalVoucher.tsx] Error: Falta ID del participante, no se pueden obtener números. Participante:', paymentData.buyerName);
           return;
         }
         
-        // CORRECCIÓN CRÍTICA: Para "Pagar Apartados", usar SOLO los números seleccionados
+        // Para "Pagar Apartados", usar SOLO los números seleccionados
         if (paymentData.clickedButtonType === "Pagar Apartados") {
-          console.log('[DigitalVoucher.tsx] 🎯 Flujo "Pagar Apartados" - usando números seleccionados específicos');
+          console.log('[src/components/DigitalVoucher.tsx] Procesando flujo "Pagar Apartados" para participante:', paymentData.buyerName, 'ID:', currentParticipantId, 'Números específicos:', selectedNumbers);
           
           // Verificar que los números seleccionados estén en la BD para este participante
           const selectedNumbersInt = selectedNumbers.map(n => parseInt(n));
@@ -116,12 +114,12 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
             .in('number', selectedNumbersInt);
           
           if (verifyError) {
-            console.error('[DigitalVoucher.tsx] ❌ Error al verificar números seleccionados:', verifyError);
+            console.error('[src/components/DigitalVoucher.tsx] Error al verificar números seleccionados para participante:', paymentData.buyerName, 'Error:', verifyError);
             return;
           }
           
           if (verifiedNumbers && verifiedNumbers.length > 0) {
-            console.log('[DigitalVoucher.tsx] ✅ Números verificados para "Pagar Apartados":', verifiedNumbers.map(n => n.number));
+            console.log('[src/components/DigitalVoucher.tsx] Números verificados para "Pagar Apartados" del participante:', paymentData.buyerName, 'Números:', verifiedNumbers.map(n => n.number));
             
             // Usar SOLO los números verificados que coinciden con la selección
             const verifiedNumbersFormatted = verifiedNumbers.map(item => item.number.toString().padStart(2, '0'));
@@ -131,11 +129,11 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
             let proofImage = null;
             if (paymentData?.paymentProof && typeof paymentData.paymentProof === 'string') {
               proofImage = paymentData.paymentProof;
-              console.log('[DigitalVoucher.tsx] 📎 Usando comprobante de pago desde formulario actual');
+              console.log('[src/components/DigitalVoucher.tsx] Usando comprobante de pago desde formulario actual para participante:', paymentData.buyerName);
             } else {
               proofImage = verifiedNumbers.find(item => item.payment_proof)?.payment_proof || null;
               if (proofImage) {
-                console.log('[DigitalVoucher.tsx] 📎 Usando comprobante de pago desde BD');
+                console.log('[src/components/DigitalVoucher.tsx] Usando comprobante de pago desde BD para participante:', paymentData.buyerName);
               }
             }
             setPaymentProofImage(proofImage);
@@ -148,13 +146,13 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
               setIsRaffleNumberRetrieved(true);
             }
           } else {
-            console.warn('[DigitalVoucher.tsx] ⚠️ No se encontraron números verificados para este participante');
+            console.warn('[src/components/DigitalVoucher.tsx] No se encontraron números verificados para participante:', paymentData.buyerName, 'ID:', currentParticipantId);
             // Fallback: usar números seleccionados
             setParticipantNumbers(selectedNumbers);
           }
         } else {
           // Para otros flujos, usar la lógica original
-          console.log('[DigitalVoucher.tsx] 🔄 Flujo estándar - obteniendo números del participante');
+          console.log('[src/components/DigitalVoucher.tsx] Procesando flujo estándar para participante:', paymentData.buyerName, 'ID:', currentParticipantId);
           
           const { data, error } = await supabase
             .from('raffle_numbers')
@@ -163,7 +161,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
             .eq('raffle_id', RAFFLE_ID);
           
           if (error) {
-            console.error('[DigitalVoucher.tsx] ❌ Error al obtener IDs de números:', error);
+            console.error('[src/components/DigitalVoucher.tsx] Error al obtener IDs de números para participante:', paymentData.buyerName, 'Error:', error);
             return;
           }
           
@@ -176,11 +174,11 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
             let proofImage = null;
             if (paymentData?.paymentProof && typeof paymentData.paymentProof === 'string') {
               proofImage = paymentData.paymentProof;
-              console.log('[DigitalVoucher.tsx] 📎 Usando comprobante de pago desde formulario');
+              console.log('[src/components/DigitalVoucher.tsx] Usando comprobante de pago desde formulario para participante:', paymentData.buyerName);
             } else {
               proofImage = data.find(item => item.payment_proof)?.payment_proof || null;
               if (proofImage) {
-                console.log('[DigitalVoucher.tsx] 📎 Imagen de comprobante encontrada en BD');
+                console.log('[src/components/DigitalVoucher.tsx] Imagen de comprobante encontrada en BD para participante:', paymentData.buyerName);
               }
             }
             setPaymentProofImage(proofImage);
@@ -196,14 +194,14 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
               setIsRaffleNumberRetrieved(true);
             }
             
-            console.log('[DigitalVoucher.tsx] 📋 Números de participante obtenidos:', nums);
+            console.log('[src/components/DigitalVoucher.tsx] Números de participante obtenidos exitosamente:', paymentData.buyerName, 'Números:', nums);
           } else {
-            console.warn('[DigitalVoucher.tsx] ⚠️ No se encontraron números para este participante');
+            console.warn('[src/components/DigitalVoucher.tsx] No se encontraron números para participante:', paymentData.buyerName, 'ID:', currentParticipantId);
             setParticipantNumbers(selectedNumbers);
           }
         }
       } catch (err) {
-        console.error('[DigitalVoucher.tsx] ❌ Error en fetchRaffleNumberIds:', err);
+        console.error('[src/components/DigitalVoucher.tsx] Error en fetchRaffleNumberIds para participante:', paymentData.buyerName, 'Error:', err);
       }
     };
     
@@ -218,18 +216,17 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
       const protocol = window.location.protocol || 'https:';
       const url = `${protocol}//${domain}/receipt/${raffleNumberId}`;
       setReceiptUrl(url);
-      console.log('[DigitalVoucher.tsx] 🔗 URL de recibo generada:', url);
+      console.log('[src/components/DigitalVoucher.tsx] URL de recibo generada para participante:', paymentData?.buyerName, 'URL:', url);
     }
   }, [raffleNumberId]);
   
-  // CORRECCIÓN CRÍTICA: Modificar auto-save para evitar cierre prematuro del modal
+  // Auto-save receipt pero SIN cerrar el modal automáticamente
   useEffect(() => {
     const autoSaveReceipt = async () => {
       if (isOpen && printRef.current && participantId && !isReceiptSaving && participantNumbers.length > 0) {
         try {
           setIsReceiptSaving(true);
-          console.log('[DigitalVoucher.tsx] 💾 Iniciando guardado automático de comprobante de pago...');
-          console.log('[DigitalVoucher.tsx] 📋 Números a incluir en comprobante:', participantNumbers);
+          console.log('[src/components/DigitalVoucher.tsx] Iniciando guardado automático de comprobante para participante:', paymentData?.buyerName, 'ID:', participantId, 'Números:', participantNumbers);
           
           // Always try to generate and save the receipt, regardless of allowVoucherPrint
           const savedUrl = await ensureReceiptSavedForParticipant(
@@ -242,7 +239,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
           );
           
           if (savedUrl) {
-            console.log('[DigitalVoucher.tsx] ✅ Comprobante guardado automáticamente exitosamente');
+            console.log('[src/components/DigitalVoucher.tsx] Comprobante guardado automáticamente exitosamente para participante:', paymentData?.buyerName, 'URL:', savedUrl);
             setReceiptAlreadySaved(true);
             setReceiptSavedSuccessfully(true);
             
@@ -251,19 +248,19 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
               toast.success('Comprobante guardado automáticamente', { id: 'receipt-saved' });
             }
             
-            // IMPORTANTE: NO cerrar el modal automáticamente
+            // IMPORTANTE: NO cerrar el modal automáticamente - mantener abierto para que el usuario lo cierre manualmente
             // Show alert message when allowVoucherPrint is false but DON'T close modal
             if (!allowVoucherPrint) {
               setShowAlertMessage(true);
             }
           } else {
-            console.error('[DigitalVoucher.tsx] ❌ Error al guardar comprobante: No se pudo guardar la URL');
+            console.error('[src/components/DigitalVoucher.tsx] Error al guardar comprobante para participante:', paymentData?.buyerName, 'No se pudo guardar la URL');
             if (allowVoucherPrint) {
               toast.error('Error al guardar el comprobante automáticamente');
             }
           }
         } catch (error: any) {
-          console.error('[DigitalVoucher.tsx] ❌ Error al guardar comprobante automáticamente:', error?.message || error);
+          console.error('[src/components/DigitalVoucher.tsx] Error al guardar comprobante automáticamente para participante:', paymentData?.buyerName, 'Error:', error?.message || error);
           if (allowVoucherPrint) {
             toast.error('Error al guardar el comprobante automáticamente');
           }
@@ -278,9 +275,9 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
     return () => clearTimeout(timer);
   }, [isOpen, printRef.current, participantId, participantNumbers, raffleDetails, allowVoucherPrint]);
   
-  // Handle the modal close event - MANUAL ONLY
+  // Handle the modal close event - SOLO MANUAL, nunca automático
   const handleCloseModal = (): void => {
-    console.log('[DigitalVoucher.tsx] 🚪 Cerrando modal de comprobante MANUALMENTE');
+    console.log('[src/components/DigitalVoucher.tsx] Cerrando modal de comprobante MANUALMENTE para participante:', paymentData?.buyerName, 'ID:', participantId);
     clearSelectionState(); // Clear selections when modal is closed
     onClose();
     // Call the onVoucherClosed callback if provided
@@ -292,13 +289,13 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
   // Function to update payment_receipt_url for all participant's numbers
   const updatePaymentReceiptUrlForAllNumbers = async (voucherUrl: string): Promise<boolean> => {
     if (!voucherUrl || !paymentData?.participantId) {
-      console.error("[DigitalVoucher.tsx] ❌ Error: Datos insuficientes para actualizar recibo de pago");
+      console.error("[src/components/DigitalVoucher.tsx] Error: Datos insuficientes para actualizar recibo de pago para participante:", paymentData?.buyerName);
       return false;
     }
     
     try {
       // Only update numbers for the current participant
-      console.log(`[DigitalVoucher.tsx] 💾 Guardando URL en raffle_numbers.payment_receipt_url...`);
+      console.log(`[src/components/DigitalVoucher.tsx] Guardando URL en raffle_numbers.payment_receipt_url para participante: ${paymentData.buyerName}`);
       
       // Use the utility function to update receipt URLs
       const result = await updatePaymentReceiptUrlForParticipant(
@@ -309,45 +306,44 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
       );
 
       if (result) {
-        console.log('[DigitalVoucher.tsx] ✅ Comprobante registrado con éxito');
+        console.log('[src/components/DigitalVoucher.tsx] Comprobante registrado con éxito para participante:', paymentData.buyerName, 'URL:', voucherUrl);
       }
       
       return result;
     } catch (error: any) {
-      console.error("[DigitalVoucher.tsx] ❌ Error al guardar comprobante:", error?.message || error);
+      console.error("[src/components/DigitalVoucher.tsx] Error al guardar comprobante para participante:", paymentData?.buyerName, "Error:", error?.message || error);
       return false;
     }
   };
 
-  // CORRECCIÓN CRÍTICA: Mejorar función de guardado de comprobante
+  // Mejorar función de guardado de comprobante
   const saveVoucherForAllNumbers = async (): Promise<string | null> => {
     try {
       if (!printRef.current || !raffleDetails || !paymentData?.participantId) {
-        console.error("[DigitalVoucher.tsx] ❌ Error: No hay referencia de comprobante, detalles de rifa o datos de pago");
+        console.error("[src/components/DigitalVoucher.tsx] Error: No hay referencia de comprobante, detalles de rifa o datos de pago para participante:", paymentData?.buyerName);
         toast.error("Error: No se pueden generar los datos del comprobante");
         return null;
       }
       
-      console.log("[DigitalVoucher.tsx] 🎯 Iniciando generación y guardado de comprobantes");
-      console.log("[DigitalVoucher.tsx] 📋 Números a incluir:", participantNumbers);
+      console.log("[src/components/DigitalVoucher.tsx] Iniciando generación y guardado de comprobantes para participante:", paymentData.buyerName, "ID:", paymentData.participantId, "Números:", participantNumbers);
       
-      // CORRECCIÓN: Usar html2canvas sin iframe para evitar errores
+      // Usar html2canvas sin iframe para evitar errores
       const html2canvas = (await import('html2canvas')).default;
       
       try {
-        console.log('[DigitalVoucher.tsx] 📸 Generando imagen del comprobante...');
+        console.log('[src/components/DigitalVoucher.tsx] Generando imagen del comprobante para participante:', paymentData.buyerName);
         const canvas = await html2canvas(printRef.current, {
           scale: 2,
           logging: false,
           useCORS: true,
           allowTaint: true,
-          // CORRECCIÓN: Configuraciones para evitar errores de iframe
+          // Configuraciones para evitar errores de iframe
           foreignObjectRendering: false,
           removeContainer: true
         });
         
         const imgData = canvas.toDataURL('image/png');
-        console.log('[DigitalVoucher.tsx] ✅ Imagen del comprobante generada exitosamente');
+        console.log('[src/components/DigitalVoucher.tsx] Imagen del comprobante generada exitosamente para participante:', paymentData.buyerName);
         
         if (!imgData) {
           throw new Error("No se pudo generar la imagen del comprobante");
@@ -364,45 +360,45 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         );
         
         if (imageUrl) {
-          console.log('[DigitalVoucher.tsx] 📤 Imagen subida correctamente:', imageUrl);
+          console.log('[src/components/DigitalVoucher.tsx] Imagen subida correctamente para participante:', paymentData.buyerName, 'URL:', imageUrl);
           
           // Actualizar solo los números de este participante con la URL del recibo
           const updateSuccess = await updatePaymentReceiptUrlForAllNumbers(imageUrl);
           
           if (updateSuccess) {
             setReceiptAlreadySaved(true);
-            console.log(`[DigitalVoucher.tsx] ✅ Comprobante guardado correctamente - números: ${participantNumbers.join(', ')} - método de pago: ${paymentMethod}`);
+            console.log(`[src/components/DigitalVoucher.tsx] Comprobante guardado correctamente para participante: ${paymentData.buyerName} - números: ${participantNumbers.join(', ')} - método de pago: ${paymentMethod}`);
             toast.success("¡Comprobante guardado exitosamente!");
             return imageUrl;
           } else {
-            console.error("[DigitalVoucher.tsx] ❌ Error al guardar comprobante: fallo al actualizar recibos en la base de datos");
+            console.error("[src/components/DigitalVoucher.tsx] Error al guardar comprobante para participante:", paymentData.buyerName, "fallo al actualizar recibos en la base de datos");
             toast.error("Error al guardar el comprobante en la base de datos");
             return null;
           }
         } else {
-          console.error("[DigitalVoucher.tsx] ❌ Error al guardar comprobante: fallo al subir imagen");
+          console.error("[src/components/DigitalVoucher.tsx] Error al guardar comprobante para participante:", paymentData.buyerName, "fallo al subir imagen");
           toast.error("Error al subir la imagen del comprobante");
           return null;
         }
       } catch (canvasError: any) {
-        console.error('[DigitalVoucher.tsx] ❌ Error al generar imagen con html2canvas:', canvasError?.message || canvasError);
+        console.error('[src/components/DigitalVoucher.tsx] Error al generar imagen con html2canvas para participante:', paymentData.buyerName, 'Error:', canvasError?.message || canvasError);
         toast.error("Error al generar la imagen del comprobante");
         return null;
       }
     } catch (error: any) {
-      console.error(`[DigitalVoucher.tsx] ❌ Error al guardar comprobante: ${error?.message || error}`);
+      console.error(`[src/components/DigitalVoucher.tsx] Error al guardar comprobante para participante: ${paymentData?.buyerName} - Error: ${error?.message || error}`);
       toast.error("Error al guardar el comprobante. Intente nuevamente.");
       return null;
     } finally {
-      console.log('[DigitalVoucher.tsx] 🏁 Finalizando ciclo de guardado...');
+      console.log('[src/components/DigitalVoucher.tsx] Finalizando ciclo de guardado para participante:', paymentData?.buyerName);
     }
   };
 
-  // CORRECCIÓN: Mejorar función de descarga
+  // Mejorar función de descarga
   const handleDownloadVoucher = async () => {
     if (printRef.current) {
       try {
-        console.log('[DigitalVoucher.tsx] 📥 Iniciando descarga de comprobante...');
+        console.log('[src/components/DigitalVoucher.tsx] Iniciando descarga de comprobante para participante:', paymentData?.buyerName);
         
         const html2canvas = (await import('html2canvas')).default;
         const canvas = await html2canvas(printRef.current, {
@@ -418,22 +414,22 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         
         if (imgData) {
           downloadVoucherImage(imgData, `comprobante_${new Date().getTime()}.png`);
-          console.log('[DigitalVoucher.tsx] ✅ Descarga iniciada correctamente');
+          console.log('[src/components/DigitalVoucher.tsx] Descarga iniciada correctamente para participante:', paymentData?.buyerName);
         } else {
           throw new Error("No se pudo generar la imagen para descarga");
         }
       } catch (error: any) {
-        console.error('[DigitalVoucher.tsx] ❌ Error en descarga:', error?.message || error);
+        console.error('[src/components/DigitalVoucher.tsx] Error en descarga para participante:', paymentData?.buyerName, 'Error:', error?.message || error);
         toast.error("Error al descargar el comprobante");
       }
     }
   };
 
-  // CORRECCIÓN: Mejorar función de visualización
+  // Mejorar función de visualización
   const handleViewVoucher = async () => {
     if (printRef.current) {
       try {
-        console.log('[DigitalVoucher.tsx] 👁️ Iniciando visualización de comprobante...');
+        console.log('[src/components/DigitalVoucher.tsx] Iniciando visualización de comprobante para participante:', paymentData?.buyerName);
         
         const html2canvas = (await import('html2canvas')).default;
         const canvas = await html2canvas(printRef.current, {
@@ -449,12 +445,12 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
         
         if (imgData) {
           presentVoucherImage(imgData);
-          console.log('[DigitalVoucher.tsx] ✅ Visualización iniciada correctamente');
+          console.log('[src/components/DigitalVoucher.tsx] Visualización iniciada correctamente para participante:', paymentData?.buyerName);
         } else {
           throw new Error("No se pudo generar la imagen para visualización");
         }
       } catch (error: any) {
-        console.error('[DigitalVoucher.tsx] ❌ Error en visualización:', error?.message || error);
+        console.error('[src/components/DigitalVoucher.tsx] Error en visualización para participante:', paymentData?.buyerName, 'Error:', error?.message || error);
         toast.error("Error al visualizar el comprobante");
       }
     }
@@ -462,7 +458,7 @@ const DigitalVoucher: React.FC<DigitalVoucherProps> = ({
 
   // If the receipt has been saved and allowVoucherPrint is false, show the alert message
   if (isOpen && !allowVoucherPrint && showAlertMessage && receiptSavedSuccessfully) {
-    console.log('[DigitalVoucher.tsx] 📢 Mostrando AlertMessage porque allowVoucherPrint es false');
+    console.log('[src/components/DigitalVoucher.tsx] Mostrando AlertMessage porque allowVoucherPrint es false para participante:', paymentData?.buyerName);
     return (
       <AlertMessage 
         isOpen={true} 

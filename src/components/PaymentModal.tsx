@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
@@ -11,6 +12,7 @@ import { PaymentFormData, PaymentFormSchema } from '@/schemas/paymentFormSchema'
 import { useNumberSelection } from '@/contexts/NumberSelectionContext';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import { Organization } from '@/lib/constants/types';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -62,69 +64,115 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
   // Reset form when modal is opened or closed
   useEffect(() => {
-    console.log('[PaymentModal.tsx] 🔄 useEffect disparado:', { 
+    console.log('[src/components/PaymentModal.tsx] useEffect disparado:', { 
       isOpen, 
       clickedButton, 
       buyerInfoPresent: !!buyerInfo,
       buyerInfoId: buyerInfo?.id,
+      buyerInfoName: buyerInfo?.name,
       buyerInfoEmail: buyerInfo?.email
     });
 
     // Reset form when modal is closed
     if (!isOpen) {
-      console.log('[PaymentModal.tsx] 🧹 Modal cerrado, reseteando formulario');
+      console.log('[src/components/PaymentModal.tsx] Modal cerrado, reseteando formulario');
       resetForm();
     } 
     // Establecer valores de formulario cuando se abre el modal con información del comprador
     else if (isOpen && clickedButton === "Pagar") {
-      console.log('[PaymentModal.tsx] 🔄 Reseteando formulario para "Pagar" (nuevo comprador)');
+      console.log('[src/components/PaymentModal.tsx] Reseteando formulario para "Pagar" (nuevo comprador)');
       resetForm();
     } else if (isOpen && buyerInfo) {
-      // For other buttons (like "Pagar Apartados"), keep the existing data
-      console.log('[PaymentModal.tsx] 💾 Cargando datos existentes del participante:', {
-        name: buyerInfo.name,
-        phone: buyerInfo.phone,
-        email: buyerInfo.email || 'Sin email',
-        cedula: buyerInfo.cedula,
-        id: buyerInfo.id
-      });
-
-      // CORRECCIÓN CRÍTICA: Priorizar la carga del email del participante
-      form.setValue('buyerName', buyerInfo.name || '');
-      form.setValue('buyerPhone', buyerInfo.phone || '');
-      form.setValue('buyerCedula', buyerInfo.cedula || '');
-      
-      // PRIORITARIO: Cargar email del participante
-      const participantEmail = buyerInfo.email || '';
-      form.setValue('buyerEmail', participantEmail);
-      console.log('[PaymentModal.tsx] 📧 Email del participante cargado:', participantEmail);
-      
-      form.setValue('direccion', buyerInfo.direccion || '');
-      form.setValue('sugerenciaProducto', buyerInfo.sugerencia_producto || '');
-      
-      // CRUCIAL: Asegurar que el participantId se establezca correctamente
-      if (buyerInfo.id) {
-        form.setValue('participantId', buyerInfo.id);
-        console.log(`[PaymentModal.tsx] 💾 participantId establecido en el formulario: ${buyerInfo.id}`);
-      }
-      
-      // Log para depuración - incluir email
-      if (debugMode) {
-        console.log("PaymentModal: Cargando datos de comprador existente:", {
-          name: buyerInfo.name,
-          phone: buyerInfo.phone,
-          email: buyerInfo.email,
-          participantId: buyerInfo.id,
-          sugerenciaProducto: buyerInfo.sugerencia_producto
-        });
-      }
+      // Obtener datos completos del participante, incluyendo email
+      fetchCompleteParticipantData(buyerInfo.id);
     }
   }, [isOpen, clickedButton, buyerInfo]);
+
+  // Función para obtener datos completos del participante desde la base de datos
+  const fetchCompleteParticipantData = async (participantId?: string) => {
+    if (!participantId) {
+      console.warn('[src/components/PaymentModal.tsx] No se proporcionó ID de participante para obtener datos completos');
+      return;
+    }
+
+    try {
+      console.log('[src/components/PaymentModal.tsx] Obteniendo datos completos del participante:', participantId);
+      
+      const { data: participantData, error } = await supabase
+        .from('participants')
+        .select('*')
+        .eq('id', participantId)
+        .single();
+
+      if (error) {
+        console.error('[src/components/PaymentModal.tsx] Error al obtener datos del participante:', participantId, 'Error:', error);
+        // Usar datos básicos de buyerInfo como fallback
+        loadBasicBuyerInfo();
+        return;
+      }
+
+      if (participantData) {
+        console.log('[src/components/PaymentModal.tsx] Datos completos del participante obtenidos exitosamente:', participantData.name, 'Email:', participantData.email, 'ID:', participantData.id);
+        
+        // Cargar TODOS los datos del participante, priorizando el email
+        form.setValue('buyerName', participantData.name || '');
+        form.setValue('buyerPhone', participantData.phone || '');
+        form.setValue('buyerCedula', participantData.cedula || '');
+        
+        // PRIORIDAD CRÍTICA: Email del participante
+        const participantEmail = participantData.email || '';
+        form.setValue('buyerEmail', participantEmail);
+        console.log('[src/components/PaymentModal.tsx] Email del participante cargado correctamente:', participantEmail, 'para participante:', participantData.name);
+        
+        form.setValue('direccion', participantData.direccion || '');
+        form.setValue('sugerenciaProducto', participantData.sugerencia_producto || '');
+        
+        // Establecer participantId
+        form.setValue('participantId', participantData.id);
+        console.log('[src/components/PaymentModal.tsx] participantId establecido en formulario:', participantData.id, 'para participante:', participantData.name);
+        
+        if (debugMode) {
+          console.log("[src/components/PaymentModal.tsx] Datos completos cargados:", {
+            name: participantData.name,
+            phone: participantData.phone,
+            email: participantData.email,
+            cedula: participantData.cedula,
+            participantId: participantData.id,
+            direccion: participantData.direccion,
+            sugerenciaProducto: participantData.sugerencia_producto
+          });
+        }
+      }
+    } catch (err) {
+      console.error('[src/components/PaymentModal.tsx] Error al obtener datos completos del participante:', participantId, 'Error:', err);
+      // Usar datos básicos como fallback
+      loadBasicBuyerInfo();
+    }
+  };
+
+  // Función de fallback para cargar datos básicos
+  const loadBasicBuyerInfo = () => {
+    if (!buyerInfo) return;
+    
+    console.log('[src/components/PaymentModal.tsx] Cargando datos básicos del participante (fallback):', buyerInfo.name, 'Email:', buyerInfo.email || 'Sin email');
+    
+    form.setValue('buyerName', buyerInfo.name || '');
+    form.setValue('buyerPhone', buyerInfo.phone || '');
+    form.setValue('buyerCedula', buyerInfo.cedula || '');
+    form.setValue('buyerEmail', buyerInfo.email || '');
+    form.setValue('direccion', buyerInfo.direccion || '');
+    form.setValue('sugerenciaProducto', buyerInfo.sugerencia_producto || '');
+    
+    if (buyerInfo.id) {
+      form.setValue('participantId', buyerInfo.id);
+      console.log('[src/components/PaymentModal.tsx] participantId establecido (fallback):', buyerInfo.id, 'para participante:', buyerInfo.name);
+    }
+  };
 
   // VALIDACIÓN CRÍTICA: Verificar datos antes de abrir el modal para "Pagar Apartados"
   useEffect(() => {
     if (isOpen && clickedButton === "Pagar Apartados") {
-      console.log('[PaymentModal.tsx] 🔍 Validando datos para "Pagar Apartados":', {
+      console.log('[src/components/PaymentModal.tsx] Validando datos para "Pagar Apartados":', {
         buyerInfo: buyerInfo ? {
           id: buyerInfo.id,
           name: buyerInfo.name,
@@ -136,7 +184,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       
       // Si no hay buyerInfo o no tiene ID válido para "Pagar Apartados"
       if (!buyerInfo || !buyerInfo.id) {
-        console.error('[PaymentModal.tsx] ❌ Error: Datos de participante faltantes para "Pagar Apartados"');
+        console.error('[src/components/PaymentModal.tsx] Error: Datos de participante faltantes para "Pagar Apartados"');
         toast.error('Error: No se pudieron cargar los datos del participante. Por favor, intente nuevamente.');
         onClose();
         return;
@@ -146,7 +194,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   
   // Función para restablecer el formulario
   const resetForm = () => {
-    console.log("🧹 PaymentModal.tsx: Reseteando formulario completamente");
+    console.log("[src/components/PaymentModal.tsx] Reseteando formulario completamente");
     form.reset({
       buyerName: '',
       buyerPhone: '',
@@ -164,13 +212,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       paymentReceiptUrl: '',
     });
     setPreviewUrl(null);
-    console.log("✅ PaymentModal.tsx: Formulario completamente reseteado");
+    console.log("[src/components/PaymentModal.tsx] Formulario completamente reseteado");
   };
 
   const onFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      console.log('[PaymentModal.tsx] 📎 Archivo cargado:', file.name);
+      console.log('[src/components/PaymentModal.tsx] Archivo cargado:', file.name, 'para participante:', form.getValues('buyerName'));
       form.setValue("paymentProof", file);
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
@@ -178,7 +226,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   };
 
   const onFileRemove = () => {
-    console.log('[PaymentModal.tsx] 🗑️ Removiendo archivo de comprobante');
+    console.log('[src/components/PaymentModal.tsx] Removiendo archivo de comprobante para participante:', form.getValues('buyerName'));
     form.setValue("paymentProof", null);
     setPreviewUrl(null);
   };
@@ -187,11 +235,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     try {
       setIsSubmitting(true);
       
-      console.log('[PaymentModal.tsx] 🚀 Iniciando envío de formulario para:', clickedButton);
-      console.log('[PaymentModal.tsx] 📋 Datos del formulario con email:', {
+      console.log('[src/components/PaymentModal.tsx] Iniciando envío de formulario para:', clickedButton, 'Participante:', data.buyerName, 'Email:', data.buyerEmail);
+      console.log('[src/components/PaymentModal.tsx] Datos del formulario completos:', {
         buyerName: data.buyerName,
         buyerPhone: data.buyerPhone,
-        buyerEmail: data.buyerEmail, // IMPORTANTE: Incluir email en logs
+        buyerEmail: data.buyerEmail,
         buyerCedula: data.buyerCedula,
         participantId: data.participantId,
         paymentMethod: data.paymentMethod,
@@ -202,14 +250,16 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       if (clickedButton === "Pagar Apartados") {
         const participantId = data.participantId || buyerInfo?.id;
         
-        console.log('[PaymentModal.tsx] 🔍 Validación final para "Pagar Apartados":', {
+        console.log('[src/components/PaymentModal.tsx] Validación final para "Pagar Apartados":', {
           participantIdFormulario: data.participantId,
           participantIdBuyerInfo: buyerInfo?.id,
-          participantIdFinal: participantId
+          participantIdFinal: participantId,
+          participantName: data.buyerName,
+          participantEmail: data.buyerEmail
         });
         
         if (!participantId) {
-          console.error('[PaymentModal.tsx] ❌ Error: participantId faltante en envío');
+          console.error('[src/components/PaymentModal.tsx] Error: participantId faltante en envío para participante:', data.buyerName);
           toast.error('Error: No se puede procesar el pago sin identificar el participante.');
           setIsSubmitting(false);
           return;
@@ -221,32 +271,32 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       
       // Registrar los datos del formulario para fines de depuración
       if (debugMode) {
-        console.log("Datos del formulario a enviar:", {
+        console.log("[src/components/PaymentModal.tsx] Datos finales a enviar:", {
           ...data,
           participantId: data.participantId
         });
-        console.log("Valor del campo email:", data.buyerEmail);
+        console.log("[src/components/PaymentModal.tsx] Email verificado antes de envío:", data.buyerEmail);
       }
       
       // Almacenar el tipo de botón en el que se hizo clic en los datos del formulario
       data.clickedButtonType = clickedButton;
       
-      console.log('[PaymentModal.tsx] ⏳ Enviando datos de pago...');
+      console.log('[src/components/PaymentModal.tsx] Enviando datos de pago para participante:', data.buyerName, 'Email:', data.buyerEmail);
       const result = await onCompletePayment(data);
       
       // Si el resultado tiene números conflictivos, el manejo modal lo realizarán los componentes principales.
       // Solo se maneja el caso en el que necesitamos cerrar el modo de pago
       if (!result || (result && result.success)) {
-        console.log('[PaymentModal.tsx] ✅ Pago procesado exitosamente, cerrando modal');
+        console.log('[src/components/PaymentModal.tsx] Pago procesado exitosamente para participante:', data.buyerName, 'cerrando modal');
         onClose();
         clearSelectionState();
         resetForm(); // Restablecer formulario después de un envío exitoso
       } else {
-        console.log('[PaymentModal.tsx] ⚠️ Pago no exitoso, manteniendo modal abierto');
+        console.log('[src/components/PaymentModal.tsx] Pago no exitoso para participante:', data.buyerName, 'manteniendo modal abierto');
       }
       
     } catch (error) {
-      console.error("[PaymentModal.tsx] ❌ Error al procesar el pago:", error);
+      console.error("[src/components/PaymentModal.tsx] Error al procesar el pago para participante:", form.getValues('buyerName'), "Error:", error);
       toast.error("Error al procesar el pago. Por favor intente nuevamente.");
     } finally {
       setIsSubmitting(false);
@@ -263,7 +313,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
       if (!open) {
-        console.log('[PaymentModal.tsx] 🚪 Cerrando modal y reseteando formulario');
+        console.log('[src/components/PaymentModal.tsx] Cerrando modal y reseteando formulario para participante:', form.getValues('buyerName'));
         onClose();
         resetForm(); // Restablecer formulario cuando se cierra el diálogo
       }
@@ -271,7 +321,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       <DialogContent className="bg-white/20 backdrop-blur-md max-w-2xl">
         <Card className="bg-transparent border-0 shadow-none">
         <PaymentModalHeader onClose={() => {
-          console.log('[PaymentModal.tsx] 🚪 Cerrando modal desde header y reseteando formulario');
+          console.log('[src/components/PaymentModal.tsx] Cerrando modal desde header y reseteando formulario para participante:', form.getValues('buyerName'));
           onClose();
           resetForm(); // Restablecer formulario al cerrarlo mediante el botón de encabezado
         }} onHeaderClick={handleHeaderClick} />
@@ -290,7 +340,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           isSubmitting={isSubmitting}
           isFormValid={form.formState.isValid}
           onClose={() => {
-            console.log('[PaymentModal.tsx] 🚪 Cerrando modal desde acciones y reseteando formulario');
+            console.log('[src/components/PaymentModal.tsx] Cerrando modal desde acciones y reseteando formulario para participante:', form.getValues('buyerName'));
             onClose(); 
             resetForm(); // Restablecer el formulario al cerrarlo mediante el botón Cancelar
           }}
