@@ -103,9 +103,10 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   const [phone, setPhone] = useState('');
   const validation = usePhoneValidation(phone);
   const [isSearching, setIsSearching] = useState(false);
-  const { clearSelectionState, setSelectedNumbers } = useNumberSelection();
+  const { clearSelectionState, setSelectedNumbers, selectedNumbers } = useNumberSelection();
   const [isNoReservedNumbersDialogOpen, setIsNoReservedNumbersDialogOpen] = useState(false);
   const [isNumberNotInReservedDialogOpen, setIsNumberNotInReservedDialogOpen] = useState(false);
+  const [isNumberMismatchDialogOpen, setIsNumberMismatchDialogOpen] = useState(false);
   const [reservedNumbers, setReservedNumbers] = useState<string[]>([]);
   const [participantFound, setParticipantFound] = useState<ValidatedBuyerInfo | null>(null);
 
@@ -117,13 +118,13 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
     
     // Validar que raffleId y raffleSellerId estén definidos
     if (!raffleId) {
-      console.error("❌ Error: raffleId está undefined. Abortando ejecución.");
+      console.error("[src/components/PhoneValidationModal.tsx] Error: raffleId está undefined. Abortando ejecución.");
       toast.error("Error en la identificación de la rifa. Por favor, intente de nuevo.");
       return;
     }
     
     if (!raffleSellerId) {
-      console.error("❌ Error: raffleSellerId está undefined. Abortando ejecución.");
+      console.error("[src/components/PhoneValidationModal.tsx] Error: raffleSellerId está undefined. Abortando ejecución.");
       toast.error("Error en la identificación del vendedor. Por favor, intente de nuevo.");
       return;
     }
@@ -137,16 +138,18 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
     let foundBy = '';
 
     try {
+      console.log("[src/components/PhoneValidationModal.tsx] Iniciando búsqueda de participante con:", cleanedPhone, "raffleId:", raffleId, "sellerId:", raffleSellerId);
+
       // BUSCA por teléfono (y la rifa!)
       const { data: byPhone, error: phoneError } = await supabase
         .from('participants')
-        .select('id, name, phone, cedula, direccion, sugerencia_producto')
+        .select('id, name, phone, cedula, direccion, sugerencia_producto, email')
         .eq('phone', cleanedPhone)
         .eq('raffle_id', raffleId)
         .maybeSingle();
         
       if (phoneError) {
-        console.error("❌ Error al buscar participante por teléfono:", phoneError);
+        console.error("[src/components/PhoneValidationModal.tsx] Error al buscar participante por teléfono:", cleanedPhone, "error:", phoneError);
         setIsSearching(false);
         toast.error("Error al buscar participante. Por favor intente nuevamente.");
         return;
@@ -155,17 +158,18 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       if (byPhone) {
         participant = byPhone;
         foundBy = 'phone';
+        console.log("[src/components/PhoneValidationModal.tsx] Participante encontrado por teléfono:", participant.name, "participantId:", participant.id, "email:", participant.email);
       } else if (isNumericOnly) {
         // BUSCA por cédula (y la rifa!)
         const { data: byCedula, error: cedulaError } = await supabase
           .from('participants')
-          .select('id, name, phone, cedula, direccion, sugerencia_producto')
+          .select('id, name, phone, cedula, direccion, sugerencia_producto, email')
           .eq('cedula', phone)
           .eq('raffle_id', raffleId)
           .maybeSingle();
           
         if (cedulaError) {
-          console.error("❌ Error al buscar participante por cédula:", cedulaError);
+          console.error("[src/components/PhoneValidationModal.tsx] Error al buscar participante por cédula:", phone, "error:", cedulaError);
           setIsSearching(false);
           toast.error("Error al buscar participante. Por favor intente nuevamente.");
           return;
@@ -174,27 +178,30 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         if (byCedula) {
           participant = byCedula;
           foundBy = 'cedula';
+          console.log("[src/components/PhoneValidationModal.tsx] Participante encontrado por cédula:", participant.name, "participantId:", participant.id, "email:", participant.email);
         }
       }
 
       // Verificar si se encontró un participante
       if (!participant) {
         setIsSearching(false);
-        toast.error(`❌ Participante no encontrado con el dato ingresado: ${cleanedPhone}`);
+        console.log("[src/components/PhoneValidationModal.tsx] Participante no encontrado con el dato ingresado:", cleanedPhone);
+        toast.error(`Participante no encontrado con el dato ingresado: ${cleanedPhone}`);
         return;
       }
 
       if (!participant.id) {
-        console.error("❌ El participante encontrado no tiene ID válido");
+        console.error("[src/components/PhoneValidationModal.tsx] El participante encontrado no tiene ID válido");
         setIsSearching(false);
         toast.error("Error al validar participante. Datos incompletos.");
         return;
       }
 
-      console.log(`[PhoneValidationModal.tsx] ✅ Participante encontrado:`, {
+      console.log(`[src/components/PhoneValidationModal.tsx] Participante encontrado:`, {
         id: participant.id,
         name: participant.name,
         phone: participant.phone,
+        email: participant.email,
         foundBy
       });
 
@@ -208,7 +215,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         .eq('seller_id', raffleSellerId);
         
       if (reservedError) {
-        console.error("❌ Error al buscar números reservados:", reservedError);
+        console.error("[src/components/PhoneValidationModal.tsx] Error al buscar números reservados para participante:", participant.name, "participantId:", participant.id, "error:", reservedError);
         setIsSearching(false);
         toast.error("Error al verificar números reservados. Por favor intente nuevamente.");
         return;
@@ -219,6 +226,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
 
       // Si no tiene números reservados, mostrar mensaje y bloquear
       if (!reservedNumbersData || reservedNumbersData.length === 0) {
+        console.log("[src/components/PhoneValidationModal.tsx] Sin números reservados para participante:", participant.name, "participantId:", participant.id);
         setIsNoReservedNumbersDialogOpen(true);
         return;
       }
@@ -228,23 +236,32 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         String(item.number).padStart(2, '0')
       );
       
-      console.log("📋 Números reservados encontrados:", formattedReservedNumbers);
+      console.log("[src/components/PhoneValidationModal.tsx] Números reservados encontrados para participante:", participant.name, "participantId:", participant.id, "números reservados:", formattedReservedNumbers, "números seleccionados:", selectedNumbers);
       setReservedNumbers(formattedReservedNumbers);
       setParticipantFound(participant);
 
-      // Verificar si el número seleccionado está entre los reservados
-      if (selectedNumber && !formattedReservedNumbers.includes(selectedNumber)) {
-        setIsNumberNotInReservedDialogOpen(true);
+      // NUEVA VALIDACIÓN: Comparar números seleccionados con números reservados
+      const selectedNumbersSet = new Set(selectedNumbers);
+      const reservedNumbersSet = new Set(formattedReservedNumbers);
+      
+      // Verificar si hay diferencias entre los números seleccionados y los reservados
+      const areNumbersDifferent = selectedNumbers.length !== formattedReservedNumbers.length || 
+        !selectedNumbers.every(num => reservedNumbersSet.has(num));
+
+      if (areNumbersDifferent) {
+        console.log("[src/components/PhoneValidationModal.tsx] Validación de números - Participante:", participant.id, "números seleccionados:", selectedNumbers, "números reservados:", formattedReservedNumbers, "son diferentes:", areNumbersDifferent);
+        setIsNumberMismatchDialogOpen(true);
         return;
       }
 
       // Si todo está bien, continuar con el proceso normal
+      console.log("[src/components/PhoneValidationModal.tsx] Números coinciden, continuando con participante:", participant.name, "participantId:", participant.id);
       proceedWithValidatedParticipant(participant);
 
     } catch (error) {
       // Ocultar el modal de carga en caso de error
       setIsSearching(false);
-      console.error("❌ Error durante la validación:", error);
+      console.error("[src/components/PhoneValidationModal.tsx] Error durante la validación:", error);
       toast.error("Error durante la validación. Por favor intente nuevamente.");
     }
   };
@@ -252,15 +269,16 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   // Función para proceder con el participante validado
   const proceedWithValidatedParticipant = (participant: ValidatedBuyerInfo) => {
     if (!participant.id) {
-      console.error("❌ Error: participant.id está undefined");
+      console.error("[src/components/PhoneValidationModal.tsx] Error: participant.id está undefined");
       toast.error("Error de validación: datos del participante incompletos.");
       return;
     }
     
-    console.log(`[PhoneValidationModal.tsx] 🚀 Procediendo con participante validado:`, {
+    console.log(`[src/components/PhoneValidationModal.tsx] Procediendo con participante validado:`, {
       id: participant.id,
       name: participant.name,
-      phone: participant.phone
+      phone: participant.phone,
+      email: participant.email
     });
     
     if (!participant.phone && validation.formattedNumber) {
@@ -275,31 +293,41 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
     handleModalClose();
   };
 
-  // Función para continuar con los números reservados
+  // Función para continuar con los números reservados (reemplazar selección)
   const continueWithReservedNumbers = () => {
     if (participantFound && reservedNumbers.length > 0) {
-      console.log("✅ Continuando con números reservados:", reservedNumbers);
+      console.log("[src/components/PhoneValidationModal.tsx] Continuando con números reservados para participante:", participantFound.name, "participantId:", participantFound.id, "reemplazando números seleccionados:", selectedNumbers, "por números reservados:", reservedNumbers);
       setSelectedNumbers(reservedNumbers);
-      setIsNumberNotInReservedDialogOpen(false);
+      setIsNumberMismatchDialogOpen(false);
       
       if (!participantFound.id) {
-        console.error("❌ Error: participantFound.id está undefined");
+        console.error("[src/components/PhoneValidationModal.tsx] Error: participantFound.id está undefined");
         toast.error("Error de validación: datos del participante incompletos.");
         return;
       }
       
       proceedWithValidatedParticipant(participantFound);
     } else {
-      console.error("❌ Error: No hay participante encontrado o números reservados");
+      console.error("[src/components/PhoneValidationModal.tsx] Error: No hay participante encontrado o números reservados");
       toast.error("Error al continuar con números reservados. Datos incompletos.");
-      setIsNumberNotInReservedDialogOpen(false);
+      setIsNumberMismatchDialogOpen(false);
     }
+  };
+
+  // Función para cancelar y limpiar todo
+  const cancelAndClearAll = () => {
+    console.log("[src/components/PhoneValidationModal.tsx] Cancelando validación y limpiando todo - participante:", participantFound?.name, "participantId:", participantFound?.id, "números seleccionados limpiados:", selectedNumbers);
+    setIsNumberMismatchDialogOpen(false);
+    setIsNoReservedNumbersDialogOpen(false);
+    setIsNumberNotInReservedDialogOpen(false);
+    clearSelectionState(); // Limpiar todas las selecciones
+    handleModalClose();
   };
 
   // Controlador de cierre modal unificado
   const handleModalClose = (): void => {
     clearSelectionState(); // Borrar todas las selecciones de números
-    console.log("PhoneValidationModal.tsx: Borrar el estado de selección cuando el modal está cerrado");
+    console.log("[src/components/PhoneValidationModal.tsx] Cerrando modal y limpiando estado de selección");
     onClose();
   };
 
@@ -392,7 +420,7 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Dialog for number not in reserved list */}
+      {/* Dialog for number not in reserved list (original functionality) */}
       <AlertDialog 
         open={isNumberNotInReservedDialogOpen} 
         onOpenChange={setIsNumberNotInReservedDialogOpen}
@@ -412,6 +440,29 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
                 handleModalClose();
               }}
             >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={continueWithReservedNumbers}>
+              Continuar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* NUEVO Dialog for number mismatch - cuando los números seleccionados son diferentes a los reservados */}
+      <AlertDialog 
+        open={isNumberMismatchDialogOpen} 
+        onOpenChange={setIsNumberMismatchDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Números diferentes detectados</AlertDialogTitle>
+            <AlertDialogDescription>
+              Sus números elegidos pertenecen a otro participante y son diferentes a sus números reservados en base de datos. ¿Desea continuar con sus verdaderos números reservados?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex justify-between">
+            <AlertDialogCancel onClick={cancelAndClearAll}>
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction onClick={continueWithReservedNumbers}>
