@@ -73,7 +73,7 @@ export const updateNumbersToSold = async ({
       throw new Error("El ID de la rifa no está definido");
     }
 
-    // CORRECCIÓN CRÍTICA: Para "Pagar Apartados", obtener y validar números reservados del participante
+    // CORRECCIÓN CRÍTICA: Para "Pagar Apartados", validar que los números pertenezcan al participante específico Y estén en la selección
     if (clickedButtonType === "Pagar Apartados") {
       console.log("[numberStatusUpdates.ts] + 🔍 Validando números apartados para participante:", {
         participantId: sanitizedParticipantId,
@@ -117,22 +117,35 @@ export const updateNumbersToSold = async ({
         };
       }
 
-      // NUEVA LÓGICA: Permitir que se procesen SOLO los números reservados del participante
-      // En lugar de fallar, filtrar automáticamente los números válidos
+      // CORRECCIÓN CRÍTICA: Validar que SOLO se procesen los números SELECCIONADOS que pertenezcan al participante
       const participantNumbersArray = participantNumbers.map(n => parseInt(String(n.number)));
-      const participantNumbersFormatted = participantNumbers.map(n => String(n.number).padStart(2, '0'));
+      const selectedNumbersArray = selectedNumbers.map(n => parseInt(n));
       
-      console.log("[numberStatusUpdates.ts] + ✅ CORRECCIÓN: Procesando TODOS los números reservados del participante:", {
+      // Filtrar números seleccionados que realmente pertenecen al participante
+      const validSelectedNumbers = selectedNumbersArray.filter(num => 
+        participantNumbersArray.includes(num)
+      );
+
+      console.log("[numberStatusUpdates.ts] + ✅ Validación de números seleccionados:", {
         numerosReservadosDelParticipante: participantNumbersArray,
-        numerosFormateados: participantNumbersFormatted,
-        cantidadAProcesar: participantNumbersFormatted.length
+        numerosSeleccionadosEnUI: selectedNumbersArray,
+        numerosValidosParaPago: validSelectedNumbers,
+        cantidadValidaParaPago: validSelectedNumbers.length
       });
 
-      // CORRECCIÓN: Usar TODOS los números reservados del participante, no solo los seleccionados
-      selectedNumbers = participantNumbersFormatted;
+      if (validSelectedNumbers.length === 0) {
+        console.warn('[numberStatusUpdates.ts] + ⚠️ Ningún número seleccionado pertenece a este participante');
+        return { 
+          success: false, 
+          message: 'Los números seleccionados no pertenecen a este participante'
+        };
+      }
 
-      console.log("[numberStatusUpdates.ts] + ✅ Números finales a procesar:", {
-        numerosFinales: selectedNumbers,
+      // CORRECCIÓN: Actualizar selectedNumbers para usar SOLO los números válidos seleccionados del participante
+      selectedNumbers = validSelectedNumbers.map(n => String(n).padStart(2, '0'));
+
+      console.log("[numberStatusUpdates.ts] + ✅ Validación exitosa: procediendo con números seleccionados del participante:", {
+        numerosAProcessar: selectedNumbers,
         cantidadFinal: selectedNumbers.length
       });
     }
