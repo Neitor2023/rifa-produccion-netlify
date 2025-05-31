@@ -97,7 +97,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
   // Unified modal close handler
   const handleModalClose = (): void => {
     clearSelectionState(); // Clear all number selections
-    console.log("ReservationModal.tsx: Clearing selection state when modal is closed");
+    console.log("ReservationModal.tsx: Borrar el estado de selección cuando el modal está cerrado");
     onClose();
   };
 
