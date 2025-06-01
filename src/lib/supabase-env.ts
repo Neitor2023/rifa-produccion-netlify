@@ -13,6 +13,7 @@ const DEFAULT_SUPABASE_KEY_DEV = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Variable de entorno explícita
 // Valores permitidos: "dev" | "prod"
 // Por defecto: "prod" para producción
+// Version Guia 00
 const DEFAULT_ENVIRONMENT: "dev" | "prod" = "prod";
 
 // Nombres de buckets por defecto

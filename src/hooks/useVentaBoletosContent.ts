@@ -73,7 +73,8 @@ export function useVentaBoletosContent() {
     handleProceedToPayment,
     handlePayReservedNumbers,
     handleCompletePayment,
-    getSoldNumbersCount
+    getSoldNumbersCount,
+    clearAllPaymentState // NUEVO: obtener función de limpieza completa
   } = usePaymentProcessor({
     raffleSeller: seller ? { 
       id: raffleSeller?.id || 'default', 
@@ -133,6 +134,15 @@ export function useVentaBoletosContent() {
     return result;
   };
 
+  // CORRECCIÓN CRÍTICA: Función para manejar cierre de voucher con limpieza completa
+  const handleVoucherClosed = () => {
+    console.log("[useVentaBoletosContent.ts] Voucher cerrado, ejecutando limpieza completa de estado");
+    // Limpiar todo el estado de pago cuando se cierre el voucher
+    if (clearAllPaymentState) {
+      clearAllPaymentState();
+    }
+  };
+
   // Log buyer info when it changes
   useEffect(() => {
     console.log("useVentaBoletosContent.ts: buyerInfo:", buyerInfo ? {
@@ -178,6 +188,9 @@ export function useVentaBoletosContent() {
     getSoldNumbersCount,
     
     // Button state
-    clickedButton
+    clickedButton,
+    
+    // NUEVO: Handler para cierre de voucher
+    handleVoucherClosed
   };
 }

@@ -29,6 +29,7 @@ interface VentaBoletosModalsProps {
   isConflictModalOpen?: boolean;
   conflictingNumbers?: string[];
   onConflictModalClose?: () => void;
+  onVoucherClosed?: () => void; // NUEVO: callback para cierre de voucher
 }
 
 const VentaBoletosModals: React.FC<VentaBoletosModalsProps> = ({
@@ -48,7 +49,8 @@ const VentaBoletosModals: React.FC<VentaBoletosModalsProps> = ({
   organization,
   isConflictModalOpen = false,
   conflictingNumbers = [],
-  onConflictModalClose = () => {}
+  onConflictModalClose = () => {},
+  onVoucherClosed // NUEVO: prop para manejar cierre de voucher
 }) => {
   return (
     <>
@@ -67,6 +69,7 @@ const VentaBoletosModals: React.FC<VentaBoletosModalsProps> = ({
         raffleDetails={raffleDetails}
         clickedButton={clickedButton}
         organization={organization}
+        onVoucherClosed={onVoucherClosed} // NUEVO: pasar callback de cierre
       />
       
       {/* Conflict modal for simultaneous sales issues */}

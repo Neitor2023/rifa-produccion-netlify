@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
@@ -235,23 +234,31 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
       setReservedNumbers(formattedReservedNumbers);
       setParticipantFound(participant);
 
-      // NUEVA LÓGICA: Comparar números seleccionados con números reservados
+      // LÓGICA MEJORADA: Comparar números seleccionados con números reservados
       if (selectedNumbers && selectedNumbers.length > 0) {
         // Verificar si los números seleccionados coinciden con los reservados
         const selectedSet = new Set(selectedNumbers);
         const reservedSet = new Set(formattedReservedNumbers);
         
-        // Verificar si hay diferencias
+        // Verificar si hay números seleccionados que NO están en la lista de reservados
         const hasSelectedNotInReserved = selectedNumbers.some(num => !reservedSet.has(num));
-        const hasReservedNotInSelected = formattedReservedNumbers.some(num => !selectedSet.has(num));
         
-        console.log("[src/components/PhoneValidationModal.tsx] Validación de números - Participante:", participant.id, 
-          "Números seleccionados:", selectedNumbers, 
-          "Números reservados:", formattedReservedNumbers,
-          "Hay diferencias:", hasSelectedNotInReserved || hasReservedNotInSelected);
+        // Verificar que al menos un número reservado esté incluido en la selección
+        // Solo si hay al menos un número seleccionado
+        const hasReservedInSelected = formattedReservedNumbers.some(num => selectedSet.has(num));
+        
+        console.log("[src/components/PhoneValidationModal.tsx] Validación mejorada de números:", {
+          participantId: participant.id,
+          seleccionados: selectedNumbers,
+          reservados: formattedReservedNumbers,
+          haySeleccionadoNoEnReservados: hasSelectedNotInReserved,
+          hayReservadoEnSeleccionados: hasReservedInSelected
+        });
 
-        if (hasSelectedNotInReserved || hasReservedNotInSelected) {
-          // Los números son diferentes, mostrar modal de confirmación
+        // Solo mostrar el modal de discrepancia si:
+        // 1. Hay números seleccionados que no pertenecen a este participante, O
+        // 2. No hay ninguna intersección entre seleccionados y reservados
+        if (hasSelectedNotInReserved || (selectedNumbers.length > 0 && !hasReservedInSelected)) {
           console.log("[src/components/PhoneValidationModal.tsx] ⚠️ Los números seleccionados difieren de los reservados");
           setIsNumberMismatchDialogOpen(true);
           return;

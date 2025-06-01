@@ -65,7 +65,7 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
               </div>
               <div>
                 <span className="font-semibold">Total a pagar: </span> 
-                <span className="font-bold">{totalAmount.toFixed(2)}</span>
+                <div className="font-bold">{totalAmount.toFixed(2)}</div>
               </div>
               <div>
                 <span className="font-semibold">Fecha Emisión:</span> 
@@ -118,10 +118,12 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
             </div>
           </div>
           
-          {/* Include payment proof image if available */}
+          {/* Include payment proof image if available, with dynamic title based on payment method */}
           {paymentProofImage && (
             <div className="border-t border-gray-300 dark:border-gray-700 my-2 pt-2">
-              <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-300 mb-2">Comprobante de Transferencia</h3>
+              <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-300 mb-2">
+                {paymentMethod === 'Efectivo' ? 'Comprobante de Pago en Efectivo' : 'Comprobante de Transferencia'}
+              </h3>
               <div className="flex justify-center">
                 <img 
                   src={paymentProofImage} 

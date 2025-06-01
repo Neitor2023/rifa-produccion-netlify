@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
 import { ValidatedBuyerInfo } from '@/types/participant';
@@ -106,40 +105,63 @@ export function usePaymentProcessor({
     setValidatedBuyerData: setBuyerInfo
   });
 
-  // CORRECCIÓN CRÍTICA: Función para limpiar completamente todas las variables después del pago exitoso
-  const clearPaymentState = () => {
-    console.log("[usePaymentProcessor.ts] 🧹 Iniciando limpieza COMPLETA de variables tras pago completado");
+  // CORRECCIÓN CRÍTICA: Función modificada para NO limpiar paymentData prematuramente
+  const clearPaymentStateExceptSelectionAndData = () => {
+    console.log("[usePaymentProcessor.ts] 🧹 Limpieza parcial (preservando números seleccionados y paymentData para voucher)");
     
     try {
-      // Limpiar números seleccionados
-      setSelectedNumbers([]);
-      console.log("[usePaymentProcessor.ts] ✅ selectedNumbers limpiado");
+      // NO limpiar números seleccionados ni paymentData aquí - se harán cuando se cierre el voucher
       
       // Limpiar datos del participante
       setBuyerInfo(null);
       console.log("[usePaymentProcessor.ts] ✅ buyerInfo limpiado");
       
-      // Limpiar datos de pago
-      setPaymentData(null);
-      console.log("[usePaymentProcessor.ts] ✅ paymentData limpiado");
+      // NO limpiar paymentData aquí - se necesita para el voucher
+      console.log("[usePaymentProcessor.ts] ✅ paymentData PRESERVADO para voucher");
       
-      // Cerrar modales
-      setIsPaymentModalOpen(false);
+      // Cerrar modales de conflicto pero NO el voucher
       setIsConflictModalOpen(false);
       setConflictingNumbers([]);
-      console.log("[usePaymentProcessor.ts] ✅ Modales cerrados y conflictos limpiados");
+      console.log("[usePaymentProcessor.ts] ✅ Modales de conflicto cerrados");
       
-      // Cerrar voucher modal si está abierto
-      setIsVoucherOpen(false);
-      console.log("[usePaymentProcessor.ts] ✅ Modal de voucher cerrado");
-      
-      console.log("[usePaymentProcessor.ts] ✅ Limpieza COMPLETA de variables finalizada correctamente");
+      console.log("[usePaymentProcessor.ts] ✅ Limpieza parcial completada - manteniendo datos para voucher");
     } catch (error) {
-      console.error("[usePaymentProcessor.ts] ❌ Error durante limpieza de variables:", error);
+      console.error("[usePaymentProcessor.ts] ❌ Error durante limpieza parcial:", error);
     }
   };
 
-  // Create a wrapper for handleCompletePayment with proper cleanup
+  // Nueva función para limpieza completa cuando se cierre el voucher
+  const clearAllPaymentState = () => {
+    console.log("[usePaymentProcessor.ts] 🧹 Limpieza COMPLETA tras cierre de voucher");
+    
+    try {
+      // Ahora sí limpiar números seleccionados
+      setSelectedNumbers([]);
+      console.log("[usePaymentProcessor.ts] ✅ selectedNumbers limpiado");
+      
+      // Ahora sí limpiar paymentData
+      setPaymentData(null);
+      console.log("[usePaymentProcessor.ts] ✅ paymentData limpiado");
+      
+      // Limpiar cualquier estado restante
+      setBuyerInfo(null);
+      
+      // Cerrar voucher modal si todavía está abierto
+      setIsVoucherOpen(false);
+      console.log("[usePaymentProcessor.ts] ✅ Modal de voucher cerrado");
+      
+      // Cerrar otros modales
+      setIsPaymentModalOpen(false);
+      setIsConflictModalOpen(false);
+      setConflictingNumbers([]);
+      
+      console.log("[usePaymentProcessor.ts] ✅ Limpieza COMPLETA finalizada");
+    } catch (error) {
+      console.error("[usePaymentProcessor.ts] ❌ Error durante limpieza completa:", error);
+    }
+  };
+
+  // Create a wrapper for handleCompletePayment with proper modal separation
   const completePayment = async (formData: PaymentFormData): Promise<ConflictResult | void> => {
     try {
       console.log("[usePaymentProcessor.ts] 💰 Iniciando proceso de pago completo");
@@ -160,24 +182,28 @@ export function usePaymentProcessor({
         allowVoucherPrint
       })(formData);
 
-      // CORRECCIÓN CRÍTICA: Si el pago fue exitoso, limpiar variables con delay apropiado
+      // CORRECCIÓN CRÍTICA: Manejar el cierre de modales por separado SIN limpiar paymentData
       if (!result || (result && result.success)) {
-        console.log("[usePaymentProcessor.ts] ✅ Pago completado exitosamente, programando limpieza de variables");
+        console.log("[usePaymentProcessor.ts] ✅ Pago completado exitosamente");
         
-        // Delay apropiado para asegurar que el voucher se procese correctamente
+        // Cerrar PaymentModal inmediatamente después del pago exitoso
+        console.log("[usePaymentProcessor.ts] 🚪 Cerrando PaymentModal tras pago exitoso");
+        setIsPaymentModalOpen(false);
+        
+        // CORRECCIÓN: Usar la función que NO limpia paymentData
         setTimeout(() => {
-          console.log("[usePaymentProcessor.ts] 🧹 Ejecutando limpieza programada de variables");
-          clearPaymentState();
+          console.log("[usePaymentProcessor.ts] 🧹 Ejecutando limpieza parcial SIN afectar paymentData");
+          clearPaymentStateExceptSelectionAndData();
           
           // Recargar números para refrescar el estado
           refetchRaffleNumbers().then(() => {
-            console.log("[usePaymentProcessor.ts] ✅ Números de rifa recargados después de limpieza");
+            console.log("[usePaymentProcessor.ts] ✅ Números de rifa recargados después de pago");
           }).catch((error) => {
             console.error("[usePaymentProcessor.ts] ❌ Error al recargar números:", error);
           });
-        }, 2000); // Delay de 2 segundos para mejor sincronización
+        }, 1000);
       } else {
-        console.log("[usePaymentProcessor.ts] ⚠️ Pago no exitoso, manteniendo variables para retry");
+        console.log("[usePaymentProcessor.ts] ⚠️ Pago no exitoso, manteniendo PaymentModal abierto para retry");
       }
 
       return result;
@@ -413,6 +439,6 @@ export function usePaymentProcessor({
     findOrCreateParticipant,
     getSoldNumbersCount,
     allowVoucherPrint,
-    clearPaymentState // Exportar función de limpieza para uso externo si es necesario
+    clearAllPaymentState // Exportar función de limpieza completa para uso desde DigitalVoucher
   };
 }

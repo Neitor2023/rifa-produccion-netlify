@@ -72,6 +72,7 @@ export function useCompletePayment({
         tipoBoton: data.clickedButtonType,
         numerosSeleccionados: selectedNumbers,
         cantidadSeleccionada: selectedNumbers.length,
+        metodoDepago: data.paymentMethod,
         tieneReporteSospechoso: !!(data.reporteSospechoso && data.reporteSospechoso.trim())
       });
 
@@ -176,32 +177,42 @@ export function useCompletePayment({
         throw new Error(updateResult.message || 'Error al actualizar números');
       }
 
-      // Prepare payment data for voucher
+      // CORRECCIÓN CRÍTICA: Preparar datos de pago con información completa
       const paymentDataForVoucher = {
         buyerName: data.buyerName,
         buyerPhone: data.buyerPhone,
         buyerCedula: data.buyerCedula,
+        buyerEmail: data.buyerEmail,
         selectedNumbers,
-        paymentMethod: data.paymentMethod,
+        paymentMethod: data.paymentMethod, // CRÍTICO: Asegurar que el método de pago se incluya
         paymentProof: paymentProofUrl,
         participantId: participantId,
         sellerId: data.sellerId,
-        clickedButtonType: data.clickedButtonType
+        clickedButtonType: data.clickedButtonType,
+        direccion: data.direccion,
+        nota: data.nota,
+        sugerenciaProducto: data.sugerenciaProducto
       };
 
-      console.log("[completePayment.ts] + Preparando datos para voucher:", {
+      console.log("[completePayment.ts] + Preparando datos COMPLETOS para voucher:", {
         comprador: data.buyerName,
         telefono: data.buyerPhone,
         numeros: selectedNumbers.length,
-        metodo: data.paymentMethod,
+        metodo: data.paymentMethod, // CRÍTICO: Verificar que se incluya
         participantId: participantId,
-        comprobanteUrl: paymentProofUrl
+        comprobanteUrl: paymentProofUrl,
+        todosLosCampos: Object.keys(paymentDataForVoucher)
       });
 
-      // Set payment data and open voucher
+      // CORRECCIÓN CRÍTICA: Establecer datos antes de abrir voucher
+      console.log("[completePayment.ts] + Estableciendo paymentData ANTES de abrir voucher");
       setPaymentData(paymentDataForVoucher);
-      setIsPaymentModalOpen(false);
-      setIsVoucherOpen(true);
+      
+      // Pequeño delay para asegurar que el estado se actualice
+      setTimeout(() => {
+        console.log("[completePayment.ts] + Abriendo voucher después de establecer datos");
+        setIsVoucherOpen(true);
+      }, 100);
 
       // Refresh data
       await refetchRaffleNumbers();

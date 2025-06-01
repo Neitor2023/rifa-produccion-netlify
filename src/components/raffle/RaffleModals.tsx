@@ -26,6 +26,7 @@ interface RaffleModalsProps {
   };
   clickedButton?: string;
   organization?: Organization | null;
+  onVoucherClosed?: () => void; // NUEVO: callback para cierre de voucher
 }
 
 const RaffleModals: React.FC<RaffleModalsProps> = ({
@@ -42,7 +43,8 @@ const RaffleModals: React.FC<RaffleModalsProps> = ({
   allowVoucherPrint = true,
   raffleDetails,
   clickedButton,
-  organization
+  organization,
+  onVoucherClosed // NUEVO: prop para manejar cierre de voucher
 }) => {
   return (
     <>
@@ -68,6 +70,7 @@ const RaffleModals: React.FC<RaffleModalsProps> = ({
         selectedNumbers={selectedNumbers}
         organization={organization}
         allowVoucherPrint={allowVoucherPrint}
+        onVoucherClosed={onVoucherClosed} // NUEVO: pasar callback de cierre
       />
     </>
   );
