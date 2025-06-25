@@ -13,5 +13,6 @@ export interface PaymentFormData {
   sellerId?: string;
   paymentReceiptUrl?: string;
   participantId?: string;
-  clickedButtonType?: string; // Added this field
+  clickedButtonType?: string;
+  selectedBankId?: string; // Added field for bank selection
 }

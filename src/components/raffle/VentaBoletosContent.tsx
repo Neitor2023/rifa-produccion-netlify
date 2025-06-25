@@ -6,6 +6,8 @@ import VentaBoletosMain from '@/components/raffle/VentaBoletosMain';
 import VentaBoletosModals from '@/components/raffle/VentaBoletosModals';
 
 const VentaBoletosContent: React.FC = () => {
+  console.log("[VentaBoletosContent.tsx] 🔍 INVESTIGACIÓN: Componente renderizando");
+  
   // Gancho personalizado para manejar toda la lógica del contenido
   const {
     isLoading,
@@ -46,6 +48,25 @@ const VentaBoletosContent: React.FC = () => {
   // Acceda a la información del comprador desde el contexto
   const { buyerInfo } = useBuyerInfo();
   
+  console.log("[VentaBoletosContent.tsx] 🚨 INVESTIGACIÓN CRÍTICA: Estados actuales:", {
+    isLoading,
+    hayRaffle: !!raffle,
+    hayRaffleNumbers: raffleNumbers?.length || 0,
+    hayRaffleSeller: !!raffleSeller,
+    selectedNumbersCount: selectedNumbers?.length || 0,
+    isPaymentModalOpen,
+    isVoucherOpen,
+    clickedButton,
+    paymentData: paymentData ? {
+      participantId: paymentData.participantId,
+      buyerName: paymentData.buyerName,
+      paymentMethod: paymentData.paymentMethod,
+      hasPaymentProof: !!paymentData.paymentProof,
+      paymentProofType: typeof paymentData.paymentProof
+    } : null,
+    buyerInfoPresent: !!buyerInfo
+  });
+  
   return (
     <>
       <VentaBoletosMain 
@@ -63,7 +84,6 @@ const VentaBoletosContent: React.FC = () => {
         debugMode={debugMode}
         handleReserveNumbers={handleReserveNumbers}
         handleProceedToPaymentWithButton={handleProceedToPaymentWithButton}
-        // Corrección: Ajuste getSoldNumbersCount para que coincida con la firma esperada
         getSoldNumbersCount={() => getSoldNumbersCount(seller?.id || '')}
       />
       

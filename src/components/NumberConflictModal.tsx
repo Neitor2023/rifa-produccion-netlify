@@ -31,15 +31,11 @@ const NumberConflictModal: React.FC<NumberConflictModalProps> = ({
           </div>
           <AlertDialogTitle className="text-center text-xl">Conflicto en venta de números</AlertDialogTitle>
           <AlertDialogDescription className="text-center">
-            <p className="mt-2">
-              Uno o más de los números seleccionados ya han sido vendidos por otro vendedor:
-            </p>
-            <p className="font-bold text-red-500 text-lg mt-2">
+            Uno o más de los números seleccionados ya han sido vendidos por otro vendedor:
+            <span className="font-bold text-red-500 text-lg block mt-2">
               {conflictingNumbers.join(', ')}
-            </p>
-            <p className="mt-2">
-              Por favor elija otro número disponible.
-            </p>
+            </span>
+            Por favor elija otro número disponible.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="flex justify-center">

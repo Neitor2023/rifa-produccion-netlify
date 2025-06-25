@@ -1,15 +1,27 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, X, Eye } from 'lucide-react';
+import { Download, X, Eye, Save } from 'lucide-react';
 
 export interface VoucherActionsProps {
   onClose: () => void;
   onDownload: () => void;
   onView: () => void;
+  onSave?: () => Promise<string | null>;
+  isReceiptSaving?: boolean;
+  receiptAlreadySaved?: boolean;
+  textColor?: string;
 }
 
-const VoucherActions: React.FC<VoucherActionsProps> = ({ onClose, onDownload, onView }) => {
+const VoucherActions: React.FC<VoucherActionsProps> = ({ 
+  onClose, 
+  onDownload, 
+  onView, 
+  onSave,
+  isReceiptSaving = false,
+  receiptAlreadySaved = false,
+  textColor
+}) => {
   return (
     <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-2">
       <Button
@@ -28,6 +40,17 @@ const VoucherActions: React.FC<VoucherActionsProps> = ({ onClose, onDownload, on
         <Download className="h-4 w-4" />
         <span>Descargar</span>
       </Button>
+      {onSave && (
+        <Button
+          variant="outline"
+          onClick={onSave}
+          disabled={isReceiptSaving || receiptAlreadySaved}
+          className="flex items-center gap-1 text-green-600 hover:text-white hover:bg-green-600 border-green-600"
+        >
+          <Save className="h-4 w-4" />
+          <span>{isReceiptSaving ? 'Guardando...' : receiptAlreadySaved ? 'Guardado' : 'Guardar'}</span>
+        </Button>
+      )}
       <Button
         variant="default"
         onClick={onClose}

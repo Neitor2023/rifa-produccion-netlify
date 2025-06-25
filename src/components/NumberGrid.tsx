@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Toaster } from 'sonner';
 import { Card } from '@/components/ui/card';
@@ -5,12 +6,10 @@ import NumberGridHeader from './NumberGridHeader';
 import { NumberGridControls } from './NumberGridControls';
 import { NumberGridLegend } from './NumberGridLegend';
 import GridLayout from './NumberGrid/GridLayout';
-import ReservedMessageAlert from './NumberGrid/ReservedMessageAlert';
 import ValidationModals from './NumberGrid/ValidationModals';
 import { useGridHandlers } from './NumberGrid/useGridHandlers';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import { Organization } from '@/lib/constants/types';
-import { Button } from '@/components/ui/button';
 
 interface RaffleNumber {
   id: string;
@@ -71,8 +70,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     highlightReserved,
     showReservedMessage,
     selectedReservedNumber,
-    selectedReservedNumbers,
-    showReservedPaymentButton,
     
     // Handlers
     handlePayReserved,
@@ -82,7 +79,6 @@ const NumberGrid: React.FC<NumberGridProps> = ({
     handleReserve,
     handleConfirmReservation,
     handleProceedToPayment,
-    handleProceedWithReservedPayment,
     handleValidationSuccess
   } = useGridHandlers({
     numbers,
@@ -103,27 +99,11 @@ const NumberGrid: React.FC<NumberGridProps> = ({
         maxNumbers={raffleSeller.cant_max} 
       />
       
-      {showReservedMessage && (
-        <div className="mb-4">
-          <ReservedMessageAlert onClose={handleCloseReservedMessage} />
-          {showReservedPaymentButton && (
-            <div className="mt-3 flex justify-center">
-              <Button 
-                onClick={handleProceedWithReservedPayment}
-                className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white font-bold px-6 py-2"
-              >
-                Proceder al Pago ({selectedReservedNumbers.length} número{selectedReservedNumbers.length !== 1 ? 's' : ''} seleccionado{selectedReservedNumbers.length !== 1 ? 's' : ''})
-              </Button>
-            </div>
-          )}
-        </div>
-      )}
-      
       <Card className="p-2 sm:p-4 mb-4 overflow-x-auto">
         <div className="w-full overflow-x-auto scale-105 transform origin-top-left my-3">
           <GridLayout
             numbers={numbers}
-            selectedNumbers={highlightReserved ? selectedReservedNumbers : selectedNumbers}
+            selectedNumbers={selectedNumbers}
             highlightReserved={highlightReserved}
             toggleNumber={toggleNumber}
             onPayReserved={handlePayReserved}

@@ -8,7 +8,8 @@ export const useNumberStatus = ({
   raffleNumbers, 
   debugMode = false, 
   reservationDays = 5, 
-  lotteryDate 
+  lotteryDate,
+  rafflePrice = 0
 }) => {
   const debugLog = (context: string, data: any) => {
     if (debugMode) {
@@ -32,7 +33,8 @@ export const useNumberStatus = ({
       raffleNumbers,
       debugLog,
       reservationDays,
-      lotteryDate
+      lotteryDate,
+      rafflePrice
     })
   };
 };

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
@@ -18,7 +17,7 @@ interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedNumbers: string[];
-  price: number;
+  rafflePrice: number;
   onCompletePayment: (data: PaymentFormData) => Promise<{ success: boolean; conflictingNumbers?: string[] } | void>;
   buyerInfo?: ValidatedBuyerInfo | null;
   debugMode?: boolean;
@@ -30,15 +29,24 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   isOpen,
   onClose,
   selectedNumbers,
-  price,
+  rafflePrice,
   onCompletePayment,
   buyerInfo,
   debugMode = false,
   clickedButton,
   organization
 }) => {
+  console.log('[PaymentModal.tsx] 🔍 CRÍTICO: Modal renderizado:', {
+    isOpen,
+    selectedNumbersCount: selectedNumbers?.length || 0,
+    hasOnCompletePayment: !!onCompletePayment,
+    clickedButton,
+    hasOrganization: !!organization
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedBankId, setSelectedBankId] = useState<string | undefined>();
   const { clearSelectionState } = useNumberSelection();
 
   const form = useForm<PaymentFormData>({
@@ -58,9 +66,40 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       participantId: '',
       clickedButtonType: '',
       paymentReceiptUrl: '',
+      selectedBankId: '',
     },
     mode: "onChange"
   });
+
+  // 🧹 LIMPIEZA ESPECÍFICA PARA "PAGAR DIRECTO" - Nueva funcionalidad solicitada
+  useEffect(() => {
+    if (isOpen && clickedButton === 'Pagar') {
+      console.log("[PaymentModal.tsx] 🧹 CRÍTICO: Limpiando inputs porque se pulsó 'Pagar Directo'");
+      form.reset({
+        buyerName: '',
+        buyerPhone: '',
+        buyerCedula: '',
+        buyerEmail: '',
+        direccion: '',
+        sugerenciaProducto: '',
+        paymentMethod: "cash",
+        paymentProof: null,
+        nota: '',
+        reporteSospechoso: '',
+        sellerId: '',
+        participantId: '',
+        clickedButtonType: '',
+        paymentReceiptUrl: '',
+        selectedBankId: '',
+      });
+      
+      // También limpiar estados locales del modal
+      setPreviewUrl(null);
+      setSelectedBankId(undefined);
+      
+      console.log("[PaymentModal.tsx] ✅ Inputs completamente limpiados para 'Pagar Directo'");
+    }
+  }, [isOpen, clickedButton, form]);
 
   // Reset form when modal is opened or closed
   useEffect(() => {
@@ -79,15 +118,36 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       resetForm();
     } 
     // Establecer valores de formulario cuando se abre el modal con información del comprador
-    else if (isOpen && clickedButton === "Pagar") {
-      console.log('[src/components/PaymentModal.tsx] Reseteando formulario para "Pagar" (nuevo comprador)');
-      resetForm();
-    } else if (isOpen && buyerInfo) {
-      // Obtener datos completos del participante, incluyendo email
-      fetchCompleteParticipantData(buyerInfo.id);
+    else if (isOpen && clickedButton === "Pagar Apartados") {
+      // Solo cargar datos del comprador para "Pagar Apartados" - NO para "Pagar Directo"
+      console.log('[src/components/PaymentModal.tsx] Cargando datos del comprador para "Pagar Apartados"');
+      if (buyerInfo) {
+        fetchCompleteParticipantData(buyerInfo.id);
+      }
     }
+    // Para "Pagar Directo" NO cargar datos del comprador - la limpieza se maneja en el useEffect específico arriba
   }, [isOpen, clickedButton, buyerInfo]);
 
+  // useEffect crítico para sincronizar selectedBankId con el form y disparar revalidación
+  useEffect(() => {
+    if (selectedBankId) {
+      console.log('[PaymentModal.tsx] Banco seleccionado:', selectedBankId);
+      form.setValue('selectedBankId', selectedBankId);
+      // Disparar revalidación del formulario
+      form.trigger('selectedBankId');
+    } else {
+      form.setValue('selectedBankId', '');
+      form.trigger('selectedBankId');
+    }
+  }, [selectedBankId, form]);
+
+  // Función personalizada para manejar la selección de banco
+  const handleBankSelect = (bankId: string) => {
+    console.log('[PaymentModal.tsx] handleBankSelect llamado con:', bankId);
+    console.log('[PaymentModal.tsx] Guardando transferencia con banco:', bankId);
+    setSelectedBankId(bankId);
+  };
+  
   // Función para obtener datos completos del participante desde la base de datos
   const fetchCompleteParticipantData = async (participantId?: string) => {
     if (!participantId) {
@@ -210,96 +270,106 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       participantId: '',
       clickedButtonType: '',
       paymentReceiptUrl: '',
+      selectedBankId: '',
     });
     setPreviewUrl(null);
+    setSelectedBankId(undefined);
     console.log("[src/components/PaymentModal.tsx] Formulario completamente reseteado");
   };
 
   const onFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      console.log('[src/components/PaymentModal.tsx] Archivo cargado:', file.name, 'para participante:', form.getValues('buyerName'));
+      console.log('[PaymentModal.tsx] 📤 Comprobante recibido:', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        participante: form.getValues('buyerName'),
+        bancoSeleccionado: selectedBankId
+      });
+      
       form.setValue("paymentProof", file);
+      // Disparar revalidación después de establecer el archivo
+      form.trigger('paymentProof');
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
+      
+      console.log('[PaymentModal.tsx]📎 PaymentProof establecido en formulario para participante:', form.getValues('buyerName'));
+      console.log('[PaymentModal.tsx] 🏦 Con banco seleccionado:', selectedBankId);
     }
   };
 
   const onFileRemove = () => {
-    console.log('[src/components/PaymentModal.tsx] Removiendo archivo de comprobante para participante:', form.getValues('buyerName'));
+    console.log('[PaymentModal.tsx] 🗑️ Removiendo archivo de comprobante para participante:', form.getValues('buyerName'));
     form.setValue("paymentProof", null);
+    form.trigger('paymentProof');
     setPreviewUrl(null);
   };
 
   const onSubmit = async (data: PaymentFormData) => {
+    console.log('[PaymentModal.tsx] 🚨 CRÍTICO: onSubmit iniciado');
+    console.log('[PaymentModal.tsx] 📋 Datos del formulario:', {
+      buyerName: data.buyerName,
+      paymentMethod: data.paymentMethod,
+      hasPaymentProof: !!data.paymentProof,
+      participantId: data.participantId,
+      selectedBankId: data.selectedBankId,
+      clickedButton
+    });
+
+    // IMPORTANTE: Asegurar que bank_id se incluya en los datos
+    if (data.paymentMethod === 'transfer' && selectedBankId) {
+      console.log('[PaymentModal.tsx] Guardando transferencia con banco:', selectedBankId);
+      data.selectedBankId = selectedBankId;
+    }
+
+    if (!onCompletePayment) {
+      console.error('[PaymentModal.tsx] ❌ CRÍTICO: onCompletePayment es null/undefined en onSubmit');
+      return;
+    }
+
     try {
-      setIsSubmitting(true);
-      
-      console.log('[src/components/PaymentModal.tsx] Iniciando envío de formulario para:', clickedButton, 'Participante:', data.buyerName, 'Email:', data.buyerEmail);
-      console.log('[src/components/PaymentModal.tsx] Datos del formulario completos:', {
-        buyerName: data.buyerName,
-        buyerPhone: data.buyerPhone,
-        buyerEmail: data.buyerEmail,
-        buyerCedula: data.buyerCedula,
-        participantId: data.participantId,
-        paymentMethod: data.paymentMethod,
-        hasPaymentProof: !!data.paymentProof
-      });
-      
-      // VALIDACIÓN CRÍTICA FINAL antes del envío
-      if (clickedButton === "Pagar Apartados") {
-        const participantId = data.participantId || buyerInfo?.id;
-        
-        console.log('[src/components/PaymentModal.tsx] Validación final para "Pagar Apartados":', {
-          participantIdFormulario: data.participantId,
-          participantIdBuyerInfo: buyerInfo?.id,
-          participantIdFinal: participantId,
-          participantName: data.buyerName,
-          participantEmail: data.buyerEmail
-        });
-        
-        if (!participantId) {
-          console.error('[src/components/PaymentModal.tsx] Error: participantId faltante en envío para participante:', data.buyerName);
-          toast.error('Error: No se puede procesar el pago sin identificar el participante.');
-          setIsSubmitting(false);
-          return;
-        }
-        
-        // Asegurar que el participantId esté en los datos del formulario
-        data.participantId = participantId;
-      }
-      
-      // Registrar los datos del formulario para fines de depuración
-      if (debugMode) {
-        console.log("[src/components/PaymentModal.tsx] Datos finales a enviar:", {
-          ...data,
-          participantId: data.participantId
-        });
-        console.log("[src/components/PaymentModal.tsx] Email verificado antes de envío:", data.buyerEmail);
-      }
-      
-      // Almacenar el tipo de botón en el que se hizo clic en los datos del formulario
-      data.clickedButtonType = clickedButton;
-      
-      console.log('[src/components/PaymentModal.tsx] Enviando datos de pago para participante:', data.buyerName, 'Email:', data.buyerEmail);
+      console.log('[PaymentModal.tsx] 📤 EJECUTANDO: onCompletePayment desde onSubmit');
       const result = await onCompletePayment(data);
-      
-      // Si el resultado tiene números conflictivos, el manejo modal lo realizarán los componentes principales.
-      // Solo se maneja el caso en el que necesitamos cerrar el modo de pago
-      if (!result || (result && result.success)) {
-        console.log('[src/components/PaymentModal.tsx] Pago procesado exitosamente para participante:', data.buyerName, 'cerrando modal');
-        onClose();
-        clearSelectionState();
-        resetForm(); // Restablecer formulario después de un envío exitoso
-      } else {
-        console.log('[src/components/PaymentModal.tsx] Pago no exitoso para participante:', data.buyerName, 'manteniendo modal abierto');
+      console.log('[PaymentModal.tsx] 📨 RESULTADO de onCompletePayment en onSubmit:', result);
+
+      if (result && !result.success && result.conflictingNumbers?.length) {
+        console.log('[PaymentModal.tsx] ⚠️ Conflicto detectado en onSubmit:', result.conflictingNumbers);
+        return;
       }
-      
+
+      // 🧹 LIMPIEZA FINAL DESPUÉS DEL AUTO GUARDADO EXITOSO PARA "PAGAR DIRECTO"
+      if (clickedButton === 'Pagar' && (!result || (result && typeof result === 'object' && 'success' in result && result.success))) {
+        console.log('[PaymentModal.tsx] 🧹 LIMPIEZA FINAL: Ejecutando reset completo después del auto guardado para "Pagar Directo"');
+        
+        // Limpiar completamente el formulario
+        form.reset({
+          buyerName: '',
+          buyerPhone: '',
+          buyerCedula: '',
+          buyerEmail: '',
+          direccion: '',
+          sugerenciaProducto: '',
+          paymentMethod: "cash",
+          paymentProof: null,
+          nota: '',
+          reporteSospechoso: '',
+          sellerId: '',
+          participantId: '',
+          clickedButtonType: '',
+          paymentReceiptUrl: '',
+          selectedBankId: '',
+        });
+        
+        // Limpiar estados locales
+        setPreviewUrl(null);
+        setSelectedBankId(undefined);
+        
+        console.log('[PaymentModal.tsx] ✅ Inputs completamente limpiados después del auto guardado para "Pagar Directo"');
+      }
+
     } catch (error) {
-      console.error("[src/components/PaymentModal.tsx] Error al procesar el pago para participante:", form.getValues('buyerName'), "Error:", error);
-      toast.error("Error al procesar el pago. Por favor intente nuevamente.");
-    } finally {
-      setIsSubmitting(false);
+      console.error('[PaymentModal.tsx] ❌ ERROR en onSubmit:', error);
     }
   };
 
@@ -313,7 +383,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
       if (!open) {
-        console.log('[src/components/PaymentModal.tsx] Cerrando modal y reseteando formulario para participante:', form.getValues('buyerName'));
+        console.log('[PaymentModal.tsx] 🔐 Cerrando modal y reseteando formulario para participante:', form.getValues('buyerName'));
         onClose();
         resetForm(); // Restablecer formulario cuando se cierra el diálogo
       }
@@ -321,26 +391,28 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       <DialogContent className="bg-white/20 backdrop-blur-md max-w-2xl">
         <Card className="bg-transparent border-0 shadow-none">
         <PaymentModalHeader onClose={() => {
-          console.log('[src/components/PaymentModal.tsx] Cerrando modal desde header y reseteando formulario para participante:', form.getValues('buyerName'));
+          console.log('[PaymentModal.tsx] 🔐 Cerrando modal desde header y reseteando formulario para participante:', form.getValues('buyerName'));
           onClose();
           resetForm(); // Restablecer formulario al cerrarlo mediante el botón de encabezado
         }} onHeaderClick={handleHeaderClick} />
         <PaymentModalContent
           form={form}
           selectedNumbers={selectedNumbers}
-          price={price}
+          rafflePrice={rafflePrice}
           previewUrl={previewUrl}
           buyerData={buyerInfo}
           onFileUpload={onFileUpload}
           onFileRemove={onFileRemove}
           clickedButton={clickedButton}
           organization={organization}
+          selectedBankId={selectedBankId}
+          onBankSelect={handleBankSelect}
         />
         <PaymentModalActions
           isSubmitting={isSubmitting}
           isFormValid={form.formState.isValid}
           onClose={() => {
-            console.log('[src/components/PaymentModal.tsx] Cerrando modal desde acciones y reseteando formulario para participante:', form.getValues('buyerName'));
+            console.log('[PaymentModal.tsx] 🔐 Cerrando modal desde acciones y reseteando formulario para participante:', form.getValues('buyerName'));
             onClose(); 
             resetForm(); // Restablecer el formulario al cerrarlo mediante el botón Cancelar
           }}

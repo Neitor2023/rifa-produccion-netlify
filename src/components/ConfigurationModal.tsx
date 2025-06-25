@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { getVisibleConfig, shouldShowDevNotice } from '@/lib/supabase-env';
@@ -33,6 +34,9 @@ const ConfigurationModal: React.FC<ConfigurationModalProps> = ({
           <DialogTitle className="text-blue-600 font-semibold">
             ⚙️ Configuración Actual
           </DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
+            Información de configuración del entorno actual
+          </DialogDescription>
         </DialogHeader>
         
         <div className="my-4 space-y-3">

@@ -8,6 +8,8 @@ interface EditableBuyerFieldsProps {
 }
 
 const EditableBuyerFields: React.FC<EditableBuyerFieldsProps> = ({ form }) => {
+  const { watch } = form;
+  const paymentMethod = watch("paymentMethod");
   return (
     <div>
       <h3 className="text-base font-medium text-gray-800 dark:text-white mb-3">Información del Comprador</h3>

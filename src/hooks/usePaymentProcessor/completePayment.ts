@@ -1,9 +1,8 @@
+
+import { PaymentFormData } from '@/types/payment';
+import { usePaymentCompletion } from './paymentCompletion';
+import { RaffleNumber } from '@/lib/constants/types';
 import { toast } from 'sonner';
-import { PaymentFormData } from '@/schemas/paymentFormSchema';
-import { updateNumbersToSold, UpdateResult } from './numberStatusUpdates';
-import { uploadImageToSupabase } from './imageUpload';
-import { processParticipant } from './participantProcessing';
-import { processFraudReport } from './fraudReportProcessing';
 
 export interface ConflictResult {
   success: boolean;
@@ -12,228 +11,129 @@ export interface ConflictResult {
 }
 
 interface CompletePaymentProps {
-  selectedNumbers: string[];
   raffleSeller: any;
   raffleId: string;
-  raffleNumbers: any[];
+  selectedNumbers: string[];
+  raffleNumbers: RaffleNumber[];
   setIsVoucherOpen: (open: boolean) => void;
-  setPaymentData: (data: any) => void;
+  setPaymentData: (data: PaymentFormData | null) => void;
   setIsPaymentModalOpen: (open: boolean) => void;
-  refetchRaffleNumbers: () => Promise<any>;
+  refetchRaffleNumbers: () => Promise<void>;
   debugMode?: boolean;
   allowVoucherPrint?: boolean;
+  rafflePrice?: number; // CORRECCIÓN: Agregar rafflePrice a la interfaz
 }
 
-// Helper function to validate UUID format
-function isValidUUID(uuid: string): boolean {
-  if (!uuid || typeof uuid !== 'string') return false;
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(uuid);
-}
-
-// Helper function to sanitize participantId
-function sanitizeParticipantId(participantId: string | undefined | null): string | null {
-  if (!participantId || participantId.trim() === '') {
-    return null;
-  }
-  
-  if (!isValidUUID(participantId)) {
-    console.warn('[completePayment.ts] + UUID inválido detectado, será procesado como nuevo participante:', participantId);
-    return null;
-  }
-  
-  return participantId;
-}
-
-export function useCompletePayment({
-  selectedNumbers,
+export const handleCompletePayment = ({
   raffleSeller,
   raffleId,
+  selectedNumbers,
   raffleNumbers,
   setIsVoucherOpen,
   setPaymentData,
   setIsPaymentModalOpen,
   refetchRaffleNumbers,
   debugMode = false,
-  allowVoucherPrint = true
-}: CompletePaymentProps) {
+  allowVoucherPrint = true,
+  rafflePrice // CORRECCIÓN: Recibir rafflePrice como parámetro
+}: CompletePaymentProps) => {
+  
+  return async (data: PaymentFormData): Promise<ConflictResult | void> => {
+    console.log('[completePayment.ts] 🚨 INICIO CRÍTICO: Procesando pago completo');
+    console.log('[completePayment.ts] 🎯 CORRECCIÓN: rafflePrice recibido:', rafflePrice);
+    console.log('[completePayment.ts] 📊 DATOS ENTRADA:', {
+      participantId: data.participantId,
+      buyerName: data.buyerName,
+      selectedNumbers: selectedNumbers,
+      selectedCount: selectedNumbers?.length || 0,
+      paymentMethod: data.paymentMethod,
+      hasPaymentProof: !!data.paymentProof,
+      raffleId: raffleId,
+      raffleSellerId: raffleSeller?.seller_id || raffleSeller?.id,
+      rafflePrice: rafflePrice
+    });
 
-  const debugLog = (context: string, data: any) => {
-    if (debugMode) {
-      console.log(`[completePayment.ts] + ${context}:`, data);
+    // VALIDACIONES CRÍTICAS
+    if (!data.buyerName || data.buyerName.trim() === '') {
+      console.error('[completePayment.ts] ❌ ERROR CRÍTICO: buyerName vacío');
+      toast.error('El nombre del comprador es requerido');
+      return { success: false, message: 'Nombre del comprador requerido' };
     }
-  };
 
-  const completePayment = async (data: PaymentFormData): Promise<ConflictResult | void> => {
+    if (!selectedNumbers || selectedNumbers.length === 0) {
+      console.error('[completePayment.ts] ❌ ERROR CRÍTICO: selectedNumbers vacío:', selectedNumbers);
+      toast.error('Debe seleccionar al menos un número');
+      return { success: false, message: 'Números seleccionados requeridos' };
+    }
+
+    if (!raffleId || raffleId.trim() === '') {
+      console.error('[completePayment.ts] ❌ ERROR CRÍTICO: raffleId vacío');
+      toast.error('ID de rifa no disponible');
+      return { success: false, message: 'ID de rifa requerido' };
+    }
+
+    if (!raffleSeller) {
+      console.error('[completePayment.ts] ❌ ERROR CRÍTICO: raffleSeller no disponible');
+      toast.error('Información del vendedor no disponible');
+      return { success: false, message: 'Vendedor requerido' };
+    }
+
     try {
-      console.log("[completePayment.ts] + Iniciando proceso de pago completo con datos:", {
-        participantIdOriginal: data.participantId,
-        sellerId: data.sellerId,
-        tipoBoton: data.clickedButtonType,
-        numerosSeleccionados: selectedNumbers,
-        cantidadSeleccionada: selectedNumbers.length,
-        metodoDepago: data.paymentMethod,
-        tieneReporteSospechoso: !!(data.reporteSospechoso && data.reporteSospechoso.trim())
-      });
-
-      // Validate required fields early
-      if (!data.buyerName || data.buyerName.trim() === '') {
-        throw new Error('El nombre del comprador es requerido');
-      }
-
-      if (!data.buyerPhone || data.buyerPhone.trim() === '') {
-        throw new Error('El teléfono del comprador es requerido');
-      }
-
-      if (!data.buyerCedula || data.buyerCedula.trim() === '') {
-        throw new Error('La cédula del comprador es requerida');
-      }
-
-      if (selectedNumbers.length === 0) {
-        throw new Error('No hay números seleccionados para procesar');
-      }
-
-      console.log("[completePayment.ts] + Validando datos del formulario antes de procesar:", {
-        buyerName: data.buyerName,
-        buyerPhone: data.buyerPhone,
-        buyerCedula: data.buyerCedula,
-        tipoBoton: data.clickedButtonType
-      });
-
-      console.log("[completePayment.ts] + Datos validados del participante:", {
-        nombre: data.buyerName,
-        telefono: data.buyerPhone,
-        cedula: data.buyerCedula,
-        email: data.buyerEmail,
-        direccion: data.direccion,
-        nota: data.nota,
-        sugerenciaProducto: data.sugerenciaProducto
-      });
-
-      // CORRECCIÓN 1: Procesar o crear participante primero - CRÍTICO para "Pagar Directo"
-      console.log("[completePayment.ts] + Procesando datos del participante...");
-      const participantId = await processParticipant({
-        data: data,
-        raffleId,
-        debugLog
-      });
-
-      if (!participantId) {
-        throw new Error('Error al procesar participante');
-      }
-
-      console.log("[completePayment.ts] ✅ Participante procesado exitosamente con ID:", participantId);
-
-      // CORRECCIÓN 2: Procesar reporte de actividad sospechosa si existe - CRÍTICO para ambos botones
-      if (data.reporteSospechoso && data.reporteSospechoso.trim()) {
-        console.log("[completePayment.ts] + Procesando reporte de actividad sospechosa...");
-        await processFraudReport({
-          participantId,
-          sellerId: data.sellerId || raffleSeller?.seller_id || null,
-          raffleId,
-          reporteSospechoso: data.reporteSospechoso,
-          debugLog
-        });
-        console.log("[completePayment.ts] ✅ Reporte de actividad sospechosa procesado correctamente");
-      }
-
-      // CORRECCIÓN 3: Upload image if provided - CRÍTICO para pagos en efectivo
-      let paymentProofUrl: string | null = null;
-      if (data.paymentProof) {
-        console.log("[completePayment.ts] + Subiendo comprobante de pago...");
-        try {
-          paymentProofUrl = await uploadImageToSupabase(data.paymentProof);
-          console.log("[completePayment.ts] ✅ Comprobante subido correctamente en URL:", paymentProofUrl);
-        } catch (uploadError) {
-          console.error("[completePayment.ts] ❌ Error al subir comprobante:", uploadError);
-          throw new Error('Error al subir el comprobante de pago');
-        }
-      }
-
-      // CORRECCIÓN 4: Update numbers to sold status with the processed participantId
-      console.log("[completePayment.ts] + Actualizando números a estado vendido...");
-      const updateResult: UpdateResult = await updateNumbersToSold({
-        numbers: selectedNumbers,
-        selectedNumbers,
-        participantId: participantId, // Usar el participantId procesado
-        paymentProofUrl,
-        raffleNumbers,
+      console.log('[completePayment.ts] 🚀 INICIANDO: Proceso de pago con usePaymentCompletion');
+      console.log('[completePayment.ts] 🎯 CORRECCIÓN: Pasando rafflePrice al hook:', rafflePrice);
+      
+      const { completePaymentProcess } = usePaymentCompletion({
         raffleSeller,
         raffleId,
-        paymentMethod: data.paymentMethod,
-        clickedButtonType: data.clickedButtonType || ''
+        debugMode,
+        rafflePrice // CORRECCIÓN: Pasar rafflePrice al hook usePaymentCompletion
       });
 
-      if (!updateResult.success) {
-        if (updateResult.conflictingNumbers && updateResult.conflictingNumbers.length > 0) {
-          console.warn("[completePayment.ts] + Números en conflicto detectados:", updateResult.conflictingNumbers);
-          return {
-            success: false,
-            conflictingNumbers: updateResult.conflictingNumbers,
-            message: updateResult.message || 'Algunos números ya no están disponibles'
-          };
+      console.log('[completePayment.ts] 📤 LLAMANDO: completePaymentProcess con datos finales');
+      
+      const result = await completePaymentProcess(data, selectedNumbers);
+      
+      console.log('[completePayment.ts] 📨 RESULTADO RECIBIDO:', {
+        success: result?.success,
+        hasResult: !!result,
+        resultType: typeof result
+      });
+      
+      if (result && result.success) {
+        console.log('[completePayment.ts] ✅ ÉXITO: Proceso completado, cerrando modal de pago');
+        
+        setIsPaymentModalOpen(false);
+        
+        console.log('[completePayment.ts] 💾 CONFIGURANDO: Datos para voucher');
+        setPaymentData(data);
+        
+        if (allowVoucherPrint) {
+          console.log('[completePayment.ts] 📄 ABRIENDO: Voucher');
+          setIsVoucherOpen(true);
         }
         
-        throw new Error(updateResult.message || 'Error al actualizar números');
+        console.log('[completePayment.ts] 🔄 REFRESCANDO: Números de rifa');
+        try {
+          await refetchRaffleNumbers();
+          console.log('[completePayment.ts] ✅ ÉXITO: Números refrescados');
+        } catch (refetchError) {
+          console.error('[completePayment.ts] ❌ ERROR: Al refrescar números:', refetchError);
+        }
+        
+        return { success: true };
+      } else {
+        console.error('[completePayment.ts] ❌ FALLO: Proceso de pago no exitoso:', result);
+        return result || { success: false, message: 'Error desconocido en el pago' };
       }
-
-      // CORRECCIÓN CRÍTICA: Preparar datos de pago con información completa
-      const paymentDataForVoucher = {
-        buyerName: data.buyerName,
-        buyerPhone: data.buyerPhone,
-        buyerCedula: data.buyerCedula,
-        buyerEmail: data.buyerEmail,
-        selectedNumbers,
-        paymentMethod: data.paymentMethod, // CRÍTICO: Asegurar que el método de pago se incluya
-        paymentProof: paymentProofUrl,
-        participantId: participantId,
-        sellerId: data.sellerId,
-        clickedButtonType: data.clickedButtonType,
-        direccion: data.direccion,
-        nota: data.nota,
-        sugerenciaProducto: data.sugerenciaProducto
-      };
-
-      console.log("[completePayment.ts] + Preparando datos COMPLETOS para voucher:", {
-        comprador: data.buyerName,
-        telefono: data.buyerPhone,
-        numeros: selectedNumbers.length,
-        metodo: data.paymentMethod, // CRÍTICO: Verificar que se incluya
-        participantId: participantId,
-        comprobanteUrl: paymentProofUrl,
-        todosLosCampos: Object.keys(paymentDataForVoucher)
-      });
-
-      // CORRECCIÓN CRÍTICA: Establecer datos antes de abrir voucher
-      console.log("[completePayment.ts] + Estableciendo paymentData ANTES de abrir voucher");
-      setPaymentData(paymentDataForVoucher);
       
-      // Pequeño delay para asegurar que el estado se actualice
-      setTimeout(() => {
-        console.log("[completePayment.ts] + Abriendo voucher después de establecer datos");
-        setIsVoucherOpen(true);
-      }, 100);
-
-      // Refresh data
-      await refetchRaffleNumbers();
-
-      console.log("[completePayment.ts] ✅ Proceso de pago completo y sin errores para participante:", participantId);
-      toast.success('Pago procesado exitosamente');
-
-      return { success: true };
-
     } catch (error: any) {
-      console.error("[completePayment.ts] ❌ Error en completePayment:", error);
-      toast.error(`Error al procesar el pago: ${error.message}`);
-      throw error;
+      console.error('[completePayment.ts] ❌ ERROR FATAL:', error);
+      console.error('[completePayment.ts] 📋 STACK:', error?.stack);
+      toast.error('Error crítico al procesar el pago: ' + (error?.message || 'Error desconocido'));
+      return { 
+        success: false, 
+        message: `Error crítico: ${error?.message || 'Error desconocido'}` 
+      };
     }
   };
-
-  return { completePayment };
-}
-
-// Export the function for backwards compatibility
-export const handleCompletePayment = (props: CompletePaymentProps) => {
-  const { completePayment } = useCompletePayment(props);
-  return completePayment;
 };

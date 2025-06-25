@@ -16,6 +16,9 @@ interface PaymentFormFieldsProps {
   previewUrl: string | null;
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFileRemove: () => void;
+  paymentMethod?: "cash" | "transfer";
+  selectedBankId?: string;
+  onBankSelect?: (bankId: string) => void;
 }
 
 const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({ 
@@ -23,10 +26,15 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
   readOnlyData,
   previewUrl,
   onFileUpload,
-  onFileRemove
+  onFileRemove,
+  paymentMethod,
+  selectedBankId,
+  onBankSelect
 }) => {
   // Determine if buyer information is pre-filled and should be read-only
   const hasReadOnlyData = Boolean(readOnlyData);
+  const { watch } = form;
+  const currentPaymentMethod = watch('paymentMethod');
   
   return (
     <>
@@ -206,14 +214,6 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
 
       <div className="space-y-4 bg-white/50 dark:bg-gray-400/50 p-4 rounded-md shadow-sm">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Método de Pago</h3>
-
-        {form.watch('paymentMethod') === 'transfer' && (
-          <PaymentUploadZone
-            previewUrl={previewUrl}
-            onFileUpload={onFileUpload}
-            onFileRemove={onFileRemove}
-          />
-        )}
         
         <FormField
           control={form.control}
@@ -239,7 +239,18 @@ const PaymentFormFields: React.FC<PaymentFormFieldsProps> = ({
               <FormMessage />
             </FormItem>
           )}
-        />             
+        />
+        
+        {currentPaymentMethod === 'transfer' && (
+          <PaymentUploadZone
+            previewUrl={previewUrl}
+            onFileUpload={onFileUpload}
+            onFileRemove={onFileRemove}
+            paymentMethod={currentPaymentMethod}
+            selectedBankId={selectedBankId}
+            onBankSelect={onBankSelect}
+          />
+        )}             
       </div>
     </>
   );

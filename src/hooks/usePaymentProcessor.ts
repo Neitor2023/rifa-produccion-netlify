@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { PaymentFormData } from '@/schemas/paymentFormSchema';
+import { useState, useCallback } from 'react';
+import { PaymentFormData } from '@/types/payment';
 import { ValidatedBuyerInfo } from '@/types/participant';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,28 +27,38 @@ interface CompleteSeller {
 interface UsePaymentProcessorProps {
   raffleSeller: CompleteSeller | null;
   raffleId: string;
-  raffleNumbers: RaffleNumber[]; // Use the imported RaffleNumber type
+  raffleNumbers: RaffleNumber[];
   refetchRaffleNumbers: () => Promise<any>;
   debugMode?: boolean;
   allowVoucherPrint?: boolean;
   reservationDays?: number;
   lotteryDate?: Date;
+  rafflePrice?: number;
 }
 
-export function usePaymentProcessor({
-  raffleSeller,
-  raffleId,
-  raffleNumbers,
-  refetchRaffleNumbers,
-  debugMode = false,
+export const usePaymentProcessor = ({ 
+  raffleSeller, 
+  raffleId, 
+  raffleNumbers, 
+  refetchRaffleNumbers, 
+  debugMode = false, 
   allowVoucherPrint = true,
-  reservationDays,
-  lotteryDate
-}: UsePaymentProcessorProps) {
+  reservationDays = 5,
+  lotteryDate,
+  rafflePrice
+}) => {
+  console.log('[usePaymentProcessor.ts] 🚨 INICIALIZACIÓN CRÍTICA: Hook iniciado con parámetros:', {
+    raffleSellerId: raffleSeller?.id,
+    raffleId,
+    raffleNumbersCount: raffleNumbers?.length || 0,
+    debugMode,
+    allowVoucherPrint,
+    rafflePrice
+  });
+
   // Validar que raffleId esté definido
   if (!raffleId) {
     console.error("❌ Error crítico: raffleId está undefined en usePaymentProcessor");
-    // Usar el valor de RAFFLE_ID como fallback
     raffleId = RAFFLE_ID;
     console.log("⚠️ Usando RAFFLE_ID de constantes como fallback:", RAFFLE_ID);
   }
@@ -57,7 +67,7 @@ export function usePaymentProcessor({
   const completeSeller: CompleteSeller = raffleSeller || {
     id: 'default',
     seller_id: SELLER_ID,
-    cant_max: 100, // Default maximum
+    cant_max: 100,
     active: true,
   };
 
@@ -84,7 +94,8 @@ export function usePaymentProcessor({
     raffleSeller: completeSeller,
     raffleId,
     setValidatedBuyerData: setBuyerInfo,
-    debugMode
+    debugMode,
+    rafflePrice
   });
   
   const { handleReserveNumbers } = useReservationHandling({
@@ -95,6 +106,7 @@ export function usePaymentProcessor({
     debugMode,
     reservationDays,
     lotteryDate,
+    rafflePrice,
     validateSellerMaxNumbers
   });
   
@@ -105,71 +117,109 @@ export function usePaymentProcessor({
     setValidatedBuyerData: setBuyerInfo
   });
 
-  // CORRECCIÓN CRÍTICA: Función modificada para NO limpiar paymentData prematuramente
-  const clearPaymentStateExceptSelectionAndData = () => {
-    console.log("[usePaymentProcessor.ts] 🧹 Limpieza parcial (preservando números seleccionados y paymentData para voucher)");
+  // FUNCIÓN ULTRA-MEJORADA: Limpieza ULTRA-AGRESIVA y COMPLETA de TODAS las variables críticas
+  const clearAllPaymentState = useCallback(() => {
+    console.log("[usePaymentProcessor.ts] 🧹 LIMPIEZA ULTRA-AGRESIVA INICIADA: Ejecutando limpieza total de TODAS las variables críticas");
     
     try {
-      // NO limpiar números seleccionados ni paymentData aquí - se harán cuando se cierre el voucher
-      
-      // Limpiar datos del participante
-      setBuyerInfo(null);
-      console.log("[usePaymentProcessor.ts] ✅ buyerInfo limpiado");
-      
-      // NO limpiar paymentData aquí - se necesita para el voucher
-      console.log("[usePaymentProcessor.ts] ✅ paymentData PRESERVADO para voucher");
-      
-      // Cerrar modales de conflicto pero NO el voucher
-      setIsConflictModalOpen(false);
-      setConflictingNumbers([]);
-      console.log("[usePaymentProcessor.ts] ✅ Modales de conflicto cerrados");
-      
-      console.log("[usePaymentProcessor.ts] ✅ Limpieza parcial completada - manteniendo datos para voucher");
-    } catch (error) {
-      console.error("[usePaymentProcessor.ts] ❌ Error durante limpieza parcial:", error);
-    }
-  };
-
-  // Nueva función para limpieza completa cuando se cierre el voucher
-  const clearAllPaymentState = () => {
-    console.log("[usePaymentProcessor.ts] 🧹 Limpieza COMPLETA tras cierre de voucher");
-    
-    try {
-      // Ahora sí limpiar números seleccionados
+      // 1. Limpiar números seleccionados INMEDIATAMENTE
+      console.log("[usePaymentProcessor.ts] 🔄 Limpiando selectedNumbers de:", selectedNumbers, "a []");
       setSelectedNumbers([]);
-      console.log("[usePaymentProcessor.ts] ✅ selectedNumbers limpiado");
+      console.log("[usePaymentProcessor.ts] ✅ selectedNumbers limpiado a []");
       
-      // Ahora sí limpiar paymentData
+      // 2. Limpiar datos de pago INMEDIATAMENTE
+      console.log("[usePaymentProcessor.ts] 🔄 Limpiando paymentData");
       setPaymentData(null);
       console.log("[usePaymentProcessor.ts] ✅ paymentData limpiado");
       
-      // Limpiar cualquier estado restante
-      setBuyerInfo(null);
-      
-      // Cerrar voucher modal si todavía está abierto
-      setIsVoucherOpen(false);
-      console.log("[usePaymentProcessor.ts] ✅ Modal de voucher cerrado");
-      
-      // Cerrar otros modales
+      // 3. Cerrar TODOS los modales INMEDIATAMENTE
+      console.log("[usePaymentProcessor.ts] 🔄 Cerrando todos los modales");
       setIsPaymentModalOpen(false);
+      setIsVoucherOpen(false);
+      setIsConflictModalOpen(false);
+      console.log("[usePaymentProcessor.ts] ✅ Todos los modales cerrados");
+      
+      // 4. Limpiar números de conflicto INMEDIATAMENTE
+      console.log("[usePaymentProcessor.ts] 🔄 Limpiando conflictingNumbers");
+      setConflictingNumbers([]);
+      console.log("[usePaymentProcessor.ts] ✅ conflictingNumbers limpiado");
+      
+      // 5. Limpiar información del comprador del contexto INMEDIATAMENTE
+      console.log("[usePaymentProcessor.ts] 🔄 Limpiando buyerInfo del contexto");
+      setBuyerInfo(null);
+      console.log("[usePaymentProcessor.ts] ✅ buyerInfo limpiado del contexto");
+      
+      console.log("[usePaymentProcessor.ts] ✅ LIMPIEZA ULTRA-AGRESIVA COMPLETADA - TODAS las variables críticas han sido limpiadas");
+    } catch (error) {
+      console.error("[usePaymentProcessor.ts] ❌ ERROR durante limpieza ultra-agresiva:", error);
+    }
+  }, [setSelectedNumbers, setPaymentData, setIsPaymentModalOpen, setIsVoucherOpen, setIsConflictModalOpen, setConflictingNumbers, setBuyerInfo, selectedNumbers]);
+
+  // FUNCIÓN CORREGIDA: Limpieza post-guardado SIN limpiar selectedNumbers (para el voucher)
+  const clearPaymentStatePostSave = useCallback(() => {
+    console.log("[usePaymentProcessor.ts] 🧹 LIMPIEZA POST-GUARDADO CORREGIDA: Cerrando modal pero preservando selectedNumbers para voucher");
+    
+    try {
+      // CORRECCIÓN CRÍTICA: NO limpiar selectedNumbers - se necesitan para el voucher
+      console.log("[usePaymentProcessor.ts] 🎯 PRESERVANDO selectedNumbers para voucher:", selectedNumbers);
+      
+      // Cerrar modal de pago pero mantener voucher abierto
+      console.log("[usePaymentProcessor.ts] 🔄 POST-SAVE: Cerrando modal de pago");
+      setIsPaymentModalOpen(false);
+      console.log("[usePaymentProcessor.ts] ✅ Modal de pago cerrado post-guardado");
+      
+      // Limpiar conflictos
+      console.log("[usePaymentProcessor.ts] 🔄 POST-SAVE: Limpiando conflictos");
       setIsConflictModalOpen(false);
       setConflictingNumbers([]);
+      console.log("[usePaymentProcessor.ts] ✅ Estados de conflicto limpiados post-guardado");
       
-      console.log("[usePaymentProcessor.ts] ✅ Limpieza COMPLETA finalizada");
+      // NO limpiar paymentData, selectedNumbers, ni buyerInfo - se necesitan para el voucher
+      console.log("[usePaymentProcessor.ts] ✅ LIMPIEZA POST-GUARDADO CORREGIDA COMPLETADA - selectedNumbers preservados");
     } catch (error) {
-      console.error("[usePaymentProcessor.ts] ❌ Error durante limpieza completa:", error);
+      console.error("[usePaymentProcessor.ts] ❌ ERROR durante limpieza post-guardado:", error);
     }
-  };
+  }, [setIsPaymentModalOpen, setIsConflictModalOpen, setConflictingNumbers, selectedNumbers]);
 
   // Create a wrapper for handleCompletePayment with proper modal separation
-  const completePayment = async (formData: PaymentFormData): Promise<ConflictResult | void> => {
+  const handleCompletePaymentWrapper = useCallback(async (data: PaymentFormData) => {
+    console.log('[usePaymentProcessor.ts] 🚨 CRÍTICO: handleCompletePayment INICIADO');
+    console.log('[usePaymentProcessor.ts] 🎯 CORRECCIÓN: rafflePrice disponible:', rafflePrice);
+    console.log('[usePaymentProcessor.ts] 📋 Datos recibidos:', {
+      buyerName: data.buyerName,
+      paymentMethod: data.paymentMethod,
+      hasPaymentProof: !!data.paymentProof,
+      participantId: data.participantId,
+      selectedNumbers: selectedNumbers,
+      selectedCount: selectedNumbers?.length || 0,
+      raffleId,
+      raffleSellerId: raffleSeller?.seller_id,
+      rafflePrice: rafflePrice
+    });
+
+    // VALIDACIÓN CRÍTICA TEMPRANA
+    if (!selectedNumbers || selectedNumbers.length === 0) {
+      console.error('[usePaymentProcessor.ts] ❌ CRÍTICO: selectedNumbers vacío en handleCompletePayment');
+      console.error('[usePaymentProcessor.ts] 📋 Estado selectedNumbers:', selectedNumbers);
+      return { success: false, message: 'No hay números seleccionados' };
+    }
+
+    if (!data.buyerName || data.buyerName.trim() === '') {
+      console.error('[usePaymentProcessor.ts] ❌ CRÍTICO: buyerName vacío');
+      return { success: false, message: 'Nombre del comprador requerido' };
+    }
+
+    if (!raffleSeller || !raffleSeller.seller_id) {
+      console.error('[usePaymentProcessor.ts] ❌ CRÍTICO: raffleSeller inválido:', raffleSeller);
+      return { success: false, message: 'Información del vendedor no disponible' };
+    }
+
     try {
-      console.log("[usePaymentProcessor.ts] 💰 Iniciando proceso de pago completo");
-      console.log("[usePaymentProcessor.ts] 📋 Tipo de pago:", formData.clickedButtonType);
-      console.log("[usePaymentProcessor.ts] 📋 Participante ID:", formData.participantId);
-      console.log("[usePaymentProcessor.ts] 📋 Números seleccionados:", selectedNumbers);
+      console.log('[usePaymentProcessor.ts] 📤 LLAMANDO: handleCompletePayment from completePayment.ts');
+      console.log('[usePaymentProcessor.ts] 🎯 CORRECCIÓN: Pasando rafflePrice:', rafflePrice);
       
-      const result = await handleCompletePayment({ 
+      // Create the handler function with all the dependencies INCLUDING rafflePrice
+      const completePaymentHandler = handleCompletePayment({
         raffleSeller: completeSeller,
         raffleId,
         selectedNumbers,
@@ -179,39 +229,51 @@ export function usePaymentProcessor({
         setIsPaymentModalOpen,
         refetchRaffleNumbers,
         debugMode,
-        allowVoucherPrint
-      })(formData);
+        allowVoucherPrint,
+        rafflePrice
+      });
 
-      // CORRECCIÓN CRÍTICA: Manejar el cierre de modales por separado SIN limpiar paymentData
-      if (!result || (result && result.success)) {
-        console.log("[usePaymentProcessor.ts] ✅ Pago completado exitosamente");
+      // Call the handler with the payment data
+      const result = await completePaymentHandler(data);
+
+      console.log('[usePaymentProcessor.ts] 📨 RESULTADO de handleCompletePayment:', {
+        result,
+        resultType: typeof result,
+        hasResult: !!result
+      });
+
+      // CORRECCIÓN CRÍTICA: Ejecutar limpieza post-guardado SIN selectedNumbers después de operación exitosa
+      if (!result || (result && typeof result === 'object' && 'success' in result && result.success)) {
+        console.log('[usePaymentProcessor.ts] ✅ OPERACIÓN EXITOSA: Ejecutando limpieza post-guardado PRESERVANDO selectedNumbers');
         
-        // Cerrar PaymentModal inmediatamente después del pago exitoso
-        console.log("[usePaymentProcessor.ts] 🚪 Cerrando PaymentModal tras pago exitoso");
-        setIsPaymentModalOpen(false);
-        
-        // CORRECCIÓN: Usar la función que NO limpia paymentData
+        // Ejecutar con un pequeño delay para asegurar que todo se procesó
         setTimeout(() => {
-          console.log("[usePaymentProcessor.ts] 🧹 Ejecutando limpieza parcial SIN afectar paymentData");
-          clearPaymentStateExceptSelectionAndData();
-          
-          // Recargar números para refrescar el estado
-          refetchRaffleNumbers().then(() => {
-            console.log("[usePaymentProcessor.ts] ✅ Números de rifa recargados después de pago");
-          }).catch((error) => {
-            console.error("[usePaymentProcessor.ts] ❌ Error al recargar números:", error);
-          });
-        }, 1000);
-      } else {
-        console.log("[usePaymentProcessor.ts] ⚠️ Pago no exitoso, manteniendo PaymentModal abierto para retry");
+          clearPaymentStatePostSave();
+        }, 100);
       }
 
-      return result;
+      // Handle the result properly
+      if (result && typeof result === 'object') {
+        if ('success' in result && result.success) {
+          return { success: true };
+        } else if ('conflictingNumbers' in result && result.conflictingNumbers && result.conflictingNumbers.length > 0) {
+          return result;
+        } else {
+          return { success: false, message: ('message' in result && result.message) || 'Error en el pago' };
+        }
+      } else {
+        return { success: true };
+      }
     } catch (error) {
-      console.error("[usePaymentProcessor.ts] ❌ Error en completePayment:", error);
-      throw error;
+      console.error('[usePaymentProcessor.ts] ❌ ERROR CRÍTICO en handleCompletePayment:', error);
+      
+      // Limpieza post-error para evitar variables sucias
+      console.log('[usePaymentProcessor.ts] 🧹 ERROR DETECTADO: Ejecutando limpieza post-error ULTRA-AGRESIVA');
+      clearAllPaymentState();
+      
+      return { success: false, message: `Error: ${error}` };
     }
-  };
+  }, [selectedNumbers, raffleSeller, raffleId, raffleNumbers, setIsVoucherOpen, setPaymentData, setIsPaymentModalOpen, refetchRaffleNumbers, debugMode, allowVoucherPrint, rafflePrice, clearPaymentStatePostSave, clearAllPaymentState]);
 
   // Function to verify numbers are not sold by others
   const verifyNumbersNotSoldByOthers = async (numbers: string[]): Promise<ConflictResult> => {
@@ -261,7 +323,7 @@ export function usePaymentProcessor({
 
   const debugLog = (context: string, data: any) => {
     if (debugMode) {
-      console.log(`[DEBUG - ${context}]:`, data);
+      console.log(`[DEBUG - PaymentProcessor - ${context}]:`, data);
     }
   };
 
@@ -286,13 +348,11 @@ export function usePaymentProcessor({
       } : undefined
     });
 
-    // Validar que los números estén definidos y no estén vacíos
     if (!numbers || numbers.length === 0) {
       toast.error('Seleccione al menos un número para comprar');
       return;
     }
     
-    // Validar que raffleId esté definido
     if (!raffleId) {
       console.error("❌ Error: raffleId está undefined en handleProceedToPayment. Abortando ejecución.");
       toast.error("Error de validación: ID de rifa no disponible.");
@@ -304,7 +364,6 @@ export function usePaymentProcessor({
         return;
       }
 
-      // For "Pagar Directo", we need to verify that numbers are not sold by other sellers
       if (clickedButton === "Pagar") {
         const verificationResult = await verifyNumbersNotSoldByOthers(numbers);
         if (!verificationResult.success) {
@@ -318,7 +377,6 @@ export function usePaymentProcessor({
         }
       }
 
-      // Check availability with proper number type conversion
       const unavailableNumbers = await checkNumbersAvailability(numbers);
       if (unavailableNumbers.length > 0) {
         setConflictingNumbers(unavailableNumbers);
@@ -326,13 +384,11 @@ export function usePaymentProcessor({
         return;
       }
       
-      // For "Pagar" flow specifically, we need to clear buyerInfo since this is a new buyer
       if (clickedButton === "Pagar") {
         console.log("🧹 usePaymentProcessor: Clearing buyer info for 'Pagar' flow");
         setBuyerInfo(null);
       }
       
-      // CORRECCIÓN CRÍTICA: Para "Pagar Apartados", establecer la información del participante si existe
       if (clickedButton === "Pagar Apartados" && participantData) {
         console.log("💾 usePaymentProcessor: Setting buyer info for 'Pagar Apartados' flow:", {
           id: participantData.id,
@@ -360,24 +416,20 @@ export function usePaymentProcessor({
         name: participantData.name,
         phone: participantData.phone,
         email: participantData.email || 'Sin email'
-        // Omit sensitive data from logs
       } : undefined
     });
 
-    // Validar que los números estén definidos y no estén vacíos
     if (!numbers || numbers.length === 0) {
-      toast.error('No se han seleccionado números para pagar');
+      toast.error('No se han seleccionados números para pagar');
       return;
     }
     
-    // Validar que participantData esté definido
     if (!participantData) {
       console.error("❌ Error: participantData está undefined en handlePayReservedNumbers");
       toast.error("Error de validación: datos del participante no disponibles");
       return;
     }
     
-    // Validar que raffleId esté definido
     if (!raffleId) {
       console.error("❌ Error: raffleId está undefined en handlePayReservedNumbers. Abortando ejecución.");
       toast.error("Error de validación: ID de rifa no disponible.");
@@ -385,7 +437,6 @@ export function usePaymentProcessor({
     }
 
     try {
-      // Verify numbers are still available and not sold by others
       const verificationResult = await verifyNumbersNotSoldByOthers(numbers);
       if (!verificationResult.success) {
         if (verificationResult.conflictingNumbers && verificationResult.conflictingNumbers.length > 0) {
@@ -397,7 +448,6 @@ export function usePaymentProcessor({
         return;
       }
       
-      // CORRECCIÓN: Asegurar que el teléfono esté en formato correcto antes de establecer buyerInfo
       const updatedParticipantData = {
         ...participantData,
         phone: participantData.phone || '',
@@ -434,11 +484,12 @@ export function usePaymentProcessor({
     handleReserveNumbers,
     handleProceedToPayment,
     handlePayReservedNumbers,
-    handleCompletePayment: completePayment,
+    handleCompletePayment: handleCompletePaymentWrapper,
     verifyNumbersNotSoldByOthers,
     findOrCreateParticipant,
     getSoldNumbersCount,
     allowVoucherPrint,
-    clearAllPaymentState // Exportar función de limpieza completa para uso desde DigitalVoucher
+    clearAllPaymentState,
+    clearPaymentStatePostSave
   };
 }

@@ -19,6 +19,16 @@ export const PaymentFormSchema = z.object({
   participantId: z.string().optional(),
   clickedButtonType: z.string().optional(),
   paymentReceiptUrl: z.string().optional(),
+  selectedBankId: z.string().optional(),
+}).refine((data) => {
+  // If payment method is transfer, selectedBankId is required
+  if (data.paymentMethod === "transfer") {
+    return data.selectedBankId && data.selectedBankId.trim() !== "";
+  }
+  return true;
+}, {
+  message: "Debe seleccionar el banco donde realizó la transferencia",
+  path: ["selectedBankId"],
 });
 
 // Export the interface based on the schema

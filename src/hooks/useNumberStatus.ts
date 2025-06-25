@@ -2,7 +2,15 @@
 import { supabase } from '@/integrations/supabase/client';
 import { RaffleNumber } from '@/lib/constants/types';
 
-export const useNumberStatus = ({ raffleSeller, raffleId, raffleNumbers, debugMode = false, reservationDays = 5, lotteryDate }) => {
+export const useNumberStatus = ({ 
+  raffleSeller, 
+  raffleId, 
+  raffleNumbers, 
+  debugMode = false, 
+  reservationDays = 5, 
+  lotteryDate,
+  rafflePrice = 0
+}) => {
   const debugLog = (context: string, data: any) => {
     if (debugMode) {
       console.log(`[DEBUG - NumberStatus - ${context}]:`, data);
@@ -23,7 +31,8 @@ export const useNumberStatus = ({ raffleSeller, raffleId, raffleNumbers, debugMo
       numbers, 
       status, 
       participantId, 
-      participantData 
+      participantData,
+      rafflePrice
     });
 
     const updatePromises = numbers.map(async (numStr) => {
@@ -83,20 +92,74 @@ export const useNumberStatus = ({ raffleSeller, raffleId, raffleNumbers, debugMo
         updateData.reservation_expires_at = null;
       }
       
+      let raffleNumberResult: any = null;
+      
       if (existingNumber) {
         debugLog(`Updating number ${numStr}`, updateData);
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('raffle_numbers')
           .update(updateData)
-          .eq('id', existingNumber.id);
+          .eq('id', existingNumber.id)
+          .select()
+          .single();
         if (error) throw error;
+        raffleNumberResult = data;
       } else {
         const insertData = { ...updateData, raffle_id: raffleId, number: num };
         debugLog(`Inserting new number ${numStr}`, insertData);
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('raffle_numbers')
-          .insert(insertData);
+          .insert(insertData)
+          .select()
+          .single();
         if (error) throw error;
+        raffleNumberResult = data;
+      }
+
+      // NUEVA LÓGICA: Insertar en raffle_number_reservations cuando el status sea 'reserved'
+      if (status === 'reserved' && raffleNumberResult?.id) {
+        try {
+          // Calculate the reservation expiration date
+          const currentDate = new Date();
+          const daysToAdd = typeof reservationDays === 'number' ? reservationDays : 5;
+          const expirationDate = new Date(currentDate.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
+          
+          let reservationExpiresAt: Date;
+          if (lotteryDate && lotteryDate instanceof Date && !isNaN(lotteryDate.getTime())) {
+            if (expirationDate.getTime() > lotteryDate.getTime()) {
+              reservationExpiresAt = new Date(lotteryDate);
+            } else {
+              reservationExpiresAt = expirationDate;
+            }
+          } else {
+            reservationExpiresAt = expirationDate;
+          }
+          
+          const reservationData = {
+            raffle_number_id: raffleNumberResult.id,
+            reserved_by_seller_id: raffleSeller.seller_id,
+            reserved_by_participant_id: participantId,
+            reservation_created_at: new Date().toISOString(),
+            reservation_expires_at: reservationExpiresAt.toISOString(),
+            reservation_status: 'active',
+            price_at_reservation: rafflePrice,
+            notes: null
+          };
+
+          debugLog(`Insertando reserva en raffle_number_reservations para número ${numStr}`, reservationData);
+          
+          const { data: reservationInsert, error: reservationError } = await supabase
+            .from('raffle_number_reservations')
+            .insert(reservationData);
+
+          if (reservationError) {
+            console.error("[useNumberStatus.ts] ❌ Error al insertar en raffle_number_reservations:", reservationError);
+          } else {
+            console.log("[useNumberStatus.ts] ✅ Reserva registrada en raffle_number_reservations para número:", numStr);
+          }
+        } catch (reservationErr) {
+          console.error("[useNumberStatus.ts] ❌ Error inesperado al procesar reserva para número", numStr, ":", reservationErr);
+        }
       }
     });
     

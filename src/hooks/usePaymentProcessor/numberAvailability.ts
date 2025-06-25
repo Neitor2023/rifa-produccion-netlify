@@ -29,15 +29,16 @@ export function useNumberAvailability({
   // Enhanced function for checking number availability
   const checkNumbersAvailability = async (numbers: string[]): Promise<string[]> => {
     try {
-      // Validar que raffleSeller y raffleNumbers estén definidos
+      // Validar que raffleSeller esté definido
       if (!raffleSeller) {
         console.error("❌ Error: raffleSeller está undefined en checkNumbersAvailability");
-        throw new Error("Información del vendedor no disponible");
+        return []; // Retornar array vacío en lugar de lanzar error
       }
       
+      // Validar que raffleNumbers esté definido
       if (!raffleNumbers || raffleNumbers.length === 0) {
-        console.error("❌ Error: raffleNumbers está vacío en checkNumbersAvailability");
-        throw new Error("Información de números no disponible");
+        console.warn("⚠️ Warning: raffleNumbers está vacío en checkNumbersAvailability");
+        return []; // Retornar array vacío si no hay números para verificar
       }
 
       debugLog("checkNumbersAvailability-input", { numbers });
@@ -80,8 +81,9 @@ export function useNumberAvailability({
       return unavailableNumbers;
     } catch (error) {
       console.error("Error checking number availability:", error);
-      toast.error("Error al verificar disponibilidad de números");
-      return [];
+      // No mostrar toast de error aquí, solo log del error
+      console.warn("⚠️ Error en verificación de disponibilidad, continuando con array vacío");
+      return []; // Retornar array vacío en lugar de mostrar error al usuario
     }
   };
 

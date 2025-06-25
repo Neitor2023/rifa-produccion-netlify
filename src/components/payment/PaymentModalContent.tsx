@@ -14,25 +14,29 @@ import { Organization } from '@/lib/constants/types';
 interface PaymentModalContentProps {
   form: UseFormReturn<PaymentFormData>;
   selectedNumbers: string[];
-  price: number;
+  rafflePrice: number;
   previewUrl: string | null;
   buyerData?: ValidatedBuyerInfo;
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFileRemove: () => void;
   clickedButton?: string;
   organization?: Organization | null;
+  selectedBankId?: string;
+  onBankSelect?: (bankId: string) => void;
 }
 
 const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
   form,
   selectedNumbers,
-  price,
+  rafflePrice,
   previewUrl,
   buyerData,
   onFileUpload,
   onFileRemove,
   clickedButton,
-  organization
+  organization,
+  selectedBankId,
+  onBankSelect
 }) => {
   useEffect(() => {
     if (buyerData) {
@@ -58,7 +62,7 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
                 {/* PaymentSummary todavía está incluido, pero ahora muestra un div vacío */}
                 <PaymentSummary 
                   selectedNumbers={selectedNumbers}
-                  price={price}
+                  price={rafflePrice}
                   clickedButton={clickedButton}
                 />
                 <div className="space-y-6">
@@ -68,6 +72,9 @@ const PaymentModalContent: React.FC<PaymentModalContentProps> = ({
                     previewUrl={previewUrl}
                     onFileUpload={onFileUpload}
                     onFileRemove={onFileRemove}
+                    paymentMethod={form.watch("paymentMethod")}
+                    selectedBankId={selectedBankId}
+                    onBankSelect={onBankSelect}                    
                   />
                 </div>
               </form>

@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
@@ -29,6 +30,9 @@ const DebugModal: React.FC<DebugModalProps> = ({
           <DialogTitle className="text-amber-600 font-semibold">
             {title}
           </DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
+            Información de depuración para análisis técnico
+          </DialogDescription>
         </DialogHeader>
         
         <div className="my-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-md p-2">

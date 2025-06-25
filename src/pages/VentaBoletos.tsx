@@ -7,10 +7,20 @@ import { RAFFLE_ID, SELLER_ID } from '@/utils/setGlobalIdsFromUrl';
 
 const VentaBoletos: React.FC = () => {
   useEffect(() => {
-    console.log("[VentaBoletos.tsx] Página de venta cargada con parámetros:", {
+    console.log("[VentaBoletos.tsx] 🔍 INVESTIGACIÓN: Página de venta cargada con parámetros:", {
       RAFFLE_ID,
-      SELLER_ID
+      SELLER_ID,
+      hayRaffleId: !!RAFFLE_ID,
+      haySellerId: !!SELLER_ID
     });
+    
+    // VALIDACIÓN CRÍTICA: Verificar que los IDs estén disponibles
+    if (!RAFFLE_ID) {
+      console.error("[VentaBoletos.tsx] ❌ CRÍTICO: RAFFLE_ID no está definido");
+    }
+    if (!SELLER_ID) {
+      console.error("[VentaBoletos.tsx] ❌ CRÍTICO: SELLER_ID no está definido");
+    }
   }, []);
 
   return (

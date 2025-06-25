@@ -2,6 +2,7 @@
 import React from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { PaymentFormData } from '@/schemas/paymentFormSchema';
+import { Organization } from '@/lib/constants/types';
 
 interface VoucherContentProps {
   printRef: React.RefObject<HTMLDivElement>;
@@ -19,6 +20,7 @@ interface VoucherContentProps {
   textColor: string;
   numberId?: string;
   paymentProofImage?: string | null;
+  organization?: Organization | null;
 }
 
 const VoucherContent: React.FC<VoucherContentProps> = ({
@@ -31,13 +33,27 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
   qrUrl,
   textColor,
   numberId,
-  paymentProofImage
+  paymentProofImage,
+  organization
 }) => {
   // Calculate total to display based on the actual number of selected numbers
   const totalAmount = raffleDetails ? (raffleDetails.price * selectedNumbers.length) : 0;
 
+  // CORRECCIÓN: Validación de tipo antes de usar .includes()
+  const isValidPaymentProofImage = typeof paymentProofImage === 'string' && paymentProofImage.length > 0;
+  const isFromPaymentProofsBucket = isValidPaymentProofImage ? paymentProofImage.includes('/payment-proofs/') : false;
+
+  console.log('[VoucherContent.tsx] 🔍 CORRECCIÓN: Validación de imagen de comprobante:', {
+    paymentProofImage,
+    esString: typeof paymentProofImage === 'string',
+    esValida: isValidPaymentProofImage,
+    esURL: isValidPaymentProofImage && paymentProofImage.startsWith('http'),
+    longitud: paymentProofImage?.length || 0,
+    bucketCorrecto: isFromPaymentProofsBucket ? 'SÍ (payment-proofs)' : 'NO'
+  });
+
   return (
-    <div ref={printRef} className="print-content p-1">
+    <div ref={printRef} className="print-content p-1" data-voucher-content>
       <div className="p-6 mb-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
         <div className="flex flex-col space-y-4">
           <div className="border-b border-gray-200 dark:border-gray-700 pb-4">
@@ -61,7 +77,7 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-900 dark:text-gray-200">
               <div>
                 <span className="font-semibold">Valor por número: </span>
-                <span>{raffleDetails ? raffleDetails.price.toFixed(2) : '0.00'}</span>
+                <div>{raffleDetails ? raffleDetails.price.toFixed(2) : '0.00'}</div>
               </div>
               <div>
                 <span className="font-semibold">Total a pagar: </span> 
@@ -118,8 +134,8 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
             </div>
           </div>
           
-          {/* Include payment proof image if available, with dynamic title based on payment method */}
-          {paymentProofImage && (
+          {/* CORRECCIÓN: Validación de tipo antes de mostrar comprobante */}
+          {isValidPaymentProofImage && (
             <div className="border-t border-gray-300 dark:border-gray-700 my-2 pt-2">
               <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-300 mb-2">
                 {paymentMethod === 'Efectivo' ? 'Comprobante de Pago en Efectivo' : 'Comprobante de Transferencia'}
@@ -129,8 +145,22 @@ const VoucherContent: React.FC<VoucherContentProps> = ({
                   src={paymentProofImage} 
                   alt="Comprobante de pago" 
                   className="w-auto h-auto max-h-[150px] object-contain"
+                  onLoad={() => {
+                    console.log('[VoucherContent.tsx] ✅ CORRECCIÓN: Imagen de comprobante cargada correctamente desde:', paymentProofImage);
+                    console.log('[VoucherContent.tsx] 🔍 VERIFICACIÓN: Bucket correcto (payment-proofs):', isFromPaymentProofsBucket ? 'SÍ' : 'NO');
+                  }}
+                  onError={(e) => {
+                    console.error('[VoucherContent.tsx] ❌ Error al cargar imagen de comprobante:', paymentProofImage);
+                    console.error('[VoucherContent.tsx] 🔍 URL problemática:', paymentProofImage);
+                  }}
                 />
               </div>
+              {/* CORRECCIÓN: Agregar información de depuración en desarrollo */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="mt-2 text-xs text-gray-400 text-center">
+                  <p>🔍 DEBUG: Bucket correcto: {isFromPaymentProofsBucket ? '✅ payment-proofs' : '❌ bucket incorrecto'}</p>
+                </div>
+              )}
             </div>
           )}
           

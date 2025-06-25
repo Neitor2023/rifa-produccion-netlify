@@ -8,9 +8,16 @@ import { Card, CardHeader } from "@/components/ui/card";
 export interface VoucherHeaderProps {
   onClose: () => void;
   onSaveVoucher: () => Promise<string | null>;
+  allowVoucherPrint?: boolean;
+  textColor?: string;
 }
 
-const VoucherHeader: React.FC<VoucherHeaderProps> = ({ onClose, onSaveVoucher }) => {
+const VoucherHeader: React.FC<VoucherHeaderProps> = ({ 
+  onClose, 
+  onSaveVoucher, 
+  allowVoucherPrint = true,
+  textColor 
+}) => {
   return (
     <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
       <Card className="bg-[#9b87f5] dark:bg-[#7E69AB] shadow-md border-0">
@@ -21,15 +28,17 @@ const VoucherHeader: React.FC<VoucherHeaderProps> = ({ onClose, onSaveVoucher })
         </CardHeader>
       </Card>                  
       <div className="flex space-x-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onSaveVoucher()}
-          className="flex items-center text-green-600 hover:text-white hover:bg-green-600 border-green-600"
-        >
-          <Save className="mr-1 h-4 w-4" />
-          Guardar
-        </Button>
+        {allowVoucherPrint && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onSaveVoucher()}
+            className="flex items-center text-green-600 hover:text-white hover:bg-green-600 border-green-600"
+          >
+            <Save className="mr-1 h-4 w-4" />
+            Guardar
+          </Button>
+        )}
         <DialogClose
           className="rounded-full p-1 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           onClick={onClose}

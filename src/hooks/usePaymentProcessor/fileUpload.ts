@@ -1,6 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { getPaymentProofsBucket } from '@/lib/supabase-env';
+import { uploadPaymentProofToCorrectBucket } from './proofUpload';
 
 interface UploadPaymentProofProps {
   paymentProof: File | string | null;
@@ -8,41 +7,44 @@ interface UploadPaymentProofProps {
   debugLog: (context: string, data: any) => void;
 }
 
+// CORRECCIÓN CRÍTICA: Función que EXCLUSIVAMENTE maneja payment_proof (transferencias)
 export const uploadPaymentProof = async ({
   paymentProof,
   raffleId,
   debugLog
 }: UploadPaymentProofProps): Promise<string | null> => {
+  console.log('[fileUpload.ts] 🔄 INVESTIGACIÓN PROFUNDA: Función uploadPaymentProof llamada');
+  console.log('[fileUpload.ts] 📋 Parámetros:', {
+    tienePaymentProof: !!paymentProof,
+    paymentProofTipo: typeof paymentProof,
+    esFile: paymentProof instanceof File,
+    raffleId
+  });
+  
   if (!paymentProof || !(paymentProof instanceof File)) {
+    console.log('[fileUpload.ts] ⚠️ No hay archivo válido para subir o no es File');
     return typeof paymentProof === 'string' ? paymentProof : null;
   }
+
+  console.log('[fileUpload.ts] 🔄 CORRECCIÓN: Redirigiendo EXCLUSIVAMENTE a uploadPaymentProofToCorrectBucket (bucket payment-proofs)');
+  debugLog('uploadPaymentProof - redirecting to payment-proofs bucket ONLY', { 
+    fileName: paymentProof.name,
+    fileSize: paymentProof.size,
+    fileType: paymentProof.type
+  });
   
-  const bucketName = getPaymentProofsBucket();
+  // CORRECCIÓN CRÍTICA: Usar la función dedicada que va SOLO a payment-proofs
+  const result = await uploadPaymentProofToCorrectBucket({
+    paymentProof,
+    raffleId,
+    debugLog
+  });
   
-  try {
-    console.log(`[fileUpload.ts] 📸 Inicio del guardado de imagen del comprobante en bucket: ${bucketName}`);
-    
-    const fileName = `${raffleId}_${Date.now()}_${paymentProof.name}`;
-    debugLog('Uploading payment proof', { fileName, bucket: bucketName });
-    
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from(bucketName)
-      .upload(fileName, paymentProof);
-    
-    if (uploadError) {
-      console.error(`[fileUpload.ts] 🔴 Error al guardar imagen del comprobante en bucket "${bucketName}":`, uploadError);
-      throw new Error(`Error al subir imagen al bucket "${bucketName}": ${uploadError.message}`);
-    }
-    
-    const { data: urlData } = supabase.storage
-      .from(bucketName)
-      .getPublicUrl(fileName);
-    
-    console.log(`[fileUpload.ts] 🟢 Imagen del comprobante guardada correctamente en bucket "${bucketName}":`, urlData.publicUrl);
-    debugLog('Payment proof uploaded', { url: urlData.publicUrl, bucket: bucketName });
-    return urlData.publicUrl;
-  } catch (error) {
-    console.error(`[fileUpload.ts] 🔴 Error al guardar imagen del comprobante en bucket "${bucketName}":`, error);
-    throw error;
-  }
+  console.log('[fileUpload.ts] 📋 Resultado de uploadPaymentProofToCorrectBucket:', {
+    resultado: result,
+    esValidoURL: result?.startsWith('http'),
+    bucketCorrecto: result?.includes('/payment-proofs/')
+  });
+  
+  return result;
 };

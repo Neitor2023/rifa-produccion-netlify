@@ -101,7 +101,7 @@ export function useRaffleNumbersData(raffleId: string, sellerId: string) {
         buyer_name: existingNumber?.participant_id ? 'Comprador' : null,
         buyer_phone: null,
         payment_method: null,
-        payment_proof: existingNumber?.payment_proof || null,
+        payment_proof: existingNumber?.payment_receipt_url || null, // Use payment_receipt_url instead
         payment_date: null
       });
     }

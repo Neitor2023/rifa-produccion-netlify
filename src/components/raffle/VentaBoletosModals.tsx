@@ -29,7 +29,7 @@ interface VentaBoletosModalsProps {
   isConflictModalOpen?: boolean;
   conflictingNumbers?: string[];
   onConflictModalClose?: () => void;
-  onVoucherClosed?: () => void; // NUEVO: callback para cierre de voucher
+  onVoucherClosed?: () => void;
 }
 
 const VentaBoletosModals: React.FC<VentaBoletosModalsProps> = ({
@@ -50,15 +50,47 @@ const VentaBoletosModals: React.FC<VentaBoletosModalsProps> = ({
   isConflictModalOpen = false,
   conflictingNumbers = [],
   onConflictModalClose = () => {},
-  onVoucherClosed // NUEVO: prop para manejar cierre de voucher
+  onVoucherClosed
 }) => {
+  console.log('[VentaBoletosModals.tsx] 🔍 CRÍTICO: Renderizando con props:', {
+    isPaymentModalOpen,
+    isVoucherOpen,
+    hasPaymentData: !!paymentData,
+    hasOnVoucherClosed: !!onVoucherClosed,
+    selectedNumbersCount: selectedNumbers.length,
+    paymentDataType: paymentData ? typeof paymentData.paymentProof : 'no-payment-data'
+  });
+
+  // CORRECCIÓN CRÍTICA: Wrapper MEJORADO para onVoucherClosed con limpieza AGRESIVA
+  const handleVoucherClosedWrapper = () => {
+    console.log('[VentaBoletosModals.tsx] 🧹 VOUCHER CERRADO: Ejecutando limpieza AGRESIVA completa');
+    
+    // Primero cerrar el voucher
+    setIsVoucherOpen(false);
+    console.log('[VentaBoletosModals.tsx] ✅ Modal de voucher cerrado');
+    
+    // CRÍTICO: Ejecutar limpieza AGRESIVA inmediata si existe la función
+    if (onVoucherClosed && typeof onVoucherClosed === 'function') {
+      console.log('[VentaBoletosModals.tsx] 🚨 CRÍTICO: Ejecutando limpieza AGRESIVA total');
+      
+      // Ejecutar con timeout para asegurar que el modal se cerró primero
+      setTimeout(() => {
+        onVoucherClosed();
+        console.log('[VentaBoletosModals.tsx] ✅ Limpieza AGRESIVA ejecutada con delay');
+      }, 100);
+      
+    } else {
+      console.warn('[VentaBoletosModals.tsx] ⚠️ onVoucherClosed no disponible - limpieza no ejecutada');
+    }
+  };
+
   return (
     <>
       <RaffleModals 
         isPaymentModalOpen={isPaymentModalOpen}
         setIsPaymentModalOpen={setIsPaymentModalOpen}
         isVoucherOpen={isVoucherOpen}
-        setIsVoucherOpen={setIsVoucherOpen}
+        setIsVoucherOpen={handleVoucherClosedWrapper}
         selectedNumbers={selectedNumbers}
         rafflePrice={rafflePrice}
         paymentData={paymentData}
@@ -69,7 +101,7 @@ const VentaBoletosModals: React.FC<VentaBoletosModalsProps> = ({
         raffleDetails={raffleDetails}
         clickedButton={clickedButton}
         organization={organization}
-        onVoucherClosed={onVoucherClosed} // NUEVO: pasar callback de cierre
+        onVoucherClosed={handleVoucherClosedWrapper}
       />
       
       {/* Conflict modal for simultaneous sales issues */}

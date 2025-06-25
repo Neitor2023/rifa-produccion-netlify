@@ -12,6 +12,7 @@ interface UseReservationHandlingProps {
   debugMode?: boolean;
   reservationDays?: number;
   lotteryDate?: Date;
+  rafflePrice?: number;
   validateSellerMaxNumbers: (newNumbersCount: number) => Promise<boolean>;
 }
 
@@ -23,6 +24,7 @@ export function useReservationHandling({
   debugMode = false,
   reservationDays,
   lotteryDate,
+  rafflePrice = 0,
   validateSellerMaxNumbers
 }: UseReservationHandlingProps) {
   
@@ -32,7 +34,8 @@ export function useReservationHandling({
     raffleNumbers, 
     debugMode,
     reservationDays,
-    lotteryDate
+    lotteryDate,
+    rafflePrice
   });
   
   const { findOrCreateParticipant } = useParticipantManager({ 
@@ -52,12 +55,13 @@ export function useReservationHandling({
     buyerPhone?: string,
     buyerName?: string,
     buyerCedula?: string
-  ) => { // Fixed syntax error here, using arrow function syntax
+  ) => {
     console.log("🎯 useReservationHandling: handleReserveNumbers called with:", {
       numbers,
       buyerPhone,
       buyerName,
-      buyerCedula
+      buyerCedula,
+      rafflePrice
     });
   
     // 1. Initial validations
@@ -84,7 +88,8 @@ export function useReservationHandling({
         numbers,
         buyerPhone,
         buyerName,
-        buyerCedula
+        buyerCedula,
+        rafflePrice
       });
   
       // 2. Create or find participant
@@ -96,6 +101,7 @@ export function useReservationHandling({
       }
   
       // 3. Reserve numbers and save data
+      console.log("[useReservationHandling] 🚨 Llamando updateRaffleNumbersStatus con rafflePrice:", rafflePrice);
       await updateRaffleNumbersStatus(
         numbers,
         "reserved",

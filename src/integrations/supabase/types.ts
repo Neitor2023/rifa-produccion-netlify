@@ -9,6 +9,24 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      banks: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       fraud_reports: {
         Row: {
           created_at: string | null
@@ -343,6 +361,115 @@ export type Database = {
           },
         ]
       }
+      raffle_number_reservations: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          price_at_reservation: number | null
+          raffle_number_id: string
+          reservation_created_at: string
+          reservation_expires_at: string | null
+          reservation_status: string
+          reserved_by_participant_id: string | null
+          reserved_by_seller_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          price_at_reservation?: number | null
+          raffle_number_id: string
+          reservation_created_at?: string
+          reservation_expires_at?: string | null
+          reservation_status?: string
+          reserved_by_participant_id?: string | null
+          reserved_by_seller_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          price_at_reservation?: number | null
+          raffle_number_id?: string
+          reservation_created_at?: string
+          reservation_expires_at?: string | null
+          reservation_status?: string
+          reserved_by_participant_id?: string | null
+          reserved_by_seller_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "raffle_number_reservations_raffle_number_id_fkey"
+            columns: ["raffle_number_id"]
+            isOneToOne: false
+            referencedRelation: "raffle_numbers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "raffle_number_reservations_reserved_by_participant_id_fkey"
+            columns: ["reserved_by_participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "raffle_number_reservations_reserved_by_seller_id_fkey"
+            columns: ["reserved_by_seller_id"]
+            isOneToOne: false
+            referencedRelation: "sellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      raffle_number_transfers: {
+        Row: {
+          bank_id: string | null
+          created_at: string | null
+          id: string
+          payment_proof: string | null
+          price: number
+          raffle_number_id: string
+          transfer_date: string
+        }
+        Insert: {
+          bank_id?: string | null
+          created_at?: string | null
+          id?: string
+          payment_proof?: string | null
+          price: number
+          raffle_number_id: string
+          transfer_date: string
+        }
+        Update: {
+          bank_id?: string | null
+          created_at?: string | null
+          id?: string
+          payment_proof?: string | null
+          price?: number
+          raffle_number_id?: string
+          transfer_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "raffle_number_transfers_bank_id_fkey"
+            columns: ["bank_id"]
+            isOneToOne: false
+            referencedRelation: "banks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "raffle_number_transfers_raffle_number_id_fkey"
+            columns: ["raffle_number_id"]
+            isOneToOne: false
+            referencedRelation: "raffle_numbers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       raffle_numbers: {
         Row: {
           created_at: string | null
@@ -352,7 +479,6 @@ export type Database = {
           participant_id: string | null
           payment_approved: boolean | null
           payment_method: string | null
-          payment_proof: string | null
           payment_receipt_url: string | null
           raffle_id: string | null
           reservation_expires_at: string | null
@@ -368,7 +494,6 @@ export type Database = {
           participant_id?: string | null
           payment_approved?: boolean | null
           payment_method?: string | null
-          payment_proof?: string | null
           payment_receipt_url?: string | null
           raffle_id?: string | null
           reservation_expires_at?: string | null
@@ -384,7 +509,6 @@ export type Database = {
           participant_id?: string | null
           payment_approved?: boolean | null
           payment_method?: string | null
-          payment_proof?: string | null
           payment_receipt_url?: string | null
           raffle_id?: string | null
           reservation_expires_at?: string | null

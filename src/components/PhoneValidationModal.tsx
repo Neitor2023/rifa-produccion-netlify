@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
@@ -107,6 +108,20 @@ const PhoneValidationModal: React.FC<PhoneValidationModalProps> = ({
   const [isNumberMismatchDialogOpen, setIsNumberMismatchDialogOpen] = useState(false);
   const [reservedNumbers, setReservedNumbers] = useState<string[]>([]);
   const [participantFound, setParticipantFound] = useState<ValidatedBuyerInfo | null>(null);
+
+  // 🧹 LIMPIEZA DEL INPUT DE TELÉFONO AL CERRAR EL MODAL
+  useEffect(() => {
+    if (!isOpen) {
+      console.log("[PhoneValidationModal.tsx] 🧹 Modal cerrado - limpiando input de teléfono");
+      setPhone('');
+      setIsSearching(false);
+      setIsNoReservedNumbersDialogOpen(false);
+      setIsNumberMismatchDialogOpen(false);
+      setReservedNumbers([]);
+      setParticipantFound(null);
+      console.log("[PhoneValidationModal.tsx] ✅ Input de teléfono y estados limpiados completamente");
+    }
+  }, [isOpen]);
 
   const handleNumberSubmit = async () => {
     if (!validation.isValid) {
